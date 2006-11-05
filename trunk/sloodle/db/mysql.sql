@@ -6,10 +6,11 @@ userid int(10) unsigned not null,
 uuid varchar(255) not null default '',
 avname varchar(255) not null default '',
 loginposition varchar(255) not null default '',
-loginpositionexpires varchar(255) not null default ''
+loginpositionexpires varchar(255) not null default '',
 PRIMARY KEY  (`id`),
-UNIQUE (`userid`,`uuid`)
-)
+UNIQUE (`userid`),
+UNIQUE (`uuid`)
+);
 
 create table prefix_sloodle_config
 ( 
