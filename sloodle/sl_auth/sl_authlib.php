@@ -148,7 +148,7 @@
 
 	}
 
-	function sloodle_prim_loginzone_login($loginpositionfromprim, $alternativeloginpositionfromprim) {
+	function sloodle_prim_loginzone_login($loginpositionfromprim) {
 
 		global $USER;
 
@@ -166,12 +166,6 @@
 		} else {
 
 			$u = get_record('sloodle_users', 'loginposition', $loginpositionfromprim);
-
-			if (!$u) {
-
-				$u = get_record('sloodle_users', 'loginposition', $alternativeloginpositionfromprim);
-
-			}
 
 			if ($u) {
 

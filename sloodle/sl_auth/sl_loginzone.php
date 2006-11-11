@@ -30,28 +30,24 @@
 	// request should look like this:
 	// loginzone.php?pwd=drUs3-9dE&req=userinfo&avatarname=Edmund%20Earp&avataruuid=746ad236-d28d-4aab-93de-1e09a076c5f3&pos=<106.00000,87.00000,183.62387>&avsize=<0.45000,0.60000,1.98418>
 	
-		// the avatar should land right in the middle of the zone.
-		// ...but the collision will occur with the furthest point in the direction the avatar moves, which should be down.
-		$posarr = sloodle_vector_to_array($pos);
-		$posarr = sloodle_round_vector_array($posarr);
-
-		$alternativeposarr = $posarr;
-		$alternativeposarr['z'] = $posarr['z']-1;
-		//$avsizearr = sloodle_vector_to_array($avsize);
-		//$recordedpos = array();
-		//$recordedpos['x'] = $posarr['x'];
-		//$recordedpos['y'] = $posarr['y'];
-		//$recordedpos['z'] = $posarr['z'];
-			
-		$loginpositionfromprim = sloodle_array_to_vector($posarr);
-		$alternativeloginpositionfromprim = sloodle_array_to_vector($alternativeposarr);
-
-		// First, try a conventional login.
+		// First, try a conventional login in case the user has been here before.
 		list($u, $errors) = sloodle_prim_user_login();
-
-		// If that fails, try using the login position.
 		if (!$u) {
-			list($u, $errors) = sloodle_prim_loginzone_login($loginpositionfromprim,$alternativeloginpositionfromprim);
+
+			// the avatar should land right in the middle of the zone.
+			// ...but the collision will occur with the furthest point in the direction the avatar moves, which should be down.
+			$posarr = sloodle_vector_to_array($pos);
+			$posarr = sloodle_round_vector_array($posarr);
+
+			// For reasons I don't understand the avatar always appears either at exactly the place specified (round number) or 1.something meters above.
+			// So if it's a round number, use it as is. If not, subtract 1.
+			if (!preg_match('/\.00000>$/',$pos)) {
+				$posarr['z'] = $posarr['z']-1;
+			}
+
+			$loginpositionfromprim = sloodle_array_to_vector($posarr);
+			list($u, $errors) = sloodle_prim_loginzone_login($loginpositionfromprim);
+
 		}
 
 		$data = array($avatarname);
@@ -60,6 +56,7 @@
 		} else {
 			sloodle_prim_render_error($data);
 		}
+
 	}
 
 ?>
