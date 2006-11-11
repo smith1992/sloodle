@@ -72,8 +72,8 @@ define('PARAM_SAFEDIR',  0x4000);  // safe directory name, suitable for include(
 	
 // PA: This added for version 2 - it requires the Chat bot account be logged in to Moodle AND the chat room before it will log chat - this stops spamming.  Removed for the demo.
 
-    if (!$chatuser = get_record('chat_users', 'userid', $sl_userid)) {
-        error('Not logged in!  Please log the chatbot INTO the chat room you wish to use.'); //PA: This Uses Moodle's built in Error handler - :o)
+//    if (!$chatuser = get_record('chat_users', 'userid', $sl_userid)) {
+//        error('Not logged in!  Please log the chatbot INTO the chat room you wish to use.'); //PA: This Uses Moodle's built in Error handler - :o)
 	    }
 
 //PA: This whole section is not needed.	
