@@ -1,7 +1,5 @@
 <?php
 
-	require('config.php');
-
 	function sloodle_prim_render_errors($errors,$type='MISC',$doDie=true) {
 		print 'ERROR|'.$type.'|'.join('|',$errors);
 		if ($doDie) {

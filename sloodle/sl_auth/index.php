@@ -1,6 +1,7 @@
 <?php
 
-	require_once('locallib.php');
+	require_once('../config.php');
+	require_once('../locallib.php');
 
 	$sloodleerrors = array();
 
@@ -38,7 +39,7 @@
 	}
 
 	// Anything from now on is for access by a prim taling to us from SL.
-	require('sloodle_auth.php');
+	require('sl_auth.php');
 
 	if (count($sloodleerrors) > 0) {
 		sloodle_prim_render_errors($sloodleerrors);
