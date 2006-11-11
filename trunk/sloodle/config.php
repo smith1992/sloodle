@@ -11,7 +11,9 @@
 	*  TODO: It would be better to set this when the user first installs the module, and keep it in the database
 	*/
 	define('SLOODLE_PRIM_PASSWORD', 'drUs3-9dE');
-	define('SLOODLE_ROOT', $CFG->wwwroot.'/mod/sloodle');
+	define('SLOODLE_WWWROOT', $CFG->wwwroot.'/mod/sloodle');
+	define('SLOODLE_DIRROOT', $CFG->dirroot.'/mod/sloodle');
+
 
 	// Configuration ends
 

@@ -8,7 +8,7 @@
 
 	require_login($course->id, false, $cm);
 
-	$userinfourl = SLOODLE_ROOT.'/sl_auth/sl_userinfo.php';
+	$userinfourl = SLOODLE_WWWROOT.'/sl_auth/sl_userinfo.php';
 	$pasteurl = $userinfourl.'?pwd='.SLOODLE_PRIM_PASSWORD;
 
 	if (isadmin()) {
