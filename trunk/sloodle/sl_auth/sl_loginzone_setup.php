@@ -5,8 +5,8 @@
 
 	$sloodleerrors = array();
 
-	print_header('Sloodle avatar gateway', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle avatar gateway');
+	print_header('Sloodle login zone', '', '', '', false, '', '', false, '');
+	print_heading('Sloodle logon zone');
 
 	$loginzoneurl = SLOODLE_WWWROOT.'/sl_auth/sl_loginzone.php';
 	$pasteurl = $loginzoneurl.'?pwd='.SLOODLE_PRIM_PASSWORD;
@@ -20,13 +20,13 @@
 		print_simple_box('You need to tell your prim to use the following URL to talk to Moodle:<br />'.$pasteurl, "center");
 	}
 
-	/*
-	TODO: Make script appear here...
-	echo '<textarea rows="40" cols="20">';
-
+	$subs = array('SLOODLE_SCRIPT_URL_WITH_PASSWORD'=>$pasteurl);
+	$scriptcontent = sloodle_lsl_output_substitution('lsl/sl_auth/LoginZone.txt',$subs);
+	echo '<div align="center">';
+	echo '<textarea rows="20" cols="80">';
+	echo $scriptcontent;
 	echo '</textarea>';
-	"SLOODLE_SCRIPT_URL_WITH_PASSWORD"
-	*/
+	echo '</div>';
 
 	print_footer();
 

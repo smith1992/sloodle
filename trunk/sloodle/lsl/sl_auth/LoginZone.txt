@@ -12,7 +12,7 @@ integer clearAvatarsDoneListTiming = 3600; // While testing, we'll clear out the
 // The following will need to be set for each Moodle installation.
 // It can be copied into the prim from a screen in Sloodle.
 // We'll need to figure out how to manage this if a lot of different prims all need the same info.
-string moodleinstall = "http://sl.edochan.com/moodle/moodle/mod/sloodle/loginzone.php?pwd=drUs3-9dE";
+string moodleinstall = "SLOODLE_SCRIPT_URL_WITH_PASSWORD";
 
 key http_id; 
 

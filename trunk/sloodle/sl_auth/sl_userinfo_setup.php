@@ -19,6 +19,14 @@
 		print_simple_box('You need to tell your prim to use the following URL to talk to Moodle:<br />'.$pasteurl, "center");
 	}
 
+	$subs = array('SLOODLE_SCRIPT_URL_WITH_PASSWORD'=>$pasteurl);
+	$scriptcontent = sloodle_lsl_output_substitution('lsl/sl_auth/LoginZone.txt',$subs);
+	echo '<div align="center">';
+	echo '<textarea rows="20" cols="80">';
+	echo $scriptcontent;
+	echo '</textarea>';
+	echo '</div>';
+
 	print_footer();
 
 	exit;

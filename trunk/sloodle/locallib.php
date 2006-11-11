@@ -46,4 +46,29 @@
 		return false;
 	}
 
+	function sloodle_lsl_output($script) { // eg. lsl/sl_auth/ExperimentalLoginClient.txt (relative to SLOODLE_DIRROOT)
+		$filename = SLOODLE_DIRROOT.'/'.$script;
+		$handle = fopen($filename, "r");
+		$contents = fread($handle, filesize($filename));
+		fclose($handle);
+		return $contents;
+
+	}
+
+	function sloodle_lsl_output_substitution($script, $subs) {
+
+		if ($contents = sloodle_lsl_output($script)) {
+			foreach ($subs as $k=>$v) {
+				$contents = preg_replace('/'.$k.'/',$v,$contents);
+				return $contents;
+			} 
+		} else {
+			return false;
+		}
+	}
+
+	function sloodle_require_setup_done($feature) {
+
+	}
+
 ?>

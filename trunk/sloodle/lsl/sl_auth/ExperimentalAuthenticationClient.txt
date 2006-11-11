@@ -5,7 +5,7 @@ key http_id;
 key VIDEO_DEFAULT = "6e0f05ad-1809-4edc-df29-fae3d2a6c9b8";  
 // Set the texture to the jpeg provided by url
 
-string moodleinstall = "http://sl.edochan.com/moodle/moodle/mod/sloodle/index.php?pwd=drUs3-9dE";
+string moodleinstall = "SLOODLE_SCRIPT_URL_WITH_PASSWORD";
 
 seturl(string url) 
 {
@@ -25,7 +25,7 @@ default
     state_entry()
     {
         // set a default jpeg
-        seturl("http://sl.edochan.com/moodle/moodle/theme/formal_white/logo.jpg");
+        //seturl("http://sl.edochan.com/moodle/moodle/theme/formal_white/logo.jpg");
         // start listening for nearby speech
         llListen(1,"",NULL_KEY,"");
         // start sensing nearby agents once a minute
