@@ -1,6 +1,7 @@
 <?php
 
-	require_once('locallib.php');
+	require_once('../config.php');
+	require_once('../locallib.php');
 
 	$sloodleerrors = array();
 
