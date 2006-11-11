@@ -1,5 +1,9 @@
 <?php
 
+	function sloodle_get_prim_password() {
+		
+	}
+
 	function sloodle_prim_require_script_authentication() {
 	// Check the prim is allowed to talk to us.
 	// Right now we're doing this using a password, but in future we may also want to let the administrator keep a list of authenticated object uuids.
