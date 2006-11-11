@@ -2,8 +2,8 @@
 	// Edited by Paul Andrews for the Sloodle project.
 	//This file should sit in the www ROOT dir of you main Moodle course.
 
-    include($CFG->dirroot .'config.php');
-    include($CFG->dirroot .'mod/chat/lib.php');
+    require_once('../../../../config.php');
+    require_once($CFG->dirroot .'/mod/chat/lib.php');
 
 //    $chat_sid     = required_param('chat_sid', PARAM_ALPHANUM); << PA: don't need this as we are putting data straight into the DB w.out user authentication...
 /* 
