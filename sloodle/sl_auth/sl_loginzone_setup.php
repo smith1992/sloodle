@@ -8,7 +8,7 @@
 	print_header('Sloodle avatar gateway', '', '', '', false, '', '', false, '');
 	print_heading('Sloodle avatar gateway');
 
-	$loginzoneurl = SLOODLE_ROOT.'/sl_auth/sl_loginzone.php';
+	$loginzoneurl = SLOODLE_WWWROOT.'/sl_auth/sl_loginzone.php';
 	$pasteurl = $loginzoneurl.'?pwd='.SLOODLE_PRIM_PASSWORD;
 
 	require_login($course->id, false, $cm);
