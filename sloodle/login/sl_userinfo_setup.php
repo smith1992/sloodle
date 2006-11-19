@@ -20,7 +20,7 @@
 	}
 
 	$subs = array('SLOODLE_SCRIPT_URL_WITH_PASSWORD'=>$pasteurl);
-	$scriptcontent = sloodle_lsl_output_substitution('login/lsl/LoginZone.txt',$subs);
+	$scriptcontent = sloodle_lsl_output_substitution('login/lsl/ExperimentalAuthenticationClient.txt',$subs);
 	echo '<div align="center">';
 	echo '<textarea rows="20" cols="80">';
 	echo $scriptcontent;
