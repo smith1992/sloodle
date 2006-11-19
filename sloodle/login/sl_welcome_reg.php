@@ -50,7 +50,7 @@ We expect users to arrive at this page using a URL issued in SL with the followi
 	}
 
 	print '<center>';
-	print_simple_box('Welcome to Moodle, '.$su->avname);
+	print_simple_box('Welcome to Moodle, '.$sloodleuser->avname);
 	print '</center>';
 	print_footer();
 	exit;
