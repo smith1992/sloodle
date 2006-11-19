@@ -31,7 +31,7 @@
 	}
 	
 	function sloodle_get_sloodle_user_for_security_code($sc) {
-		return get_record('sloodle_users','loginsecuritycode',$sc);
+		return get_record('sloodle_users','loginsecuritytoken',$sc);
 	}
 
 	function sloodle_match_sloodle_user_to_current_user($sloodleuser) {
@@ -40,7 +40,7 @@
 			return false;
 		}
 		$sloodleuser->userid = $USER->id;
-		return update_record('sloodle_users', $u);
+		return update_record('sloodle_users', $sloodleuser);
 	}
 
 	// registers a sloodle user, with a security code, returns the registered user 

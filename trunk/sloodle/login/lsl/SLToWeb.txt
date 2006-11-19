@@ -15,8 +15,7 @@ listen(integer channel, string name, key id, string message)
 touch_start(integer total_number)
 {
 // ask the server for a jpeg appropriate to the agent who touched us
-string url = 
-moodleinstall+"&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(string)llDetectedKey(0);
+string url = moodleinstall+"&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(string)llDetectedKey(0);
 llWhisper(0,"Requesting login URL for "+llDetectedName(0));
 http_id = llHTTPRequest(url,[],"");
 }
@@ -38,7 +37,7 @@ llWhisper(0,llList2String(data,i));
 } else {
 key uuid = llList2Key(data,1);
 string code = llList2String(data,2);                    
-llLoadURL(uuid,"http://moodle.edochan.com/mod/sloodle/login/sl_welcome_reg.php?lsc="+code,"Go here and login to Moodle");
+llLoadURL(uuid,"Go here and login to Moodle","SLOODLE_URL_TARGET?lsc="+code);
 
 }
 }
