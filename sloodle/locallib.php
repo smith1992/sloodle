@@ -60,8 +60,8 @@
 		if ($contents = sloodle_lsl_output($script)) {
 			foreach ($subs as $k=>$v) {
 				$contents = preg_replace('/'.$k.'/',$v,$contents);
-				return $contents;
 			} 
+			return $contents;
 		} else {
 			return false;
 		}
