@@ -30,6 +30,19 @@
 
 	}
 	
+	function sloodle_get_sloodle_user_for_security_code($sc) {
+		return get_record('sloodle_users','loginsecuritycode',$sc);
+	}
+
+	function sloodle_match_sloodle_user_to_current_user($sloodleuser) {
+		global $USER;
+		if ( ($USER == null) || ($USER->id == null) ) {
+			return false;
+		}
+		$sloodleuser->userid = $USER->id;
+		return update_record('sloodle_users', $u);
+	}
+
 	// registers a sloodle user, with a security code, returns the registered user 
 	function sloodle_prim_register_sloodle_only($avname,$uuid) {
 
