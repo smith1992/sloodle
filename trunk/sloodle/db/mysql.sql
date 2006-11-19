@@ -7,6 +7,8 @@ uuid varchar(255) not null default '',
 avname varchar(255) not null default '',
 loginposition varchar(255) not null default '',
 loginpositionexpires varchar(255) not null default '',
+loginpositionregion varchar(255) not null default '',
+loginsecuritytoken varchar(255) not null default '',
 PRIMARY KEY  (`id`),
 UNIQUE (`userid`),
 UNIQUE (`uuid`)
