@@ -3,14 +3,15 @@
 	require_once('../config.php');
 	require_once('../locallib.php');
 
-	print_header('Sloodle user info setup', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle user info setup');
+	$sloodleerrors = array();
+
+	print_header('Sloodle login zone', '', '', '', false, '', '', false, '');
+	print_heading('Sloodle logon zone');
+
+	$loginzoneurl = SLOODLE_WWWROOT.'/login/sl_loginzone.php';
+	$pasteurl = $loginzoneurl.'?pwd='.SLOODLE_PRIM_PASSWORD;
 
 	require_login($course->id, false, $cm);
-
-	$userinfourl = SLOODLE_WWWROOT.'/sl_auth/sl_userinfo.php';
-	$pasteurl = $userinfourl.'?pwd='.SLOODLE_PRIM_PASSWORD;
-
 	if (isadmin()) {
 		print_simple_box('You need to tell your prim to use the following URL to talk to Moodle:<br />'.$pasteurl, "center");
 	} else {
@@ -20,7 +21,7 @@
 	}
 
 	$subs = array('SLOODLE_SCRIPT_URL_WITH_PASSWORD'=>$pasteurl);
-	$scriptcontent = sloodle_lsl_output_substitution('lsl/sl_auth/LoginZone.txt',$subs);
+	$scriptcontent = sloodle_lsl_output_substitution('login/lsl/LoginZone.txt',$subs);
 	echo '<div align="center">';
 	echo '<textarea rows="20" cols="80">';
 	echo $scriptcontent;
