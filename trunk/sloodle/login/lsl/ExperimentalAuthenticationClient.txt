@@ -1,5 +1,4 @@
-// A place to remember the ID for the latest http request we made, so the callback doesn't process out-of-order 
-responses
+// A place to remember the ID for the latest http request we made, so the callback doesn't process out-of-order responses
 key http_id; 
 // Test pattern - Used as default video texture when one is missing in parcel media
 key VIDEO_DEFAULT = "6e0f05ad-1809-4edc-df29-fae3d2a6c9b8";  
