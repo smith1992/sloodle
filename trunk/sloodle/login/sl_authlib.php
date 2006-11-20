@@ -246,10 +246,10 @@
 
 		// If we can find got an avatar uuid, we'll use it.
 		// Otherwise, use the avatar name.
-		$avataruuid = optional_param('avataruuid',null,PARAM_RAW);
-		$avatarname = optional_param('avatarname',null,PARAM_RAW);
+		$uuid = optional_param('uuid',null,PARAM_RAW);
+		$avname = optional_param('avname',null,PARAM_RAW);
 
-		if ( ($avatarname == null) || ($avataruuid == null) || ($loginpositionfromprim == null) ) {
+		if ( ($avname == null) || ($uuid == null) || ($loginpositionfromprim == null) ) {
 
 			$errors[] = 'Missing arguments';
 
@@ -268,8 +268,8 @@
 
 					// Must be the first time the user has come here through SL.
 					// Stick their avatar uuid in the database.
-					$u->uuid = $avataruuid;
-					$u->avname = $avatarname;
+					$u->uuid = $uuid;
+					$u->avname = $avname;
 					$updated = update_record('sloodle_users', $u);
 					if (!$updated) {
 						$errors[] = 'Could not update user table with avatar uuid';
@@ -301,27 +301,27 @@
 
 		// If we can find got an avatar uuid, we'll use it.
 		// Otherwise, use the avatar name.
-		$avataruuid = optional_param('avataruuid',null,PARAM_RAW);
-		$avatarname = optional_param('avatarname',null,PARAM_RAW);
+		$uuid = optional_param('uuid',null,PARAM_RAW);
+		$avname = optional_param('avname',null,PARAM_RAW);
 
 		$errors = array();
 
 		$u = null;
 
-		if ( ($avataruuid != null) && ($avataruuid != '') ) {
-			$u = get_record('sloodle_users', 'uuid', $avataruuid);
+		if ( ($uuid != null) && ($uuid != '') ) {
+			$u = get_record('sloodle_users', 'uuid', $uuid);
 		}
 
 		if (!$u) {
 
-			if ( ($avatarname != null) && ($avatarname != '') ) {
-				$u = get_record('sloodle_users', 'avname', $avatarname);
+			if ( ($avname != null) && ($avname != '') ) {
+				$u = get_record('sloodle_users', 'avname', $avname);
 			}
 			if ($u) {
 				// Must be the first time the user has come here through SL.
 				// Stick their avatar uuid in the database.
-				$u->uuid = $avataruuid;
-				$u->avname = $avatarname;
+				$u->uuid = $uuid;
+				$u->avname = $avname;
 				$updated = update_record('sloodle_users', $u);
 				if (!$updated) {
 					$errors[] = 'Could not update user table with avatar uuid';
