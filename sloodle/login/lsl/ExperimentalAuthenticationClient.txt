@@ -37,7 +37,7 @@ default
     {
         // ask the server for a jpeg appropriate to the agent who touched us
         string url = 
-moodleinstall+"&req=userinfo&avatarname="+llEscapeURL(llDetectedName(0))+"&avataruuid="+(string)llDetectedKey(0);
+moodleinstall+"&req=userinfo&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(string)llDetectedKey(0);
         llWhisper(0,"Looking up user info for "+llDetectedName(0));
         llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_STOP]);
         http_id = llHTTPRequest(url,[],"");

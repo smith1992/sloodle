@@ -1,6 +1,11 @@
 <?php // $Id: signup.php,v 1.45 2006/04/12 01:32:15 moodler Exp $
 
     require_once("../config.php");
+	require_once('../locallib.php');
+	require_once('sl_authlib.php');
+	print 'ok';
+	exit;
+
     require_once("../auth/$CFG->auth/lib.php");
 
     //HTTPS is potentially required in this page

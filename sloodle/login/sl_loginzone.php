@@ -16,7 +16,7 @@
 	$pos = optional_param('pos',null,PARAM_RAW);
 	$size = optional_param('size',null,PARAM_RAW);
 	$region = optional_param('region',null,PARAM_RAW);
-	$avatarname = optional_param('avatarname',null,PARAM_RAW);
+	$avname = optional_param('avname',null,PARAM_RAW);
 	if ( ($pos != null) && ($size != null) && ($region) ) {
 		if (sloodle_set_config('loginzonepos',$pos) && sloodle_set_config('loginzonesize',$size) && sloodle_set_config('loginzoneregion',$region)) {
 			sloodle_prim_render_output($data);
@@ -25,10 +25,10 @@
 		}
 		exit;
 
-	} else if ($avatarname != null) {
+	} else if ($avname != null) {
 	// the avatar has just arrived in the landing zone
 	// request should look like this:
-	// loginzone.php?pwd=drUs3-9dE&req=userinfo&avatarname=Edmund%20Earp&avataruuid=746ad236-d28d-4aab-93de-1e09a076c5f3&pos=<106.00000,87.00000,183.62387>&avsize=<0.45000,0.60000,1.98418>
+	// loginzone.php?pwd=drUs3-9dE&req=userinfo&avname=Edmund%20Earp&uuid=746ad236-d28d-4aab-93de-1e09a076c5f3&pos=<106.00000,87.00000,183.62387>&avsize=<0.45000,0.60000,1.98418>
 	
 		// First, try a conventional login in case the user has been here before.
 		list($u, $errors) = sloodle_prim_user_login();
@@ -50,7 +50,7 @@
 
 		}
 
-		$data = array($avatarname);
+		$data = array($avname);
 		if ($u) {
 			sloodle_prim_render_output($data);
 		} else {
