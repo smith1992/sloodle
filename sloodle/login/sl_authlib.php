@@ -26,6 +26,9 @@
 	function sloodle_get_sloodle_user_for_moodle_user($mu) {
 		// return a sloodle user record if it exists, null if it doesn't.
 		$userid = $mu->id;
+		if ($userid == null) {
+			return null;
+		}
 		return get_record('sloodle_users','userid',$userid);
 
 	}
