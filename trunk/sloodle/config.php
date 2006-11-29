@@ -10,7 +10,6 @@
 	*  This password needs to be communicated to the prim that will be accessing sloodle.
 	*  TODO: It would be better to set this when the user first installs the module, and keep it in the database
 	*/
-	define('SLOODLE_PRIM_PASSWORD', 'drUs3-9dE');
 	define('SLOODLE_WWWROOT', $CFG->wwwroot.'/mod/sloodle');
 	define('SLOODLE_DIRROOT', $CFG->dirroot.'/mod/sloodle');
 

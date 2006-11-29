@@ -1,9 +1,5 @@
 <?php
 
-	function sloodle_get_prim_password() {
-		
-	}
-
 	function sloodle_prim_require_script_authentication() {
 	// Check the prim is allowed to talk to us.
 	// Right now we're doing this using a password, but in future we may also want to let the administrator keep a list of authenticated object uuids.
@@ -13,7 +9,7 @@
 		if ($pwd == null) {
 			sloodle_prim_render_error('Prim password missing. Could not verify that the object sending this request was allowed to talk to me.');
 			exit;
-		} else if ($pwd != SLOODLE_PRIM_PASSWORD) {
+		} else if ($pwd != sloodle_prim_password()) {
 			sloodle_prim_render_error('Sloodle Prim Password did not match the one set in the sloodle module configuration');
 			exit;
 		}
@@ -112,6 +108,17 @@
 		$sc = '';
 		$str="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	    for($length = 0; $length < 16; $length++) {
+			$str= str_shuffle($str);
+			$char = mt_rand(0, strlen($str));
+		    $sc.= $str[$char];
+		}
+		return $sc;
+	}
+
+	function sloodle_random_web_password() {
+		$sc = '';
+		$str="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&'()=~-^";
+	    for($length = 0; $length < 8; $length++) {
 			$str= str_shuffle($str);
 			$char = mt_rand(0, strlen($str));
 		    $sc.= $str[$char];

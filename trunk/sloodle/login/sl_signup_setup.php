@@ -9,7 +9,7 @@
 	require_login();
 
 	$signupurl = SLOODLE_WWWROOT.'/login/sl_sloodle_reg.php';
-	$pasteurl = $signupurl.'?pwd='.SLOODLE_PRIM_PASSWORD;
+	$pasteurl = $signupurl.'?pwd='.sloodle_prim_password();
 	$userclickurl = SLOODLE_WWWROOT.'/login/sl_welcome_reg.php';
 
 	if (isadmin()) {

@@ -9,7 +9,7 @@
 	print_heading('Sloodle logon zone');
 
 	$loginzoneurl = SLOODLE_WWWROOT.'/login/sl_loginzone.php';
-	$pasteurl = $loginzoneurl.'?pwd='.SLOODLE_PRIM_PASSWORD;
+	$pasteurl = $loginzoneurl.'?pwd='.sloodle_prim_password();
 
 	require_login($course->id, false, $cm);
 	if (isadmin()) {
