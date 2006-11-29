@@ -13,7 +13,7 @@
 	define('SLOODLE_WWWROOT', $CFG->wwwroot.'/mod/sloodle');
 	define('SLOODLE_DIRROOT', $CFG->dirroot.'/mod/sloodle');
 
-	define('SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING', true);
+	define('SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING', false);
 
 
 	// Configuration ends
