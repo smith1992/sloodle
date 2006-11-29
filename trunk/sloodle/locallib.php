@@ -71,4 +71,8 @@
 
 	}
 
+	function sloodle_prim_password() {
+		return sloodle_get_config('SLOODLE_PRIM_PASSWORD');
+	}
+
 ?>
