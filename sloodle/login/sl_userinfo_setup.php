@@ -9,7 +9,7 @@
 	require_login($course->id, false, $cm);
 
 	$userinfourl = SLOODLE_WWWROOT.'/login/sl_userinfo.php';
-	$pasteurl = $userinfourl.'?pwd='.SLOODLE_PRIM_PASSWORD;
+	$pasteurl = $userinfourl.'?pwd='.sloodle_prim_password();
 
 	if (isadmin()) {
 		print_simple_box('You need to tell your prim to use the following URL to talk to Moodle:<br />'.$pasteurl, "center");
