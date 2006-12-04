@@ -6,17 +6,34 @@ require_once($CFG->dirroot .'config.php');
 //include_once('../../../blog/lib.php'); //lib.php file from moodle/mod/blog.
 //include_once('lib.php'); //lib.php file from moodle/mod/blog.
 require_once($CFG->dirroot .'/blog/lib.php');
+require_once('../config.php');
+require_once('../locallib.php');
+require_once('../login/sl_authlib.php'); // for authentication functions
+
+// Authentication checks
+
+// to use URL like:
+// http://www.sloodle.com/sl_blog_linker.php?subject=test1&summary=test2&user_id=52&uuid=d42ec4be-f746-429c-9b45-fae849792065&pwd=drUs3-9dE
+
+// Is the prim signed? (does it have the correct password?)
+	$pass = sloodle_prim_require_script_authentication();
+	if (! $pass) {
+		exit;
+	}
+
+// Authenticate the user
+sloodle_prim_require_user_login();
+
 
 // Here we set up the variables we are expecting to be passed.
-	
 	$sl_blog_subject = required_param('subject', PARAM_RAW);  //Pass the Subject to the Blog - PHP will not run if we don't get this.
 	$sl_blog_summary = required_param('summary', PARAM_RAW);  // Pass the actual message - PHP will not run if we don't get this.
 	
 	// Later on this line will change to accept the UUID and then pull out the Moodle ID from mdl_sloodle_users
 	// For now we just pass the Moodle user ID.
+	//$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
 	
-	$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
-	
+
 	
 // Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
 
@@ -26,16 +43,12 @@ require_once($CFG->dirroot .'/blog/lib.php');
 //Debugging echos	
 //	echo $sl_blog_subject;
 //	echo $sl_blog_summary;
-	echo $sl_blog_userid;
+//	echo $sl_blog_userid;
 
 //Now we check to see if the user account actually exists!
-
-// PA: This added for version 2 - it requires the Chat bot account be logged in to Moodle AND the chat room before it will log chat - this stops spamming.  Removed for the demo.
-
-
-    if (!$blogger = get_record('user', 'id', $sl_blog_userid)) {
-        error('This user does not exist!!.'); //PA: This Uses Moodle's built in Error handler - :o)
-	    }
+//    if (!$blogger = get_record('user', 'id', $sl_blog_userid)) {
+//        error('This user does not exist!!.'); //PA: This Uses Moodle's built in Error handler - :o)
+//	    }
 
 // Now lets paste in the post function as defined in blog\edit.php
 // Bit's we don't need are edited out.
@@ -56,7 +69,7 @@ require_once($CFG->dirroot .'/blog/lib.php');
         	$blogEntry->subject = $sl_blog_subject;
         	$blogEntry->summary = $sl_blog_summary;
         	$blogEntry->module = 'blog';
-        	$blogEntry->userid = $sl_blog_userid;
+        	$blogEntry->userid = $USER->id;  // was: $sl_blog_userid;
         	$blogEntry->format = 1;
         	$blogEntry->publishstate = 'draft';
         	$blogEntry->lastmodified = time();
@@ -68,7 +81,8 @@ require_once($CFG->dirroot .'/blog/lib.php');
         	//Confirm table input
        		print 'Debug: created a new entry - entryId = '.$entryID.'<br />';
         	print 'Subject: '.$sl_blog_subject.'<br />'; 
-			print 'Post: '.$sl_blog_summary.'<br />'; 
-			print 'For user ID '.$sl_blog_userid.'<br />'; 
-			}
+		print 'Post: '.$sl_blog_summary.'<br />'; 
+//		print 'For user ID '.$sl_blog_userid.'<br />'; 
+		print 'For user ID '.$USER->id.'<br />'; 
+	}
 ?>
