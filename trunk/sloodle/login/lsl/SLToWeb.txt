@@ -12,16 +12,12 @@ default
 {
 state_entry()
 {
-llListen(1,"",NULL_KEY,"");
-}
-listen(integer channel, string name, key id, string message)
-{
 }
 touch_start(integer total_number)
 {
 // ask the server for a jpeg appropriate to the agent who touched us
 string url = moodleinstall+"&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(string)llDetectedKey(0);
-llWhisper(0,"Requesting login URL for "+llDetectedName(0));
+//llWhisper(0,"Requesting login URL for "+llDetectedName(0));
 http_id = llHTTPRequest(url,[],"");
 }
 http_response(key request_id, integer status, list metadata, string body) {

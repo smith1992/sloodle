@@ -23,15 +23,6 @@ default
 {
     state_entry()
     {
-        // set a default jpeg
-        //seturl("http://sl.edochan.com/moodle/moodle/theme/formal_white/logo.jpg");
-        // start listening for nearby speech
-        llListen(1,"",NULL_KEY,"");
-        // start sensing nearby agents once a minute
-        //llSensorRepeat("",NULL_KEY,AGENT,10,10,60);
-    }
-    listen(integer channel, string name, key id, string message)
-    {
     }
     touch_start(integer total_number)
     {
@@ -63,7 +54,7 @@ moodleinstall+"&req=userinfo&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(s
                     string picture = llList2String(data,3);
                     
                     llWhisper(0,"Showing a picture for "+firstname+" "+lastname);     
-                    llWhisper(0,"The picture should come from "+picture);     
+                    //llWhisper(0,"The picture should come from "+picture);     
 
                     seturl(picture);
 

@@ -50,7 +50,7 @@ default
 				// The avatar size probably isn't necessary, but we're trapping it in case it gives us a clue why although the x and y coordinates of the avatars who get teleported into the prim are exactly what we request, the z coordinate is sometimes 1 meter or so off.
 				string url = moodleinstall+"&req=userinfo&avname="+llEscapeURL(llDetectedName(i))+"&uuid="+(string)llDetectedKey(i)+"&pos="+(string)llDetectedPos(i)+"&avsize="+(string)llGetAgentSize(llDetectedKey(i));
 				http_id = llHTTPRequest(url,[],"");
-				llWhisper(0,url); // just for testing. This contains the password, so it has to be turned off in a live installation.
+				//llWhisper(0,url); // just for testing. This contains the password, so it has to be turned off in a live installation.
 				avatarsDone += [llDetectedName(i)];
 
 			}
