@@ -2,22 +2,23 @@
 
 //We need to reference these files to use the existing Blog functions.
 
-require_once($CFG->dirroot .'config.php');
+require_once('../config.php');
 //include_once('../../../blog/lib.php'); //lib.php file from moodle/mod/blog.
 //include_once('lib.php'); //lib.php file from moodle/mod/blog.
 require_once($CFG->dirroot .'/blog/lib.php');
-require_once('../config.php');
+//require_once('../config.php');
 require_once('../locallib.php');
 require_once('../login/sl_authlib.php'); // for authentication functions
 
 // Authentication checks
 
 // to use URL like:
-// http://www.sloodle.com/sl_blog_linker.php?subject=test1&summary=test2&user_id=52&uuid=d42ec4be-f746-429c-9b45-fae849792065&pwd=drUs3-9dE
+// http://www.sloodle.com/sl_blog_linker.php?subject=test1&summary=test2&uuid=d42ec4be-f746-429c-9b45-fae849792065&pwd=drUs3-9dE
 
 // Is the prim signed? (does it have the correct password?)
 	$pass = sloodle_prim_require_script_authentication();
 	if (! $pass) {
+		print 'password error<br>'; //debug output
 		exit;
 	}
 
@@ -34,7 +35,6 @@ sloodle_prim_require_user_login();
 	//$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
 	
 
-	
 // Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
 
 	$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));  // Strip bad tags from the subject.
@@ -79,10 +79,10 @@ sloodle_prim_require_user_login();
        		 $entryID = insert_record('post',$blogEntry);
 
         	//Confirm table input
-       		print 'Debug: created a new entry - entryId = '.$entryID.'<br />';
-        	print 'Subject: '.$sl_blog_subject.'<br />'; 
-		print 'Post: '.$sl_blog_summary.'<br />'; 
-//		print 'For user ID '.$sl_blog_userid.'<br />'; 
-		print 'For user ID '.$USER->id.'<br />'; 
+		print 'success';
+       		//print 'Debug: created a new entry - entryId = '.$entryID.'<br />';
+        	//print 'Subject: '.$sl_blog_subject.'<br />'; 
+		//print 'Post: '.$sl_blog_summary.'<br />'; 
+		//print 'For user ID '.$USER->id.'<br />'; 
 	}
 ?>
