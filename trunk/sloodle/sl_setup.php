@@ -10,6 +10,7 @@
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
 
 		$sloodle_pwd = optional_param('sloodle_pwd',null,PARAM_RAW);
+		$show_sloodle_pwd = optional_param('showpwd',null,PARAM_RAW);
 		if ($sloodle_pwd != null) {
 			// set the sloodle password
 			$result = sloodle_set_config('SLOODLE_PRIM_PASSWORD',$sloodle_pwd);
@@ -20,12 +21,25 @@
 			$str = '
 				<h3>Set Prim Password</h3>
 				<p>You need to set a password that your Second Life objects will use to talk to Moodle.</p>
-				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" /><input type="submit" value="Save Prim Password" /></form>
+				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="Save Prim Password" /></form>
 			';
 		} else {
+			if ($show_sloodle_pwd != null) {
+				$str = '
+					<h3>Change Prim Password</h3>
+					<p>If you change this password, you will need to update the scripts in all your Second Life objects that use it.</p>
+					<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="Save Prim Password" /></form>
 
-		$str = '
-			<h3>Authentication</h3>
+				';
+			} else {
+				$str = '
+					<h3>Prim Password is set.</h3>
+					<p>Your prim password will be automatically included in your LSL scripts. <a href="sl_setup.php?showpwd=1">Click here to change it</a>.</p>
+				';
+			}
+
+			$str = $str.'
+			<h3>User Authentication</h3>
 			<p>The following pages show LSL scripts ready for you to copy and paste into objects in Second Life. Details that need to be configured, like the URL of your Moodle installation, will be included in the scripts automatically.</p>
 			<ul>
 				<li><a href="login/sl_loginzone_setup.php">Login Zone</a> - A script to create a prim above your sim to allow users to click a Second Life URL link in Moodle and be automatically recognized in Second Life.</li>
