@@ -1,0 +1,299 @@
+integer avatar_channel = 0; // the channel on which we talk to the 
+avatar
+integer object_channel = 99; // the channel on which we talk to other 
+objects - maybe not neded?
+
+integer course_id = 2; // the course whose quiz the script will 
+administer 
+string sloodle_quiz_url = 
+"http://moodle.edochan.com/mod/sloodle/mod/quiz/attempt.php?pwd=asdf34343lksdjfilajf";
+
+// simple lists of question attributes, 1 per question.
+list qtypes = []; // for each question, "multichoice" or "simple" // 
+TODO: Check other types...
+list qs = []; //["one","two","three"];
+list as = []; //["ichi","ni","san"];
+
+// each question has multiple options.
+// since we don't have multi-dimensional arrays, we'll stack up 
+everything in an array for its type.
+// for example, all question option text entries will be stacked up in 
+qoptiontexts.
+// so that we know which texts belong to which questions, we'll given 
+each question one entry in the following lists:
+list qoptionindexes = []; // where in qoptiontexts etc. the question's 
+entries start.
+list qoptioncounts = []; // how many entries in qoptiontexts etc. the 
+question has.
+
+list qoptiontexts = []; 
+//["ichi","oink","san","fier","ni","hat","unko","poo","san"];
+list qoptionfeedbacks = []; // ["Ichi - peachy","No, oink is the noise a 
+pig makes"] etc.
+list qoptionscores = []; // 1, -1, -0.5, etc.
+
+integer doRepeat = 1; // whether we should run through the questions 
+again when we're done
+
+integer numberOfQuestions = 0; //3;    
+integer activeQuestion = -1; // index of question currently being asked 
+- 0-based
+
+// integer problemTimeout = 0; // sort this out later...
+
+key sitter;
+
+populate_qa_list(string response) 
+{
+    llWhisper(0,"Got response from server:"+response);
+    list lines = llParseString2List(response,["\n"],[]);
+    integer i;
+    integer highestqoptionindex = -1;
+
+    llWhisper(0,"handling response" + response);
+    for (i=0; i<llGetListLength(lines); i++) {
+
+        string thislinestr = llList2String(lines, i);
+        //llWhisper(0,thislinestr);
+        list thisline = llParseString2List(thislinestr,["|"],[]);
+        string rowtype = llList2String( thisline, 1 );
+        string thisqtype = "";
+
+        if ( rowtype == "question" ) { // column 1 says what kind of 
+data it is...
+
+            thisqtype = llList2String( thisline, 8 ); // multichoice or 
+???
+            numberOfQuestions = numberOfQuestions + 1;
+                        
+            llWhisper(0,"Adding question from line "+thislinestr);
+            qs = qs + [llList2String(thisline, 5)];
+            qtypes = qtypes + [thisqtype];
+
+            // if this is the first qoptionindex, set it to 0.
+            // if there are already some set, add the index of the 
+previous record to its count.
+            if ( llGetListLength(qoptionindexes) == 0 ) {
+                qoptionindexes = [0];
+                qoptioncounts = [0];
+            } else {
+                integer lastIndex = llList2Integer(qoptionindexes, -1);
+                integer lastCount = llList2Integer(qoptioncounts, -1);
+                qoptionindexes = qoptionindexes + 
+[(lastIndex+lastCount)];
+                qoptioncounts = qoptioncounts + [0];                
+            }
+            
+            // TODO: for single-choice questions, add to as
+            as = as + [''];
+                        
+        } else if ( rowtype == "questionoption" ) {
+            
+            // if it's the first time we've seen a question option for 
+this question, 
+            
+            qoptiontexts = qoptiontexts + [llList2String(thisline, 5)];
+            qoptionfeedbacks = qoptionfeedbacks + 
+[llList2String(thisline, 7)];
+            qoptionscores = qoptionscores + [llList2Integer(thisline, 
+6)];
+            
+            // increment the last qoptioncounts record
+            integer oldqoc = llList2Integer(qoptioncounts, -1);
+            list newqocl = [oldqoc+1];
+            qoptioncounts = llListReplaceList(qoptioncounts, newqocl, 
+-1, -1);
+            // as = as + [llList2String(thisline, 5)];
+            
+        }
+    }    
+    
+    llWhisper(0,"Question list loaded.");
+    next_question();
+}
+
+request_question_list()
+{
+    string url = sloodle_quiz_url + 
+"&avname="+llEscapeURL(llKey2Name(sitter)) + "&id=" + (string)course_id;
+    llWhisper(0,"Reqesting url "+url);
+    llHTTPRequest(url,[],"");
+}
+
+ask_question() 
+{
+    string question = llList2String(qs, activeQuestion);
+   
+    llWhisper(avatar_channel, question);
+    integer thisOpIndex = llList2Integer(qoptionindexes, 
+activeQuestion);    
+    integer thisOpCount = llList2Integer(qoptioncounts, activeQuestion);
+    integer lastIndex = thisOpIndex + thisOpCount;
+    integer x;
+    for (x=thisOpIndex; x < lastIndex; x++) {
+        llWhisper(0, " - " + llList2String(qoptiontexts, x) );   
+    }
+    llListen(avatar_channel,"",NULL_KEY,"");    
+}
+
+repeat_question() 
+{
+    ask_question();   
+}
+
+next_question() 
+{
+    
+    activeQuestion++;
+    ask_question();
+
+}
+
+move_vertical(integer multiplier) {
+    
+    integer lowest = 165;
+    integer highest = 180;
+    integer increment = 1;
+    vector position = llGetPos();
+    position.z = position.z + (increment * multiplier);
+    if (position.z < lowest) {
+        position.z = lowest;
+    }
+    if (position.z > highest) {
+        position.z = highest;
+    }
+    llSetPos(position);
+}
+
+process_done() 
+{
+    llWhisper(avatar_channel, "done");       
+    if (doRepeat == 1) {
+        activeQuestion = -1;
+        next_question();   
+    }
+    
+}
+
+handle_response(string message) {
+    
+    integer scorechange = 0;
+    string feedback = "";
+        
+    string thisqtype = llList2String( qtypes, activeQuestion );
+    if (thisqtype == "multichoice") {
+
+        // get the options
+        integer thisOpIndex = llList2Integer(qoptionindexes, 
+activeQuestion);
+        integer thisOpCount = llList2Integer(qoptioncounts, 
+activeQuestion);
+        integer lastIndex = thisOpIndex + thisOpCount;
+        
+        list thisqoptiontexts = llList2List(qoptiontexts, thisOpIndex, 
+lastIndex);
+        list thisqoptionfeedbacks = llList2List(qoptionfeedbacks, 
+thisOpIndex, lastIndex);
+        list thisqoptionscores = llList2List(qoptionscores, thisOpIndex, 
+lastIndex);
+        
+        integer x;
+        integer answerfound = 0;
+        for (x=0; x < llGetListLength(thisqoptiontexts); x++) {
+            string thisqot = llList2String(thisqoptiontexts, x);
+            llWhisper(0, "Checking " + message + " against - " + thisqot 
+);
+            // TODO: accept either the answer itself or a digit 
+            if (message == thisqot) {
+                answerfound = 1;
+                feedback = llList2String(thisqoptionfeedbacks, x);
+                scorechange = llList2Integer(thisqoptionscores, x);
+            }
+        }
+        if (answerfound == 0) {
+            llWhisper(0, "Your choice was not in the list of available 
+choices. Please try again.");
+            repeat_question();
+            return 1;   
+        }
+    
+    } else {
+
+        string answer = llList2String( as, activeQuestion );   
+        if (message == answer) {
+            feedback = "correct";
+        } else {
+            feedback = "wrong";            
+        }
+
+    }
+    
+    llWhisper(0, feedback);
+    move_vertical(scorechange);
+    
+    if (numberOfQuestions > activeQuestion+1) {
+        next_question();    
+    } else {
+        process_done();         
+    }
+        
+}
+
+
+
+default
+{
+    state_entry()
+    {
+        //llSay(0, "Hello, Avatar!");
+        //request_question_list();
+        vector eul = <0,270,0>; //45 degrees around the z-axis, in Euler 
+form
+        eul *= DEG_TO_RAD; //convert to radians
+        rotation quat = llEuler2Rot(eul); //convert to quaternion
+        llSitTarget(<0, 0, -1>, quat);
+        llSetSitText("Ride");
+    }
+
+    touch_start(integer total_number)
+    {
+        llWhisper(0,"starting...");
+        //next_question();
+
+    }
+    
+    listen(integer channel, string name, key id, string message) {
+        
+        handle_response(message);
+
+    }
+
+    http_response(key request_id, integer status, list metadata, string 
+body) {
+
+        // only on request success
+        if(status == 200) {
+            //llWhisper(0,"got body"+body);
+            populate_qa_list(body);
+        } 
+
+    }
+    
+    changed(integer change) { // something changed
+
+        if (change & CHANGED_LINK) { // and it was a link change
+            //llSleep(0.5); // llUnSit works better with this delay
+            //llWhisper(0,(string)llAvatarOnSitTarget());
+            if (llAvatarOnSitTarget() != NULL_KEY) { // somebody is 
+sitting on me
+                sitter = llAvatarOnSitTarget();
+                llWhisper(0,"Requesting question list...");
+                request_question_list(); // load question list
+                llWhisper(0,"loading question list...");
+            }
+        }
+    }
+    
+}
+
+
