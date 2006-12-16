@@ -33,6 +33,8 @@
     $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
     $forcenew = optional_param('forcenew', false, PARAM_BOOL); // Teacher has requested new preview
 
+	$isnotify = ( optional_param( 'action', false, PARAM_RAW ) == 'notify' ) ;
+
     // remember the current time as the time any responses were submitted
     // (so as to make sure students don't get penalized for slow processing on this page)
     $timestamp = time();
@@ -252,7 +254,9 @@
 
 /// Process form data /////////////////////////////////////////////////
 
-    if ($responses = data_submitted() and empty($_POST['quizpassword'])) {
+    if ($isnotify) {
+
+		$responses = (object)$_GET; // GET version of data_submitted (see lib/weblib) used in original web version
 
         // set the default event. This can be overruled by individual buttons.
         $event = (array_key_exists('markall', $responses)) ? QUESTION_EVENTSUBMIT :
@@ -362,64 +366,65 @@
 
 /// Print the quiz page ////////////////////////////////////////////////////////
 
-	$output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit);
-	$output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
+	if (!$isnotify) {
+		$output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id);
+		$output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
 
+		/// Print all the questions
 
-/// Print all the questions
-
-    $pagequestions = explode(',', $pagelist);
-    $number = quiz_first_questionnumber($attempt->layout, $pagelist);
-    foreach ($pagequestions as $i) {
-        $options = quiz_get_renderoptions($quiz->review, $states[$i]);
-        // Print the question
-		// var_dump($questions[$i]);
-		$q = $questions[$i];
-		$output[] = array(
-			'question',
-			$i,
-			$q->id,
-			$q->parent,
-			$q->questiontext,
-			$q->defaultgrade,
-			$q->penalty,
-			$q->qtype,
-			$q->hidden,
-			$q->maxgrade,
-			$q->single,
-			$q->shuffleanswers
-		);
-		$ops = $q->options;
-		foreach($ops as $opkey=>$op) {
-		//print "<h1>$opkey is $op</h1>";
-		   foreach($op as $ok=>$ov) {
-			  //print '<h1>   '."$ok=>$ov</h1>";
-			  //var_dump($ov);
-		  	  $output[] = array(
-				'questionoption',
+		$pagequestions = explode(',', $pagelist);
+		$number = quiz_first_questionnumber($attempt->layout, $pagelist);
+		foreach ($pagequestions as $i) {
+			$options = quiz_get_renderoptions($quiz->review, $states[$i]);
+			// Print the question
+			// var_dump($questions[$i]);
+			$q = $questions[$i];
+			$output[] = array(
+				'question',
 				$i,
-				$ov->id,
-				$ov->question,
-				$ov->answer,
-				$ov->fraction,
-				$ov->feedback
-			  );
-		   }
+				$q->id,
+				$q->parent,
+				$q->questiontext,
+				$q->defaultgrade,
+				$q->penalty,
+				$q->qtype,
+				$q->hidden,
+				$q->maxgrade,
+				$q->single,
+				$q->shuffleanswers
+			);
+			$ops = $q->options;
+			foreach($ops as $opkey=>$op) {
+			//print "<h1>$opkey is $op</h1>";
+			   foreach($op as $ok=>$ov) {
+				  //print '<h1>   '."$ok=>$ov</h1>";
+				  //var_dump($ov);
+				  $output[] = array(
+					'questionoption',
+					$i,
+					$ov->id,
+					$ov->question,
+					$ov->answer,
+					$ov->fraction,
+					$ov->feedback
+				  );
+			   }
+			}
+
+			//print_question($questions[$i], $states[$i], $number, $quiz, $options);
+			save_question_session($questions[$i], $states[$i]);
+			$number += $questions[$i]->length;
 		}
 
-        //print_question($questions[$i], $states[$i], $number, $quiz, $options);
-        save_question_session($questions[$i], $states[$i]);
-        $number += $questions[$i]->length;
-    }
-
-    $secondsleft = ($quiz->timeclose ? $quiz->timeclose : 999999999999) - time();
-    if ($isteacher) {
-        // For teachers ignore the quiz closing time
-        $secondsleft = 999999999999;
-    }
-    // If time limit is set include floating timer.
-    if ($quiz->timelimit > 0) {
-		$output[] = array('seconds left',$secondsleft);
+		$secondsleft = ($quiz->timeclose ? $quiz->timeclose : 999999999999) - time();
+		if ($isteacher) {
+			// For teachers ignore the quiz closing time
+			$secondsleft = 999999999999;
+		}
+		// If time limit is set include floating timer.
+		if ($quiz->timelimit > 0) {
+			$output[] = array('seconds left',$secondsleft);
+		}
     }
 
 	sloodle_prim_render_output($output);
