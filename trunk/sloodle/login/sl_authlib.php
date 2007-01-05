@@ -3,14 +3,24 @@
 	function sloodle_prim_require_script_authentication() {
 	// Check the prim is allowed to talk to us.
 	// Right now we're doing this using a password, but in future we may also want to let the administrator keep a list of authenticated object uuids.
-	
+
 		$pwd = optional_param('pwd',null,PARAM_RAW);
 		$errors = array();
+
+		// first, see if we can validate based on a numerical code set for that object
+		$headers = apache_request_headers();
+		$objuuid = $headers['X-SecondLife-Object-Key'];
+		$entry = get_record('sloodle_active_object','uuid',$objuuid);
+		if ( ($entry->pwd != null) && ($entry->pwd == $pwd) ) {
+			return true;
+		}
+
+		// if that fails, fall back on the legacy method of having a single pwd= string for all objects
 		if ($pwd == null) {
 			sloodle_prim_render_error('Prim password missing. Could not verify that the object sending this request was allowed to talk to me.');
 			exit;
 		} else if ($pwd != sloodle_prim_password()) {
-			sloodle_prim_render_error('Sloodle Prim Password did not match the one set in the sloodle module configuration');
+			sloodle_prim_render_error('Sloodle Prim Password did not match the one set in the sloodle module configuration'.'objuuid was '.$objuuid." and pwd was $pwd and entry pwd was ".$entry->pwd);
 			exit;
 		}
 
