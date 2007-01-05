@@ -9,7 +9,7 @@
 	require_login();
 
 	$chaturl = SLOODLE_WWWROOT.'/mod/chat/sl_chat_linker.php';
-	$pasteurl = $chaturl.'?pwd='.SLOODLE_PRIM_PASSWORD;
+	$pasteurl = $chaturl.'?pwd='.sloodle_prim_password();
 
 	if (isadmin()) {
 		print_simple_box('You need to tell your prim to use the following URL to talk to Moodle:<br />'.$pasteurl, "center");
