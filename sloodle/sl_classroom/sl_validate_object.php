@@ -59,7 +59,7 @@ print '</table>';
 print '</center>';
 
 function authorize_object($uuid,$name,$userid) {
-	$entry = sloodle_register_master_object($uuid,$name,$userid);
+	$entry = sloodle_register_object($uuid,$name,$userid,$uuid);
 	if ($entry == null) {
 		return false;
 	}
