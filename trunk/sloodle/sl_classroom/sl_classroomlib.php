@@ -46,7 +46,7 @@
 		return ($entry->pwd == $pwd);
 	}
 
-	function sloodle_register_master_object($uuid,$name,$userid) {
+	function sloodle_register_object($uuid,$name,$userid,$masteruuid) {
 	
 		$o = null;
 		$isnew = true;

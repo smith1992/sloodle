@@ -106,7 +106,7 @@
 		if (count($entries) > 0) {
 			foreach($entries as $e) {
 				if (!( (count($entries) == 1) && ($entries[0] == false) )) {
-					$data[] = array($e->id,$e->name,$e->relative_position,123456789); // TODO: make this auto-created and saved
+					$data[] = array($e->id,$e->name,$e->relative_position); // TODO: make this auto-created and saved
 				}
 			}
 		}
