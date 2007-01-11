@@ -7,12 +7,16 @@
 		$pwd = optional_param('pwd',null,PARAM_RAW);
 		$errors = array();
 
-		// first, see if we can validate based on a numerical code set for that object
-		$headers = apache_request_headers();
-		$objuuid = $headers['X-SecondLife-Object-Key'];
-		$entry = get_record('sloodle_active_object','uuid',$objuuid);
-		if ( ($entry->pwd != null) && ($entry->pwd == $pwd) ) {
-			return true;
+		if (preg_match('/^(.*?)\|(\d\d*)$/',$pwd, $matches)) {
+			// first, see if we can validate based on a numerical code set for that object
+			//$headers = apache_request_headers();
+			//$objuuid = $headers['X-SecondLife-Object-Key'];
+			$objuuid = $matches[1];
+			$objpwd = $matches[2];
+			$entry = get_record('sloodle_active_object','uuid',$objuuid);
+			if ( ($entry->pwd != null) && ($entry->pwd == $objpwd) ) {
+				return true;
+			}
 		}
 
 		// if that fails, fall back on the legacy method of having a single pwd= string for all objects
@@ -134,6 +138,11 @@
 		    $sc.= $str[$char];
 		}
 		return $sc;
+	}
+
+	function sloodle_is_automatic_registration_on() {
+		$method = sloodle_get_config('SLOODLE_AUTH_METHOD');
+		return ($method == 'autoregister');
 	}
 
 	// Returns the top
@@ -347,6 +356,13 @@
 					$errors[] = 'Could not update user table with avatar uuid';
 				}
 			} else {
+
+				// not found - register them automatically, if set
+				if (sloodle_is_automatic_registration_on()) {
+					$ok = sloodle_register_user($uuid,$avname);
+					$u = get_record('sloodle_users', 'uuid', $uuid);
+				}
+
 				$errors[] = 'User not found';
 			}
 		}
@@ -360,4 +376,69 @@
 
 	}
 
+	function sloodle_register_user($uuid,$avname) {
+	//TODO: Improve error handling...
+
+		global $CFG;
+
+		require_once("../../../auth/$CFG->auth/lib.php");
+
+		$firstname = null;
+		$lastname = null;
+		// Expecting that all SL names are first last, with a space in between
+		if (preg_match('/^(.*)\s(.*?)$/', $avname, $avbits)) {
+			$firstname = $avbits[1];
+			$lastname = $avbits[2];
+		}
+
+		$user = new stdClass();
+		if ( ($firstname != null) && ($lastname != null) ) {
+
+			$user->firstname = strip_tags($firstname);
+			$user->lastname = strip_tags($lastname);
+			$user->email = $uuid.'@lsl.secondlife.com';
+			$user->password = sloodle_random_web_password();
+			$user->username = trim(moodle_strtolower($firstname.$lastname));
+
+			if (count((array)$err) == 0) {
+
+				$plainpass = $user->password;
+				$user->password = hash_internal_user_password($plainpass);
+				$user->confirmed = 0;
+				$user->lang = current_language();
+				$user->firstaccess = time();
+				$user->secret = random_string(15);
+				$user->auth = $CFG->auth;
+				if (!empty($CFG->auth_user_create) and function_exists('auth_user_create') ){
+					if (! auth_user_exists($user->username)) {
+						if (! auth_user_create($user,$plainpass)) {
+							sloodle_prim_render_error("Could not add user to authentication module!");
+						}
+					} else {
+						sloodle_prim_render_error("User already exists on authentication database.");
+					}
+				}
+
+				if (! ($user->id = insert_record("user", $user)) ) {
+					sloodle_prim_render_error("Could not add your record to the database!");
+				}
+
+				$u = new stdClass();
+				$u->userid=$user->id;
+				$u->uuid = $uuid;
+				$u->avname = $avname;
+				$u->loginposition = '';
+				$u->loginpositionexpires = '';
+				$u->loginpositionregion = '';
+				$u->loginsecuritytoken = '';
+
+				if (!$result = insert_record('sloodle_users', $u)) {
+					return array(null,array('could not create sloodle user'));
+				}
+			}
+		}
+
+		return array($u, array());
+
+	}
 ?>
