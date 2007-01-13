@@ -3,10 +3,11 @@
 //We need to reference these files to use the existing Blog functions.
 
 require_once('../config.php');
+//echo $CFG->dirroot .'/mod/sloodle/config.php';
+//require_once($CFG->dirroot .'/mod/sloodle/config.php');
 //include_once('../../../blog/lib.php'); //lib.php file from moodle/mod/blog.
 //include_once('lib.php'); //lib.php file from moodle/mod/blog.
 require_once($CFG->dirroot .'/blog/lib.php');
-//require_once('../config.php');
 require_once('../locallib.php');
 require_once('../login/sl_authlib.php'); // for authentication functions
 
@@ -33,17 +34,26 @@ sloodle_prim_require_user_login();
 	// Later on this line will change to accept the UUID and then pull out the Moodle ID from mdl_sloodle_users
 	// For now we just pass the Moodle user ID.
 	//$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
-	
+
+// can i get headers?
+//$key = $_SERVER['HTTP_X_SECONDLIFE_OWNER_KEY'];
+$region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
+$position = $_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION'];
+
 
 // Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
 
 	$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));  // Strip bad tags from the subject.
+	$sl_region = addslashes(clean_text(stripslashes($region), FORMAT_MOODLE));
 	$sl_blog_summary = addslashes(clean_text(stripslashes($sl_blog_summary), FORMAT_MOODLE));  // Strip bad tags from the message.
+	
+	$sl_blog_summary = "Posted from Second Life: " .$sl_region .$position ."\n\n" .$sl_blog_summary;
 	
 //Debugging echos	
 //	echo $sl_blog_subject;
 //	echo $sl_blog_summary;
 //	echo $sl_blog_userid;
+
 
 //Now we check to see if the user account actually exists!
 //    if (!$blogger = get_record('user', 'id', $sl_blog_userid)) {
