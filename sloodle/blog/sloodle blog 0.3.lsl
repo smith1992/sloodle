@@ -14,7 +14,7 @@
 
 //----------
 // Declare vars w/out values
-string PRIM_PASS = "asd342DsXiisb"; //"drUs3-9dA";//"asd342DsXiisb";
+string PRIM_PASS = "xxxxxxx";
 string MOODLE_NAME;
 string URL_BASE;
 string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some other hard coding
