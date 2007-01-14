@@ -35,19 +35,21 @@ sloodle_prim_require_user_login();
 	// For now we just pass the Moodle user ID.
 	//$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
 
-// can i get headers?
-//$key = $_SERVER['HTTP_X_SECONDLIFE_OWNER_KEY'];
+
+// Use the HTTP headers added by SL to get the region and position data
 $region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
+$region = substr ( $region,0, strpos($region, '(' ) - 1 );
 $position = $_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION'];
-
-
+sscanf($position, "(%f, %f, %f)", $x, $y, $z);
+$slurl = "http://slurl.com/secondlife/" .$region ."/" .$x ."/" .$y ."/" .$z;
+$slurl = '<a href="' .$slurl .'">' .$region .'</a>';
 // Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
 
 	$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));  // Strip bad tags from the subject.
 	$sl_region = addslashes(clean_text(stripslashes($region), FORMAT_MOODLE));
 	$sl_blog_summary = addslashes(clean_text(stripslashes($sl_blog_summary), FORMAT_MOODLE));  // Strip bad tags from the message.
 	
-	$sl_blog_summary = "Posted from Second Life: " .$sl_region .$position ."\n\n" .$sl_blog_summary;
+	$sl_blog_summary = "Posted from Second Life: " .$slurl ."\n\n" .$sl_blog_summary;
 	
 //Debugging echos	
 //	echo $sl_blog_subject;
