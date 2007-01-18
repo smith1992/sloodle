@@ -28,10 +28,11 @@ if (!isloggedin()) {
 	$isnewuser = ($sloodleuser == null);
 	if ($isnewuser) {
 		$sloodleuser = new object();
-		$sloodleuser->userid = $USER->id;
-		$sloodleuser->uuid = $sl_uuid;
-		$sloodleuser->avname = $sl_avname;
-	}
+      }
+	$sloodleuser->userid = $USER->id;
+	$sloodleuser->uuid = $sl_uuid;
+	$sloodleuser->avname = $sl_avname;
+	//}
 //	if ( ($sloodleuser != null) && ($sloodleuser->avname != null) && ($sloodleuser->avname != '') ) {
 //		print_simple_box('Already got your login name!', "center");
 //		exit;
@@ -48,6 +49,7 @@ if (!isloggedin()) {
 		include('progressbar.html');
 		exit;
 	}
+	print_simple_box('Avatar Name ' .$sloodleuser->avname .'<br> Avatar UUID (key) ' .$sloodleuser->uuid, "center");
 	print_simple_box('Updated your SL avatar details!', "center");
 	print_footer();
 

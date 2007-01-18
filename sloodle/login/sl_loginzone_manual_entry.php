@@ -24,7 +24,15 @@ if (!isloggedin()) {
 
 //print_header();
 
-    $userid = $USER->id;
+$userid = $USER->id;
+$sloodleuser = sloodle_get_sloodle_user_for_moodle_user($USER);
+
+$isnewuser = ($sloodleuser == null);
+if (!$isnewuser) {
+  echo '<p>Current data on record:<br>Avatar Name ' .$sloodleuser->avname;
+  echo '<br> Avatar UUID (key) ' .$sloodleuser->uuid;
+  echo '<br> Authentication Table ID (for debug only): ' .$sloodleuser->id;
+} 
 
 echo '<form name="input" action="sl_loginzone_manual_update.php" method="get">';
 echo 'Second Life avatar name: <input type="text" name="avname">';
