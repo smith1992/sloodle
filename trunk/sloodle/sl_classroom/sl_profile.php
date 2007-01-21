@@ -85,14 +85,21 @@
 
 		$courseid = optional_param('courseid',null,PARAM_RAW);
 		$profiles = sloodle_get_classroom_profiles($courseid);
-		foreach($profiles as $pr) {
-			$entries = sloodle_get_classroom_profile_entries($pr->id);
-			if (count($entries) > 0) {
-				if (!( (count($entries) == 1) && ($entries[0] == false) )) {
-					$data[] = array($pr->id, $pr->name, count($entries));
+
+		if (count($profiles) > 0) {
+			if ( (count($profiles) == 1) && ($profiles[0] == false) ) {
+				$data[] = array(0, "Default", 0);
+			} else {
+				foreach($profiles as $pr) {
+					$entries = sloodle_get_classroom_profile_entries($pr->id);
+					if (count($entries) > 0) {
+						if (!( (count($entries) == 1) && ($entries[0] == false) )) {
+							$data[] = array($pr->id, $pr->name, count($entries));
+						}
+					} 
 				}
 			}
-		}
+		} 
 
 		sloodle_prim_render_output($data);
 
@@ -101,15 +108,32 @@
 		$data = array();
 
 		$profileid = optional_param('profileid',null,PARAM_RAW);
-		$entries = sloodle_get_classroom_profile_entries($profileid);
-		//var_dump($entries);
-		if (count($entries) > 0) {
-			foreach($entries as $e) {
-				if (!( (count($entries) == 1) && ($entries[0] == false) )) {
-					$data[] = array($e->id,$e->name,$e->relative_position); // TODO: make this auto-created and saved
+
+		if ($profileid > 0) {
+
+			$entries = sloodle_get_classroom_profile_entries($profileid);
+			//var_dump($entries);
+			if (count($entries) > 0) {
+				foreach($entries as $e) {
+					if (!( (count($entries) == 1) && ($entries[0] == false) )) {
+						$data[] = array($e->id,$e->name,$e->relative_position); // TODO: make this auto-created and saved
+					}
 				}
+			} 
+
+		} else {
+
+			$defaultObjects = array('box2','Sloodle Quiz Chair');
+			$z = '0.5';
+			// Default profile
+			foreach($defaultObjects as $obj) {
+				$position = "<0,0,$z>";
+				$z = $z+0.5;
+				$data[] = array(0,$obj,$position); // TODO: make this auto-created and saved
 			}
+
 		}
+
 
 		//$profile1 = array(0,31,'test profile','box2','<0,0,1>',1843329443);
 		//$profile2 = array(0,31,'test profile','box2','<0,0,2>',1234872308);
