@@ -5,8 +5,11 @@
 License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later 
 version.
 
+string config_notecard = "sloodle_object_configuration";
+
 string sloodleinstall = ""; //"http://moodle.edochan.com";
 string pwd = "";
+string pwdcode = "";
 
 string sloodleregurlbase = "/mod/sloodle/login/sl_sloodle_reg.php";
 string sloodlewelcomebase = "/mod/sloodle/login/sl_welcome_reg.php";
@@ -14,7 +17,9 @@ string sloodleteachercoursesbase = "/mod/sloodle/login/sl_teacher_courses.php";
 string sloodleobjectvalidationbase = "/mod/sloodle/sl_classroom/sl_validate_object.php";
 string sloodleprofilebase = "/mod/sloodle/sl_classroom/sl_profile.php";
 
-integer dialog_channel = 3857343;
+integer object_dialog_channel = -3857343;
+integer avatar_dialog_channel = 3857343;
+integer avatar_chat_channel = 1;
 
 integer emailpollinterval = 5;
 integer emailtimeuntilgiveup = 3600;
@@ -22,6 +27,8 @@ integer emailtriessofar = 0;
 
 key http_id; 
 integer listen_id;
+key notecard_query_id;
+integer notecard_current_line = 0;
 
 string toucheravname;
 key toucheruuid;
@@ -40,7 +47,6 @@ integer objectbeingrezzedindex;
 list objectnames;
 list objectuuids;
 list objectrelativepositions;
-list objectopwds;
 list objectentryids;
 integer objectsallrezzed = 0;
 
@@ -56,7 +62,64 @@ list ignoremenames;
 
 sloodle_debug(string msg)
 {
-    // llWhisper(0,msg);
+     llWhisper(0,msg);
+}
+
+integer populate_from_notecard()
+{
+    if (llGetInventoryType(config_notecard) != -1) {
+        sloodle_debug("found notecard - checking line" + (string)notecard_current_line);
+        notecard_query_id = llGetNotecardLine(config_notecard, notecard_current_line);
+        return 1;      
+    }
+    return 0;
+}
+
+handle_notecard_line(string line) 
+{
+    if (line == EOF) {
+        display_menu(); // done, go to next step
+    } else { 
+        sloodle_debug("reading line"+line);
+        list bits = llParseString2List(line,[":"],[]);        
+        if (llGetListLength(bits) > 1) {
+            string name = llList2String(bits,0);
+            list valuebits = llList2List(bits,1,-1);
+            string value = llDumpList2String(bits,":");
+            if (name == "sloodleserverroot") {
+                sloodleinstall = value;
+                sloodle_debug("sloodleinstall is "+sloodleinstall);
+            } else if (name == "sloodlepwd") {
+                pwd = value;
+                sloodle_debug("pwd is "+pwd);
+            } else if (name == "sloodlecourseid") {
+                courseid = (integer)value;
+            } else if (name == "sloodleprofileid") {
+                objectprofileid = (integer)value;                
+            }
+        }
+        notecard_current_line++;
+        notecard_query_id = llGetNotecardLine(config_notecard, notecard_current_line); // get next line
+    }
+}
+
+display_menu()
+{
+        list menu_options = [];
+        if ( (sloodleinstall == "") || (pwd == "") ) {
+            sloodle_debug("install is "+sloodleinstall+" and pwd is "+pwd);
+            menu_options = ["Set Moodle","Cancel"];
+        } else if ( objectsallrezzed == 1) {
+            if (objectprofileid > 0) {
+                menu_options = ["Cleanup", "Save", "Save As","Cancel"]; 
+            } else {
+                menu_options = ["Cleanup", "Save", "Save As","Cancel"];
+            }  
+        } else {
+            menu_options = ["Setup Class","Set Moodle","Cancel"];   
+        }
+        llDialog(toucheruuid, "Menu Options", menu_options, avatar_dialog_channel);
+        listen_id = llListen(avatar_dialog_channel, "", toucheruuid, "");
 }
 
 // Moodle selection
@@ -65,9 +128,11 @@ sloodle_debug(string msg)
 require_sloodle_install_input_and_validation()
 {
     sloodleinstall = "";
-    pwd = "";    
-    llWhisper(0,toucheravname+", please tell me the URL of your Moodle installation, eg. http://moodle.edochan.com");  
-    llListen(0,"",toucheruuid,"");
+    pwd = "";  
+    pwdcode = "";  
+    llWhisper(0,toucheravname+", please tell me the URL of your Moodle installation, eg. /1 
+http://moodle.edochan.com");  
+    llListen(avatar_chat_channel,"",toucheruuid,"");
 }   
 
 integer handle_server_selection_input(string msg)
@@ -93,7 +158,9 @@ integer handle_authentication_email(string message)
     list data = llParseString2List(message,["|"],[]);
     if (toucherurl+sloodleobjectvalidationbase == llList2String(data,0)) {
         sloodleinstall = toucherurl;
-        pwd = llList2String(data,1);
+        pwdcode = llList2String(data,1);
+        pwd = (string)llGetKey()+"|"+pwdcode;
+        sloodle_debug("Email response was ok");
         return 1;
     } else {
         sloodle_debug("Ignoring message "+message+" - url "+llList2String(data,0)+" did not match toucher supplied 
@@ -204,8 +271,8 @@ handle_teacher_courses_response(string body)
 
 offer_course_select() // TODO: Make sure the avatar getting this is the one who requested the course list...
 {
-    llDialog(toucheruuid, "Choose your course", coursecodes, dialog_channel);
-    llListen(dialog_channel, "", toucheruuid, "");
+    llDialog(toucheruuid, "Choose your course",coursecodes, avatar_dialog_channel);
+    llListen(avatar_dialog_channel, "", toucheruuid, "");
 }
 
 integer handle_course_selection_response(string msg) 
@@ -299,8 +366,8 @@ handle_course_profile_response(string body)
 
 offer_profile_select()
 {
-    llDialog(toucheruuid, "Choose your profile", objectprofilenames, dialog_channel);
-    llListen(dialog_channel, "", toucheruuid, "");       
+    llDialog(toucheruuid, "Choose your profile", objectprofilenames, avatar_dialog_channel);
+    llListen(avatar_dialog_channel, "", toucheruuid, "");       
 }
 
 integer handle_profile_entry_reponse(string body)
@@ -326,8 +393,7 @@ integer handle_profile_entry_reponse(string body)
         objectbeingrezzedindex = 0;
                     
         objectentryids = [];
-        objectnames = [];
-        objectopwds = [];                    
+        objectnames = [];         
         objectuuids = [];
         objectrelativepositions = [];
         
@@ -341,11 +407,7 @@ integer handle_profile_entry_reponse(string body)
             // we'll fill in objectuuids when we rez the objets
             objectentryids = objectentryids + [llList2Integer(data,1)];
             objectnames = objectnames + [llList2String(data,2)];
-            objectrelativepositions = objectrelativepositions + [(vector)llList2String(data,3)];   
-            objectopwds = objectopwds + [llList2String(data,4)];
-
-            sloodle_debug("set name and pos with objectopwd"+llList2String(data,4));
-                                       
+            objectrelativepositions = objectrelativepositions + [(vector)llList2String(data,3)];                                          
         }
 
         return 1;                             
@@ -357,22 +419,19 @@ integer handle_profile_entry_reponse(string body)
 
 object_command(key uuid, string msg) {
     // TODO: say or shout or whatever depending on distance
-    llSay(dialog_channel, (string)uuid+"|"+msg);    
+    llSay(object_dialog_channel, (string)uuid+"|"+msg);    
     sloodle_debug("COMMAND SENT:"+(string)uuid+":"+msg);
 }
 
 object_initialize(key uuid)
 {
     // Tell the object the sloodle install url    
-    sloodle_debug("CHECKING OPWD:"+llList2String(objectopwds,objectbeingrezzedindex)+" for object 
-"+llList2String(objectnames,objectbeingrezzedindex) + " with objectbeingrezzedindex 
-"+(string)objectbeingrezzedindex);
     
-    string trustmecode = llGetSubString(llList2String(objectopwds,objectbeingrezzedindex),0,3); // pass the first 4 
-digits of the opwd we gave the object when we rezzed it. This will prove that we are the rezzer.
+    string trustmecode = llGetSubString((string)pwdcode,0,3); // pass the first 4 digits of the opwd we gave the 
+object when we rezzed it. This will prove that we are the rezzer.
     object_command(uuid, "setcontrollercode|"+trustmecode);
     object_command(uuid, "setsloodleserverroot|"+sloodleinstall);
-    
+    object_command(uuid, "setcourseid|"+(string)courseid);
 }
 
 integer object_entry_id_for_uuid(key uuid) {
@@ -386,9 +445,9 @@ integer object_entry_id_for_uuid(key uuid) {
     return 0;
 }
 
-rez_sloodle_prim(string name, vector relative_position, string opwd)
+rez_sloodle_prim(string name, vector relative_position, integer intopwd)
 {
-    llRezObject(name, llGetPos() + relative_position, ZERO_VECTOR, ZERO_ROTATION, (integer)opwd);        
+    llRezObject(name, llGetPos() + relative_position, ZERO_VECTOR, ZERO_ROTATION, intopwd);        
 }
                          
 rez_all_objects()
@@ -405,8 +464,9 @@ integer rez_next_object()
 {
     objectbeingrezzedindex++;
     if (llGetListLength(objectnames) > objectbeingrezzedindex) {
+        sloodle_debug("Rezzing object "+llList2String(objectnames,objectbeingrezzedindex));
         rez_sloodle_prim(llList2String(objectnames,objectbeingrezzedindex), 
-llList2Vector(objectrelativepositions,objectbeingrezzedindex),llList2String(objectopwds, objectbeingrezzedindex));
+llList2Vector(objectrelativepositions,objectbeingrezzedindex), (integer)pwdcode);
         return 1;
     }
     return 0;
@@ -437,27 +497,35 @@ default
 {
     touch_start(integer total_number)
     {
-        llWhisper(0,"Starting...");
+        llWhisper(0,"Type /"+(string)avatar_chat_channel+" sloodle within 20 seconds for the menu");
         toucheruuid = llDetectedKey(0);
-        toucheravname = llDetectedName(0);     
+        toucheravname = llDetectedName(0);
+        listen_id = llListen(avatar_chat_channel,"",toucheruuid,"sloodle");
+        llSetTimerEvent(20);  
+    }
+    listen(integer channel, string name, key id, string message) {
+        // ??? Do I need to check again in case this was triggered by another script? Or is listen confined to the 
+callin script?
+        llListenRemove(listen_id);
         state menu;   
     }
+    timer() {
+        llListenRemove(listen_id);        
+    }
+    
 }
 
 state menu
 {
     state_entry()
     {
-        list menu_options = [];
-        if ( (sloodleinstall == "") || (pwd == "") ) {
-            menu_options = ["Set Moodle","Cancel"];
-        } else if ( objectsallrezzed == 1) {
-            menu_options = ["Cleanup", "Save", "Save As","Cancel"];   
-        } else {
-            menu_options = ["Setup Class","Set Moodle","Cancel"];   
+        integer is_still_reading_notecard = populate_from_notecard();
+        if (is_still_reading_notecard == 0) {
+            display_menu();   
         }
-        llDialog(toucheruuid, "Menu Options", menu_options, dialog_channel);
-        listen_id = llListen(dialog_channel, "", toucheruuid, "");
+        // otherwise wait for the dataserver event to call display when the notecard has been read
+
+
     }
     listen(integer channel, string name, key id, string message)
     {
@@ -478,6 +546,11 @@ state menu
             llListenRemove(listen_id);
             state default;
         }
+    }
+    dataserver(key queryid, string data) {
+        if(queryid == notecard_query_id) {
+            handle_notecard_line(data);
+        }       
     }
 }
 
@@ -508,12 +581,14 @@ state server_selection
     }
 
     email(string time, string address, string subj, string message, integer num_left) {
+        sloodle_debug("handling email");
         integer ok = handle_authentication_email(message);
         if (ok == 1) {
             state authentication;        
         }
     }
     timer() {
+        sloodle_debug("checking for email");
         emailtriessofar++;
         llGetNextEmail("", "SLOODLE AUTH");
         if ((emailtimeuntilgiveup/emailpollinterval) > emailtriessofar) {
@@ -619,7 +694,7 @@ state object_creation
         integer something_rezzed = rez_next_object();
         if (something_rezzed == 0) {
             objectsallrezzed = 1;
-            state menu;
+            state default;
         }
     }  
     http_response(key request_id, integer status, list metadata, string body) {
@@ -674,7 +749,7 @@ state save
     }    
     state_entry() {        
         sloodle_debug("in state entry save");
-        llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 96, PI); // scan for agents/avatars within 96 metres. 
+        llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 20, PI); // scan for agents/avatars within 96 metres. 
 Anything more than this will not be saved for now. Alternative would be to have the server send a message to all 
 objects telling them to report home.
     }
