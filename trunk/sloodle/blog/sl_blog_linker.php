@@ -83,7 +83,7 @@ $slurl = '<a href="' .$slurl .'">' .$region .'</a>';
         	$blogEntry->module = 'blog';
         	$blogEntry->userid = $USER->id;  // was: $sl_blog_userid;
         	$blogEntry->format = 1;
-        	$blogEntry->publishstate = 'draft';
+        	$blogEntry->publishstate = 'site'; // 'draft' or 'site' or 'public'
         	$blogEntry->lastmodified = time();
         	$blogEntry->created = time();
 
