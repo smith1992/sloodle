@@ -86,9 +86,9 @@
 		$courseid = optional_param('courseid',null,PARAM_RAW);
 		$profiles = sloodle_get_classroom_profiles($courseid);
 
+		$data[] = array(0, "Default", 0);
 		if (count($profiles) > 0) {
 			if ( (count($profiles) == 1) && ($profiles[0] == false) ) {
-				$data[] = array(0, "Default", 0);
 			} else {
 				foreach($profiles as $pr) {
 					$entries = sloodle_get_classroom_profile_entries($pr->id);
@@ -123,7 +123,7 @@
 
 		} else {
 
-			$defaultObjects = array('box2','Sloodle Quiz Chair');
+			$defaultObjects = array('Sloodle Classroom','Sloodle Quiz Chair');
 			$z = '0.5';
 			// Default profile
 			foreach($defaultObjects as $obj) {
