@@ -35,7 +35,7 @@ if ($auth == 'yes') {
 	$userid = $USER->id;
 	$result = authorize_object($objuuid,$objname,$userid);
 	if ($result) {
-		print_heading('Authorization granted');
+		print_heading('Sent authorization. (Currently using e-mail; May take some time to reach your objects...)');
 	} else {
 		print_heading('Authorization failed');
 	}
@@ -73,7 +73,7 @@ function authorize_object_email($uuid,$pwd) {
 	$body =  'http://'.$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'].'|'.$pwd;
 	return (mail($to, $subject, $body)); 
 }
-function authorize_object_xmlrpc($uuid) {
+function authorize_object_xmlrpc($uuid,$pwd) {
 // DOESN'T WORK 
 
 	$content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$objuuid.'</string></value></member><member><name>IntValue</name><value><int>123456789</int></value></member><member><name>StringValue</name><value><string></string></value></member></struct></value></param></params></methodCall>';
