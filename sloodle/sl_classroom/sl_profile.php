@@ -66,13 +66,22 @@
 			$thisEntry->uuid = '';
 			$thisEntry->name = $parts[2];
 			$thisEntry->relative_position = $parts[3];
-			$result = sloodle_save_classroom_profile_entry($thisEntry);
-		var_dump($thisEntry);
-			if (!$result) {
-				$sloodleerrors[] = "FAILED: $it";
-			}
+
+			$entries[] = $thisEntry;
+
+			//$result = sloodle_save_classroom_profile_entry($thisEntry);
+			//var_dump($thisEntry);
+			//if (!$result) {
+			//	$sloodleerrors[] = "FAILED: $it";
+			//}
 		}
 
+		$saved = sloodle_save_classroom_profile_entries($profileid,$entries);
+		if (!$saved) {
+				$sloodleerrors[] = "Saving entries failed";
+		}
+
+		//var_dump($sloodleerrors);
 		if (count($sloodleerrors) > 0) {
 			sloodle_prim_render_error($sloodleerrors);
 		} else {
@@ -131,6 +140,7 @@
 				$z = $z+0.5;
 				$data[] = array(0,$obj,$position); // TODO: make this auto-created and saved
 			}
+			$data[] = array(0,'Sloodle Login Zone','<0,0,9.5>');
 
 		}
 
