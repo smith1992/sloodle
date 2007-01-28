@@ -1,9 +1,18 @@
+string sloodleserverroot = ""; // this represents the top directory of the moodle installation
+string pwd = ""; // This is the string the object needs to use when talking to the server to 
+prove that it's authorized. It will be either a single, pre-defined string (with the old 
+prim_password method) or a uuid of a master object combined with an arbitrary numerical code 
+(with the master object authorization method)
+integer sloodle_command_channel = -3857343; // an arbitrary channel the sloodle scripts will use 
+to talk to each other. Doesn't atter what it is, as long as the same thing is set in the 
+sloodle_slave script.
+integer sloodle_courseid = 0; // The ID of the moodle course being used.
+
 integer avatar_channel = 0; // the channel on which we talk to the avatar
-integer object_channel = 843624; // the channel on which we talk to other objects - maybe not neded?
 integer dialog_channel = 352435; // the channel used by dialog boxes
 
-integer course_id = 9; // the course whose quiz the script will administer 
-string sloodle_quiz_url = "SLOODLE_SCRIPT_URL_WITH_PASSWORD";
+string sloodle_quiz_url = "/mod/sloodle/mod/quiz/attempt.php"; 
+//"http://moodle.edochan.com/mod/sloodle/mod/quiz/attempt.php?pwd=asdf34343lksdjfilajf";
 
 key populate_request_http_id = NULL_KEY;
 integer qalistpopulated = 0;
@@ -15,9 +24,11 @@ list as = []; //["ichi","ni","san"];
 list qcodes = [];
 
 // each question has multiple options.
-// since we don't have multi-dimensional arrays, we'll stack up everything in an array for its type.
+// since we don't have multi-dimensional arrays, we'll stack up everything in an array for its 
+type.
 // for example, all question option text entries will be stacked up in qoptiontexts.
-// so that we know which texts belong to which questions, we'll given each question one entry in the following lists:
+// so that we know which texts belong to which questions, we'll given each question one entry in 
+the following lists:
 list qoptionindexes = []; // where in qoptiontexts etc. the question's entries start.
 list qoptioncounts = []; // how many entries in qoptiontexts etc. the question has.
 
@@ -132,14 +143,17 @@ populate_qa_list(string response)
 
 request_question_list()
 {
-    string url = sloodle_quiz_url + "&avname="+llEscapeURL(llKey2Name(sitter)) + "&id=" + (string)course_id;
-    //llWhisper(0,"Reqesting url "+url);
+    llWhisper(0,"Using sloodle server root "+sloodleserverroot);
+    string url = sloodleserverroot + sloodle_quiz_url + "?pwd=" + pwd + 
+"&avname="+llEscapeURL(llKey2Name(sitter)) + "&courseid=" + (string)sloodle_courseid;
+    llWhisper(0,"Reqesting url "+url);
     populate_request_http_id = llHTTPRequest(url,[],"");
 }
 
 notify_server(string qtype, integer questioncode, integer responsecode)
 {
-    string url = sloodle_quiz_url + "&avname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + 
+    string url = sloodleserverroot + sloodle_quiz_url + "?pwd=" + pwd + 
+"&avname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + 
 (string)quizid+"&resp"+(string)questioncode+"_="+(string)responsecode+"&questionids="+questionids+"&resp"+(string)questioncode+"_submit=Submit&timeup="+(string)timeup+"&action=notify";
     //llWhisper(0,"Reqesting url "+url);
     llHTTPRequest(url,[],"");    
@@ -159,12 +173,14 @@ ask_question()
     list thisqoptiontexts = llList2List(qoptiontexts, thisOpIndex, lastIndex);
    
     // llDialog(sitter, "Indexes: " + llDumpList2String(qoptionindexes,"+") + "\nCounts: " + 
-llDumpList2String(qoptioncounts,"+") + "\nTexts: " + llDumpList2String(qoptiontexts,"+"), [], dialog_channel );      
+llDumpList2String(qoptioncounts,"+") + "\nTexts: " + llDumpList2String(qoptiontexts,"+"), [], 
+dialog_channel );      
 
    
     if (doDialog == 1) {
         llDialog(sitter, question, thisqoptiontexts, dialog_channel);
-        llListen(dialog_channel, "", sitter, ""); // listen for dialog answers (from multiple users)
+        llListen(dialog_channel, "", sitter, ""); // listen for dialog answers (from multiple 
+users)
     } else {
         llWhisper(avatar_channel, "");
         llWhisper(avatar_channel, question);
@@ -192,8 +208,10 @@ next_question()
 
 move_vertical(integer multiplier) {
     
-    integer lowest = 165;
-    integer highest = 180;
+    float lowestvector = llGround ( ZERO_VECTOR );
+    integer lowest = (integer)lowestvector;
+    integer range = 30;
+    integer highest = lowest + range;;
     integer increment = 1;
     vector position = llGetPos();
     position.z = position.z + (increment * multiplier);
@@ -206,9 +224,22 @@ move_vertical(integer multiplier) {
     llSetPos(position);
 }
 
+move_to_start() {
+    
+    float lowestvector = llGround ( ZERO_VECTOR );
+    integer lowest = (integer)lowestvector;
+        
+    integer middle = lowest + 6;
+    integer increment = 1;
+    vector position = llGetPos();
+    position.z = middle;
+    llSetPos(position);    
+}
+
 process_done() 
 {
-    llWhisper(avatar_channel, "done");       
+    llWhisper(avatar_channel, "done");      
+    move_to_start(); 
     if (doRepeat == 1) {
         activeQuestion = -1;
         next_question();   
@@ -245,12 +276,13 @@ handle_response(string message) {
                 scorechange = llList2Integer(thisqoptionscores, x);
 
                 list thisqoptioncodes = llList2List(qoptioncodes, thisOpIndex, lastIndex);
-                notify_server( thisqtype, llList2Integer(qcodes,activeQuestion) , llList2Integer(thisqoptioncodes, x) 
-);
+                notify_server( thisqtype, llList2Integer(qcodes,activeQuestion) , 
+llList2Integer(thisqoptioncodes, x) );
             }
         }
         if (answerfound == 0) {
-            llWhisper(0, "Your choice was not in the list of available choices. Please try again.");
+            llWhisper(0, "Your choice was not in the list of available choices. Please try 
+again.");
             repeat_question();
             return 1;   
         }
@@ -280,22 +312,63 @@ handle_response(string message) {
         
 }
 
+
+sloodle_handle_command(string str) 
+{
+    //llWhisper(0,"handling command "+str);    
+    list bits = llParseString2List(str,["|"],[]);
+        string name = llList2String(bits,0);
+        string value = llList2String(bits,1);
+        if (name == "set:sloodleserverroot") {
+            sloodleserverroot = value;
+        } else if (name == "set:pwd") {
+            pwd = value;
+            if (llGetListLength(bits) == 3) {
+                pwd = pwd + "|" + llList2String(bits,2);
+            }
+        } else if (name == "set:courseid") {
+            sloodle_courseid = (integer)value;
+        }
+    
+
+    //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
+
+    if ( (sloodleserverroot != "") && (pwd != "") && (sloodle_courseid != 0) ) {
+        state default;
+    }
+}
+
+sloodle_init()
+{
+    //llWhisper(0,"initializing");    
+    if ( (sloodleserverroot == "") || (pwd == "") || (sloodle_courseid == 0) ) {
+        state sloodle_wait_for_configuration;
+    }
+}
+
+
 default
 {
+    on_rez(integer param)
+    {
+        sloodle_init();
+    }
     state_entry()
     {
+        sloodle_init();
         //llSay(0, "Hello, Avatar!");
         //request_question_list();
         vector eul = <0,270,0>; //45 degrees around the z-axis, in Euler form
         eul *= DEG_TO_RAD; //convert to radians
         rotation quat = llEuler2Rot(eul); //convert to quaternion
-        llSitTarget(<0, 0, -1.5>, quat);
+        //llSitTarget(<0, 0, -1.5>, quat); // for dragon
+        llSitTarget(<0,0,.1>, ZERO_ROTATION);
         llSetSitText("Ride");
     }
 
     touch_start(integer total_number)
     {
-        llWhisper(0,"starting...");
+        llWhisper(0,"Sloodle Quiz Starting...");
         //next_question();
 
     }
@@ -327,6 +400,7 @@ default
             //llWhisper(0,(string)llAvatarOnSitTarget());
             if (llAvatarOnSitTarget() != NULL_KEY) { // somebody is sitting on me
                 if (sitter != llAvatarOnSitTarget()) { // new sitter
+                    move_to_start();
                     sitter = llAvatarOnSitTarget();
                     qalistpopulated = 0;
                     request_question_list(); // load question list
@@ -337,3 +411,20 @@ default
     }
     
 }
+
+state sloodle_wait_for_configuration
+{
+    state_entry() {
+        //llWhisper(0,"waiting for command");
+    }
+    link_message(integer sender_num, integer num, string str, key id) {
+        //llWhisper(0,"got message "+(string)sender_num+str);
+       // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
+            sloodle_handle_command(str);
+        //}   
+    }
+}
+
+
+
+
