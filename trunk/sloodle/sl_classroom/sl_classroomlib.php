@@ -37,6 +37,15 @@
 		}
 	}
 
+	function sloodle_save_classroom_profile_entries($profileid,$entries) {
+		$deleted = delete_records('sloodle_classroom_setup_profile_entry', 'profileid', $profileid); // Just in case
+		foreach($entries as $e) {
+			sloodle_save_classroom_profile_entry($e);
+		}
+		return true;
+
+	}
+
 	function sloodle_save_classroom_profile($profile) {
 		return update_record('sloodle_classroom_setup_profile', $profile);
 	}
