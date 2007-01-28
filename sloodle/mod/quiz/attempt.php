@@ -25,6 +25,7 @@
 
 	$output = array();
 
+    $courseid = optional_param('courseid', 0, PARAM_INT);               // Course Module ID
     $id = optional_param('id', 0, PARAM_INT);               // Course Module ID
     $q = optional_param('q', 0, PARAM_INT);                 // or quiz ID
     $page = optional_param('page', 0, PARAM_INT);
@@ -44,6 +45,22 @@
         $finishattempt = 1;
     }
 
+	if ( ($courseid != 0) && ($id == 0) && ($q == 0) ) {
+		// fetch a quiz with the id for the course
+		 if (! $mod = get_record("modules", "name", "quiz") ) {
+			 sloodle_prim_render_error('Could not find quiz module');	
+			 exit;
+		 }
+
+		 //if (! $coursemod = get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
+		 if (! $coursemod = get_record("course_modules", "course", $courseid, "module", $mod->id)) {
+			 sloodle_prim_render_error('Could not find quiz module for course');	
+			 exit;
+		 }
+
+		 $id = $coursemod->id;
+
+	}
     if ($id) {
         if (! $cm = get_coursemodule_from_id('quiz', $id)) {
             sloodle_prim_render_error("There is no coursemodule with id $id");
