@@ -132,7 +132,7 @@
 
 		} else {
 
-			$defaultObjects = array('Sloodle Classroom','Sloodle Quiz Chair');
+			$defaultObjects = array('Sloodle Classroom','Sloodle Quiz Chair','Sloodle User Chat');
 			$z = '0.5';
 			// Default profile
 			foreach($defaultObjects as $obj) {
@@ -141,6 +141,7 @@
 				$data[] = array(0,$obj,$position); // TODO: make this auto-created and saved
 			}
 			$data[] = array(0,'Sloodle Login Zone','<0,0,9.5>');
+			//$data[] = array(0,'Sloodle Login Zone','<0,0,3>');
 
 		}
 
