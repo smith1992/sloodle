@@ -3,22 +3,18 @@
 //0.6 changes - changed the /SLURL to /slurl to avoid clashes with other gestures. - PA
 
 //----------
-// WE USE A NOTECARD NOW
-// edit these to put in your moodle name as it appears in moodle chat room,
-// and place your moodle ID number at the end of line 2, where '52' is just not
-// you also need to log into the moodle chat room with your moodle account for this 
-// to work currently!
-
-//----------
 // Declare vars w/out values
-string MOODLE_NAME;
-string URL_BASE;
+
 string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some 
 other hard coding
-string CHAT_ID;
-string USER_ID;
+string CHAT_ID = "";
 
-string pwd = "asdf34343lksdjfilajf";
+string sloodleserverroot = "";
+string pwd = "";
+integer sloodle_courseid = 0;
+
+list chatroomids;
+list chatroomnames;
 
 //----------
 // For hardcoding purposes/debugging
@@ -57,20 +53,50 @@ integer total_len = 0;
 key httprequest;
 integer message_id = 0; // last message cc'd from moodle
 
-// FOR NOTECARD CONFIGURATION
-string gName;   // name of a notecard in the object's inventory
-integer gLine = 2;  // current line number, skips first commented line
-key gQueryID;   // id used to identify dataserver queries
+sloodle_handle_command(string str) 
+{
+    //llWhisper(0,"handling command "+str);    
+    list bits = llParseString2List(str,["|"],[]);
+        string name = llList2String(bits,0);
+        string value = llList2String(bits,1);
+        if (name == "set:sloodleserverroot") {
+            sloodleserverroot = value;
+        } else if (name == "set:pwd") {
+            pwd = value;
+            if (llGetListLength(bits) == 3) {
+                pwd = pwd + "|" + llList2String(bits,2);
+            }
+        } else if (name == "set:courseid") {
+            sloodle_courseid = (integer)value;
+        }
+    
+
+    //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
+
+    if ( (sloodleserverroot != "") && (pwd != "") && (sloodle_courseid != 0) ) {
+        state default;
+    }
+}
+
+sloodle_init()
+{
+    //llWhisper(0,"initializing");    
+    if ( (sloodleserverroot == "") || (pwd == "") || (sloodle_courseid == 0) ) {
+        state sloodle_wait_for_configuration;
+    }
+}
+
 
 
 default
 {
-    state_entry()
+    on_rez(integer param)
     {
-        //  READ THE NOTECARD TO GET SETTINGS
-        gName = llGetInventoryName(INVENTORY_NOTECARD, 0); // select the first notecard 
-in the object's inventory
-        gQueryID = llGetNotecardLine(gName, gLine);    // request data line 2
+        sloodle_init();
+    }    
+    state_entry()
+    {     
+        sloodle_init();
 
         llSetTimerEvent(0); // clear timer in case
         llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
@@ -78,54 +104,11 @@ in the object's inventory
         part = 0;
         llSetText("",<1,1,1>,1);
     }
-    
-    // If there has been an inventory change, then it was probably the notecard with
-    // chatroom settings... so reset and reload.
-    changed(integer change) { 
-        if (change & CHANGED_INVENTORY) // and it was inventory
-            llResetScript(); // reload the URL from the notecard
-   }
-
-    
-    // USE DATASERVER TO GET BACK THE NOTECARD SETTINGS
-    dataserver(key query_id, string data) {
-        if (query_id == gQueryID) {
-            if (data != EOF) {    // not at the end of the notecard
-                // llSay(0, (string)gLine+": "+data);    // output the line
-    
-                if (gLine == 2) { // MOODLE_NAME
-                MOODLE_NAME = data;
-                // llSay(0, MOODLE_NAME);
-                }
-                else if (gLine == 3) { // URL_BASE
-                URL_BASE = data;
-                // llSay(0, URL_BASE);
-                }
-                else if (gLine == 4) { // CHAT_ID
-                CHAT_ID = data;
-                // llSay(0, CHAT_ID);
-                }
-                else if (gLine == 5) { // USER_ID
-                USER_ID = data;
-                // llSay(0, USER_ID);
-                }
-                ++gLine;                // increase line count
-                
-                if (gLine <= 5) { // still reading the notecard
-                    gQueryID = llGetNotecardLine(gName, gLine);    // request next line
-                }
-                else {
-                    URL = 
-URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd;                  
-                    // should equal something like 
-http://www.sloodle.com/SL_insert.php?chat_id=6&user_id=158
-                    //llSay(0, URL); //DEBUG ECHO
-                }
-            }
-        }
-    }
         
     touch_start(integer total_number)   {
+        if (CHAT_ID == "") {
+            state select_chatroom;
+        }
         if (llDetectedKey(0) == llGetOwner() )  {
             llListenRemove(listenID);
             listenID = llListen(CHANNEL,"",llGetOwner(),"");
@@ -241,7 +224,7 @@ faster code on wiki
                 //URL = 
 URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php.php?chat_id="+CHAT_ID+"&pwd+"+pwd;                  
                 httprequest = 
-llHTTPRequest(URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd+"&avname="+llEscapeURL(name)+"&chat_message=(SL)"+llEscapeURL(" 
+llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd+"&avname="+llEscapeURL(name)+"&chat_message=(SL)"+llEscapeURL(" 
 " +name +": "+ message),[HTTP_METHOD,"GET"],"");
                 // llSay(0, httprequest); // DEBUG PURPOSES
             }   
@@ -249,7 +232,8 @@ llHTTPRequest(URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+
     }
     
     timer()     {
-        httprequest = llHTTPRequest(URL,[HTTP_METHOD,"GET"],"");
+        httprequest = 
+llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
         // llSay(0, httprequest); // DEBUG PURPOSES
         // llSay(0, URL); // DEBUG PURPOSES
         // FINDINGS:  the timer is working, the request is being properly constructed, 
@@ -280,12 +264,88 @@ of the way
                 text = llList2String(message_list,i);
                 line = llGetSubString(text,0,4);
                 lno = (integer)line;
-                if ( lno > message_id && llSubStringIndex(text,MOODLE_NAME + " (SL)") == 
--1)
+                if ( lno > message_id && llSubStringIndex(text,"(SL)") == -1)
                     llSay(0,llGetSubString(text,5,-1));
-            }
+                }
             message_id = lno;
         }
+    }
+}
+
+state select_chatroom
+{
+    state_entry() {
+        if (sloodle_courseid == 0) {
+            state sloodle_wait_for_configuration;
+        } else {
+            // fetch list of chatrooms
+            httprequest = 
+llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?courseid="+(string)sloodle_courseid+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
+
+        }
+    }
+    http_response(key request_id, integer status, list metadata, string body) {
+        if(status == 200) {
+            if (request_id == httprequest) {        
+                chatroomids = [];
+                chatroomnames = [];
+               
+                list lines = llParseString2List(body,["\n"],[]);  
+                    
+                integer i;
+                for (i=0; i<llGetListLength(lines); i++) {  
+                    string thislinestr = llList2String(lines, i);      
+                    list thisline = llParseString2List(thislinestr,["|"],[]);            
+                    if (llList2String(thisline, 0) == "ERROR") {
+                        llWhisper(0, thislinestr);
+                    } else {
+                        chatroomids = chatroomids + [(integer)llList2String(thisline, 
+1)];
+                        chatroomnames = chatroomnames + [llList2String(thisline, 2)];
+                        
+                    }
+                }
+
+            }
+        }
+        integer chatroomcount = 0;
+        list crmenu = ["Cancel"];
+        string crmenustring = "";
+        for (chatroomcount = 1; chatroomcount <= llGetListLength(chatroomnames); 
+chatroomcount++) {
+            integer crindex = chatroomcount - 1;
+            crmenu = crmenu + [(string)chatroomcount];
+            crmenustring = crmenustring + "\n"+(string)chatroomcount+": 
+"+llList2String(chatroomnames,crindex);
+        }
+        listenID = llListen(CHANNEL,"",llGetOwner(),"");
+        llDialog(llGetOwner(),"\nChoose your chatroom:\n"+crmenustring,crmenu,CHANNEL);        
+    } 
+    listen(integer lchannel, string name, key id, string message) {
+
+        if (lchannel == CHANNEL) {
+            if (message == "Cancel") {
+                state default;
+            }
+            integer choicenum = (integer)message;
+            integer choiceindex = choicenum - 1;
+            CHAT_ID = (string)llList2Integer(chatroomids,choiceindex);
+            llWhisper(0,"Using chatroom "+CHAT_ID);
+            state default;
+        }
+    }    
+}
+
+state sloodle_wait_for_configuration
+{
+    state_entry() {
+        //llWhisper(0,"waiting for command");
+    }
+    link_message(integer sender_num, integer num, string str, key id) {
+        //llWhisper(0,"got message "+(string)sender_num+str);
+       // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
+            sloodle_handle_command(str);
+        //}   
     }
 }
 
