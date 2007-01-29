@@ -11,24 +11,52 @@ require_once('../../login/sl_authlib.php');
 require_once($CFG->dirroot .'/mod/chat/lib.php');
 
 sloodle_prim_require_script_authentication(); // make sure the client that's talking to us is allowed to do so.
-
-sloodle_prim_require_user_login(); // check the avatar name and/or uuid argument s, and log the user in (creating a $USER) variable, or return errors to the clie nt.  
-
-$sl_userid = $USER->id;
-
 //print "Moodle user ID is $sl_userid";
 
-	
 	// This next bit is new - we want to pass the other chat params to Moodle via Second Life.
-	
-	$sl_chatid = required_param('chat_id', PARAM_INT);  //Pass the ID of the Chat room to log the chat in.
+	$sl_courseid = optional_param('courseid', 0, PARAM_INT);	
+	$sl_chatid = optional_param('chat_id', 0, PARAM_INT);  //Pass the ID of the Chat room to log the chat in.
+
+	if ( ($sl_courseid == 0) && ($sl_chatid == 0) ) {
+		sloodle_prim_render_error('Course ID and Chat ID missing');
+		exit;
+	}
+
+	if ($sl_chatid == 0) {
+		if (! $chatroomset = get_recordset("chat", "course", $sl_courseid) ) {
+			sloodle_prim_render_error('Could not find chat module');
+			exit;
+		}
+
+		$chatrooms = recordset_to_array($chatroomset);
+		if (count($chatrooms) == 0) {
+			sloodle_prim_render_error('No chatrooms found');
+			exit;
+		}
+
+		$data = array();
+		foreach($chatrooms as $cr) {
+			$data[] = array(
+				$cr->id,
+				$cr->name
+			);
+		}
+
+		sloodle_prim_render_output($data);
+		
+	}
 	// $sl_userid = required_param('user_id', PARAM_INT);  /*Pass the ID of the Chat Bot account into Moodle, this is the number at the END of the URL of the page showing the profile of the chatbot.  EG: http://www.sloodle.com/user/view.php?id=158 Thus ID for Sloodle.com Chatbot = 158. 
 	$chat_message = optional_param('chat_message','', PARAM_RAW); // PA: This has changed , the message is now optional as you may just want to VIEW the chat room...
 	
 
-    if (!$chatuser = get_record('chat_users', 'userid', $sl_userid)) {
-        sloodle_prim_render_error('Not logged in!  Please log the chatbot INTO the chat room you wish to use.'); //PA: This Uses Moodle's built in Error handler - :o)
-	}
+    //if (!$chatuser = get_record('chat_users', 'userid', $sl_userid)) {
+     //   sloodle_prim_render_error('Not logged in!  Please log the chatbot INTO the chat room you wish to use.'); //PA: This Uses Moodle's built in Error handler - :o)
+	//}
+
+	sloodle_prim_require_user_login(); // check the avatar name and/or uuid argument s, and log the user in (creating a $USER) variable, or return errors to the clie nt.  
+
+	$sl_userid = $USER->id;
+
 
     $chat_message = addslashes(clean_text(stripslashes($chat_message), FORMAT_MOODLE));  // Strip bad tags 
 
