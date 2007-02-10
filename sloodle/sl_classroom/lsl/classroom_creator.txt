@@ -1,9 +1,9 @@
 // SL Classroom Creator
 // Copyright Edmund Edgar, 2006-12-23
 
-// This program is free software; you can redistribute it and/or modify it under the terms of the 
-GNU General Public License as published by the Free Software Foundation; either version 2 of the 
-License, or (at your option) any later version.
+// This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public 
+License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later 
+version.
 
 string config_notecard = "sloodle_object_configuration";
 
@@ -106,28 +106,9 @@ integer handle_server_selection_input(string msg)
 
 integer handle_server_selection_response(string body)
 {
-    llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this 
-object",toucherurl+sloodleobjectvalidationbase+"?objuuid="+(string)llGetKey()+"&objname="+llEscapeURL(llGetObjectName()));
-    emailtriessofar = 0;
-    llSetTimerEvent(emailpollinterval); // start checking to see if the server sends us an 
-e-mail... 
+    //llSetTimerEvent(emailpollinterval); // start checking to see if the server sends us an e-mail... 
+    llOpenRemoteDataChannel(); // create an XML-RPC channel
     return 1;    
-}
-
-integer handle_authentication_email(string message) 
-{
-    list data = llParseString2List(message,["|"],[]);
-    if (toucherurl+sloodleobjectvalidationbase == llList2String(data,0)) {
-        sloodleinstall = toucherurl;
-        pwdcode = llList2String(data,1);
-        pwd = (string)llGetKey()+"|"+pwdcode;
-        sloodle_debug("Email response was ok");
-        return 1;
-    } else {
-        sloodle_debug("Ignoring message "+message+" - url "+llList2String(data,0)+" did not match 
-toucher supplied url "+toucherurl); 
-        return 0;   
-    }
 }
 
 integer handle_server_selection_404()
@@ -139,20 +120,18 @@ integer handle_server_selection_404()
 
 handle_site_missing_sloodle() 
 {
-    llWhisper(0, "Could not find the Sloodle files at "+toucherurl+". Please make sure that you 
-have typed the URL correctly, and that the Sloodle module is installed as mod/sloodle.");
+    llWhisper(0, "Could not find the Sloodle files at "+toucherurl+". Please make sure that you have typed the URL 
+correctly, and that the Sloodle module is installed as mod/sloodle.");
 }
 
 handle_site_missing() {
-    llWhisper(0, "Could not get a response from the URL"+toucherurl+". Please check and try 
-again.");       
+    llWhisper(0, "Could not get a response from the URL"+toucherurl+". Please check and try again.");       
 }
 
 require_sloodle_registration()
 {
     string sloodleregurl = sloodleinstall + sloodleregurlbase + "?pwd=" + pwd;
-    string url = 
-sloodleregurl+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
+    string url = sloodleregurl+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
     // llWhisper(0,"Requesting login URL for "+llDetectedName(0));
     http_id = llHTTPRequest(url,[],"");
 }
@@ -171,8 +150,7 @@ integer handle_authentication_response(string body)
         if(llList2String(data,2) == "user already registered with all the info sloodle needs") {
             return handle_already_registered();  
         } else {
-            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work 
-out...");
+            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
             integer i;
             for (i=1;i<llGetListLength(data);i++) {
                 sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);
@@ -204,8 +182,7 @@ handle_teacher_courses_response(string body)
     key responseuuid = llList2Key(data,1);
     if (responseuuid == toucheruuid) {            
         if(resultCode == "ERROR") {
-            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work 
-out...");
+            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
             integer i;
             for (i=1;i<llGetListLength(data);i++) {
                 sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);   
@@ -234,8 +211,7 @@ out...");
     }   
 }
 
-offer_course_select() // TODO: Make sure the avatar getting this is the one who requested the 
-course list...
+offer_course_select() // TODO: Make sure the avatar getting this is the one who requested the course list...
 {
     llDialog(toucheruuid, "Choose your course",coursecodes, avatar_dialog_channel);
     llListen(avatar_dialog_channel, "", toucheruuid, "");
@@ -255,8 +231,7 @@ integer handle_course_selection_response(string msg)
         }        
     }
     if (found == 0) {
-        llWhisper(0,"Could not find a course for the code "+msg+". Maybe something is being 
-updated at the moment?");
+        llWhisper(0,"Could not find a course for the code "+msg+". Maybe something is being updated at the moment?");
     }
     
     // cleanup
@@ -271,8 +246,7 @@ request_course_profiles()
 {
     sloodle_debug("Fetching data for course "+(string)courseid);
     string url = sloodleinstall + sloodleprofilebase + "?cmd=listprofiles&pwd=" + pwd;
-    url = 
-url+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid+"&courseid="+(string)courseid;
+    url = url+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid+"&courseid="+(string)courseid;
     http_id = llHTTPRequest(url,[],"");
 }
 
@@ -314,8 +288,7 @@ handle_course_profile_response(string body)
     string resultCode = llList2String(data,0);
           
         if(resultCode == "ERROR") {
-            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work 
-out...");
+            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
             integer i;
             for (i=1;i<llGetListLength(data);i++) {                
                 sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);   
@@ -407,8 +380,8 @@ object_initialize(key uuid)
 {
     // Tell the object the sloodle install url    
     
-    string trustmecode = llGetSubString((string)pwdcode,0,3); // pass the first 4 digits of the 
-opwd we gave the object when we rezzed it. This will prove that we are the rezzer.
+    string trustmecode = llGetSubString((string)pwdcode,0,3); // pass the first 4 digits of the opwd we gave the 
+object when we rezzed it. This will prove that we are the rezzer.
     object_command(uuid, "setcontrollercode|"+trustmecode);
     object_command(uuid, "setsloodleserverroot|"+sloodleinstall);
     object_command(uuid, "setcourseid|"+(string)courseid);
@@ -438,8 +411,7 @@ rez_all_objects()
 
 }
 
-// rez the next object in the list, return 1 if it rezzes something, 0 if there's othing left to 
-rez
+// rez the next object in the list, return 1 if it rezzes something, 0 if there's othing left to rez
 // TODO: Set a timer to deal with if the object fails to rez...
 integer rez_next_object()
 {
@@ -478,16 +450,15 @@ default
 {
     touch_start(integer total_number)
     {
-        llWhisper(0,"Type /"+(string)avatar_chat_channel+" sloodle within 20 seconds for the 
-menu");
+        llWhisper(0,"Type /"+(string)avatar_chat_channel+" sloodle within 20 seconds for the menu");
         toucheruuid = llDetectedKey(0);
         toucheravname = llDetectedName(0);
         listen_id = llListen(avatar_chat_channel,"",toucheruuid,"sloodle");
         llSetTimerEvent(20);  
     }
     listen(integer channel, string name, key id, string message) {
-        // ??? Do I need to check again in case this was triggered by another script? Or is 
-listen confined to the callin script?
+        // ??? Do I need to check again in case this was triggered by another script? Or is listen confined to the 
+callin script?
         llListenRemove(listen_id);
         state menu;   
     }
@@ -548,27 +519,24 @@ state server_selection
     listen(integer channel, string name, key id, string message) {
         handle_server_selection_input(message);   
     }
-    // xmlrpc appears to be failing - using e-mail instead... also requires a timer...
-    remote_data(integer event_type, key channel, key message_id, string sender, integer idata, 
-string sdata) {
-        pwd = (string)idata;
-       // llWhisper(0,"Got pwd "+pwd);
-    }
 
-    email(string time, string address, string subj, string message, integer num_left) {
-        sloodle_debug("handling email");
-        integer ok = handle_authentication_email(message);
-        if (ok == 1) {
-            state authentication;        
-        }
-    }
-    timer() {
-        sloodle_debug("checking for email");
-        emailtriessofar++;
-        llGetNextEmail("", "SLOODLE AUTH");
-        if ((emailtimeuntilgiveup/emailpollinterval) > emailtriessofar) {
-            llSetTimerEvent(emailpollinterval);
-        }
+    remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval) {
+        if (type == REMOTE_DATA_CHANNEL) { // channel created
+            sloodle_debug("Channel opened");
+            llSay(0, "Ready to receive requests on channel \"" + (string)channel +"\"");
+            llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this 
+object",toucherurl+sloodleobjectvalidationbase+"?objuuid="+(string)llGetKey()+"&objname="+llEscapeURL(llGetObjectName())+"&ch="+(string)channel);
+        } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
+            sloodle_debug("Request received"+sval);
+            // handle request
+            sloodleinstall = toucherurl;
+            pwdcode =  (string)sval;
+            pwd = (string)llGetKey()+"|"+pwdcode;        
+            sloodle_debug("Got pwd "+pwd);
+            llRemoteDataReply(channel, message_id, "OK", 1); 
+            llCloseRemoteDataChannel(channel);      
+            state authentication; 
+        }  
     }
 }
 
@@ -690,8 +658,8 @@ state new_profile
         state menu;   
     }    
     state_entry() {
-        llWhisper(0,"Enter name for profile:");
-        listen_id = llListen(0, "", toucheruuid, "");
+        llWhisper(0,"Enter name for profile, eg /1 My Profile:");
+        listen_id = llListen(avatar_chat_channel, "", toucheruuid, "");
     }
     listen(integer channel, string name, key id, string message) {
         string url = 
@@ -728,8 +696,7 @@ state save
         sloodle_debug("in state entry save");    
         string baseurl = 
 sloodleinstall+sloodleprofilebase+"?pwd="+pwd+"&cmd=addentries&profileid="+(string)objectprofileid+"&avname="+toucheravname+"&uuid="+(string)toucheruuid;
-        llMessageLinked(LINK_THIS, sloodle_save_channel, baseurl, NULL_KEY);   // send a message 
-to the saving script
+        llMessageLinked(LINK_THIS, sloodle_save_channel, baseurl, NULL_KEY);   // send a message to the saving script
     }
     
 }

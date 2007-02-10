@@ -9,11 +9,16 @@ require_once('sl_classroomlib.php');
 // The prim should call us without any arguments before sending the user here.
 $objuuid = optional_param('objuuid',null,PARAM_RAW);
 $objname = optional_param('objname',null,PARAM_RAW);
+$channel = optional_param('ch',null,PARAM_RAW); // the channel we should use to talk back to the object
+
 $auth = optional_param('auth',null,PARAM_RAW);
 if ($objuuid == null) {
 	sloodle_prim_render_output(array('ok'));
 	exit;
 }
+
+//print "<h1>channel is ".$channel."</h1>";
+//var_dump($_POST);
 
 print_header('Authorize Object?', '', '', '', false, '', '', false, '');
 
@@ -33,9 +38,9 @@ if ($auth == 'no') {
 
 if ($auth == 'yes') {
 	$userid = $USER->id;
-	$result = authorize_object($objuuid,$objname,$userid);
+	$result = authorize_object($objuuid,$objname,$userid,$channel);
 	if ($result) {
-		print_heading('Sent authorization. (Currently using e-mail; May take some time to reach your objects...)');
+		print_heading('Sent authorization.');
 	} else {
 		print_heading('Authorization failed');
 	}
@@ -51,80 +56,42 @@ print '<br />';
 print $objuuid;
 print '<center>';
 print '<table border="0"><tr><td>';
-print '<form method="post" action="sl_validate_object.php"><input type="hidden" name="objuuid" value="'.$objuuid.'" /><input type="hidden" name="objname" value="'.$objname.'" /><input type="hidden" name="auth" value="no"><input type="submit" value="Don\'t Authorize"/></form>';
+print '<form method="post" action="sl_validate_object.php"><input type="hidden" name="objuuid" value="'.$objuuid.'" /><input type="hidden" name="objname" value="'.$objname.'" /><input type="hidden" name="ch" value="'.$channel.'" /><input type="hidden" name="auth" value="no"><input type="submit" value="Don\'t Authorize"/></form>';
 print '</td><td>';
-print '<form method="post" action="sl_validate_object.php"><input type="hidden" name="objuuid" value="'.$objuuid.'" /><input type="hidden" name="objname" value="'.$objname.'" /><input type="hidden" name="auth" value="yes"><input type="submit" value="Authorize" /></form>';
+print '<form method="post" action="sl_validate_object.php"><input type="hidden" name="objuuid" value="'.$objuuid.'" /><input type="hidden" name="objname" value="'.$objname.'" /><input type="hidden" name="ch" value="'.$channel.'" /><input type="hidden" name="auth" value="yes"><input type="submit" value="Authorize" /></form>';
 print '</td></tr>';
 print '</table>';
 print '</center>';
 
-function authorize_object($uuid,$name,$userid) {
+function authorize_object($uuid,$name,$userid,$channel) {
 	$entry = sloodle_register_object($uuid,$name,$userid,$uuid);
 	if ($entry == null) {
 		return false;
 	}
-	return authorize_object_email($uuid,$entry->pwd);
-	//return authorize_object_xmlrpc($uuid);
+	//return authorize_object_email($uuid,$entry->pwd);
+	//return authorize_object_xmlrpc($uuid,$entry->pwd,$channel);
+	//print "<h1>sending message on channel ".$channel."</h1>";
+	return sloodle_send_xmlrpc_message($channel,0,$entry->pwd);
+
 }
-function authorize_object_email($uuid,$pwd) {
-	$to = $uuid.'@lsl.secondlife.com';
-	//$to = 'test@edochan.com';
-	$subject = "SLOODLE AUTH";
-	$body =  'http://'.$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'].'|'.$pwd;
-	return (mail($to, $subject, $body)); 
-}
-function authorize_object_xmlrpc($uuid,$pwd) {
-// DOESN'T WORK 
 
-	$content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$objuuid.'</string></value></member><member><name>IntValue</name><value><int>123456789</int></value></member><member><name>StringValue</name><value><string></string></value></member></struct></value></param></params></methodCall>';
-	$length = strlen($content);
-	print "<h1>length is $length</h1>";
+function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
 
-	$host = 'xmlrpc.secondlife.com';
+	require_once('../lib/xmlrpc.inc');
 
-	/* Get the port for the WWW service. */
-	$service_port = getservbyname('www');
+    $client = new xmlrpc_client("http://xmlrpc.secondlife.com/cgi-bin/xmlrpc.cgi");
 
-	/* Get the IP address for the target host. */
-	$address = gethostbyname($host);
+	    $content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$channel.'</string></value></member><member><name>IntValue</name><value><int>'.$intval.'</int></value></member><member><name>StringValue</name><value><string>'.$strval.'</string></value></member></struct></value></param></params></methodCall>';
 
-	/* Create a TCP/IP socket. */
-	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-	if ($socket < 0) {
-		echo "socket_create() failed: reason: " . socket_strerror($socket) . "\n";
-	} else {
-		echo "OK.\n";
-	}
+	$response = $client->send(
+		$content,
+		60,
+		'http'
+	);
+	//var_dump($response);
+	//TODO: Check the details of the response to see if this was successful or not...
+	return true;
 
-	echo "Attempting to connect to '$address' on port '$service_port'...";
-	$result = socket_connect($socket, $address, $service_port);
-	if ($result < 0) {
-		echo "socket_connect() failed.\nReason: ($result) " . socket_strerror($result) . "\n";
-	} else {
-		echo "OK.\n";
-	}
-
-	$in = "POST /cgi-bin/xmlrpc.cgi HTTP/1.0\r\n";
-	$in .= "Host: $host\r\n";
-	$in .= "Content-Type: application/x-www-form-urlencoded\r\n";
-	$in .= "Content-Length: $length\r\n";
-	$in .= "Connection: close\r\n";
-	$in .= "\r\n";
-	$in .= $content;
-	$out = '';
-
-	echo "Sending request...";
-	socket_write($socket, $in, strlen($in));
-	echo "OK.\n";
-
-	echo "Reading response:\n\n";
-	while ($out = socket_read($socket, 2048)) {
-		echo $out;
-	}
-
-	echo "Closing socket...";
-	socket_close($socket);
-	echo "OK.\n\n";
 }
 
 ?>
