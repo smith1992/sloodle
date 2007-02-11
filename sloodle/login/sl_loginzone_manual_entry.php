@@ -51,17 +51,17 @@ if (!$isnewuser) {
 // TO DO should probably change this so that if values have been submitted
 // as input to this page, the user will not be able to edit them!
 echo '<form name="input" action="sl_loginzone_manual_update.php" method="get">';
-echo 'Second Life avatar name: <input type="text" name="avname" '; 
+echo '<input type="hidden" name="avname" '; 
 if ($newAvname !== NULL) {
   echo 'value="' .$newAvname .'"';
 } 
 echo '>';
-echo ' Second Life avatar UUID (key): <input type="text" name="uuid" ';
+echo 'New Data:<br>Second Life name: ' .$newAvname .'<br>UUID (Key): ' .$newUUID .'<br>'; 
+echo '<input type="hidden" name="uuid" ';
 if ($newUUID !== NULL) {
   echo 'value="' .$newUUID .'"';
 }
 echo '>';
-
 echo ' <input type="submit" value="Submit" >';
 echo ' </form>';
 
