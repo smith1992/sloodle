@@ -88,7 +88,13 @@ function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
 		60,
 		'http'
 	);
+
 	//var_dump($response);
+	if ($response->val == 0) {
+		print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br />';
+		print "XMLRPC Error - ".$response->errstr."</p>";
+		return false;
+	}
 	//TODO: Check the details of the response to see if this was successful or not...
 	return true;
 
