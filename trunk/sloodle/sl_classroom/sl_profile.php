@@ -97,16 +97,13 @@
 
 		$data[] = array(0, "Default", 0);
 		if (count($profiles) > 0) {
-			if ( (count($profiles) == 1) && ($profiles[0] == false) ) {
-			} else {
-				foreach($profiles as $pr) {
-					$entries = sloodle_get_classroom_profile_entries($pr->id);
-					if (count($entries) > 0) {
-						if (!( (count($entries) == 1) && ($entries[0] == false) )) {
-							$data[] = array($pr->id, $pr->name, count($entries));
-						}
-					} 
-				}
+			foreach($profiles as $pr) {
+				$entries = sloodle_get_classroom_profile_entries($pr->id);
+				if (count($entries) > 0) {
+					if (!( (count($entries) == 1) && ($entries[0] == false) )) {
+						$data[] = array($pr->id, $pr->name, count($entries));
+					}
+				} 
 			}
 		} 
 
