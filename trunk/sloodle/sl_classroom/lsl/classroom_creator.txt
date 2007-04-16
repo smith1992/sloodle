@@ -563,6 +563,9 @@ state server_404_diagnosis
 }
 state authentication
 {
+    touch_start(integer total_number) {
+		state menu;   
+	} 
     state_entry() {
         require_sloodle_registration();    
     }
