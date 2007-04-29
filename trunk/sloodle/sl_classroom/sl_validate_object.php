@@ -74,30 +74,4 @@ function authorize_object($uuid,$name,$userid,$channel) {
 	return sloodle_send_xmlrpc_message($channel,0,$entry->pwd);
 
 }
-
-function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
-
-	require_once('../lib/xmlrpc.inc');
-
-    $client = new xmlrpc_client("http://xmlrpc.secondlife.com/cgi-bin/xmlrpc.cgi");
-
-	    $content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$channel.'</string></value></member><member><name>IntValue</name><value><int>'.$intval.'</int></value></member><member><name>StringValue</name><value><string>'.$strval.'</string></value></member></struct></value></param></params></methodCall>';
-
-	$response = $client->send(
-		$content,
-		60,
-		'http'
-	);
-
-	//var_dump($response);
-	if ($response->val == 0) {
-		print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br />';
-		print "XMLRPC Error - ".$response->errstr."</p>";
-		return false;
-	}
-	//TODO: Check the details of the response to see if this was successful or not...
-	return true;
-
-}
-
 ?>
