@@ -22,6 +22,11 @@ if ($objuuid == null) {
 
 print_header('Authorize Object?', '', '', '', false, '', '', false, '');
 
+print_heading('Authorize this object?');
+print '<p align="center">';
+print 'An object in Second Life wants your permission to access Moodle.';
+print '</p>';
+
 require_login();
 if (!isadmin()) {
 	print_heading('You need to be an administrator to authorize an object');
@@ -29,7 +34,6 @@ if (!isadmin()) {
 }
 
 
-print_heading('Authorize this object?');
 
 if ($auth == 'no') {
 	print_heading('Authorization denied');
@@ -48,7 +52,7 @@ if ($auth == 'yes') {
 }
 
 print '<p align="center">';
-print 'The following object wants your permission to access Moodle:';
+print 'Do you want to authorize the following object?';
 print '<br />';
 print '<br />';
 print $objname;
