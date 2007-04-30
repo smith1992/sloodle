@@ -23,9 +23,12 @@ if ($objuuid == null) {
 print_header('Authorize Object?', '', '', '', false, '', '', false, '');
 
 print_heading('Authorize this object?');
-print '<p align="center">';
-print 'An object in Second Life wants your permission to access Moodle.';
-print '</p>';
+
+if ($auth == null) {
+	print '<p align="center">';
+	print 'An object in Second Life wants your permission to access Moodle.';
+	print '</p>';
+}
 
 require_login();
 if (!isadmin()) {
