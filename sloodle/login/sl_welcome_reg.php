@@ -33,7 +33,7 @@ print "<h3>sloodleuser</h3";
 	*/
 
 	$lsc = required_param('lsc',PARAM_RAW); // security code - this should already be in the database.
-	$channel = required_param('ch',PARAM_RAW); // optional channel code to tell the object we're done.
+	$channel = optional_param('ch',PARAM_RAW); // optional channel code to tell the object we're done.
 		
 	if (!$sloodleuser = sloodle_get_sloodle_user_for_security_code($lsc)) {
 		print '<center>';
