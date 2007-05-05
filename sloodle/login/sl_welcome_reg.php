@@ -33,7 +33,7 @@ print "<h3>sloodleuser</h3";
 	*/
 
 	$lsc = required_param('lsc',PARAM_RAW); // security code - this should already be in the database.
-	$channel = optional_param('ch',PARAM_RAW); // optional channel code to tell the object we're done.
+	$channel = optional_param('ch',NULL,PARAM_RAW); // optional channel code to tell the object we're done.
 		
 	if (!$sloodleuser = sloodle_get_sloodle_user_for_security_code($lsc)) {
 		print '<center>';
@@ -62,6 +62,7 @@ print "<h3>sloodleuser</h3";
 	// If the object passed us a channel parameter, we'll use it to tell the object that the authentication is done.
 	// If not, the avatar will just have to touch the object again.
 	if ( ($channel != null) && ($channel != '') ) {
+	print "<h1>channel is :$channel:</h1>";
 		flush();
 		$xmlrpcresult = sloodle_send_xmlrpc_message($channel,0,"OK|SLOODLE_AUTHENTICATION_DONE|".$sloodleuser->uuid);
 		if (!$xmlrpcresult) {
