@@ -1,31 +1,32 @@
 string baseurl;
 key http_id;
 
+sloodle_debug(string str) 
+{
+   // llWhisper(0,str);    
+}
+
 default
 {   
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }   
     link_message(integer sender_num, integer num, string str, key id) {
-        integer sloodle_save_channel = -35245633;
-        llWhisper(0,"got message "+(string)sender_num+str);
-     //   if ( (sender_num == LINK_THIS) && (num == sloodle_save_channel) ){
-     //   if ( (num == sloodle_save_channel) ){
-            
-            llWhisper(0,"state save");
+        integer sloodle_save_channel = -3524564;
+        if (num == sloodle_save_channel) {
             baseurl = str;
+            sloodle_debug("profile saver got message" + str);
             state save;
-    //    } else {
-      //         llWhisper(0,"ignoring - not using state save");
-
-    //    }
+        } 
     }    
 }
 
 state save
 {       
     state_entry() {        
-        //sloodle_debug("in state entry save");        
-        llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 20, PI); // scan for agents/avatars 
-within 96 metres. Anything more than this will not be saved for now. Alternative would be to have 
-the server send a message to all objects telling them to report home.
+        sloodle_debug("profile saver in state entry save");        
+        llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 20, PI); // scan for agents/avatars within 96 metres. Anything more than this will not be saved for now. Alternative would be to have the server send a message to all objects telling them to report home.
     }
     sensor(integer num_detected) {
         
@@ -33,9 +34,7 @@ the server send a message to all objects telling them to report home.
 
         integer i;
         integer numfound=0;
-        integer ts = llGetUnixTime(); // make a timestamp to identify this saved set. // Once 
-we've sent requests for all the objects, we'll send this, along with the number of objects we 
-sent, to let the server know we're done.
+        integer ts = llGetUnixTime(); // make a timestamp to identify this saved set. // Once we've sent requests for all the objects, we'll send this, along with the number of objects we sent, to let the server know we're done.
         string postdata; 
         string savemestring = "";
 
@@ -43,16 +42,13 @@ sent, to let the server know we're done.
 
             string name = llDetectedName(i);
             key uuid = llDetectedKey(i);
-            if (llGetInventoryType(name) == -1) { // is it in this object's inventory? if not, 
-ignore it                
-                // sloodle_debug("Ignoring item "+name+" ("+(string)uuid+") which is not in my 
-inventory.");
+            if (llGetInventoryType(name) == -1) { // is it in this object's inventory? if not, ignore it                
+                sloodle_debug("Ignoring item "+name+" ("+(string)uuid+") which is not in my inventory.");
             } else {  
                 numfound++;
                 vector savemepos = llDetectedPos(i) - thispos;      
                 integer savemeentryid = 0; //object_entry_id_for_uuid(uuid);
-                savemestring = savemestring + 
-"||"+(string)savemeentryid+"|"+(string)uuid+"|"+llEscapeURL(name)+"|"+(string)savemepos;         
+                savemestring = savemestring + "||"+(string)savemeentryid+"|"+(string)uuid+"|"+llEscapeURL(name)+"|"+(string)savemepos;         
             }
         }
         if (numfound == 0) {
@@ -61,26 +57,27 @@ inventory.");
         } else {
             // tell the server we're done   
             string url = baseurl+"&vals="+savemestring;   
+            sloodle_debug("sendig request"+url);
             http_id = llHTTPRequest(url,[],"");                      
         }
+        
     }
     no_sensor() {
         llWhisper(0,"No objects found to save.");
-        //state menu;   
+        state default;   
     }
     http_response(key request_id, integer status, list metadata, string body) {        
         //sloodle_debug("got response"+body);
         if(status == 200) {
             if (request_id == http_id) {
-                llWhisper(0,"Profile has been saved");
+                //llWhisper(0,"Profile has been saved");
                 list lines = llParseString2List(body,["\n"],[]);
                 string firstline = llList2String(lines,0);
                 list data = llParseString2List(firstline,["|"],[]);                
                 string resultCode = llList2String(data,0);       
 
                 if(resultCode == "ERROR") {
-                    llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work 
-out...");
+                    llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
                     integer i;
                     for (i=1;i<llGetListLength(data);i++) {            
                         //sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);   
