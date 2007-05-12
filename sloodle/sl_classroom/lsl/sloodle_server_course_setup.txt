@@ -8,7 +8,7 @@
 // The code here was originally used by the Sloodle Box.
 // It's been separated out here so that you can use the objects on their own, without rezzing them using the box.
 
-string sloodleinstall = ""; //"http://moodle.edochan.com";
+string sloodleserverroot = ""; //"http://moodle.edochan.com";
 string pwd = "";
 string pwdcode = "";
 
@@ -28,8 +28,11 @@ string toucheravname;
 key toucheruuid;
 
 string toucherurl = "";
+string sloodle_toucher_code = "";
 
-integer courseid = 0;
+integer sloodle_courseid = 0;
+string sloodle_course_title = "";
+
 list courseids;
 list coursetitles;
 list coursecodes;
@@ -42,17 +45,35 @@ sloodle_tell_other_scripts_in_prim(string msg)
 
 sloodle_debug(string msg)
 {
-     //llWhisper(0,msg);
+    // llWhisper(0,msg);
+}
+
+sloodle_set_text(string msg) 
+{
+    llSetText(msg,<0,0,1>,1);     
+}
+
+sloodle_display_server_course_status()
+{
+    if (sloodleserverroot == "") {
+        sloodle_set_text("Moodle URL not set.");
+    } else if (pwd == "") {
+        sloodle_set_text(sloodleserverroot + "\nWaiting for authorization.");        
+    } else if (sloodle_courseid == 0) {
+        sloodle_set_text(sloodleserverroot + "\nNeed to select course...");                
+    } else {
+        sloodle_set_text(sloodleserverroot + "\n" + sloodle_course_title);                        
+    }
 }
 
 display_menu()
 {
         list menu_options = [];
-        if ( (sloodleinstall == "") || (pwd == "") ) {
-            sloodle_debug("install is "+sloodleinstall+" and pwd is "+pwd);
+        if ( (sloodleserverroot == "") || (pwd == "") ) {
+            sloodle_debug("install is "+sloodleserverroot+" and pwd is "+pwd);
             menu_options = ["Set Moodle","Cancel"];
         } else {
-            menu_options = ["Take quiz","Set Moodle","Cancel"];   
+            menu_options = ["Set Moodle","Cancel"];   
         }
         llDialog(toucheruuid, "Menu Options", menu_options, avatar_dialog_channel);
         listen_id = llListen(avatar_dialog_channel, "", toucheruuid, "");
@@ -63,10 +84,10 @@ display_menu()
 // ... and the server doesn't yet know whether it should trust this object.
 require_sloodle_install_input_and_validation()
 {
-    sloodleinstall = "";
+    sloodleserverroot = "";
     pwd = "";  
     pwdcode = "";  
-    llWhisper(0,toucheravname+", please tell me the URL of your Moodle installation, eg. /1 http://moodle.edochan.com");  
+    llWhisper(0,toucheravname+", please tell me the URL of your Moodle installation, eg. /1 http://moodle.edochan.com\n\nIf you don't have a Moodle server with an up-to-date version of the SLoodle module installed, you can make a trial install at http://moodlefarm.socialminds.jp");  
     llListen(avatar_chat_channel,"",toucheruuid,"");
 }   
 
@@ -76,6 +97,7 @@ integer handle_server_selection_input(string msg)
     sloodle_debug("handling server input "+msg);
     string url = msg + sloodleobjectvalidationbase;
     http_id = llHTTPRequest(url,[],"");     
+    sloodle_set_text("Checking URL "+msg);
     return 1;
 }
 
@@ -88,7 +110,7 @@ integer handle_server_selection_response(string body)
 
 integer handle_server_selection_404()
 {
-    string url = toucherurl+"/index.php";
+    string url = toucherurl+"/version.php";
     http_id = llHTTPRequest(url,[],"");     
     return 1;    
 }
@@ -96,18 +118,21 @@ integer handle_server_selection_404()
 handle_site_missing_sloodle() 
 {
     llWhisper(0, "Could not find the Sloodle files at "+toucherurl+". Please make sure that you have typed the URL correctly, and that the Sloodle module is installed as mod/sloodle.");
+    sloodle_display_server_course_status();
 }
 
 handle_site_missing() {
     llWhisper(0, "Could not get a response from the URL"+toucherurl+". Please check and try again.");       
+    sloodle_display_server_course_status();    
 }
 
 require_sloodle_registration()
 {
-    string sloodleregurl = sloodleinstall + sloodleregurlbase + "?pwd=" + pwd;
+    string sloodleregurl = sloodleserverroot + sloodleregurlbase + "?pwd=" + pwd;
     string url = sloodleregurl+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
     sloodle_debug("Requesting login URL for "+(string)toucheruuid);
     sloodle_debug(url);
+    sloodle_set_text(sloodleserverroot+"\nAuthenticating "+toucheravname);
     http_id = llHTTPRequest(url,[],"");
 }
 
@@ -133,18 +158,19 @@ integer handle_authentication_response(string body)
             }
         }
     } else {
-        key uuid = llList2Key(data,1);
-        string code = llList2String(data,2);                    
-        string sloodlewelcomeurl = sloodleinstall + sloodlewelcomebase;
-        llLoadURL(uuid,"Go here and login to Moodle",sloodlewelcomeurl+"?lsc="+code);
+        key uuid = llList2Key(data,1); //TODO: Check this matches the toucheruuid...
+        sloodle_toucher_code = llList2String(data,2);                    
+        sloodle_set_text(sloodleserverroot+"\nWaiting for "+toucheravname + "to login to Moodle.");        
+        llOpenRemoteDataChannel(); // create an XML-RPC channel so that the server can tell us when it's done. 
     }
     return 0;
 }
 
 request_teacher_courses()
 {
-    string url = sloodleinstall + sloodleteachercoursesbase + "?pwd=" + pwd;
+    string url = sloodleserverroot + sloodleteachercoursesbase + "?pwd=" + pwd;
     url = url+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
+    sloodle_set_text(sloodleserverroot+"\nLooking up courses for "+toucheravname);       
     sloodle_debug("courses request:");
     sloodle_debug(url);
     // llWhisper(0,"Requesting login URL for "+llDetectedName(0));
@@ -204,8 +230,10 @@ integer handle_course_selection_response(string msg)
     for (i=0;i<llGetListLength(coursecodes);i++) {
         if (llList2String(coursecodes, i) == msg) {            
             sloodle_debug("Set courseid "+(string)llList2Integer(courseids,i));
-            courseid = llList2Integer(courseids, i);     
+            sloodle_courseid = llList2Integer(courseids, i);
+            sloodle_course_title = msg;     
             found = 1;
+            sloodle_display_server_course_status();
         }        
     }
     if (found == 0) {
@@ -221,28 +249,43 @@ integer handle_course_selection_response(string msg)
 }
 
 
+sloodle_handle_command(string str) 
+{
+    //llWhisper(0,"handling command "+str);    
+
+    sloodle_debug("server course setup handing command "+str);
+    list bits = llParseString2List(str,["|"],[]);
+    string name = llList2String(bits,0);
+    string value = llList2String(bits,1);
+    if (name == "handlemenu") {
+        if (value == "Set Moodle")  {    
+            state server_selection;   
+        } else if (value == "Reset Moodle")  {
+            state server_selection;             
+        } else if (value == "Setup Class") {
+            state authentication;   
+        }
+    }
+}
 
  
 
 default 
 {
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }    
+    state_entry() 
+    {
+        sloodle_display_server_course_status();
+    }
     touch_start(integer total_number)
     {
-        llWhisper(0,"Type /"+(string)avatar_chat_channel+" sloodle within 20 seconds for the menu");
         toucheruuid = llDetectedKey(0);
         toucheravname = llDetectedName(0);
-        listen_id = llListen(avatar_chat_channel,"",toucheruuid,"sloodle");
-        llSetTimerEvent(20);  
+        state menu;  
     }
-    listen(integer channel, string name, key id, string message) {
-        // ??? Do I need to check again in case this was triggered by another script? Or is listen confined to the callin script?
-        llListenRemove(listen_id);
-        state menu;   
-    }
-    timer() {
-        llListenRemove(listen_id);        
-    }
-    
 }
 
 state menu
@@ -255,8 +298,7 @@ state menu
     listen(integer channel, string name, key id, string message)
     {
         //llWhisper(0,"message was "+message);
-        if (message == "Set Moodle")  {
-    
+        if (message == "Set Moodle")  {    
             state server_selection;   
         } else if (message == "Reset Moodle")  {
             state server_selection;             
@@ -267,6 +309,12 @@ state menu
             state default;
         }
     }
+    touch_start(integer total_number)
+    {
+        toucheruuid = llDetectedKey(0);
+        toucheravname = llDetectedName(0);
+        state menu;  
+    }    
 
 }
 
@@ -297,13 +345,15 @@ state server_selection
             sloodle_debug("Channel opened");
             sloodle_debug("Ready to receive requests on channel \"" + (string)channel +"\"");
             llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this object",toucherurl+sloodleobjectvalidationbase+"?objuuid="+(string)llGetKey()+"&objname="+llEscapeURL(llGetObjectName())+"&ch="+(string)channel);
+            sloodle_set_text(toucherurl + "\nWaiting for Moodle to send me authorization...");;
         } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
             sloodle_debug("Request received"+sval);
             // handle request
-            sloodleinstall = toucherurl;
+            sloodleserverroot = toucherurl;
             pwdcode =  (string)sval;
             pwd = (string)llGetKey()+"|"+pwdcode;        
             sloodle_debug("Got pwd "+pwd);
+            sloodle_display_server_course_status();
             llRemoteDataReply(channel, message_id, "OK", 1); 
             llCloseRemoteDataChannel(channel);      
             state authentication; 
@@ -350,6 +400,27 @@ state authentication
             }
         }
     }
+    remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval) {
+        if (type == REMOTE_DATA_CHANNEL) { // channel created
+            sloodle_debug("Channel opened");
+            sloodle_debug("Ready to receive requests on channel \"" + (string)channel +"\"");
+            string sloodlewelcomeurl = sloodleserverroot + sloodlewelcomebase;
+            llLoadURL(toucheruuid,"Go here and login to Moodle",sloodlewelcomeurl+"?lsc="+sloodle_toucher_code+"&ch="+(string)channel);
+            sloodle_set_text(toucherurl + "\nWaiting for Moodle to send me authorization...");;
+        } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
+            sloodle_debug("Request received"+sval);
+            if (sval == "OK|SLOODLE_AUTHENTICATION_DONE|"+(string)toucheruuid) {
+               sloodle_display_server_course_status();
+               llRemoteDataReply(channel, message_id, "OK", 1); 
+               llCloseRemoteDataChannel(channel);      
+               sloodle_debug("Authenticated toucher "+(string)toucheruuid);
+               state course_selection; 
+            } else {
+               sloodle_debug("Ignoring message"+sval+" for toucher "+(string)toucheruuid);
+
+            }
+        }  
+    }    
 }
 
 state course_selection
@@ -371,6 +442,7 @@ state course_selection
     {
         integer ok = handle_course_selection_response(message);
         if (ok == 1) {
+            sloodle_debug("course selection response ok - going to next step");
             state next_step;   
         }
     }
@@ -379,11 +451,18 @@ state course_selection
 state next_step
 {
     state_entry() {
-        sloodle_tell_other_scripts_in_prim("set:sloodleserverroot|"+sloodleinstall);
-        sloodle_tell_other_scripts_in_prim("set:courseid|"+(string)courseid);
+        sloodle_tell_other_scripts_in_prim("set:sloodleserverroot|"+sloodleserverroot);
+        sloodle_tell_other_scripts_in_prim("set:sloodle_courseid|"+(string)sloodle_courseid);
         sloodle_tell_other_scripts_in_prim("set:pwd|"+pwd);
+        sloodle_tell_other_scripts_in_prim("set:toucheruuid|"+(string)toucheruuid);        
         sloodle_debug("course and server set - ready for next step");
     } 
+    link_message(integer sender_num, integer num, string str, key id) {
+        sloodle_debug("got message "+(string)sender_num+str);
+       // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
+            sloodle_handle_command(str);
+        //}   
+    }       
 }
 
 

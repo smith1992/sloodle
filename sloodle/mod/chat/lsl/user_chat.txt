@@ -5,8 +5,7 @@
 //----------
 // Declare vars w/out values
 
-string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some 
-other hard coding
+string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some other hard coding
 string CHAT_ID = "";
 
 string sloodleserverroot = "";
@@ -66,7 +65,7 @@ sloodle_handle_command(string str)
             if (llGetListLength(bits) == 3) {
                 pwd = pwd + "|" + llList2String(bits,2);
             }
-        } else if (name == "set:courseid") {
+        } else if (name == "set:sloodle_courseid") {
             sloodle_courseid = (integer)value;
         }
     
@@ -112,8 +111,7 @@ default
         if (llDetectedKey(0) == llGetOwner() )  {
             llListenRemove(listenID);
             listenID = llListen(CHANNEL,"",llGetOwner(),"");
-            llDialog(llGetOwner(),"\nSelect colour codes to use in log,\nor START to 
-start recording.",menu1,CHANNEL);
+            llDialog(llGetOwner(),"\nSelect colour codes to use in log,\nor START to start recording.",menu1,CHANNEL);
             llSetTimerEvent(10);
         }
     }
@@ -168,16 +166,14 @@ state logging   {
             }
             else    {
                 // Add name of avatar touching to the list
-                llDialog(llDetectedKey(i),"\nMay I record your 
-chat?",menu_other,CHANNEL);
+                llDialog(llDetectedKey(i),"\nMay I record your chat?",menu_other,CHANNEL);
             }
         }
     }
     
     listen(integer channel, string name, key id, string message)    {
 
-        if (llGetOwnerKey(id) != id)    { // only true for avatars! Will ignore all 
-object chat
+        if (llGetOwnerKey(id) != id)    { // only true for avatars! Will ignore all object chat
             //llOwnerSay("Attempted spoofing");
             return;
         }
@@ -193,8 +189,7 @@ object chat
                 llSetTimerEvent(10);
                 
                 if(llListFindList(unique_names,[name]) == -1)    { 
-                    unique_names += (unique_names=[]) + unique_names + name; // hack for 
-faster code on wiki
+                    unique_names += (unique_names=[]) + unique_names + name; // hack for faster code on wiki
                     keys += (keys=[]) + keys + id;
                     llSay(0,"Now recording " + name);
                     text = text + "\n " + name;
@@ -216,29 +211,22 @@ faster code on wiki
                     Y = (integer)Where.y;
                     Z = (integer)Where.z;
                     // I don't replace any spaces in Name with %20 and so forth.
-                    SLURL = "http://slurl.com/secondlife/" + Name + "/" + (string)X + 
-"/" + (string)Y + "/" + (string)Z + "/?title=" + Name;
+                    SLURL = "http://slurl.com/secondlife/" + Name + "/" + (string)X + "/" + (string)Y + "/" + (string)Z + "/?title=" + Name;
                     message = SLURL;                
                 }
 ///////////////SLURL MAKER  
-                //URL = 
-URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php.php?chat_id="+CHAT_ID+"&pwd+"+pwd;                  
-                httprequest = 
-llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd+"&avname="+llEscapeURL(name)+"&chat_message=(SL)"+llEscapeURL(" 
-" +name +": "+ message),[HTTP_METHOD,"GET"],"");
+                //URL = URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php.php?chat_id="+CHAT_ID+"&pwd+"+pwd;                  
+                httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd+"&avname="+llEscapeURL(name)+"&chat_message=(SL)"+llEscapeURL(" " +name +": "+ message),[HTTP_METHOD,"GET"],"");
                 // llSay(0, httprequest); // DEBUG PURPOSES
             }   
         }
     }
     
     timer()     {
-        httprequest = 
-llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
+        httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
         // llSay(0, httprequest); // DEBUG PURPOSES
         // llSay(0, URL); // DEBUG PURPOSES
-        // FINDINGS:  the timer is working, the request is being properly constructed, 
-and the SLoodle server does send back the proper info from the PHP script. Look further 
-below...
+        // FINDINGS:  the timer is working, the request is being properly constructed, and the SLoodle server does send back the proper info from the PHP script. Look further below...
     }
     
     http_response(key id,integer status, list meta, string body)
@@ -254,10 +242,8 @@ below...
             string line;
             integer lno;
                           
-            while ( i > 0 ) //I did this kind of back to front, becuase this is the 
-result of hackery
-                            // writing from scratch Id use a for loop, but this is kind 
-of the way
+            while ( i > 0 ) //I did this kind of back to front, becuase this is the result of hackery
+                            // writing from scratch Id use a for loop, but this is kind of the way
                             // it is.
             {
                 i--;
@@ -279,8 +265,7 @@ state select_chatroom
             state sloodle_wait_for_configuration;
         } else {
             // fetch list of chatrooms
-            httprequest = 
-llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?courseid="+(string)sloodle_courseid+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
+            httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?courseid="+(string)sloodle_courseid+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
 
         }
     }
@@ -299,8 +284,7 @@ llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?c
                     if (llList2String(thisline, 0) == "ERROR") {
                         llWhisper(0, thislinestr);
                     } else {
-                        chatroomids = chatroomids + [(integer)llList2String(thisline, 
-1)];
+                        chatroomids = chatroomids + [(integer)llList2String(thisline, 1)];
                         chatroomnames = chatroomnames + [llList2String(thisline, 2)];
                         
                     }
@@ -311,12 +295,10 @@ llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?c
         integer chatroomcount = 0;
         list crmenu = ["Cancel"];
         string crmenustring = "";
-        for (chatroomcount = 1; chatroomcount <= llGetListLength(chatroomnames); 
-chatroomcount++) {
+        for (chatroomcount = 1; chatroomcount <= llGetListLength(chatroomnames); chatroomcount++) {
             integer crindex = chatroomcount - 1;
             crmenu = crmenu + [(string)chatroomcount];
-            crmenustring = crmenustring + "\n"+(string)chatroomcount+": 
-"+llList2String(chatroomnames,crindex);
+            crmenustring = crmenustring + "\n"+(string)chatroomcount+": "+llList2String(chatroomnames,crindex);
         }
         listenID = llListen(CHANNEL,"",llGetOwner(),"");
         llDialog(llGetOwner(),"\nChoose your chatroom:\n"+crmenustring,crmenu,CHANNEL);        
