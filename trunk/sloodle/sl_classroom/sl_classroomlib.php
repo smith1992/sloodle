@@ -65,18 +65,23 @@
 		} else {
 			$o = new stdClass();
 		}
+
 		$o->uuid = $uuid;
 		$o->sloodle_classroom_setup_profile_id = 0;
 		$o->name = $name;
 		$o->master_uuid = $uuid;
+		// if an object is aready registered, leave the password 
 		$o->authenticated_by_userid = $userid;
-		$o->pwd = sloodle_random_object_pwd();
-	
+		if ($isnew) {
+			$o->pwd = sloodle_random_object_pwd();
+		}
+		
+
 		$ok = false;
 		if ($isnew) {	
 			$ok = insert_record('sloodle_active_object',$o);
 		} else {
-			$ok = update_record('sloodle_active_object',$o);
+			$ok = update_record('sloodle_active_object',$o); 
 		}
 
 		if ($ok) {
