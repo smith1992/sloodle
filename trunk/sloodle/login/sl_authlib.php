@@ -5,7 +5,12 @@
 	// Right now we're doing this using a password, but in future we may also want to let the administrator keep a list of authenticated object uuids.
 
 		$pwd = optional_param('pwd',null,PARAM_RAW);
+		if ($pwd == null) {
+			$pwd = optional_param('sloodlepwd',null,PARAM_RAW); // allow both types of arg to fit new LSL style guidelines
+		}
 		$errors = array();
+
+		$objpwd = null;
 
 		if (preg_match('/^(.*?)\|(\d\d*)$/',$pwd, $matches)) {
 			// first, see if we can validate based on a numerical code set for that object
@@ -17,13 +22,14 @@
 			if ( ($entry->pwd != null) && ($entry->pwd == $objpwd) ) {
 				return true;
 			}
+
 		}
 
 		// if that fails, fall back on the legacy method of having a single pwd= string for all objects
 		if ($pwd == null) {
 			sloodle_prim_render_error('Prim password missing. Could not verify that the object sending this request was allowed to talk to me.');
 			exit;
-		} else if ($pwd != sloodle_prim_password()) {
+		} else if ( ($pwd != sloodle_prim_password()) && ($objpwd != sloodle_prim_password()) )  {
 			sloodle_prim_render_error('Sloodle Prim Password did not match the one set in the sloodle module configuration'.'objuuid was '.$objuuid." and pwd was $pwd and entry pwd was ".$entry->pwd);
 			exit;
 		}
