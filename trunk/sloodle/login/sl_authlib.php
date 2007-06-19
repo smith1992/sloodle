@@ -80,7 +80,7 @@
 			if ( ($u->userid != null) && ($u->userid > 0 )) {
 
 				// already properly registered, no need for a security token
-				return array(null,array('user already registered with all the info sloodle needs'));
+				return array(null,array('user already registered with all the info sloodle needs',$uuid));
 
 			} else {
 
