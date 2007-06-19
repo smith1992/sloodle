@@ -56,7 +56,7 @@ print "<h3>sloodleuser</h3";
 	}
 
 	print '<center>';
-	print_simple_box('Welcome to SLoodle, '.$sloodleuser->avname);
+	print_simple_box('Welcome to SLoodle, '.$sloodleuser->avname.'<br /><br />You have now been registered at this site.<br /><br />From now on, Sloodle objects in Second Life should recognize you automatically.');
 	print '</center>';
 
 	// If the object passed us a channel parameter, we'll use it to tell the object that the authentication is done.
