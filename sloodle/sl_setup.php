@@ -25,22 +25,27 @@
 
 		$sloodle_auth_method = sloodle_get_config('SLOODLE_AUTH_METHOD');
 
+		$str = '
+				<h3>Setup a "Sloodle Set object.</h3>
+				<p>Sloodle objects in Second Life need to be configured so that they know which server to talk to, which course to use and how to prove to the server that it has permission to talk to it.</p><p><a href="sl_setup_notecard.php">Click here</a> to create a configuration notecard to put in a "Sloodle Set" object.</p><p>The "Sloodle Set" object can then be used to rez other objects with the same configuration.</p>
+			';
+
 		if ( (sloodle_prim_password() == null) || (sloodle_prim_password() == '') ) {
-			$str = '
-				<h3>Set Prim Password</h3>
-				<p>You need to set a password that your Second Life objects will use to talk to Moodle.</p>
+			$str .= '
+				<h3>Set Prim Password Number</h3>
+				<p>You need to set a password that your Second Life objects will use to talk to Moodle. This should be a 9-digit number.</p>
 				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="Save Prim Password" /></form>
 			';
 		} else {
 			if ($show_sloodle_pwd != null) {
-				$str = '
+				$str .= '
 					<h3>Change Prim Password</h3>
 					<p>If you change this password, you will need to update the scripts in all your Second Life objects that use it.</p>
 					<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="Save Prim Password" /></form>
 
 				';
 			} else {
-				$str = '
+				$str .= '
 					<h3>Prim Password is set.</h3>
 					<p>Your prim password will be automatically included in your LSL scripts. <a href="sl_setup.php?showpwd=1">Click here to change it</a>.</p>
 				';
@@ -98,14 +103,7 @@
 
 			</table>
 			</form>
-
-			<p>The following pages show LSL scripts ready for you to copy and paste into objects in Second Life. Details that need to be configured, like the URL of your Moodle installation, will be included in the scripts automatically.</p>
-			<ul>
-				<li><a href="login/sl_loginzone_setup.php">Login Zone</a> - A script to create a prim above your sim to allow users to click a Second Life URL link in Moodle and be automatically recognized in Second Life.</li>
-				<li><a href="login/sl_signup_setup.php">Signup</a> - A script to create a prim which gives a user a URL to click taking them to the Moodle login or registration page. Once signed in, they will be automatically recognized in Second Life.</li>
-				<li><a href="login/sl_userinfo_setup.php">User Info</a> - A script to create a prim which fetches some basic information from Moodle (name, picture) and display it in Second Life.</li>
-			</ul>
-		';
+';
 		}
 		print_simple_box($str, "center");
 	} else {
