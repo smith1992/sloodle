@@ -129,7 +129,7 @@
 
 		} else {
 
-			$defaultObjects = array('Sloodle Classroom','Sloodle Quiz Chair','Sloodle User Chat');
+			$defaultObjects = array('Sloodle Access Checker','Sloodle Quiz Chair','Sloodle User Chat');
 			$z = '0.5';
 			// Default profile
 			foreach($defaultObjects as $obj) {

@@ -131,7 +131,7 @@
 
 			$arches = array('<-1.5,2.5,-1>','<0,3,-1>','<1.5,2.5,-1>');
 
-			//$defaultObjects = array('Sloodle Classroom','Sloodle User Chat');
+			//$defaultObjects = array('Sloodle Access Checker','Sloodle User Chat');
 
 			get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
 
