@@ -52,17 +52,17 @@ sloodle_prim_require_script_authentication(); // make sure the client that's tal
     //if (!$chatuser = get_record('chat_users', 'userid', $sl_userid)) {
      //   sloodle_prim_render_error('Not logged in!  Please log the chatbot INTO the chat room you wish to use.'); //PA: This Uses Moodle's built in Error handler - :o)
 	//}
-
-	sloodle_prim_require_user_login(); // check the avatar name and/or uuid argument s, and log the user in (creating a $USER) variable, or return errors to the clie nt.  
-
-	$sl_userid = $USER->id;
-
-
-    $chat_message = addslashes(clean_text(stripslashes($chat_message), FORMAT_MOODLE));  // Strip bad tags 
-
 /// Add the message to the database - as long as the message isn't empty!
 //	echo $chat_message;
     if (!empty($chat_message)) {
+
+		sloodle_prim_require_user_login(); // check the avatar name and/or uuid argument s, and log the user in (creating a $USER) variable, or return errors to the clie nt.  
+
+		$sl_userid = $USER->id;
+
+
+		$chat_message = addslashes(clean_text(stripslashes($chat_message), FORMAT_MOODLE));  // Strip bad tags 
+
 
 //      $message->chatid = $chatuser->chatid; PA: Old Moodle code.
 //		This creates an array for all the data.
