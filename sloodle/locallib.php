@@ -77,29 +77,61 @@
 
 	function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
 
-	require_once('../lib/xmlrpc.inc');
+		require_once('../lib/xmlrpc.inc');
 
-    $client = new xmlrpc_client("http://xmlrpc.secondlife.com/cgi-bin/xmlrpc.cgi");
+		$client = new xmlrpc_client("http://xmlrpc.secondlife.com/cgi-bin/xmlrpc.cgi");
 
-	    $content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$channel.'</string></value></member><member><name>IntValue</name><value><int>'.$intval.'</int></value></member><member><name>StringValue</name><value><string>'.$strval.'</string></value></member></struct></value></param></params></methodCall>';
+			$content = '<?xml version="1.0"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>'.$channel.'</string></value></member><member><name>IntValue</name><value><int>'.$intval.'</int></value></member><member><name>StringValue</name><value><string>'.$strval.'</string></value></member></struct></value></param></params></methodCall>';
 
-	$response = $client->send(
-		$content,
-		60,
-		'http'
-	);
+		$response = $client->send(
+			$content,
+			60,
+			'http'
+		);
 
-	//var_dump($response);
-	if ($response->val == 0) {
-		print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br />';
-		print "XMLRPC Error - ".$response->errstr."</p>";
-		return false;
+		//var_dump($response);
+		if ($response->val == 0) {
+			print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br />';
+			print "XMLRPC Error - ".$response->errstr."</p>";
+			return false;
+		}
+		//TODO: Check the details of the response to see if this was successful or not...
+		return true;
+
 	}
-	//TODO: Check the details of the response to see if this was successful or not...
-	return true;
 
-}
+    function sloodle_add_to_log($courseid = null, $module = null, $action = null, $url = null, $cmid = null, $info = null) {
 
+       global $CFG;
 
+       // TODO: Make sure we set this in the calling function, then remove this bit
+       if ($courseid == null) {
+          $courseid = optional_param('sloodle_courseid',0,PARAM_RAW);
+       }
+
+       // if no action is specified, use the object name
+       if ($action == null) {
+          $action = $_SERVER['X-SecondLife-Object-Name'];
+       }
+
+       $region = $_SERVER['X-SecondLife-Region'];
+       if ($info == null) {
+          $info = $region;
+       }
+
+       $slurl = '';
+       if (preg_match('/^(.*)\(.*?\)$/',$region,$matches)) { // strip the coordinates, eg. Cicero (123,123)
+          $region = $matches[1];
+       }
+
+       $xyz = $_SERVER['X-SecondLife-Local-Position'];
+       if (preg_match('/^\((.*?),(.*?),(.*?)\)$/',$xyz,$matches)) {
+          $xyz = $matches[1].'/'.$matches[2].'/'.$matches[3];
+       }
+
+       return add_to_log($courseid, null, $action, $CFG->wwwroot.'/mod/sloodle/toslurl.php?region='.urlencode($region).'&xyz='.$xyz, $userid, $info );
+       //return add_to_log($courseid, null, "ok", "ok", $userid, "ok");
+
+    }
 
 ?>
