@@ -1,27 +1,52 @@
-// 0.72 reset when notecard is changed, to auto reload Moodle and chatroom data. - DL
-// 0.7 added?
-//0.6 changes - changed the /SLURL to /slurl to avoid clashes with other gestures. - PA
+//---------------------------
+/////// SLOODLE CHATCAST
+/////// Version .78
+/////// Connects a Second Life object to a chatroom in Moodle.
+/////// Texture is configured for a cube prim
+/////// Touch the object to give permission to log chat to Moodle.
+/////// Requires a Setting notecard
+/////// Add a sound file to replace the default buzz
 
 //----------
-// Declare vars w/out values
+// PHP REQUIRED:
+// mod/sloodle/mod/chat/sl_user_chat_linker.php
+
+//----------
+// SUPPORT
+// See the documentation website: 
+// http://slisweb.sjsu.edu/sl/index.php/Sloodle
+
+//----------
+// VERSIONS
+// 0.78 Moodle notification of SL entry/exit - JK
+// 0.76 Inbound and Outbound beep all - JK
+// 0.74 Added Moodle chat URL to starting notes, cleaned up chatter, cleaned SLURL maker - JK
+// 0.72 reset when notecard is changed, to auto reload Moodle and chatroom data. - DL
+// 0.7 added?
+// 0.6 changes - changed the /SLURL to /slurl to avoid clashes with other gestures. - PA
+
+//---------
+// CREDITS
+/////// Based upon concepts in:
+/////// http://www.sloodle.com/whitepaper.pdf 
+// This is GNU licensed - it may be distributed under the terms of this General Public License. 
+// Paul and Dan made the first versions work
+// Jeremy cleaned and added SLURLS, messaging formatting and beeping...
+// Edmund Edgar added authentication, ability to select chatroom, ability to inherit settings from parent object
 
 string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some other hard coding
 string CHAT_ID = "";
+
+string SoundFile; //Sound file in object (if one exists)
 
 string sloodleserverroot = "";
 string pwd = "";
 integer sloodle_courseid = 0;
 
+string MOODLE_NAME="(SL)";
+
 list chatroomids;
 list chatroomnames;
-
-//----------
-// For hardcoding purposes/debugging
-// string MOODLE_NAME = "SL Chat Bot";
-// string URL_BASE = "http://www.sloodle.com/";
-// string URL = "http://www.sloodle.com/SL_insert.php?chat_id=6&user_id=158";
-// string CHAT_ID = "6";
-// string USER_ID = "158";
 
 //----------
 //SLURL maker variables
@@ -31,10 +56,12 @@ string SLURL;
 integer X;
 integer Y;
 integer Z;
+string RevisedMessage;
+integer location;
 
 //-----------
-//SLoodle chat variables
-list menu1=["START"];
+//Sloodle chat variables
+list menu1=["YES"];
 list menu2=["STOP","Continue"];
 list menu_other=["Accept","Cancel"];
 list unique_names;
@@ -45,20 +72,23 @@ integer active;
 integer CHANNEL = -67999;
 string text;
 string COL_START = "";
-string COL_END = "";
+string COL_END = ""; 
 string CODE_END = "";
 integer total_len = 0;
 
 key httprequest;
 integer message_id = 0; // last message cc'd from moodle
 
+// configure by receiving a linked message from another script in the object
 sloodle_handle_command(string str) 
 {
     //llWhisper(0,"handling command "+str);    
     list bits = llParseString2List(str,["|"],[]);
         string name = llList2String(bits,0);
         string value = llList2String(bits,1);
-        if (name == "set:sloodleserverroot") {
+        if (name == "set:chatroomid") {
+            CHAT_ID=value;
+        } else if (name == "set:sloodleserverroot") {
             sloodleserverroot = value;
         } else if (name == "set:pwd") {
             pwd = value;
@@ -101,11 +131,13 @@ default
         llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
         unique_names = [];
         part = 0;
-        llSetText("",<1,1,1>,1);
+        llSetText("off",<1,1,1>,1);
+        SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
+
     }
         
     touch_start(integer total_number)   {
-        if (CHAT_ID == "") {
+        if ( ( llDetectedKey(0) == llGetOwner() ) && (CHAT_ID == "") ) {
             state select_chatroom;
         }
         if (llDetectedKey(0) == llGetOwner() )  {
@@ -118,13 +150,16 @@ default
     
     listen(integer channel, string name, key id, string message)    {
         //llOwnerSay(message);
-        if (message == "START") {
-            llSay(0,"Chat logging is on!");
-            llSay(0,"Touch the chat logger to add yourself to the log");
+        if (message == "YES") {
+          llSay(0,"Chat logging is on!");
+            llSay(0,"Join this Moodle chat at "+sloodleserverroot+"/mod/chat/gui_header_js/index.php?id="+CHAT_ID);
+            llSay(0,"Touch logger to record your chat.");
             llSetText("Chat logging is on!",<0,0,0>,1.0);
             llMessageLinked(LINK_THIS,part,"START",NULL_KEY);
             llSleep(0.1);
             llSetTimerEvent(0);
+            state logging;
+            httprequest = llHTTPRequest(URL+"&chat_message="+llEscapeURL(" <FONT color=#00aaaa>Sloodle</font> Chatcasting opened at"+llGetRegionName()),[HTTP_METHOD,"GET"],"");
             state logging;
         }
     }
@@ -235,6 +270,7 @@ state logging   {
         {
             if (llStringLength(body) == 0)
                 return;
+                //llSay(0,"message "+body);
             list message_list = llParseString2List(body,["Line: "],[]);
             integer i= llGetListLength(message_list);
 
@@ -242,17 +278,26 @@ state logging   {
             string line;
             integer lno;
                           
-            while ( i > 0 ) //I did this kind of back to front, becuase this is the result of hackery
-                            // writing from scratch Id use a for loop, but this is kind of the way
-                            // it is.
+            while ( i > 0 ) 
             {
                 i--;
                 text = llList2String(message_list,i);
                 line = llGetSubString(text,0,4);
                 lno = (integer)line;
-                if ( lno > message_id && llSubStringIndex(text,"(SL)") == -1)
-                    llSay(0,llGetSubString(text,5,-1));
+                if ( lno > message_id && llSubStringIndex(text," beep ") > -1){ //A Moodle beep!
+                    llStopSound();
+                    if (SoundFile == "") 
+                    { // There is no sound file in inventory - plsy default
+                        llPlaySound("34b0b9d8-306a-4930-b4cd-0299959bb9f4", 1.0);
+                    } else { // Play the included one
+                        llPlaySound(SoundFile, 1.0);
+                    } 
+                } else {// is not a Moodle beep
+                    if ( lno > message_id && llSubStringIndex(text,MOODLE_NAME) == -1) {
+                        llSay(0,llGetSubString(text,5,-1));
+                    }
                 }
+            }
             message_id = lno;
         }
     }
@@ -312,7 +357,7 @@ state select_chatroom
             integer choicenum = (integer)message;
             integer choiceindex = choicenum - 1;
             CHAT_ID = (string)llList2Integer(chatroomids,choiceindex);
-            llWhisper(0,"Using chatroom "+CHAT_ID);
+            llOwnerSay("Using chatroom "+CHAT_ID);
             state default;
         }
     }    
