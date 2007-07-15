@@ -20,6 +20,12 @@ string sloodleobjectvalidationbase = "/mod/sloodle/sl_classroom/sl_validate_obje
 integer object_dialog_channel = -3857343;
 integer avatar_dialog_channel = 3857343;
 integer avatar_chat_channel = 1;
+integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
+
+key SLOODLE_TEXTURE_TOUCH_TO_SET = "618aeb0c-ac25-7010-741c-ba9954c2d09b";
+key SLOODLE_TEXTURE_READY = "a9bbca6f-4fd6-6cc5-e13b-3faffb4f4672";
+
+integer SLOODLE_RESTRICT_TO_OWNER = 1;
 
 key http_id; 
 integer listen_id;
@@ -37,15 +43,23 @@ list courseids;
 list coursetitles;
 list coursecodes;
 
+string usingnotecard = "no";
+
 sloodle_tell_other_scripts_in_prim(string msg)
 {
     sloodle_debug("sending message to other scripts: "+msg);
     llMessageLinked(LINK_THIS, object_dialog_channel, msg, NULL_KEY);   
 }
 
+sloodle_tell_other_scripts(string msg)
+{
+    sloodle_debug("sending message to other scripts: "+msg);
+    llMessageLinked(LINK_SET, object_dialog_channel, msg, NULL_KEY);   
+}
+
 sloodle_debug(string msg)
 {
-    // llWhisper(0,msg);
+     //llWhisper(0,msg);
 }
 
 sloodle_set_text(string msg) 
@@ -56,12 +70,16 @@ sloodle_set_text(string msg)
 sloodle_display_server_course_status()
 {
     if (sloodleserverroot == "") {
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
         sloodle_set_text("Moodle URL not set.");
     } else if (pwd == "") {
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
         sloodle_set_text(sloodleserverroot + "\nWaiting for authorization.");        
     } else if (sloodle_courseid == 0) {
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
         sloodle_set_text(sloodleserverroot + "\nNeed to select course...");                
     } else {
+        llSetTexture(SLOODLE_TEXTURE_READY,ALL_SIDES);
         sloodle_set_text(sloodleserverroot + "\n" + sloodle_course_title);                        
     }
 }
@@ -69,13 +87,20 @@ sloodle_display_server_course_status()
 display_menu()
 {
         list menu_options = [];
-        if ( (sloodleserverroot == "") || (pwd == "") ) {
-            sloodle_debug("install is "+sloodleserverroot+" and pwd is "+pwd);
-            menu_options = ["Set Moodle","Cancel"];
+        string text;
+        if (usingnotecard == "yes") {
+            text = "\nThis object has been configured using a notecard. \nTo change your Moodle server or course, change the notecard and reset. \nTo setup without using a notecard, delete it.";
+            menu_options = ["Reset","Cancel"];            
         } else {
-            menu_options = ["Set Moodle","Cancel"];   
+            text = "Menu option";
+            if ( (sloodleserverroot == "") || (pwd == "") ) {
+                sloodle_debug("install is "+sloodleserverroot+" and pwd is "+pwd);
+                menu_options = ["Set Moodle","Reset","Cancel"];
+            } else {
+                menu_options = ["Set Moodle","Reset","Cancel"];   
+            }
         }
-        llDialog(toucheruuid, "Menu Options", menu_options, avatar_dialog_channel);
+        llDialog(toucheruuid, text, menu_options, avatar_dialog_channel);
         listen_id = llListen(avatar_dialog_channel, "", toucheruuid, "");
 }
 
@@ -251,29 +276,65 @@ integer handle_course_selection_response(string msg)
 
 sloodle_handle_command(string str) 
 {
-    //llWhisper(0,"handling command "+str);    
+    sloodle_debug("handling command "+str);    
 
-    sloodle_debug("server course setup handing command "+str);
     list bits = llParseString2List(str,["|"],[]);
     string name = llList2String(bits,0);
     string value = llList2String(bits,1);
-    if (name == "handlemenu") {
-        if (value == "Set Moodle")  {    
-            state server_selection;   
-        } else if (value == "Reset Moodle")  {
-            state server_selection;             
-        } else if (value == "Setup Class") {
-            state authentication;   
-        }
+    if (name == "set:sloodleserverroot") {
+        sloodleserverroot = value;
+    } else if (name == "set:pwd") {
+        pwd = value;
+    } else if (name == "set:sloodle_courseid") {
+        sloodle_courseid = (integer)value;
+    } else if (name == "set:usingnotecard") {
+        usingnotecard = value;
+        sloodle_debug("dialog setting usingnotecard to "+value);
+    } else {
+        sloodle_debug("dialog ignoring message "+str);
+    }
+    
+    //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
+
+    if ( (sloodleserverroot != "") && (pwd != "") && (sloodle_courseid != 0) ) {
+        sloodle_debug("going to state next_step");
+        state next_step;
     }
 }
 
- 
+integer handle_touch(key thistoucher) 
+{
+
+    if ("usingnotecard" == "yes") {
+        llDialog(thistoucher, "Server and course have been already been set using a notecard.", ["OK"], SLOODLE_CHANNEL_AVATAR_IGNORE);
+        return 0;
+    }
+
+    if (toucheruuid != NULL_KEY) {
+        if ( (SLOODLE_RESTRICT_TO_OWNER == 1) || (thistoucher != toucheruuid) ) {
+            if (thistoucher != llGetOwner()) {
+                llSay(0,llKey2Name(thistoucher)+", this object is currently in use by "+llKey2Name(toucheruuid)+".");
+                return 0;
+            }
+        }
+    }
+    toucheruuid = thistoucher;
+    toucheravname = llKey2Name(toucheruuid);
+    return 1;
+}
+
+reset_all_scripts()
+{
+    sloodle_debug("resetting all scripts");
+    sloodle_tell_other_scripts("do:reset");
+    llResetScript();    
+}
 
 default 
 {
     on_rez(integer start_param)
     {
+        sloodle_set_text("");
         llResetScript();
     }    
     state_entry() 
@@ -282,19 +343,30 @@ default
     }
     touch_start(integer total_number)
     {
-        toucheruuid = llDetectedKey(0);
-        toucheravname = llDetectedName(0);
-        state menu;  
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        }
     }
+    link_message(integer sender_num, integer num, string str, key id) {
+        sloodle_debug("dialog got message "+(string)sender_num+str);
+       // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
+            sloodle_handle_command(str);
+        //}   
+    }    
 }
 
 state menu
 {
+    on_rez(integer start_param)
+    {
+        sloodle_set_text("");
+        llResetScript();
+    }     
     state_entry()
     {
         display_menu();   
-
     }
+    
     listen(integer channel, string name, key id, string message)
     {
         //llWhisper(0,"message was "+message);
@@ -304,6 +376,8 @@ state menu
             state server_selection;             
         } else if (message == "Setup Class") {
             state authentication;            
+        } else if (message == "Reset") {
+            reset_all_scripts();
         } else {
             llListenRemove(listen_id);
             state default;
@@ -311,17 +385,27 @@ state menu
     }
     touch_start(integer total_number)
     {
-        toucheruuid = llDetectedKey(0);
-        toucheravname = llDetectedName(0);
-        state menu;  
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        } 
+    }    
+    link_message(integer sender_num, integer num, string str, key id) {
+            sloodle_handle_command(str);
     }    
 
 }
 
 state server_selection 
 {
+    on_rez(integer start_param)
+    {
+        sloodle_set_text("");
+        llResetScript();
+    }     
     touch_start(integer total_number) {
-        state menu;   
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        } 
     }
     state_entry() {
         require_sloodle_install_input_and_validation();  
@@ -359,12 +443,22 @@ state server_selection
             state authentication; 
         }  
     }
+    link_message(integer sender_num, integer num, string str, key id) {
+        sloodle_handle_command(str);
+    }  
 }
 
 state server_404_diagnosis
 {
+    on_rez(integer start_param)
+    {
+        sloodle_set_text("");
+        llResetScript();
+    }     
     touch_start(integer total_number) {
-        state menu;   
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        }  
     }    
     state_entry() {
         handle_server_selection_404();
@@ -381,11 +475,16 @@ state server_404_diagnosis
         }
         state server_selection;
     }
+    link_message(integer sender_num, integer num, string str, key id) {
+            sloodle_handle_command(str);
+    }      
 }
 state authentication
 {
     touch_start(integer total_number) {
-        state menu;   
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        }
     } 
     state_entry() {
         require_sloodle_registration();    
@@ -417,16 +516,26 @@ state authentication
                state course_selection; 
             } else {
                sloodle_debug("Ignoring message"+sval+" for toucher "+(string)toucheruuid);
-
             }
         }  
     }    
+    link_message(integer sender_num, integer num, string str, key id) {
+            sloodle_handle_command(str);
+    }      
 }
 
 state course_selection
 {
-    touch_start(integer total_number) {
-        state menu;   
+    on_rez(integer start_param)
+    {
+        sloodle_set_text("");
+        llResetScript();
+    }     
+    touch_start(integer total_number)
+    {
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        } 
     }    
     state_entry() {
         request_teacher_courses();
@@ -446,19 +555,34 @@ state course_selection
             state next_step;   
         }
     }
+    link_message(integer sender_num, integer num, string str, key id) {
+            sloodle_handle_command(str);
+    }      
 }
 
 state next_step
 {
+    touch_start(integer total_number)
+    {
+        if (handle_touch(llDetectedKey(0)) == 1) {
+            state menu;  
+        } 
+    }  
+    on_rez(integer start_param)
+    {
+        sloodle_set_text("");
+        llResetScript();
+    }     
     state_entry() {
-        sloodle_tell_other_scripts_in_prim("set:sloodleserverroot|"+sloodleserverroot);
-        sloodle_tell_other_scripts_in_prim("set:sloodle_courseid|"+(string)sloodle_courseid);
-        sloodle_tell_other_scripts_in_prim("set:pwd|"+pwd);
-        sloodle_tell_other_scripts_in_prim("set:toucheruuid|"+(string)toucheruuid);        
+        sloodle_tell_other_scripts("set:sloodleserverroot|"+sloodleserverroot);
+        sloodle_tell_other_scripts("set:sloodle_courseid|"+(string)sloodle_courseid);
+        sloodle_tell_other_scripts("set:pwd|"+pwd);
+        sloodle_tell_other_scripts("set:toucheruuid|"+(string)toucheruuid);        
         sloodle_debug("course and server set - ready for next step");
+        llSetTexture(SLOODLE_TEXTURE_READY,ALL_SIDES);
     } 
     link_message(integer sender_num, integer num, string str, key id) {
-        sloodle_debug("got message "+(string)sender_num+str);
+        //sloodle_debug("got message "+(string)sender_num+str);
        // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
             sloodle_handle_command(str);
         //}   

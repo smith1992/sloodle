@@ -1,6 +1,12 @@
 string baseurl;
 key http_id;
 
+integer SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_LIST_INVENTORY = -1639270011;
+integer SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_DO_SAVE = -1639270012;
+integer SLOODLE_CHANNEL_OBJECT_INVENTORY_VENDOR_LIST_INVENTORY = -1639270021;
+
+list inventory = [];
+
 sloodle_debug(string str) 
 {
    // llWhisper(0,str);    
@@ -13,38 +19,56 @@ default
         llResetScript();
     }   
     link_message(integer sender_num, integer num, string str, key id) {
-        integer sloodle_save_channel = -3524564;
-        if (num == sloodle_save_channel) {
+        if (num == SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_DO_SAVE) {
             baseurl = str;
             sloodle_debug("profile saver got message" + str);
             state save;
-        } 
+        } else if (str == "do:reset") {
+            llResetScript(); 
+        }
     }    
 }
 
 state save
 {       
     state_entry() {        
-        sloodle_debug("profile saver in state entry save");        
-        llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 20, PI); // scan for agents/avatars within 96 metres. Anything more than this will not be saved for now. Alternative would be to have the server send a message to all objects telling them to report home.
+        // request an inventory list
+        llMessageLinked(LINK_ALL_OTHERS,SLOODLE_CHANNEL_OBJECT_INVENTORY_VENDOR_LIST_INVENTORY,"list:inventory",NULL_KEY);
     }
+    link_message(integer sender_num, integer num, string str, key id) {
+        if (num ==  SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_LIST_INVENTORY) {
+            inventory = llCSV2List(str);
+            sloodle_debug( "got list " + llDumpList2String(inventory,"|") +" with "+(string)llGetListLength(inventory)+" items");
+ 
+            if (llGetListLength(inventory) < 1) {
+                sloodle_debug("no inventory items found");
+            } else {
+                sloodle_debug("profile saver in starting sensor");        
+                llSensor("", NULL_KEY, ACTIVE | PASSIVE | SCRIPTED, 20, PI); // scan for agents/avatars within 96 metres. Anything more than this will not be saved for now. Alternative would be to have the server send a message to all objects telling them to report home.
+            }
+        } else {
+            sloodle_debug("ignoring message "+str);
+        } 
+    }
+
     sensor(integer num_detected) {
         
         vector thispos = llGetPos();
 
         integer i;
-        integer numfound=0;
+        integer numfound = 0;
         integer ts = llGetUnixTime(); // make a timestamp to identify this saved set. // Once we've sent requests for all the objects, we'll send this, along with the number of objects we sent, to let the server know we're done.
         string postdata; 
         string savemestring = "";
-
+ 
+        sloodle_debug("found "+(string)num_detected+" objects");
+ 
         for (i+0; i<num_detected; i++) {
-
             string name = llDetectedName(i);
             key uuid = llDetectedKey(i);
-            if (llGetInventoryType(name) == -1) { // is it in this object's inventory? if not, ignore it                
+            if (llListFindList(inventory,[name]) == -1) { // is it in this object's inventory? if not, ignore it 
                 sloodle_debug("Ignoring item "+name+" ("+(string)uuid+") which is not in my inventory.");
-            } else {  
+            } else {
                 numfound++;
                 vector savemepos = llDetectedPos(i) - thispos;      
                 integer savemeentryid = 0; //object_entry_id_for_uuid(uuid);
@@ -63,7 +87,7 @@ state save
         
     }
     no_sensor() {
-        llWhisper(0,"No objects found to save.");
+        llWhisper(0,"No objects found to save - no_sensor ran.");
         state default;   
     }
     http_response(key request_id, integer status, list metadata, string body) {        

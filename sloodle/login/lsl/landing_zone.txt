@@ -26,7 +26,7 @@ key http_id;
 send_position_to_server()
 {
 
-    string url = sloodleserverroot + loginzoneurl + "?pwd=" + pwd + "&pos=" + (string)llGetPos() + "&size=" + (string)llGetScale()+"&region="+llGetRegionName();        
+    string url = sloodleserverroot + loginzoneurl + "?pwd=" + pwd + "&pos=" + (string)llGetPos() + "&size=" + (string)llGetScale()+"&region="+llEscapeURL(llGetRegionName());        
     llHTTPRequest(url,[],"");    
 
 }
