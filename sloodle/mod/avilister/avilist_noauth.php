@@ -1,7 +1,7 @@
-<?php  // $Id: insert.php,v 1.2 2005/02/07 20:33:43 skodak Exp $
-// Edited by Jeremy Kemp for the Sloodle project.
+<?php  //$Id: insert.php,v 1.2 2005/02/07 20:33:43 skodak Exp $
+//Edited by Jeremy Kemp for the Sloodle project.
 //AviLister - returns real name when queried with SL Avatar name (MSN ID)
-//This file should sit in the www ROOT dir of you main Moodle course.
+//This file should sit in the www ROOT dir of your main Moodle course.
 
     require_once('../../../../config.php');
     require_once($CFG->dirroot .'/mod/chat/lib.php');
