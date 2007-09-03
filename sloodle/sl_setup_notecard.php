@@ -5,8 +5,8 @@
 
 	$courseid = optional_param('courseid',null,PARAM_RAW);
 
-	print_header('Sloodle Configuration Notecard', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle Configuration Notecard');
+	print_header(get_string("cfgnotecard:header", "sloodle"), '', '', '', false, '', '', false, '');
+	print_heading(get_string("cfgnotecard:header", "sloodle"));
 
 	require_login();
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
@@ -19,7 +19,7 @@
 
 			if (!$result) {
 
-				print "Error: Prim password isn't set, and I couldn't create one";
+				print get_string("primpass:errornotset", "sloodle");
 				exit;
 
 			}
@@ -27,8 +27,8 @@
 
 		if ($courseid == NULL) {
 
-			print '<h3>Choose the course you want to use in Second Life.</h3>';
-			print '<p>Paste the following in the sloodle_config notecard in the Sloodle Set object.</p>';
+			print '<h3>'. get_string("choosecourse", "sloodle") .'</h3>';
+			print '<p>'. get_string("cfgnotecard:paste", "sloodle") .'</p>';
 			print '<form method="post" action="sl_setup_notecard.php">';
 			$courses = get_courses();
 			foreach($courses as $c) {
@@ -37,7 +37,7 @@
 				print '<input type="radio" name="courseid" value="'.$id.'" />'.$fullname;
 				print '<br />';
 			}
-			print '<input type="submit" value="Generate notecard text" />';
+			print '<br/><input type="submit" value="'. get_string("cfgnotecard:generate", "sloodle") .'" />';
 			print '</form>';
 
 		} else {
@@ -48,7 +48,7 @@
 
 	} else {
 
-		print "admin only";
+		print get_string("needadmin", "sloodle");;
 
 	}
 
@@ -59,7 +59,8 @@
 	function sloodle_print_config_notecard($wwwroot,$pwd,$courseid) {
 
 		print '<div align="center">';
-		print '<p>Copy-and-paste the following into the sloodle_config notecard in your Sloodle Set object to allow it to access this course. Objects it rezzes will be able to access this course automatically; You don\'t need to configure them individually unless you want to.</p><p>For security reasons, you should make sure that the sloodle_config notecard cannot be edited except by its owner.</p>';
+		print '<p>'. get_string("cfgnotecard:instructions", "sloodle") .'</p>';
+       print '<p>'. get_string("cfgnotecard:security", "sloodle") .'</p>';
 		print '<textarea cols=60 rows=4>';
 		print 'set:sloodleserverroot|'.$wwwroot;
 		print "\n";
@@ -68,8 +69,8 @@
 		print 'set:sloodle_courseid|'.$courseid;
 		print "\n";
 		print '</textarea>';
-		print '<p>* If you prefer to configure your object in-world, just delete or rename the sloodle_config notecard in the Sloodle Set object. It will ask your avatar for the apprpriate settings.</p>';
-		print '<p><a href="sl_setup.php">Back to the Sloodle Setup page</a>.';
+		print '<p>'. get_string("cfgnotecard:inworld", "sloodle") .'</p>';
+		print '<p><a href="sl_setup.php">'. get_string("backtosloodlesetup", "sloodle") .'</a>.';
 		print '</div>';
 
 	}

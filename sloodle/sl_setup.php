@@ -3,8 +3,8 @@
 	require_once('config.php');
 	require_once('locallib.php');
 
-	print_header('Sloodle Setup', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle Setup');
+	print_header(get_string("sloodlesetup", "sloodle"), '', '', '', false, '', '', false, '');
+	print_heading(get_string("sloodlesetup", "sloodle"));
 
 	require_login();
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
@@ -26,28 +26,31 @@
 		$sloodle_auth_method = sloodle_get_config('SLOODLE_AUTH_METHOD');
 
 		$str = '
-				<h3>Setup a "Sloodle Set object.</h3>
-				<p>Sloodle objects in Second Life need to be configured so that they know which server to talk to, which course to use and how to prove to the server that it has permission to talk to it.</p><p><a href="sl_setup_notecard.php">Click here</a> to create a configuration notecard to put in a "Sloodle Set" object.</p><p>The "Sloodle Set" object can then be used to rez other objects with the same configuration.</p>
+				<h3>' . get_string("setsetup:header", "sloodle") . '</h3>
+				<p>' . get_string("setsetup:body1", "sloodle") . '</p>
+               <p>' . get_string("setsetup:body2", "sloodle") . ': <a href="sl_setup_notecard.php">' . get_string("createnotecard", "sloodle") . '</a></p>
+               <p>' . get_string("setsetup:body3", "sloodle") . '</p>
 			';
 
 		if ( (sloodle_prim_password() == null) || (sloodle_prim_password() == '') ) {
 			$str .= '
-				<h3>Set Prim Password Number</h3>
-				<p>You need to set a password that your Second Life objects will use to talk to Moodle. This should be a 9-digit number.</p>
-				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="Save Prim Password" /></form>
+				<h3>' . get_string("primpass:set", "sloodle") . '</h3>
+				<p>' . get_string("primpass:setdesc", "sloodle") . '</p>
+				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
 			';
 		} else {
 			if ($show_sloodle_pwd != null) {
 				$str .= '
-					<h3>Change Prim Password</h3>
-					<p>If you change this password, you will need to update the scripts in all your Second Life objects that use it.</p>
-					<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="Save Prim Password" /></form>
+					<h3>' . get_string("primpass:change", "sloodle") . '</h3>
+					<p>' . get_string("primpass:changedesc", "sloodle") . '</p>
+					<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
 
 				';
 			} else {
 				$str .= '
-					<h3>Prim Password is set.</h3>
-					<p>Your prim password will be automatically included in your LSL scripts. <a href="sl_setup.php?showpwd=1">Click here to change it</a>.</p>
+					<h3>' . get_string("primpass:isset", "sloodle") . '</h3>
+					<p>' . get_string("primpass:issetdesc", "sloodle") . '
+                   <a href="sl_setup.php?showpwd=1">' . get_string("clickchangeit", "sloodle") . '</a>.</p>
 				';
 			}
 
@@ -58,9 +61,9 @@
 				$authCheckedFlag = ' checked';
 			}
 			$str = $str.'
-			<h3>User Authentication</h3>
+			<h3>' . get_string("userauth:header", "sloodle") . '</h3>
 
-			<p>What should Sloodle objects do when they meet an avatar they haven\'t seen before?<br />
+			<p>' . get_string("userauth:desc", "sloodle") . '<br />
 			<form action="sl_setup.php" method="post">
 			<table border="0">
 				<tr>
@@ -68,7 +71,7 @@
 						<input type="radio" name="sloodle_auth_method"'.$webCheckedFlag.' value="web"/>
 					</td>
 					<td>
-						Send avatars to a web page and make them login or register there.<br />
+						' . get_string("userauth:sendtopage", "sloodle") . '
 					</td>
 				<tr>
 				<tr>
@@ -76,7 +79,7 @@
 						<input type="radio" name="sloodle_auth_method"'.$authCheckedFlag.' value="autoregister"/>
 					</td>
 					<td>
-						Automatically register them as a new user in Moodle.
+						' . get_string("userauth:autoreg", "sloodle") . '
 					</td>
 				</tr>
 				<tr>
@@ -84,7 +87,7 @@
 						&nbsp;
 					</td>
 					<td>
-						Allowing automatic registration may conflict with your usual Moodle administration policies, and may not work properly with some authentication methods.<br />
+                   	<i>' . get_string("userauth:autoregnote", "sloodle") . '</i><br />
 					</td>
 				<tr>
 
@@ -94,7 +97,8 @@
 						&nbsp;
 					</td>
 					<td>
-						<input type="submit" value="Save User Authentication Settings" />
+                   	<br/>
+						<input type="submit" value="' . get_string("userauth:save", "sloodle") . '" />
 					</td>
 				<tr>
 
@@ -107,12 +111,11 @@
 		}
 		print_simple_box($str, "center");
 	} else {
-		//print_simple_box('You need admin privileges to access this page.', "center");
-		print_simple_box('You would need admin privileges to access this page.', "center");
+		print_simple_box(get_string("needadmin", "sloodle"), "center");
 	}
 
 	if (!isadmin() && SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
-		print_simple_box('You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.', "center");
+		print_simple_box(get_string("wouldneedadmin", "sloodle"), "center");
 	}
 
 	print_footer();
