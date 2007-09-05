@@ -11,7 +11,7 @@ $string['cfgnotecard:paste'] = 'Paste the following in the sloodle_config noteca
 $string['cfgnotecard:generate'] = 'Generate notecard text';
 $string['cfgnotecard:instructions'] = 'Copy-and-paste the following into the sloodle_config notecard in your Sloodle Set object to allow it to access this course. Objects it rezzes will be able to access this course automatically; You don\'t need to configure them individually unless you want to.';
 $string['cfgnotecard:security'] = 'For security reasons, you should make sure that the sloodle_config notecard cannot be edited except by its owner.';
-$string['cfgnotecard:inworld'] = '* If you prefer to configure your object in-world, just delete or rename the sloodle_config notecard in the Sloodle Set object. It will ask your avatar for the apprpriate settings.';
+$string['cfgnotecard:inworld'] = '* If you prefer to configure your object in-world, just delete or rename the sloodle_config notecard in the Sloodle Set object. It will ask your avatar for the appropriate settings.';
 
 $string['choosecourse'] = 'Choose the course you want to use in Second Life.';
 $string['clickchangeit'] = 'Click here to change it';
@@ -20,7 +20,11 @@ $string['createnotecard'] = 'Create notecard';
 
 $string['modulename'] = 'Sloodle';
 
+$string['moodleadminindex'] = 'Moodle administration index';
+
 $string['needadmin'] = 'You need admin privileges to access this page.';
+
+$string['sloodlenotinstalled'] = 'Sloodle does not appear to be installed yet. Please use visit the Moodle administration index to finish Sloodle installation:';
 
 $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'You need to set a password that your Second Life objects will use to talk to Moodle. This should be a 9-digit number.';
