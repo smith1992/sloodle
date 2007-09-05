@@ -1,5 +1,9 @@
 <?php
 
+    // Include the DDL functions for checking database structure
+    require_once($CFG->libdir . '/ddllib.php');
+
+
 	function sloodle_prim_render_errors($errors,$type='MISC',$doDie=true) {
 		print 'ERROR|'.$type.'|'.join('|',$errors);
 		if ($doDie) {
@@ -134,4 +138,21 @@
 
     }
 
+
+    // Check whether or not Sloodle is installed
+    // (Checks if all expected tables exist)
+    // Returns true if so, or false if not
+    function sloodle_is_installed()
+    {        
+        // Use the in-built DDL function to check for each table
+        // (The function is defined in moodle/lib/ddllib.php)
+        if (!table_exists(new XMLDBTable("sloodle_active_object"))) return false;
+        if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile"))) return false;
+        if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile_entry"))) return false;
+        if (!table_exists(new XMLDBTable("sloodle_config"))) return false;
+        
+        // If we reach this point, we can assume all tables have been created
+        return true;
+    }
+	
 ?>
