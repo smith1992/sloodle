@@ -40,21 +40,21 @@
     			$str .= '
     				<h3>' . get_string("primpass:set", "sloodle") . '</h3>
     				<p>' . get_string("primpass:setdesc", "sloodle") . '</p>
-    				<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
+    				<form action="'.$PHP_SELF.'" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value=""/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
     			';
     		} else {
     			if ($show_sloodle_pwd != null) {
     				$str .= '
     					<h3>' . get_string("primpass:change", "sloodle") . '</h3>
     					<p>' . get_string("primpass:changedesc", "sloodle") . '</p>
-    					<form action="sl_setup.php" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
+    					<form action="'.$PHP_SELF.'" method="post"><input size="40" maxlength="40" type="text" name="sloodle_pwd" value="'.sloodle_prim_password().'"/><input type="submit" value="' . get_string("primpass:save", "sloodle") . '" /></form>
 
     				';
     			} else {
     				$str .= '
     					<h3>' . get_string("primpass:isset", "sloodle") . '</h3>
     					<p>' . get_string("primpass:issetdesc", "sloodle") . '
-                       <a href="sl_setup.php?showpwd=1">' . get_string("clickchangeit", "sloodle") . '</a>.</p>
+                       <a href="'.$PHP_SELF.'?showpwd=1">' . get_string("clickchangeit", "sloodle") . '</a>.</p>
     				';
     			}
 
@@ -68,7 +68,7 @@
     			<h3>' . get_string("userauth:header", "sloodle") . '</h3>
 
     			<p>' . get_string("userauth:desc", "sloodle") . '<br />
-    			<form action="sl_setup.php" method="post">
+    			<form action="'.$PHP_SELF.'" method="post">
     			<table border="0">
     				<tr>
     					<td>
