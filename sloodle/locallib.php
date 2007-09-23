@@ -1,7 +1,9 @@
 <?php
 
     // Include the DDL functions for checking database structure
-    require_once($CFG->libdir . '/ddllib.php');
+	if ( (isset($CFG['release'])) && ($CFG['release'] > 1.8) ) { // breaks on v1.6 - only do this on 1.8 above - Edmund Edgar, 2007-09-23
+		require_once($CFG->libdir . '/ddllib.php');
+	}
 
 
 	function sloodle_prim_render_errors($errors,$type='MISC',$doDie=true) {
@@ -144,14 +146,16 @@
     // Returns true if so, or false if not
     function sloodle_is_installed()
     {        
-        // Use the in-built DDL function to check for each table
-        // (The function is defined in moodle/lib/ddllib.php)
-        if (!table_exists(new XMLDBTable("sloodle_active_object"))) return false;
-        if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile"))) return false;
-        if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile_entry"))) return false;
-        if (!table_exists(new XMLDBTable("sloodle_config"))) return false;
-        
-        // If we reach this point, we can assume all tables have been created
+		if ( (isset($CFG['release'])) && ($CFG['release'] > 1.8) ) { // breaks on v1.6 - only do this on 1.8 above - Edmund Edgar, 2007-09-23
+			// Use the in-built DDL function to check for each table
+			// (The function is defined in moodle/lib/ddllib.php)
+			if (!table_exists(new XMLDBTable("sloodle_active_object"))) return false;
+			if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile"))) return false;
+			if (!table_exists(new XMLDBTable("sloodle_classroom_setup_profile_entry"))) return false;
+			if (!table_exists(new XMLDBTable("sloodle_config"))) return false;
+			
+			// If we reach this point, we can assume all tables have been created
+		}
         return true;
     }
 	
