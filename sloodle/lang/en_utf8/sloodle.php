@@ -57,4 +57,7 @@ $string['wouldneedadmin'] = 'You would normally need admin privileges to access 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';
 
+$string['sloodleobjectdistributor'] = 'Sloodle Object Distributor';
+$string['sloodleobjectdistributor:nochannel'] = 'Distribution channel not available - Object not rezzed in-world?';
+
 ?>
