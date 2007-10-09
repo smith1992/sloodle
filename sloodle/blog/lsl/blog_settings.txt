@@ -1,0 +1,13 @@
+// Settings for Sloodle blog toolbar
+// MAKE SURE you set this notecard (in the toolbar's inventory) no "no-modify" and "no-copy" permissions.
+// If you do not, then you will be giving out your Moodle installation password!
+
+// The MOODLE_ADDRESS should be the document root of your Moodle installation, with a trailing /
+
+MOODLE_ADDRESS:=http://www.yoursite.com/
+
+
+// The PRIM_PASS should be the "prim password" setup for the Sloodle module on your Moodle site
+// Check your "mod/sloodle/sl_setup.php" if you are unsure of what this is
+
+PRIM_PASS:=123456789
