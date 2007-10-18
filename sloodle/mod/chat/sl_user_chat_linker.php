@@ -62,10 +62,14 @@ if (!empty($chat_message)) {
 
     // Initially login as the guest user
     $guestinfo = get_guest();
-    $USER = get_complete_user_data('id',$guestinfo->id);
+    $USER = get_complete_user_data('id',$guestinfo->id);    
     // Attempt to login the user from Sloodle
     // (If this fails, then the guest user is the fall-back)
     sloodle_prim_user_login();
+    
+    // Some systems *will* set $USER back to null or false at this point if login failed
+    if (is_null($USER) || $USER == FALSE)
+        $USER = get_complete_user_data('id',$guestinfo->id);
 
     // Extract the user ID
     $sl_userid = $USER->id;
