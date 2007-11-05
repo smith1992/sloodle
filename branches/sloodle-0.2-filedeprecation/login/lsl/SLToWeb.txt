@@ -1,0 +1,48 @@
+// SL To Web Moodle Login Script
+// Copyright Edmund Edgar, 2006-11-19
+
+// This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+// A place to remember the ID for the latest http request we made, so the callback doesn't process out-of-order responses
+key http_id; 
+
+string moodleinstall = "SLOODLE_SCRIPT_URL_WITH_PASSWORD";
+
+default
+{
+state_entry()
+{
+}
+touch_start(integer total_number)
+{
+// ask the server for a jpeg appropriate to the agent who touched us
+string url = moodleinstall+"&avname="+llEscapeURL(llDetectedName(0))+"&uuid="+(string)llDetectedKey(0);
+//llWhisper(0,"Requesting login URL for "+llDetectedName(0));
+http_id = llHTTPRequest(url,[],"");
+}
+http_response(key request_id, integer status, list metadata, string body) {
+// make sure we're processing a response we care about
+if(request_id == http_id) {
+// only on request success
+if(status == 200) {
+// data is coming back as pipe-delimited
+list data = llParseString2List(body,["|"],[]);
+// url is the first field
+string resultCode = llList2String(data,0);
+if(resultCode == "ERROR") {
+llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
+integer i;
+for (i=1;i<llGetListLength(data);i++) {
+llWhisper(0,llList2String(data,i));   
+}
+} else {
+key uuid = llList2Key(data,1);
+string code = llList2String(data,2);                    
+llLoadURL(uuid,"Go here and login to Moodle","SLOODLE_URL_TARGET?lsc="+code);
+
+}
+}
+} 
+}
+}
+
