@@ -311,9 +311,11 @@
 					}
 					
 					// set global USER variable
-					if ($u != null) {
+					if ($u != null && $u->userid != 0) {
 						$USER = get_complete_user_data('id',$u->userid);
-					}
+					} else {
+                        $USER = null;
+                    }
 
 				}
 
@@ -374,9 +376,11 @@
 		}
 
 		// set global USER variable
-		if ($u != null) {
+		if ($u != null && $u->userid != 0) {
 			$USER = get_complete_user_data('id',$u->userid);
-		}
+		} else {
+            $USER = null;
+        }
 
 		return array($USER,$errors);
 
