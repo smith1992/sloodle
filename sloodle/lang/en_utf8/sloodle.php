@@ -16,9 +16,11 @@ $string['cfgnotecard:inworld'] = '* If you prefer to configure your object in-wo
 $string['choosecourse'] = 'Choose the course you want to use in Second Life.';
 $string['clickchangeit'] = 'Click here to change it';
 $string['clickhere'] = 'click here';
+$string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['createnotecard'] = 'Create notecard';
 
-$string['modulename'] = 'Sloodle';
+$string['modulename'] = 'Sloodle Virtual Classroom';
+$string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 
 $string['moodleadminindex'] = 'Moodle administration index';
 
@@ -59,5 +61,13 @@ $string['xmlrpc:error'] = 'XMLRPC Error';
 
 $string['sloodleobjectdistributor'] = 'Sloodle Object Distributor';
 $string['sloodleobjectdistributor:nochannel'] = 'Distribution channel not available - Object not rezzed in-world?';
+
+$string['mod.html:placeholder1'] = 'Currently, Sloodle does not have the facility to add separate instances to your Moodle courses. Instead, Sloodle acts as a single instance for your entire Moodle site.';
+$string['mod.html:placeholder2'] = 'We hope to have the instance capability added in Sloodle version 0.3.';
+$string['mod.html:placeholder3'] = 'Please refer to our website for further information:';
+$string['mod.html:placeholder4'] = 'Sorry for any inconvenience.';
+
+$string['config.html:placeholder1'] = 'Sloodle does not use this page for configuration yet.';
+$string['config.html:placeholder2'] = 'Instead, please use the following page:';
 
 ?>
