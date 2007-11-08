@@ -3,6 +3,8 @@
 // It is included automatically by the Moodle framework.
 // Retrieve strings using the Moodle get_string or print_string functions.
 
+$string['authmethod:default'] = 'User authentication method automatically set to default.';
+$string['authmethod:updated'] = 'User authentication method updated';
 
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
 
@@ -32,10 +34,18 @@ $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'You need to set a password that your Second Life objects will use to talk to Moodle. This should be a 9-digit number.';
 $string['primpass:save'] = 'Save Prim Password';
 $string['primpass:change'] = 'Change Prim Password';
-$string['primpass:changedesc'] = 'If you change this password, you will need to update the scripts in all your Second Life objects that use it.';
+$string['primpass:changedesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the scripts in all your Second Life objects that use it.';
 $string['primpass:isset'] = 'Prim Password is set.';
 $string['primpass:issetdesc'] = 'Your prim password will be automatically included in your LSL scripts.';
 $string['primpass:errornotset'] = 'Error: Prim password isn\'t set, and I couldn\'t create one';
+
+$string['primpass:tooshort'] = 'It should be at least 5 digits long.';
+$string['primpass:toolong'] = 'It should be at most 9 digits long.';
+$string['primpass:numonly'] = 'It should only contain numeric digits (0 to 9).';
+$string['primpass:error'] = 'Prim Password Error';
+$string['primpass:updated'] = 'Prim Password updated';
+$string['primpass:leadingzero'] = 'It should not start with a 0.';
+$string['primpass:random'] = 'A random prim password has been automatically generated for you.';
 
 $string['setsetup:header'] = 'Setup a \'Sloodle Set\' object.';
 $string['setsetup:body1'] = 'Sloodle objects in Second Life need to be configured so that they know which server to talk to, which course to use and how to prove to the server that it has permission to talk to it.';
