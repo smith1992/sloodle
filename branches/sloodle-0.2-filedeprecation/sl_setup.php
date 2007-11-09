@@ -13,21 +13,74 @@
         if (sloodle_is_installed()) {
             // Seems to be installed OK...
         
+		// Get the HTTP parameters
     		$sloodle_auth_method = optional_param('sloodle_auth_method',null,PARAM_RAW);
-
     		$sloodle_pwd = optional_param('sloodle_pwd',null,PARAM_RAW);
     		$show_sloodle_pwd = optional_param('showpwd',null,PARAM_RAW);
-    		if ($sloodle_pwd != null) {
-    			// set the sloodle password
+
+		// Perform error-checks on the new prim password
+		if (!empty($sloodle_pwd)) {
+			$pwd_error_msg = "";
+			// Is is an appropriate length?
+			$len = strlen($sloodle_pwd);
+			if ($len < 5) {
+				$pwd_error_msg .= get_string('primpass:tooshort', 'sloodle') . "<br/>";
+			} else if ($len > 9) {
+				$pwd_error_msg .= get_string('primpass:toolong', 'sloodle') . "<br/>";
+			}
+			// Is it numeric only?
+			if (!ctype_digit($sloodle_pwd)) {
+				$pwd_error_msg .= get_string('primpass:numonly', 'sloodle') . "<br/>";
+			}
+			// Does it have a leading zero?
+			if ($len >= 1 && substr($sloodle_pwd, 0, 1) == "0") {
+				$pwd_error_msg .= get_string('primpass:leadingzero', 'sloodle') . "<br/>";
+			}
+
+			// Were there any error messages?
+			if (!empty($pwd_error_msg)) {
+				// Reset the password variable
+				$sloodle_pwd = '';
+				// Display the message(s)
+				print_simple_box("<b>".get_string('primpass:error','sloodle')."</b><br/>".$pwd_error_msg);
+			}
+		}
+
+		// Has a new prim password been specified?
+    		if (empty($sloodle_pwd)) {
+			// No - do we already have one in the database?
+			$sloodle_pwd = sloodle_get_config('SLOODLE_PRIM_PASSWORD');
+			if (empty($sloodle_pwd)) {
+				// Pick one at random
+				$sloodle_pwd = (string)mt_rand(100000000, 999999999);
+				sloodle_set_config('SLOODLE_PRIM_PASSWORD', $sloodle_pwd);
+				print_simple_box(get_string('primpass:random','sloodle'));
+			}
+		} else {
+    			// Store the new password
     			$result = sloodle_set_config('SLOODLE_PRIM_PASSWORD',$sloodle_pwd);
-    			
+			if ((int)$result > 0) {
+				print_simple_box(get_string('primpass:updated','sloodle'));
+			}
     		}
 
-    		if ($sloodle_auth_method != null) {
+		// Has a new auth method been specified?
+    		if (empty($sloodle_auth_method)) {
+			// No - do we already have on in the database?
+			$sloodle_auth_method = sloodle_get_config('SLOODLE_AUTH_METHOD');
+			if (empty($sloodle_auth_method)) {
+				// No - use a default
+				$sloodle_auth_method = 'web';
+				sloodle_set_config('SLOODLE_AUTH_METHOD', $sloodle_auth_method);
+				print_simple_box(get_string('authmethod:default','sloodle'));
+			}
+		} else {
+			// Store the new auth method
     			$result = sloodle_set_config('SLOODLE_AUTH_METHOD',$sloodle_auth_method);
+			if ((int)$result > 0) {
+				print_simple_box(get_string('authmethod:updated','sloodle'));
+			}
     		}
-
-    		$sloodle_auth_method = sloodle_get_config('SLOODLE_AUTH_METHOD');
 
     		$str = '
     				<h3>' . get_string("setsetup:header", "sloodle") . '</h3>
