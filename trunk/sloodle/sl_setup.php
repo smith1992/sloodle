@@ -19,7 +19,7 @@
     		$show_sloodle_pwd = optional_param('showpwd',null,PARAM_RAW);
 
 		// Perform error-checks on the new prim password
-		if (!empty($sloodle_pwd)) {
+		if (empty($sloodle_pwd) == false || $sloodle_pwd == "0") {
 			$pwd_error_msg = "";
 			// Is is an appropriate length?
 			$len = strlen($sloodle_pwd);
