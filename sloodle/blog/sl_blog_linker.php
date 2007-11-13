@@ -1,40 +1,29 @@
 <?php 
+// Sloodle blog linker
+// Allows the Sloodle Toolbar object in Second Life to write to a user's Moodle blog
+// See www.sloodle.org for more information.
 
-//We need to reference these files to use the existing Blog functions.
+// This script is expected to be accessed with the following parameters (GET or POST):
+// subject = the subject line of the blog entry
+// summary = the main body of the blog entry
+// uuid = the SL UUID of the agent making the blog entry
+// pwd = the prim password used to authenticate the blog toolbar for this site
 
-require_once('../config.php');
-//echo $CFG->dirroot .'/mod/sloodle/config.php';
-//require_once($CFG->dirroot .'/mod/sloodle/config.php');
-//include_once('../../../blog/lib.php'); //lib.php file from moodle/mod/blog.
-//include_once('lib.php'); //lib.php file from moodle/mod/blog.
-require_once($CFG->dirroot .'/blog/lib.php');
-require_once('../locallib.php');
-require_once('../login/sl_authlib.php'); // for authentication functions
+require_once('../config.php'); // Moodle/Sloodle configuration
+require_once($CFG->dirroot .'/blog/lib.php'); // Moodle blog functionality
+require_once('../locallib.php'); // General Sloodle functionality
+require_once('../login/sl_authlib.php'); // Sloodle authentication functions
 
-// Authentication checks
 
-// to use URL like:
-// http://www.sloodle.com/sl_blog_linker.php?subject=test1&summary=test2&uuid=d42ec4be-f746-429c-9b45-fae849792065&pwd=drUs3-9dE
-
-// Is the prim signed? (does it have the correct password?)
-	$pass = sloodle_prim_require_script_authentication();
-	if (! $pass) {
-		print 'password error<br>'; //debug output
-		exit;
-	}
-
+// Ensure the prim password is valid
+// (The script is automatically terminated with an error message if this fails)
+sloodle_prim_require_script_authentication();
 // Authenticate the user
 sloodle_prim_require_user_login();
 
-
-// Here we set up the variables we are expecting to be passed.
-	$sl_blog_subject = required_param('subject', PARAM_RAW);  //Pass the Subject to the Blog - PHP will not run if we don't get this.
-	$sl_blog_summary = required_param('summary', PARAM_RAW);  // Pass the actual message - PHP will not run if we don't get this.
-	
-	// Later on this line will change to accept the UUID and then pull out the Moodle ID from mdl_sloodle_users
-	// For now we just pass the Moodle user ID.
-	//$sl_blog_userid = required_param('user_id', PARAM_INT);  // Pass the actual message - PHP will not run if we don't get this.
-
+// Obtain the raw parameters for the blog entry
+$sl_blog_subject = required_param('subject', PARAM_RAW);
+$sl_blog_summary = required_param('summary', PARAM_RAW);
 
 // Use the HTTP headers added by SL to get the region and position data
 $region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
@@ -45,56 +34,33 @@ $slurl = "http://slurl.com/secondlife/" .$region ."/" .$x ."/" .$y ."/" .$z;
 $slurl = '<a href="' .$slurl .'">' .$region .'</a>';
 // Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
 
-	$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));  // Strip bad tags from the subject.
-	$sl_region = addslashes(clean_text(stripslashes($region), FORMAT_MOODLE));
-	$sl_blog_summary = addslashes(clean_text(stripslashes($sl_blog_summary), FORMAT_MOODLE));  // Strip bad tags from the message.
-	
-	$sl_blog_summary = "Posted from Second Life: " .$slurl ."\n\n" .$sl_blog_summary;
-	
-//Debugging echos	
-//	echo $sl_blog_subject;
-//	echo $sl_blog_summary;
-//	echo $sl_blog_userid;
+// Make all string data safe
+$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));
+$sl_region = addslashes(clean_text(stripslashes($region), FORMAT_MOODLE));
+$sl_blog_summary = addslashes(clean_text(stripslashes($sl_blog_summary), FORMAT_MOODLE));
+// Construct the final blog body	
+$sl_blog_summary = "Posted from Second Life: " .$slurl ."\n\n" .$sl_blog_summary;
 
 
-//Now we check to see if the user account actually exists!
-//    if (!$blogger = get_record('user', 'id', $sl_blog_userid)) {
-//        error('This user does not exist!!.'); //PA: This Uses Moodle's built in Error handler - :o)
-//	    }
-
-// Now lets paste in the post function as defined in blog\edit.php
-// Bit's we don't need are edited out.
-
-//function do_save($post) {
-//    global $USER, $CFG, $referrer;
-//    echo 'Debug: Post object in do_save function of edit.php<br />'; //debug
-//    print_object($post); //debug
-
-    if ($sl_blog_summary == '') 
-    { // This will check that there IS a post to make!
-        $post->error =  get_string('nomessagebodyerror', 'blog');
+if ($sl_blog_summary == '') {
+    // This will check that there IS a post to make!
+    $post->error =  get_string('nomessagebodyerror', 'blog');
+} else {
+    // Write a blog entry into database
+    $blogEntry = new object;
+    $blogEntry->subject = $sl_blog_subject;
+    $blogEntry->summary = $sl_blog_summary;
+    $blogEntry->module = 'blog';
+    $blogEntry->userid = $USER->id;
+    $blogEntry->format = 1;
+    $blogEntry->publishstate = 'site'; // 'draft' or 'site' or 'public'
+    $blogEntry->lastmodified = time();
+    $blogEntry->created = time();
+    // Insert the new blog entry, making sure it is successful
+    if ($entryID = insert_record('post',$blogEntry)) {
+       print 'success';
     } else {
-
-        	/// Write a blog entry into database
-        	$blogEntry = new object;
-        
-        	$blogEntry->subject = $sl_blog_subject;
-        	$blogEntry->summary = $sl_blog_summary;
-        	$blogEntry->module = 'blog';
-        	$blogEntry->userid = $USER->id;  // was: $sl_blog_userid;
-        	$blogEntry->format = 1;
-        	$blogEntry->publishstate = 'site'; // 'draft' or 'site' or 'public'
-        	$blogEntry->lastmodified = time();
-        	$blogEntry->created = time();
-
-        	// Insert the new blog entry.
-       		 $entryID = insert_record('post',$blogEntry);
-
-        	//Confirm table input
-		print 'success';
-       		//print 'Debug: created a new entry - entryId = '.$entryID.'<br />';
-        	//print 'Subject: '.$sl_blog_subject.'<br />'; 
-		//print 'Post: '.$sl_blog_summary.'<br />'; 
-		//print 'For user ID '.$USER->id.'<br />'; 
-	}
+       print 'error';
+    }
+}
 ?>
