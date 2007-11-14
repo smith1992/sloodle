@@ -54,6 +54,7 @@ $string['setsetup:body3'] = 'The \'Sloodle Set\' object can then be used to rez 
 
 $string['sloodle'] = 'Sloodle';
 $string['sloodlesetup'] = 'Sloodle Setup';
+$string['sloodleversion'] = 'Sloodle Version';
 
 $string['submit'] = 'Submit';
 
