@@ -2,9 +2,11 @@
 
 	require_once('config.php');
 	require_once('locallib.php');
+	require_once('version.php');
 
-	print_header(get_string("sloodlesetup", "sloodle"), '', '', '', false, '', '', false, '');
-	print_heading(get_string("sloodlesetup", "sloodle"));
+	print_header(get_string('sloodlesetup', 'sloodle'), '', '', '', false, '', '', false, '');
+	print_heading(get_string('sloodlesetup', 'sloodle'), 'center', 1);
+	print_heading(get_string('sloodleversion', 'sloodle').': '.(string)SLOODLE_VERSION, 'center', 4);
 
 	require_login();
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
