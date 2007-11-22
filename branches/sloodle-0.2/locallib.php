@@ -1,32 +1,18 @@
 <?php
-
-	function sloodle_prim_render_errors($errors,$type='MISC',$doDie=true) {
-		print 'ERROR|'.$type.'|'.join('|',$errors);
-		if ($doDie) {
-			exit;
-		}
-	}
-	function sloodle_prim_render_error($error, $type='MISC', $doDie=true) {
-		return sloodle_prim_render_errors(array($error),$type,$doDie);
-	}
-
-	function sloodle_prim_render_output($arr) {
-	// Returns content in a form our prim can understand it
-	// For now, a pipe-delimited list.
-	// Expects either a single array or an array of arrays.
-		if (is_array($arr[0])) {
-			$lines = array();
-			foreach ($arr as $arrArr) {
-				$lines[] = 'OK|'.join('|',$arrArr);
-			}
-			print join("\n",$lines);
-		} else {
-			print 'OK|'.join('|',$arr);
-		}
-	}
+// Local library functions for the Sloodle module
+// Part of the Sloodle project
+// See www.sloodle.org for more information
+//
+// Copyright (c) 2007 Sloodle
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  various
+//
+	
 
 	function sloodle_set_config($name,$value) {
-		$conf = get_record('sloodle_config','name',$name);
+		/*$conf = get_record('sloodle_config','name',$name);
 		if ($conf) {
 			$conf->value = $value;
 			return update_record('sloodle_config',$conf);
@@ -35,45 +21,33 @@
 			$conf->name = $name;
 			$conf->value = $value;
 			return insert_record('sloodle_config',$conf);
-		}
+		}*/
+        
+        // Now using the central Moodle configuration table
+        return set_config(strtolower($name), $value);
 	}
 
 	function sloodle_get_config($name) {
-		$conf = get_record('sloodle_config','name',$name);
+		/*$conf = get_record('sloodle_config','name',$name);
 		if ($conf) {
 			return $conf->value;
 		}
-		return false;
+		return false;*/
+        
+        // Now using the central Moodle configuration table
+        return get_config(NULL, strtolower($name));
 	}
-
-	function sloodle_lsl_output($script) { // eg. lsl/sl_auth/ExperimentalLoginClient.txt (relative to SLOODLE_DIRROOT)
-		$filename = SLOODLE_DIRROOT.'/'.$script;
-		$handle = fopen($filename, "r");
-		$contents = fread($handle, filesize($filename));
-		fclose($handle);
-		return $contents;
-
+    
+    function sloodle_prim_password() {
+		return sloodle_get_config('sloodle_prim_password');
 	}
-
-	function sloodle_lsl_output_substitution($script, $subs) {
-
-		if ($contents = sloodle_lsl_output($script)) {
-			foreach ($subs as $k=>$v) {
-				$contents = preg_replace('/'.$k.'/',$v,$contents);
-			} 
-			return $contents;
-		} else {
-			return false;
-		}
+    
+    function sloodle_is_automatic_registration_on() {
+		$method = sloodle_get_config('sloodle_auth_method');
+		return ($method == 'autoregister');
 	}
-
-	function sloodle_require_setup_done($feature) {
-
-	}
-
-	function sloodle_prim_password() {
-		return sloodle_get_config('SLOODLE_PRIM_PASSWORD');
-	}
+    
+    
 
 	function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
 

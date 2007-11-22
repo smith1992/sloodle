@@ -146,11 +146,6 @@
 		return $sc;
 	}
 
-	function sloodle_is_automatic_registration_on() {
-		$method = sloodle_get_config('SLOODLE_AUTH_METHOD');
-		return ($method == 'autoregister');
-	}
-
 	// Returns the top
 	function sloodle_login_zone_coordinates() {
 		$pos = sloodle_get_config('loginzonepos');

@@ -1,2 +1,129 @@
-<?php print_string('config.html:placeholder1', 'sloodle'); ?><br/>
-<?php print_string('config.html:placeholder2', 'sloodle'); ?> <a href="<?php echo $CFG->wwwroot."/mod/sloodle/sl_setup.php"; ?>">sl_setup.php</a><br/>
+<?php
+    // Has a prim password already been set?
+    if (!isset($CFG->sloodle_prim_password)) {
+        // Not set - generate a random one
+        $sloodleprimpwd = (string)mt_rand(100000000, 999999999);
+        set_config("sloodle_prim_password", $sloodleprimpwd);
+    }
+    // If a prim password has been passed back to this form, then use it
+    // Otherwise, get the setting from the database
+    $sloodleprimpwd = optional_param('sloodlepwd', NULL, PARAM_RAW);
+    if ($sloodleprimpwd == NULL) $sloodleprimpwd = $CFG->sloodle_prim_password;
+    
+    // Has an authentication method already been set?
+    if (!isset($CFG->sloodle_auth_method)) {
+        // Not set - default to web-based
+        $sloodleauthmethod = "web";
+        set_config("sloodle_auth_method", $sloodleauthmethod);
+    }
+    // If an auth method has been passed back to this form, then use it
+    // Otherwise, get the setting from the database
+    $sloodleauthmethod = optional_param('sloodleauth', NULL, PARAM_RAW);
+    if ($sloodleauthmethod == NULL) $sloodleauthmethod = $CFG->sloodle_auth_method;
+?>
+
+
+<!-- ERROR REPORTING -->
+<?php
+
+    // Configuration errors will be reported by the presence of various GET parameters
+    $sloodlepwdshort = optional_param("sloodlepwdshort", FALSE, PARAM_BOOL);
+    $sloodlepwdlong = optional_param("sloodlepwdlong", FALSE, PARAM_BOOL);
+    $sloodlepwdnonnum = optional_param("sloodlepwdnonnum", FALSE, PARAM_BOOL);
+    $sloodlepwdleadzero = optional_param("sloodlepwdleadzero", FALSE, PARAM_BOOL);
+    $sloodleauthinvalid = optional_param("sloodleauthinvalid", FALSE, PARAM_BOOL);
+    
+    // If at least one error was raised, then display an error box
+    if ($sloodlepwdshort || $sloodlepwdlong || $sloodlepwdnonnum || $sloodlepwdleadzero || $sloodleauthinvalid) {
+        echo '<div style="border:solid 2px red; background-color:white;">';
+        // Check each error in turn
+        //echo '<h3>'.get_string('configerror','sloodle').'</h3>';
+        $error_strings = array();
+        if ($sloodlepwdshort) $error_strings[] = get_string('primpass:tooshort','sloodle') . "\n";
+        if ($sloodlepwdlong) $error_strings[] = get_string('primpass:toolong','sloodle') . "\n";
+        if ($sloodlepwdnonnum) $error_strings[] = get_string('primpass:numonly','sloodle') . "\n";
+        if ($sloodlepwdleadzero) $error_strings[] = get_string('primpass:leadingzero','sloodle') . "\n";
+        if ($sloodleauthinvalid) $error_strings[] = get_string('authmethod:invalid','sloodle') . "\n";
+        
+        echo '<ul>';
+        foreach ($error_strings as $err) {
+            echo "<li>$err</li>\n";
+            
+        }
+        echo '</ul>';
+        echo '</div>';
+    }
+?>
+
+<!-- Sloodle configuration form -->
+
+<form method="post" action="module.php" id="form">
+<div>
+<!-- Session key and module name -->
+<input type="hidden" name="sesskey" value="<?php echo $USER->sesskey ?>" />
+<input type="hidden" name="module" value="sloodle" />
+
+<table cellpadding="9" cellspacing="0" >
+
+<!-- Notecard -->
+<tr>
+    <td colspan="3" align="left">
+            <h3><?php print_string("setsetup:header", "sloodle"); ?></h3>
+            <p><?php print_string("setsetup:body1", "sloodle"); ?></p>
+
+            <p>
+                <?php print_string("setsetup:body2", "sloodle"); ?>:
+                <a href="sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
+            </p>
+            <p><?php print_string("setsetup:body3", "sloodle"); ?></p>
+    </td>
+</tr>
+
+<!-- Prim Password -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string("primpass:set", "sloodle"); ?></h3>
+        <p><?php print_string("primpass:setdesc", "sloodle"); ?></p>
+        <input size="40" maxlength="40" type="text" name="prim_password" value="<?php echo $sloodleprimpwd; ?>"/>
+    </td>
+</tr>
+
+<!-- User Authentication Method -->
+<tr>
+    <td colspan="3" align="left">
+        <h3><?php print_string("userauth:header", "sloodle"); ?></h3>
+
+        <p><?php print_string("userauth:desc", "sloodle"); ?></p>
+        
+        <table border="0">
+            <tr>
+                <td><input type="radio" name="auth_method" <?php if ($sloodleauthmethod == "web") echo "checked"; ?> value="web"/></td>
+                <td><?php print_string("userauth:sendtopage", "sloodle"); ?></td>
+            </tr>
+            
+            <tr>
+                <td><input type="radio" name="auth_method" <?php if ($sloodleauthmethod == "autoregister") echo "checked"; ?> value="autoregister"/></td>
+
+                <td><?php print_string("userauth:autoreg", "sloodle"); ?></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td><i><?php print_string("userauth:autoregnote", "sloodle"); ?></i><br /></td>
+            </tr>
+        </table>
+    </td>
+</tr>
+
+<!-- Form Submission -->
+<tr>
+  <td colspan="3" align="center">
+     <input type="submit" value="<?php print_string("savechanges") ?>" /></td>
+</tr>
+</table>
+</div>
+</form>
+
+<!-- End Sloodle configuration form -->
+
+

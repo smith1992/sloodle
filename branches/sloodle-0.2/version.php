@@ -6,11 +6,11 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 // Sloodle version
-define("SLOODLE_VERSION", 0.19);
+define("SLOODLE_VERSION", 0.2);
 
 // Internal module version number
-$module->version  = 2006100701;  // YYYYMMDD##
-//$module->requires = 2006050512;   // The version of Moodle that is required
+$module->version  = 2007112100;  // YYYYMMDD##
+$module->requires = 2006050512;   // The version of Moodle that is required
 $module->cron     = 0;            // How often should cron check this module (seconds)?
 
 ?>
