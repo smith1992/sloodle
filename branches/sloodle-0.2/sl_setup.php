@@ -2,7 +2,6 @@
 
 	require_once('config.php');
 	require_once('locallib.php');
-	require_once('version.php');
 
 	print_header(get_string('sloodlesetup', 'sloodle'), '', '', '', false, '', '', false, '');
 	print_heading(get_string('sloodlesetup', 'sloodle'), 'center', 1);

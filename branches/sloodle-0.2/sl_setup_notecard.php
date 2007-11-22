@@ -14,7 +14,7 @@
 		if ( (sloodle_prim_password() == null) || (sloodle_prim_password() == '') ) {
 		
 			srand((double)microtime()*1000000); 
-			$sloodle_pwd = rand(1000000000,21474836487);
+			$sloodle_pwd = (string)mtrand(1000000000,21474836487);
 			$result = sloodle_set_config('SLOODLE_PRIM_PASSWORD',$sloodle_pwd);
 
 			if (!$result) {

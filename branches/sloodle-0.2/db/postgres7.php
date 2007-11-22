@@ -14,7 +14,7 @@ function sloodle_upgrade($oldversion) {
         // Table: sloodle
         notify('Adding Sloodle instance table...');
         execute_sql("
-            CREATE TABLE prefix_sloodle (
+            CREATE TABLE {$CFG->prefix}sloodle (
               id SERIAL PRIMARY KEY,
               course integer NOT NULL default '0',
               name varchar(255) NOT NULL default 'untitled'
@@ -37,7 +37,7 @@ function sloodle_upgrade($oldversion) {
     
     // Drop the Sloodle config table
         notify('Dropping Sloodle configuration table...');
-        execute_sql('DROP TABLE prefix_sloodle_config');
+        execute_sql("DROP TABLE {$CFG->prefix}sloodle_config");
     }
 
     return $result;

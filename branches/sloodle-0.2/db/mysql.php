@@ -13,24 +13,24 @@ function sloodle_upgrade($oldversion) {
     // Drop the UNIQUE attribute of the userid index in the sloodle_users table
         notify('Applying fix to sloodle_users table for Issue 5...');
         // Drop the unique index
-        execute_sql("ALTER TABLE `prefix_sloodle_users` DROP INDEX `userid`;");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` DROP INDEX `userid`;");
         // Add the non-unique index in its place
-        modify_database('',"ALTER TABLE `prefix_sloodle_users` ADD INDEX `userid` (`userid`);");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` ADD INDEX `userid` (`userid`);");
         
        
     // We need to remove the UNIQUE attribute from all the other tables' `id` fields, as they are also the PRIMARY KEY fields
         notify('Removing UNIQUE attribute from primary keys...');
-        execute_sql("ALTER TABLE `prefix_sloodle_config` DROP INDEX `id`;");
-        execute_sql("ALTER TABLE `prefix_sloodle_active_object` DROP INDEX `id`;");
-        execute_sql("ALTER TABLE `prefix_sloodle_classroom_setup_profile` DROP INDEX `id`;");
-        execute_sql("ALTER TABLE `prefix_sloodle_classroom_setup_profile_entry` DROP INDEX `id`;");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_config` DROP INDEX `id`;");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_active_object` DROP INDEX `id`;");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_classroom_setup_profile` DROP INDEX `id`;");
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_classroom_setup_profile_entry` DROP INDEX `id`;");
         
     // Add an empty sloodle instances table
     // (allows Moodle to determine the number of module instances without reporting DB errors!)
         // Table: sloodle
         notify('Adding Sloodle instance table...');
         execute_sql("
-            CREATE TABLE `prefix_sloodle` (
+            CREATE TABLE `{$CFG->prefix}sloodle` (
                 `id` int(10) unsigned NOT NULL auto_increment,
                 `course` int(10) unsigned NOT NULL DEFAULT '0',
                 `name` varchar(255) NOT NULL DEFAULT 'untitled',
@@ -55,7 +55,7 @@ function sloodle_upgrade($oldversion) {
     
     // Drop the Sloodle config table
         notify('Dropping Sloodle configuration table...');
-        execute_sql('DROP TABLE prefix_sloodle_config');
+        execute_sql("DROP TABLE {$CFG->prefix}sloodle_config");
     }
 
     return $result;

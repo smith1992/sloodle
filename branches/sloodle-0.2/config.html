@@ -1,4 +1,7 @@
 <?php
+    // Get our Sloodle configuration
+    require_once($CFG->dirroot.'/mod/sloodle/config.php');
+    
     // Has a prim password already been set?
     if (!isset($CFG->sloodle_prim_password)) {
         // Not set - generate a random one
@@ -22,6 +25,11 @@
     if ($sloodleauthmethod == NULL) $sloodleauthmethod = $CFG->sloodle_auth_method;
 ?>
 
+
+<!-- Version Number -->
+<?php
+    print_heading(get_string('sloodleversion','sloodle').': '.(string)SLOODLE_VERSION, 'center', 3);
+?>
 
 <!-- ERROR REPORTING -->
 <?php
@@ -73,7 +81,7 @@
 
             <p>
                 <?php print_string("setsetup:body2", "sloodle"); ?>:
-                <a href="sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
+                <a href="<?php echo SLOODLE_WWWROOT; ?>/sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
             </p>
             <p><?php print_string("setsetup:body3", "sloodle"); ?></p>
     </td>
