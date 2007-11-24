@@ -11,7 +11,7 @@ function sloodle_upgrade($oldversion) {
     if ($result && $oldversion < 2007112100) {
     
     // Drop the UNIQUE attribute of the userid index in the sloodle_users table
-        notify('Applying fix to sloodle_users table for Issue 5...');
+        echo('Applying fix to sloodle_users table for Issue 5...');
         // Drop the unique index
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` DROP INDEX `userid`;");
         // Add the non-unique index in its place
@@ -19,7 +19,7 @@ function sloodle_upgrade($oldversion) {
         
        
     // We need to remove the UNIQUE attribute from all the other tables' `id` fields, as they are also the PRIMARY KEY fields
-        notify('Removing UNIQUE attribute from primary keys...');
+        echo('Removing UNIQUE attribute from primary keys...');
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_config` DROP INDEX `id`;");
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_active_object` DROP INDEX `id`;");
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_classroom_setup_profile` DROP INDEX `id`;");
@@ -28,7 +28,7 @@ function sloodle_upgrade($oldversion) {
     // Add an empty sloodle instances table
     // (allows Moodle to determine the number of module instances without reporting DB errors!)
         // Table: sloodle
-        notify('Adding Sloodle instance table...');
+        echo('Adding Sloodle instance table...');
         execute_sql("
             CREATE TABLE `{$CFG->prefix}sloodle` (
                 `id` int(10) unsigned NOT NULL auto_increment,
@@ -41,20 +41,19 @@ function sloodle_upgrade($oldversion) {
         
         
     // Move configuration settings to the Moodle config table
-        notify('Moving Sloodle configuration settings to central Moodle table...');
+        echo('Moving Sloodle configuration settings to central Moodle table...');
         // Get the configuration settings
         $sloodle_cfg_prim_password = get_record('sloodle_config','name','SLOODLE_PRIM_PASSWORD');
         $sloodle_cfg_auth_method = get_record('sloodle_config','name','SLOODLE_AUTH_METHOD');
         // Initialise them to defaults if necessary
-        if (empty($sloodle_cfg_prim_password)) $sloodle_cfg_prim_password = (string)mt_rand(100000000, 999999999);
-        if (empty($sloodle_cfg_auth_method)) $sloodle_cfg_auth_method = 'web';
+        if ($sloodle_cfg_prim_password === FALSE) $sloodle_cfg_prim_password = (string)mt_rand(100000000, 999999999);
+        if ($sloodle_cfg_auth_method === FALSE) $sloodle_cfg_auth_method = 'web';
         // Add them to the Moodle configuration table
-        set_config('sloodle_prim_password', $sloodle_cfg_prim_password);
-        set_config('sloodle_auth_method', $sloodle_cfg_auth_method);        
-    
+        set_config('sloodle_prim_password', $sloodle_cfg_prim_password->value);
+        set_config('sloodle_auth_method', $sloodle_cfg_auth_method->value);
     
     // Drop the Sloodle config table
-        notify('Dropping Sloodle configuration table...');
+        echo('Dropping Sloodle configuration table...');
         execute_sql("DROP TABLE {$CFG->prefix}sloodle_config");
     }
 

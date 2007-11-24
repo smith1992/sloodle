@@ -45,7 +45,7 @@
       </KEYS>
 
     </TABLE>
-    <TABLE NAME="sloodle_classroom_setup_profile_entry" COMMENT="Entry for an individual item in a classroom setup profile" PREVIOUS="sloodle_classroom_setup_profile" NEXT="sloodle_config">
+    <TABLE NAME="sloodle_classroom_setup_profile_entry" COMMENT="Entry for an individual item in a classroom setup profile" PREVIOUS="sloodle_classroom_setup_profile" NEXT="sloodle_users">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodle_classroom_setup_profile_id"/>
         <FIELD NAME="sloodle_classroom_setup_profile_id" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="name"/>
@@ -59,7 +59,7 @@
       </KEYS>
     </TABLE>
  
-    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_config">
+    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_classroom_setup_profile_entry">
 
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
