@@ -12,30 +12,15 @@
 	
 
 	function sloodle_set_config($name,$value) {
-		/*$conf = get_record('sloodle_config','name',$name);
-		if ($conf) {
-			$conf->value = $value;
-			return update_record('sloodle_config',$conf);
-		} else {
-			$conf = new object();
-			$conf->name = $name;
-			$conf->value = $value;
-			return insert_record('sloodle_config',$conf);
-		}*/
-        
-        // Now using the central Moodle configuration table
         return set_config(strtolower($name), $value);
 	}
 
 	function sloodle_get_config($name) {
-		/*$conf = get_record('sloodle_config','name',$name);
-		if ($conf) {
-			return $conf->value;
-		}
-		return false;*/
-        
-        // Now using the central Moodle configuration table
-        return get_config(NULL, strtolower($name));
+        $val = get_config(NULL, strtolower($name));
+        // Older Moodle versions return an object instead of the value directly
+        if (is_object($val))
+            return $val->value;
+        return $val;
 	}
     
     function sloodle_prim_password() {

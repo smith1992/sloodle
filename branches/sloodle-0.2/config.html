@@ -1,15 +1,16 @@
 <?php
     // Get our Sloodle configuration
     require_once($CFG->dirroot.'/mod/sloodle/config.php');
+    require_once($CFG->dirroot.'/mod/sloodle/locallib.php');
     // Attempt to get the configuration settings
-    $sloodleprimpwd = get_config(NULL, 'sloodle_prim_password');
-    $sloodleauthmethod = get_config(NULL, 'sloodle_auth_method');
+    $sloodleprimpwd = sloodle_get_config('sloodle_prim_password');
+    $sloodleauthmethod = sloodle_get_config('sloodle_auth_method');
     
     // Is the prim password setting missing from the configuration?
-    if (empty($sloodleprimpwd)) {
+    if (isset($sloodleprimpwd) == FALSE || is_null($sloodleprimpwd) || empty($sloodleprimpwd)) {
         // Not set - generate a random one
         $sloodleprimpwd = (string)mt_rand(100000000, 999999999);
-        set_config('sloodle_prim_password', $sloodleprimpwd);
+        sloodle_set_config('sloodle_prim_password', $sloodleprimpwd);
     }
     // If a prim password has been passed back to this form, then use it
     // Otherwise, get the setting from the database
@@ -17,10 +18,10 @@
     if ($temppwd != NULL) $sloodleprimpwd = $temppwd;
     
     // Is the authentication method missing from the configuration?
-    if (empty($sloodleauthmethod)) {
+    if (isset($sloodleauthmethod) == FALSE || is_null($sloodleauthmethod) || empty($sloodleauthmethod)) {
         // Not set - default to web-based
         $sloodleauthmethod = 'web';
-        set_config('sloodle_auth_method', $sloodleauthmethod);
+        sloodle_set_config('sloodle_auth_method', $sloodleauthmethod);
     }
     // If an auth method has been passed back to this form, then use it
     // Otherwise, get the setting from the database
