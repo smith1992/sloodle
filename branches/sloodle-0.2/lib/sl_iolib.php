@@ -580,25 +580,11 @@ class SloodleLSLRequest
     // The name of the avatar making the request (if applicable)
     // Should be a string containing first name and last name separated by a space, or should be null
     var $avatar_name = NULL;
-    
-    // ID of the Sloodle user making the request (if applicable)
-    // Should be an integer represeting the primary key of an entry in the "sloodle_users" table, boolean FALSE, or null
-    // If NULL then user login has not been attempted.
-    // If FALSE then no matching user was found
-    // Otherwise (positive integer), the $moodle_user_id entry will also have been configured
-    var $sloodle_user_id = NULL;
-    
+        
     // Database record for the Sloodle user entry of the person making the request (if applicable)
     // Should be an object containing data from the Sloodle users table, or null
     var $sloodle_user = NULL;    
-    
-    // ID of the Moodle user making the request (if applicable)
-    // Should be an integer representing the primary key of an entry in the Moodle "users" table, boolean FALSE, or null
-    // If NULL then the user login has not been attempted
-    // If FALSE then no Moodle account is associated with the Sloodle user
-    // Otherwise (positive integer), the global $USER will also have been configured
-    var $moodle_user_id = NULL;
-    
+        
     // Database record for the Moodle user entry of the person making the request (if applicable)
     // Should be an object containing data from the Moodle users table, or null
     var $moodle_user = NULL;
@@ -644,7 +630,8 @@ class SloodleLSLRequest
     // Returns an integer containing a table ID, or null if the user has not been found
     function get_sloodle_user_id()
     {
-        return $this->sloodle_user_id;
+        if (isset($this->sloodle_user->id)) return $this->sloodle_user->id;
+        return NULL;
     }
     
     // Get the Sloodle users database entry of the avatar specified in the request
@@ -658,7 +645,8 @@ class SloodleLSLRequest
     // Returns an integer containing a table ID, or null if the user has not been found or has no Moodle account
     function get_moodle_user_id()
     {
-        return $this->moodle_user_id;
+        if (isset($this->moodle_user->id)) return $this->moodle_user->id;
+        return NULL;
     }
     
     // Get the Moodle users database entry of the avatar specified in the request
@@ -789,7 +777,7 @@ class SloodleLSLRequest
         
         // Does the password contain an object UUID?
         $objpwd = NULL;
-        if (preg_match('/^(.*?)\|(\d\d*)$/',$pwd, $matches)) {
+        if (preg_match('/^(.*?)\|(\d\d*)$/',$this->password, $matches)) {
 			$objuuid = $matches[1]; // Object UUID
 			$objpwd = $matches[2]; // Object-specific password
             // Get an appropriate entry from the table of active objects
@@ -824,6 +812,8 @@ class SloodleLSLRequest
     // Attempt to find a Sloodle user for the data passed into the request
     // Favours the UUID, but will fall-back on the avatar name
     // Stores the resulting Sloodle user data in this object if it was found
+    // If either the name or UUID were missing from the original request,
+    //  this function will add the data to this object if it finds them in the database
     // Returns TRUE if successful, or FALSE is Sloodle user was not found
     // NOTE: script will terminate with an LSL error message if an error occurs
     function find_sloodle_user()
@@ -849,18 +839,27 @@ class SloodleLSLRequest
         // Favour the UUID, but fall-back to the name
         if ($sloodle_user_sameuuid !== FALSE) {
             $this->sloodle_user = $sloodle_user_sameuuid;
-            $this->sloodle_user_id = (int)$sloodle_user_sameuuid->id;
         } else if ($sloodle_user_samename !== FALSE) {
             $this->sloodle_user = $sloodle_user_samename;
-            $this->sloodle_user_id = (int)$sloodle_user_samename->id;
         } else {
             return FALSE;
+        }
+        
+        // If the UUID was missing from the original request, then see if we can get it from the database data
+        if (is_null($this->avatar_uuid) && !empty($this->sloodle_user->uuid)) {
+            $this->avatar_uuid = $this->sloodle_user->uuid;
+            // Also store the user UUID in the response object
+            $this->response->user_key = $this->sloodle_user->uuid;
+        }
+        // If the avatar name was missing from the original request, then see if we can get it from the database data
+        if (is_null($this->avatar_name) && !empty($this->sloodle_user->avname)) {
+            $this->avatar_name = $this->sloodle_user->avname;
         }
         
         return TRUE;
     }
     
-    // Find the Moodle account associated with the Sloodle user identified by $this->sloodle_user_id
+    // Find the Moodle account associated with the Sloodle user identified by $this->sloodle_user
     // If the Sloodle user member is null, it will attempt to find the user based on avatar UUID and name
     // Stores the resulting Moodle user data in this object if it was found
     // Returns TRUE if successful, or FALSE if Moodle user was not found
@@ -873,7 +872,7 @@ class SloodleLSLRequest
         $this->authenticate_request(TRUE);
         
         // Do we have a Sloodle user entry?
-        if (is_null($this->sloodle_user_entry) || is_null($this->sloodle_user)) {
+        if (is_null($this->sloodle_user)) {
             // No - attempt to find one
             if (!$this->find_sloodle_user()) {
                 return FALSE;
@@ -882,12 +881,7 @@ class SloodleLSLRequest
         
         // Is there a Moodle user ID specified?
         if (isset($this->sloodle_user->userid) == FALSE || (int)$this->sloodle_user->userid <= 0) {
-            // No valid userid
-            $this->response->set_status_code(-321);
-            $this->response->set_status_descriptor('USER_AUTH');
-            $this->response->add_data_line('Avatar is registered with Sloodle, but there is no associated Moodle account');
-            $this->response->render_to_output();
-            exit();
+            return FALSE;
         }
         
         // Attempt to get the identified Moodle user record
@@ -899,7 +893,6 @@ class SloodleLSLRequest
         
         // Success!
         $this->moodle_user = $moodle_user_record;
-        $this->moodle_user_id = $moodle_user_record->id;
         return TRUE;
     }
     
@@ -909,25 +902,11 @@ class SloodleLSLRequest
     // Note however, that auto-registration can be suppressed by setting the $allow_auto_reg parameter to FALSE
     // If parameter $require is TRUE and user login fails, then the script terminates with an LSL error message
     // Otherwise, the function returns boolean TRUE for success, or FALSE for failure
-    // Data members $sloodle_user_id and $moodle_user_id will provide further information
+    // Data members $sloodle_user and $moodle_user will provide further information
     function user_login( $require = TRUE, $allow_auto_reg = TRUE )
-    {        
-        // Attempt to locate a Sloodle entry for the user
-        if (!$this->find_sloodle_user($require)) {
-            // Was login required?
-            if ($require) {
-                $this->response->set_status_code(-321);
-                $this->response->set_status_descriptor('USER_AUTH');
-                $this->response->add_data_line('Login failed: avatar is not registered with Moodle site');
-                $this->response->render_to_output();
-                exit();
-            } else {
-                return FALSE;
-            }
-        }        
-
+    {
         // Determine whether or not we have a Sloodle account
-        $has_sloodle_account = is_object($this->sloodle_user);
+        $has_sloodle_account = $this->find_sloodle_user();
         // Find out if we have a Moodle account
         $has_moodle_account = $has_sloodle_account && $this->find_moodle_user();
         
@@ -955,7 +934,7 @@ class SloodleLSLRequest
             // User is registered with Sloodle, but requires a Moodle account
              if (sloodle_is_automatic_registration_on() && $allow_auto_reg) {
                 // Attempt a Moodle-only registration, and update the Sloodle user details
-                if (!$this->auto_register_user($require, $this->sloodle_user_id)) {
+                if (!$this->auto_register_user($require, $this->sloodle_user->id)) {
                     return FALSE;
                 }
             } else {
@@ -974,14 +953,14 @@ class SloodleLSLRequest
         
         // Login appears to have been successful
         global $USER;
-        $USER = get_complete_user_data('id', $this->moodle_user_id);
+        $USER = get_complete_user_data('id', $this->moodle_user->id);
         
         return TRUE;
     }
     
     // Create a new Sloodle entry for the current avatar, and (optionally) associate it with a Moodle user
     // Parameter $moodle_id gives the user ID of the Moodle user to associate with the Sloodle entry (default is 0, which means no association)
-    // Returns TRUE if succesful, storing the result in $this->sloodle_user and $this->sloodle_user_id
+    // Returns TRUE if succesful, storing the result in $this->sloodle_user
     // Returns FALSE if a Sloodle entry already exists for the same Moodle account (other than ID 0), or if an error occurs
     function create_sloodle_entry( $moodle_id = 0 )
     {
@@ -991,13 +970,24 @@ class SloodleLSLRequest
         $this->authenticate_request();
         
         // Make sure we have the avatar name and UUID
-        if (is_null($this->avatar_uuid) || is_null($this->avatar_name)) {
-            return FALSE;
+        if (is_null($this->avatar_name)) {
+            $this->response->set_status_code(-321);
+            $this->response->set_status_descriptor('USER_AUTH');
+            $this->response->add_data_line('Cannot register user - avatar name not provided.');
+            $this->response->render_to_output();
+            exit();
+        }
+        if (is_null($this->avatar_uuid)) {
+            $this->response->set_status_code(-321);
+            $this->response->set_status_descriptor('USER_AUTH');
+            $this->response->add_data_line('Cannot register user - UUID not provided.');
+            $this->response->render_to_output();
+            exit();
         }
         
         // Create a new Sloodle user object
         $sloodleuser = new stdClass();
-        $sloodleuser->userid = $moodle_id;
+        $sloodleuser->userid = (int)$moodle_id;
         $sloodleuser->uuid = $this->avatar_uuid;
         $sloodleuser->avname = $this->avatar_name;
         $sloodleuser->loginposition = '';
@@ -1006,15 +996,41 @@ class SloodleLSLRequest
         $sloodleuser->loginsecuritytoken = sloodle_random_security_token();
 
         // Attempt to add the Sloodle user to the Sloodle user table
-        $sloodleuser->id = insert_record('sloodle_users', $sloodleuser, true);
-        if ($sloodleuser->id === FALSE) {
+        $sloodleuser->id = insert_record('sloodle_users', $sloodleuser, TRUE);
+        if (!is_int($sloodleuser->id) || $sloodleuser->id < 1) {
             return FALSE;
         }
         
         // Success! Store the data
-        $this->sloodle_user_id = (int)$sloodleuser->id;
         $this->sloodle_user = get_record('sloodle_users', 'id', $sloodleuser->id);
         return TRUE;
+    }
+    
+    // Generate a new login security token for the current Sloodle user
+    // Returns TURE if successful, or FALSE if an error occurs (such as there being no current Sloodle user)
+    function regenerate_login_security_token()
+    {
+        // Do nothing if we don't have a Sloodle user
+        if (is_null($this->sloodle_user)) return FALSE;
+        // Construct a new user object to alter the existing one
+        $update_user = new stdClass();
+        $update_user->id = $this->sloodle_user->id;
+        $update_user->loginsecuritytoken = sloodle_random_security_token();
+        // Attempt to update the record
+        if (update_record('sloodle_users', $update_user) === FALSE) return FALSE;
+        // Store the new token
+        $this->sloodle_user->loginsecuritytoken = $update_user->loginsecuritytoken;
+        return TRUE;
+    }
+    
+    // Does the current Sloodle user have a login security token?
+    // Returns TRUE if so, or FALSE if not (or if there is no current Sloodle user)
+    function user_has_login_security_token()
+    {
+        // Do nothing if we don't have a Sloodle user
+        if (is_null($this->sloodle_user)) return FALSE;
+        // Check the login security token member
+        return (isset($this->sloodle_user->loginsecuritytoken) && !empty($this->sloodle_user->loginsecuritytoken));
     }
     
     
@@ -1087,15 +1103,14 @@ class SloodleLSLRequest
         if (is_null($firstname) || empty($firstname) || is_null($lastname) || empty($lastname)) {
             // Should we terminate with an error message?
             if ($require) {
-                $this->response->set_status_code(-321);
+                $this->response->set_status_code(-322);
                 $this->response->set_status_descriptor('USER_AUTH');
-                $this->response->add_data_line('User is not registered on Sloodle site, and auto-registration is not enabled');
+                $this->response->add_data_line('Missing part of the avatar name');
                 $this->response->render_to_output();
                 exit();
             } else {
                 return FALSE;
             }
-        
         }
         
         // Construct a new Moodle user object
@@ -1104,7 +1119,8 @@ class SloodleLSLRequest
         $moodleuser->firstname = strip_tags($firstname);
         $moodleuser->lastname = strip_tags($lastname);
         $moodleuser->email = $this->avatar_uuid.'@lsl.secondlife.com';
-        $moodleuser->username = trim(moodle_strtolower($firstname.$lastname));
+        $moodlebaseusername = trim(moodle_strtolower($firstname.$lastname));
+        $moodleuser->username = $moodlebaseusername;
         $moodleuser->password = sloodle_random_web_password();
         $plainpass = $moodleuser->password;
         $moodleuser->password = hash_internal_user_password($plainpass);
@@ -1112,59 +1128,89 @@ class SloodleLSLRequest
         $moodleuser->lang = current_language();
         $moodleuser->firstaccess = time();
         $moodleuser->secret = random_string(15);
-        
-        // Attempt to add the user to the authentication database
         $moodleuser->auth = $CFG->auth;
-        if (!empty($CFG->auth_user_create) and function_exists('auth_user_create') ){
-            // Make sure the user doesn't already exist in the authentication module
-            if (! auth_user_exists($moodleuser->username)) {
-                // Attempt to add the user to the authentication module
-                if (! auth_user_create($moodleuser, $plainpass)) {
-                    // Should we terminate with an error message?
-                    if ($require) {
-                        $this->response->set_status_code(-322);
-                        $this->response->set_status_descriptor('USER_AUTH');
-                        $this->response->add_data_line('Failed to add user to Moodle authentication module');
-                        $this->response->render_to_output();
-                        exit();
-                    } else {
-                        return FALSE;
-                    }
-                }
-            } else {
-                // User already exists in authentication module... just use the entry
-            }
+        
+        // Do we need to check for username conflicts in the authentication module?
+        $check_auth = empty($CFG->auth_user_create) == FALSE && function_exists('auth_user_exists') && function_exists('auth_user_create');
+        // We want to find a username that does conflict with either the authentication module, or with the Moodle database        
+        // Try the basic username
+        $try_username = $moodlebaseusername;
+        $conflict_auth = FALSE;
+        if ($check_auth) $conflict_auth = auth_user_exists($try_username);
+        $conflict_moodle = record_exists('user', 'username', $try_username);
+        
+        // If that didn't work, then try a few random variants (just a number added to the end of the name)
+        $MAX_RANDOM_TRIES = 3;
+        $rnd_try = 0;
+        while ($rnd_try < $MAX_RANDOM_TRIES && $conflict_moodle && (($check_auth && $conflict_auth) || !check_auth)) {
+            // Pick a random 3 digit number
+            $rnd_num = mt_rand(100, 999);
+            // Construct a new username to try
+            $try_username = $moodlebaseusername . (string)$rnd_num;
+            // Check for conflicts
+            if ($check_auth) $conflict_auth = auth_user_exists($try_username);
+            $conflict_moodle = record_exists('user', 'username', $try_username);
+            
+            // Next attempt
+            $rnd_try++;
         }
-
-        // Does a Moodle user with the same username already exist?
-        $existing_moodleuser = get_record('user', 'username', $moodleuser->username);
-        if ($existing_moodleuser === FALSE) {
-        // Attempt to add the user data to the Moodle database
-        $moodleuser->id = insert_record('user', $moodleuser, TRUE);
-            // User did not exist - create a new one
-            if ($moodleuser->id === FALSE) {
+        
+        // Were we successful in finding a unique username?
+        if ($conflict_moodle || $conflict_auth) {
+            // Should we terminate with an error message?
+            if ($require) {
+                $this->response->set_status_code(-322);
+                $this->response->set_status_descriptor('USER_AUTH');
+                $this->response->add_data_line('Failed to find a unique username for the new user');
+                $this->response->render_to_output();
+                exit();
+            }
+            return FALSE;
+        }
+        
+        // Store the username
+        $moodleuser->username = $try_username;
+        
+        // Attempt to add the user to the authentication module
+        if ($check_auth) {
+            // Attempt to add the user to the authentication module
+            if (!auth_user_create($moodleuser, $plainpass)) {
                 // Should we terminate with an error message?
                 if ($require) {
                     $this->response->set_status_code(-322);
                     $this->response->set_status_descriptor('USER_AUTH');
-                    $this->response->add_data_line('Failed to add user data to Moodle database');
+                    $this->response->add_data_line('Failed to add user to Moodle authentication module');
                     $this->response->render_to_output();
                     exit();
                 } else {
                     return FALSE;
                 }
             }
-        } else {
-            // Use the existing user
-            $moodleuser = $existing_moodleuser;
         }
-        
+
+        // Attempt to add the user data to the Moodle database
+        $moodleuser->id = insert_record('user', $moodleuser, TRUE);
+        // User did not exist - create a new one
+        if ($moodleuser->id === FALSE) {
+            // Should we terminate with an error message?
+            if ($require) {
+                $this->response->set_status_code(-322);
+                $this->response->set_status_descriptor('USER_AUTH');
+                $this->response->add_data_line('Failed to add user data to Moodle database');
+                $this->response->render_to_output();
+                exit();
+            } else {
+                return FALSE;
+            }
+        }
+        // Store the Moodle user details
+        $this->moodle_user = get_record('user', 'id', $moodleuser->id);
+            
         // Do we have to make our own Sloodle user entry?
         if (is_null($sloodle_user_id)) {
             if (!$this->create_sloodle_entry($moodleuser->id)) {
-                // If we created the Moodle user entry, then delete it
-                if ($existing_moodleuser === FALSE)
-                    delete_records('user', 'id', $moodleuser->id);
+                // Delete our Moodle user entry
+                delete_records('user', 'id', $moodleuser->id);
                 // Should we terminate with an error message?
                 if ($require) {
                     $this->response->set_status_code(-322);
@@ -1175,7 +1221,6 @@ class SloodleLSLRequest
                 }
                 return FALSE;
             }
-            $sloodle_user_id = $this->sloodle_user_id;
             
         } else {
             // Associate the Moodle account with the Sloodle entry
@@ -1186,9 +1231,8 @@ class SloodleLSLRequest
             $result = update_record('sloodle_users', $sloodleuser);
             // Were we successful?
             if ($result === FALSE) {
-                // If we created the Moodle user entry, then delete it
-                if ($existing_moodleuser === FALSE)
-                    delete_records('user', 'id', $moodleuser->id);
+                // Delete our Moodle user entry
+                delete_records('user', 'id', $moodleuser->id);
                 // Should we terminate with an error message?
                 if ($require) {
                     $this->response->set_status_code(-322);
@@ -1199,14 +1243,11 @@ class SloodleLSLRequest
                 }
                 return FALSE;
             }
+            
+            // Store the user details
+            $this->sloodle_user = get_record('sloodle_users', 'id', $this->sloodle_user_id);
         }
 
-        // Store the Sloodle and Moodle user ID's
-        $this->sloodle_user_id = (int)$sloodleuser->id;
-        $this->moodle_user_id = (int)$moodleuser->id;
-        // Retrieve fresh copies of the user entries
-        $this->sloodle_user = get_record('sloodle_users', 'id', $sloodleuser->id);
-        $this->moodle_user = get_record('user', 'id', $moodleuser->id);
         
         // Add a side-effect to our response
         $this->response->add_side_effect(322);

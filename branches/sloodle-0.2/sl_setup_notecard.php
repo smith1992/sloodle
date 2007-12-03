@@ -28,7 +28,7 @@
 		if ($courseid == NULL) {
 
 			print '<h3>'. get_string("choosecourse", "sloodle") .'</h3>';
-			print '<p>'. get_string("cfgnotecard:paste", "sloodle") .'</p>';
+			print '<p>'. get_string("cfgnotecard:choosecourse", "sloodle") .'</p>';
 			print '<form method="post" action="sl_setup_notecard.php">';
 			$courses = get_courses();
 			foreach($courses as $c) {
@@ -57,7 +57,7 @@
 	exit;
 
 	function sloodle_print_config_notecard($wwwroot,$pwd,$courseid) {
-
+        global $CFG;
 		print '<div align="center">';
 		print '<p>'. get_string("cfgnotecard:instructions", "sloodle") .'</p>';
        print '<p>'. get_string("cfgnotecard:security", "sloodle") .'</p>';
@@ -69,8 +69,8 @@
 		print 'set:sloodle_courseid|'.$courseid;
 		print "\n";
 		print '</textarea>';
-		print '<p>'. get_string("cfgnotecard:inworld", "sloodle") .'</p>';
-		print '<p><a href="sl_setup.php">'. get_string("backtosloodlesetup", "sloodle") .'</a>.';
+		print '<p>'. get_string("cfgnotecard:setnote", "sloodle") .'</p>';
+		print '<p><a href="'.$CFG->wwwroot.'/admin/module.php?module=sloodle">'. get_string("backtosloodlesetup", "sloodle") .'</a>.';
 		print '</div>';
 
 	}

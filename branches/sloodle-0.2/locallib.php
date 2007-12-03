@@ -49,7 +49,7 @@
 		);
 
 		//var_dump($response);
-		if ($response->val == 0) {
+		if (!isset($response->val) || empty($response->val) || is_null($response->val)) {
 			print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br />';
 			print "XMLRPC Error - ".$response->errstr."</p>";
 			return false;

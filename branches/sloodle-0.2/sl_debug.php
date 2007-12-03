@@ -27,4 +27,11 @@
         ini_set('display_errors', '0');
         // Note that the error reporting level is not changed here -- this is to ensure that the error log is still written to
     }
+    
+    // Sloodle debug output function
+    // Will echo the given string to the HTTP response if Sloodle debug mode is active
+    function sloodle_debug_output($str)
+    {
+        if (SLOODLE_DEBUG) echo $str;
+    }
 ?>

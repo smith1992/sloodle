@@ -95,7 +95,7 @@
 		$str="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	    for($length = 0; $length < 16; $length++) {
 			$str= str_shuffle($str);
-			$char = mt_rand(0, strlen($str));
+			$char = mt_rand(0, strlen($str)-1);
 		    $sc.= $str[$char];
 		}
 		return $sc;
