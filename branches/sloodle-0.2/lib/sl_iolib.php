@@ -708,10 +708,13 @@ class SloodleLSLRequest
   ///// FUNCTIONS /////
   
     // Constructor - initialises variables
-    function SloodleLSLRequest()
+    // If $response is an object, then it is used as the response object for this request to write to
+    // This is useful to allow the same response object to be used in the controlling script as here
+    function SloodleLSLRequest($response = NULL)
     {
-        // Instantiate our response object
-        $this->response = new SloodleLSLResponse();
+        // Store or instantiate our response object
+        if (is_object($response)) $this->response = $response;
+        else $this->response = new SloodleLSLResponse();
     }
     
     // Process all of the data provided by the request
@@ -728,6 +731,7 @@ class SloodleLSLRequest
             $this->course_id = optional_param('sloodlecourseid', NULL, PARAM_INT);
             $this->avatar_uuid = optional_param('sloodleuuid', NULL, PARAM_RAW);
             $this->avatar_name = optional_param('sloodleavname', NULL, PARAM_RAW);
+            $this->response->set_request_descriptor(optional_param('sloodlerequestdesc', NULL, PARAM_RAW));
             
             // Fetch the login zone position string
             $temp_pos = optional_param('sloodleloginzonepos', NULL, PARAM_RAW);
@@ -1258,5 +1262,30 @@ class SloodleLSLRequest
     
 }
 
+
+// This class simplifies the handling of request/response objects
+class SloodleIOHandler
+{
+///// PUBLIC DATA /////
+    
+    // A request object
+    // Instantiated to a SloodleLSLRequest object on construction
+    var $request = NULL;
+    
+    // A response object
+    // Instantiated to a SloodleLSLResponse object on construction
+    var $response = NULL;
+    
+    
+///// FUNCTIONS /////
+
+    // Constructor
+    function SloodleIOHandler()
+    {
+        // Instantiate and link a request and a response
+        $this->response = new SloodleLSLResponse();
+        $this->request = new SloodleLSLRequest($this->response);
+    }
+}
 
 ?>
