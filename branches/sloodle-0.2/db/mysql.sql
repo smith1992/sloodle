@@ -19,7 +19,7 @@ CREATE TABLE prefix_sloodle_users
     `loginsecuritytoken` varchar(255) DEFAULT '',
     PRIMARY KEY (`id`),
     INDEX `userid` (`userid`),
-    UNIQUE `uuid` (`uuid`)
+    INDEX `uuid` (`uuid`)
 ) COMMENT='Associates Moodle user IDs with Second Life avatar UUIDs and names';
   
 CREATE TABLE prefix_sloodle_active_object (

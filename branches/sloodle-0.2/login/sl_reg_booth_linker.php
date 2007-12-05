@@ -1,4 +1,4 @@
-<pre><?php
+<?php
 // Sloodle registration booth linker script
 // Allows a registration booth in Second Life to setup an SL-Moodle user registration process
 // Part of the Sloodle Project (www.sloodle.org)
@@ -7,7 +7,7 @@
 // Released under the GNU GPL v3
 //
 // Contributors:
-//  Edmuind Edgar (?) - original version
+//  Edmund Edgar - original version
 //  Peter R. Bloomfield - updated to use new communications API
 //
 //
@@ -23,75 +23,87 @@
 
 require_once('../config.php'); // Sloodle/Moodle configuration
 require_once('../sl_debug.php'); // Sloodle debug mode/functionality
-require_once('../locallib.php'); // Sloodle local library functions
-require_once('../lib/sl_iolib.php'); // Sloodle IO library
-require_once('sl_authlib.php'); // Sloodle authentication library
+require_once('../lib/sl_lsllib.php'); // Sloodle LSL library
 
-sloodle_debug_output("Constructing request object...<br>");
-// We want to handle the script request
-$request = new SloodleLSLRequest();
+
+// Construct our LSL handler
+sloodle_debug_output("Constructing LSL handler...<br>");
+$lsl = new SloodleLSLHandler();
+// Process the request data
 sloodle_debug_output("Processing request data...<br>");
-$request->process_request_data();
-// First of all, make sure this is an authorised request
+$lsl->request->process_request_data();
+// Authenticate the request
 // (Unless we pass in FALSE, the script will be terminated if authentication fails)
 sloodle_debug_output("Authenticating request...<br>");
-$request->authenticate_request();
+$lsl->request->authenticate_request();
 
-// Are there Sloodle/Moodle entries for the specified avatar?
-sloodle_debug_output("Checking for a Sloodle user...<br>");
-$has_sloodle_account = $request->find_sloodle_user();
-sloodle_debug_output("Checking for a Moodle user...<br>");
-$has_moodle_account = $has_sloodle_account && $request->find_moodle_user();
-
-// If the user is already fully registered, then there's nothing more to do
-if ($has_moodle_account) {
-    sloodle_debug_output("User already fully registered...<br>");
-    $response = $request->get_response();
-    $response->set_status_code(301);
-    $response->set_status_descriptor('MISC_REGISTER');
-    $response->render_to_output();
+// Ensure that the avatar UUID and name were both provided
+// (Note: due to cunning request processing trickery, if the is already fully registered with Sloodle,
+//  and only UUID OR name was provided, then the missing value will have been filled in)
+if (is_null($lsl->request->get_avatar_uuid())) {
+    $lsl->response->set_status_code(-311);
+    $lsl->response->set_status_descriptor('USER_REG');
+    $lsl->response->add_data_line('Avatar UUID not provided.');
+    $lsl->response->render_to_output();
     exit();
 }
+if (is_null($lsl->request->get_avatar_name())) {
+    $lsl->response->set_status_code(-311);
+    $lsl->response->set_status_descriptor('USER_REG');
+    $lsl->response->add_data_line('Avatar name not provided.');
+    $lsl->response->render_to_output();
+    exit();
+}
+
+// Do we have a Sloodle account already?
+sloodle_debug_output("Checking for a Sloodle user...<br>");
+$has_sloodle_account = ($lsl->user->get_sloodle_user_id() > 0);
+// Note that, if the user already has a Moodle account, we will still output the security token
+// The reason for this is to allow a change of account link
+sloodle_debug_output("Checking for a Moodle user...<br>");
+$has_moodle_account = $has_sloodle_account && ($lsl->user->get_moodle_user_id() > 0);
+
 
 // Is the user completely un-registered?
 if (!$has_sloodle_account) {
     sloodle_debug_output("User not registered with Sloodle. Registering...<br>");
     // Yes - a new Sloodle entry is required
-    if (!$request->create_sloodle_entry(0)) {
+    $result = $lsl->user->create_sloodle_user($lsl->request->get_avatar_uuid(), $lsl->request->get_avatar_name());
+    if ($result !== TRUE) {
         // Something went wrong
         sloodle_debug_output("Failed to register user with Sloodle...<br>");
-        $response = $request->get_response();
-        $response->set_status_code(-301);
-        $response->set_status_descriptor('USER_REG');
-        $response->add_data_line('Failed to add Sloodle user entry to database.');
-        $response->render_to_output();
+        $lsl->response->set_status_code(-301);
+        $lsl->response->set_status_descriptor('USER_REG');
+        $lsl->response->add_data_line('Failed to add Sloodle user entry to database.');
+        if (is_string($result)) $lsl->response->add_data_line($result);
+        $lsl->response->render_to_output();
         exit();
     }
 }
 
 // Make sure there is a login security token specified for the Sloodle user
-if (!$request->user_has_login_security_token()) {
+if (!$lsl->user->has_login_security_token()) {
     sloodle_debug_output("Generating a login security token...<br>");
-    if (!$request->regenerate_login_security_token()) {
-        $response = $request->get_response();
-        $response->set_status_code(-301);
-        $response->set_status_descriptor('USER_REG');
-        $response->add_data_line('Failed to generate a new login security token for the user.');       
-        $response->render_to_output();
+    if (!$lsl->user->regenerate_login_security_token()) {
+        $lsl->response->set_status_code(-301);
+        $lsl->response->set_status_descriptor('USER_REG');
+        $lsl->response->add_data_line('Failed to generate a new login security token for the user.');       
+        $lsl->response->render_to_output();
         exit();
     }
 }
 
 sloodle_debug_output("Outputting response...<br>");
 
-// Get the Sloodle user
-$sloodle_user = $request->get_sloodle_user();
+// Get the Sloodle user cache
+$sloodle_user = $lsl->user->sloodle_user_cache;
 // Output the token (note that the request object will already have set the user's UUID in the response object... cunning, eh? :-) )
-$response = $request->get_response();
-$response->set_status_code(1);
-$response->set_status_descriptor('USER_REG');
-$response->add_data_line($sloodle_user->loginsecuritytoken);
-$response->render_to_output();
+// The status code depends on whether or not the user is already fully registered
+if ($has_moodle_account) $lsl->response->set_status_code(301);
+else $lsl->response->set_status_code(1);
+$lsl->response->set_status_descriptor('USER_REG');
+$lsl->response->add_data_line($sloodle_user->loginsecuritytoken);
+$lsl->response->render_to_output();
 
 exit();
-?></pre>
+?>

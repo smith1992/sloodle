@@ -7,11 +7,10 @@ function sloodle_upgrade($oldversion) {
     global $CFG;
     $result = true;
 
-    // In the 2007112100 version, we dropped a unique specification
     if ($result && $oldversion < 2007112100) {
     
     // Drop the UNIQUE attribute of the userid index in the sloodle_users table
-        echo('Applying fix to sloodle_users table for Issue 5...');
+        echo('Dropping UNIQUE index on userid field of sloodle_users table (fixing Issue 5)...');
         // Drop the unique index
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` DROP INDEX `userid`;");
         // Add the non-unique index in its place
@@ -55,6 +54,17 @@ function sloodle_upgrade($oldversion) {
     // Drop the Sloodle config table
         echo('Dropping Sloodle configuration table...');
         execute_sql("DROP TABLE {$CFG->prefix}sloodle_config");
+    }
+    
+    
+    if ($result && $oldversion < 2007120401) {
+    
+    // Drop the UNIQUE attribute of the uuid index in the sloodle_users table
+        echo('Dropping UNIQUE index on uuid field of sloodle_users table...');
+        // Drop the unique index
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` DROP INDEX `uuid`;");
+        // Add the non-unique index in its place
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` ADD INDEX `uuid` (`uuid`);");
     }
 
     return $result;

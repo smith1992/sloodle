@@ -228,4 +228,80 @@
 
 	}
     
+    // registers a sloodle user, with a security code, returns the registered user 
+	function sloodle_prim_register_sloodle_only($avname,$uuid) {
+
+
+		$u = null;
+		if ( ($uuid != null) && ($uuid != '') ) {
+			$u = get_record('sloodle_users', 'uuid', $uuid);
+		}
+		if ($u == null) {
+			if ( ($avname != null) && ($avname != '') ) {
+				$u = get_record('sloodle_users', 'avname', $avname);
+			}
+		}
+		if ($u) {
+
+			if ( ($u->userid != null) && ($u->userid > 0 )) {
+
+				// already properly registered, no need for a security token
+				return array(null,array('user already registered with all the info sloodle needs',$uuid));
+
+			} else {
+
+				if ( ($u->loginsecuritytoken == null) || ($u->loginsecuritytoken == '') ) {
+
+					$token = sloodle_random_security_token();
+					$u->loginsecuritytoken = $token;
+					
+					if (!$result = update_record('sloodle_users', $u)) {
+						return array(null,array('could not update sloodle user'));
+					}
+
+				} else {
+
+					// already got a security token
+					return array($u, array());
+
+				}
+			}
+
+		} else {
+
+			$token = sloodle_random_security_token();
+
+			$u = new stdClass();
+			$u->userid=0;
+			$u->uuid = $uuid;
+			$u->avname = $avname;
+			$u->loginposition = '';
+			$u->loginpositionexpires = '';
+			$u->loginpositionregion = '';
+			$u->loginsecuritytoken = addslashes($token);
+
+			if (!$result = insert_record('sloodle_users', $u)) {
+				return array(null,array('could not create sloodle user'));
+			}
+
+		}
+
+		return array($u, array());
+
+	}
+    
+    function sloodle_prim_require_user_login() {
+	// Use the URL parameters to create a global USER object
+	// Return an error if we fail.
+		
+		list($u,$errors) = sloodle_prim_user_login();
+		if ($u == null) {
+			sloodle_prim_render_errors($errors);
+			exit;
+		}
+
+	}
+    
+    
+    
 ?>

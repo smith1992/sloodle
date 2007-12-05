@@ -73,11 +73,11 @@
 
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for sloodle_users" NEXT="uuid"/>
-        <KEY NAME="uuid" TYPE="unique" FIELDS="uuid" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for sloodle_users"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="uuid" UNIQUE="false" FIELDS="uuid" NEXT="userid"/>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid" PREVIOUS="uuid"/>
       </INDEXES>
     </TABLE>
 

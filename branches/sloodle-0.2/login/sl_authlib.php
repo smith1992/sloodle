@@ -28,89 +28,9 @@
 		return update_record('sloodle_users', $sloodleuser);
 	}
 
-	// registers a sloodle user, with a security code, returns the registered user 
-	function sloodle_prim_register_sloodle_only($avname,$uuid) {
+	
 
-
-		$u = null;
-		if ( ($uuid != null) && ($uuid != '') ) {
-			$u = get_record('sloodle_users', 'uuid', $uuid);
-		}
-		if ($u == null) {
-			if ( ($avname != null) && ($avname != '') ) {
-				$u = get_record('sloodle_users', 'avname', $avname);
-			}
-		}
-		if ($u) {
-
-			if ( ($u->userid != null) && ($u->userid > 0 )) {
-
-				// already properly registered, no need for a security token
-				return array(null,array('user already registered with all the info sloodle needs',$uuid));
-
-			} else {
-
-				if ( ($u->loginsecuritytoken == null) || ($u->loginsecuritytoken == '') ) {
-
-					$token = sloodle_random_security_token();
-					$u->loginsecuritytoken = $token;
-					
-					if (!$result = update_record('sloodle_users', $u)) {
-						return array(null,array('could not update sloodle user'));
-					}
-
-				} else {
-
-					// already got a security token
-					return array($u, array());
-
-				}
-			}
-
-		} else {
-
-			$token = sloodle_random_security_token();
-
-			$u = new stdClass();
-			$u->userid=0;
-			$u->uuid = $uuid;
-			$u->avname = $avname;
-			$u->loginposition = '';
-			$u->loginpositionexpires = '';
-			$u->loginpositionregion = '';
-			$u->loginsecuritytoken = addslashes($token);
-
-			if (!$result = insert_record('sloodle_users', $u)) {
-				return array(null,array('could not create sloodle user'));
-			}
-
-		}
-
-		return array($u, array());
-
-	}
-
-	function sloodle_random_security_token() {
-		$sc = '';
-		$str="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	    for($length = 0; $length < 16; $length++) {
-			$str= str_shuffle($str);
-			$char = mt_rand(0, strlen($str)-1);
-		    $sc.= $str[$char];
-		}
-		return $sc;
-	}
-
-	function sloodle_random_web_password() {
-		$sc = '';
-		$str="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&'()=~-^";
-	    for($length = 0; $length < 8; $length++) {
-			$str= str_shuffle($str);
-			$char = mt_rand(0, strlen($str)-1);
-		    $sc.= $str[$char];
-		}
-		return $sc;
-	}
+	
 
 	// Returns the top
 	function sloodle_login_zone_coordinates() {
@@ -167,22 +87,7 @@
 		return true;
 	}
 
-	function sloodle_vector_to_array($vector) {
-		if (preg_match('/<(.*?),(.*?),(.*?)>/',$vector,$vectorbits)) {
-			$arr = array();
-			$arr['x'] = $vectorbits[1];
-			$arr['y'] = $vectorbits[2];
-			$arr['z'] = $vectorbits[3];
-			return $arr;
-		}
-		return false;
-	}
-
-	function sloodle_array_to_vector($arr) {
-		$ret = '<'.$arr['x'].','.$arr['y'].','.$arr['z'].'>';
-		//print "<h1>$ret</h1>";
-		return $ret;
-	}
+	
 
 	// finds an available landing position
 	function sloodle_generate_new_login_position() {
@@ -222,17 +127,7 @@
 		return $pos;
 	}
 
-	function sloodle_prim_require_user_login() {
-	// Use the URL parameters to create a global USER object
-	// Return an error if we fail.
-		
-		list($u,$errors) = sloodle_prim_user_login();
-		if ($u == null) {
-			sloodle_prim_render_errors($errors);
-			exit;
-		}
-
-	}
+	
 
 	function sloodle_prim_loginzone_login($loginpositionfromprim) {
 

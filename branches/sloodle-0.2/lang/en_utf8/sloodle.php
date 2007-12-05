@@ -7,6 +7,8 @@ $string['authmethod:default'] = 'User authentication method automatically set to
 $string['authmethod:invalid'] = 'Invalid user authentication method. Please re-select.';
 $string['authmethod:updated'] = 'User authentication method updated';
 
+$string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
 
 $string['cfgnotecard:header'] = 'Sloodle Configuration Notecard';
@@ -25,9 +27,13 @@ $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['createnotecard'] = 'Create notecard';
 
+$string['error'] = 'Error';
+
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userauth'] = 'What are the User Authentication methods?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
+
+$string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'Some Sloodle objects will require a configuration notecard before you can use them with your Moodle installation. Click the following link to get the text for a configuration notecard:';
@@ -38,6 +44,7 @@ $string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 $string['moodleadminindex'] = 'Moodle administration index';
 
 $string['needadmin'] = 'You need admin privileges to access this page.';
+$string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 
 $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the configuration of all your Second Life objects which use it.';
@@ -75,10 +82,13 @@ $string['userauth:autoreg'] = '<b>Auto</b>: Automatically register them as a new
 $string['userauth:autoregnote'] = 'Note: Allowing automatic registration may conflict with your usual Moodle administration policies, and may not work properly with some authentication methods.';
 $string['userauth:save'] = 'Save User Authentication Settings';
 
+$string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
+$string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
+
+$string['welcometosloodle'] = 'Welcome to Sloodle';
 $string['wouldneedadmin'] = 'You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.';
 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';
-
 
 ?>
