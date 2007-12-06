@@ -971,6 +971,31 @@
             return $cmi;
         }
         
+        
+    ///// UTILITY FUNCTIONS /////
+    
+        // Obtain a named request parameter, and terminate with an error message if it has not been provided
+        // Note: for LSL linker scripts, this should *always* be used instead of the Moodle function, as this will
+        //  render appropraitely formatted error messages, which LSL scripts can understand.
+        // Returns the parameter if it is found
+        // $type is the same as it is for the Moodle function
+        function required_param($parname, $type)
+        {
+            // Attempt to get the parameter
+            $par = optional_param($parname, NULL, $type);
+            // Was it provided?
+            if (is_null($par)) {
+                // No - report the error
+                $this->response->set_status_code(-103);
+                $this->response->set_status_descriptor('SYSTEM');
+                $this->response->add_data_line("Required parameter not provided: '$parname'.");
+                $this->response->render_to_output();
+                exit();
+            }
+            
+            return $par;
+        }
+        
     }
 
 ?>
