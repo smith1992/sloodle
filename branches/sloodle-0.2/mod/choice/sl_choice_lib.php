@@ -104,16 +104,107 @@
         return $choice;
     }
 
-    // TODO: implement this
-    function sloodle_get_num_users_not_answered_choice( $course_module_instance )
+    // Get the number of users on the course who have not yet answered the specified choice (includes students AND teachers!)
+    // $choice MUST be a choice object from the "sloodle_get_choice" function above
+    // Returns a positive integer if successful, or a string if an error occured
+    function sloodle_get_num_users_not_answered_choice( $choice )
     {
-        return (-1);
+        // Make sure we were give a valid choice record
+        if (!is_object($choice)) return 'Choice record not valid.';
+        // Make sure we can get a course number from it
+        if (!isset($choice->course)) return 'Course number not set in choice record.';
+        $course = $choice->course;
+        // Get a list of all users in the course
+        $users = get_course_users($course);
+        if (!is_array($users)) return 'Failed to retrieve list of course users.';
+        // Count that list
+        $num_users = count($users);
+        // Quick-escape: no users!
+        if ($num_users == 0) return 0;
+        
+        // Now count the number of people who have answered the choice already
+        $answers = get_records('choice_answers', 'choiceid', $choice->id);
+        if (!is_array($answers)) return $num_users; // Nobody has answered it 
+        
+        // Calculate the number who are left to answer (do not allow negative values -- e.g. an admin may answers, but not be on the user list)
+        $num_left = $num_users - count($answers);
+        if ($num_left < 0) $num_left = 0;
+        
+        return $num_left;
     }
     
-    // TODO: implement this
-    function sloodle_select_choice_option( $course_module_instance, $optionid, $moodle_user_id )
+    // Add a choice selection on behalf of a specific user
+    // $choice MUST be a choice object from the "sloodle_get_choice" function above
+    // $optionid should be an integer ID of an option (unique for an entire site)
+    // $moodle_user_id should be the ID of a Moodle user
+    // Returns either an integer or a string
+    // The integers tie-in with the Sloodle status codes, so +ve means success, and -ve means error
+    // Codes:
+    //   10011 = added new choice selection
+    //   10012 = updated existing choice selection
+    //  -10011 = User already made a selection, and re-selection is not allowed
+    //  -10012 = max number of selections for this choice already made
+    //  -10013 = choice is not yet open
+    //  -10014 = choice is already closed
+    // A string means a general error occurred, typically a system or programming error
+    function sloodle_select_choice_option( $choice, $optionid, $moodle_user_id )
     {
-        return FALSE;
+        // Make sure we were give a valid choice record
+        if (!is_object($choice)) return 'Choice record not valid.';
+        // Make sure the choice has opened
+        $opentime = (int)$choice->timeopen;
+        $closetime = (int)$choice->timeclose;
+        if ($opentime > 0 && $opentime > time()) return (-10013);
+        if ($closetime > 0 && $closetime < time()) return (-10014);
+        
+        // Make sure the specified option belongs to the choice
+        if (!isset($choice->option[$optionid])) return (-10015);
+        
+        // Get a list of answers which have already been made for this choice
+        $answers = get_records('choice_answers', 'choiceid', $choice->id);
+        // Search the list to see if the user has already made a selection for this choice
+        $old_selection = FALSE;
+        foreach ($answers as $cur_answer) {
+            // Do the user ID's match?
+            if ($moodle_user_id == $cur_answer->userid) {
+                // Yes - store the selection and finish
+                $old_selection = $cur_answer;
+                break;
+            }
+        }
+        
+        // Has the user already answered?
+        if ($old_selection) {
+            // Does this choice prohibit re-selection?
+            if (!$choice->allowupdate) return (-10011);
+            // We can just finish if the same choice is being selected again
+            if ($old_selection->optionid == $optionid) return 10012;
+        }
+                
+        // If the answers are limited, then make sure the number of selection so far has not exceeded the maximum number
+        if ($choice->limitanswers && $choice->selections[$optionid] >= $choice->maxanswers[$optionid]) {
+            return (-10012);
+        }
+        
+        // Are we updating an old selection?
+        if ($old_selection) {
+            // Update
+            $old_selection->optionid = $optionid;
+            $old_selection->timemodified = time();
+            if (!update_record('choice_answers', $old_selection)) return 'Failed to update database.';
+            // Success!
+            return 10012;
+        }
+        
+        // We must be inserting a new selection
+        $selection = new stdClass();
+        $selection->choiceid = $choice->id;
+        $selection->userid = $moodle_user_id;
+        $selection->optionid = $optionid;
+        $selection->timemodified = time();
+        if (!insert_record('choice_answers', $selection)) return 'Failed to insert new database record';
+        // Success!
+        return 10011;
     }
     
 

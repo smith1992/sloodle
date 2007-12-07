@@ -122,26 +122,27 @@
     sloodle_debug_output('Attempting to get course module instance of \'choice\' type...<br/>');
     $course_module_instance = $lsl->request->get_course_module_instance('choice', TRUE);
     
+    // Fetch the status of the specified choice
+    sloodle_debug_output('Getting status of choice...<br/>');
+    $choice_status = sloodle_get_choice($course_module_instance);
+    if ($choice_status === FALSE) {
+        sloodle_debug_output('ERROR: failed to get choice status.<br/>');
+        $lsl->response->set_status_code(-10001);
+        $lsl->response->set_status_descriptor('CHOICE_QUERY');
+        $lsl->response->add_data_line('Failed to retreive status of specified choice module instance.');
+        $lsl->response->render_to_output();
+        exit();
+    }
+    
     // If no option ID was specified then we are in MODE 2
     if (is_null($sloodleoptionid)) {
     ///// ///// MODE 2 ///// /////
     // In this mode, we want to show the status of a particular choice
     //  (i.e. the question, possible answers, results so far etc.)
-        sloodle_debug_output('***** Script in Mode 2 *****<br/>');
-        
-        // Fetch the status of the specified choice
-        sloodle_debug_output('Getting status of choice...<br/>');
-        $choice_status = sloodle_get_choice($course_module_instance);
-        if ($choice_status === FALSE) {
-            sloodle_debug_output('ERROR: failed to get choice status.<br/>');
-            $lsl->response->set_status_code(-10001);
-            $lsl->response->set_status_descriptor('CHOICE_QUERY');
-            $lsl->response->add_data_line('Failed to retreive status of specified choice module instance.');
-            $lsl->response->render_to_output();
-            exit();
-        }
+        sloodle_debug_output('***** Script in Mode 2 *****<br/>');        
         
         // Determine if the choice is open
+        sloodle_debug_output('Determining if the choice is open or closed...<br/>');
         $is_open = 'false';
         $cur_time = time();
         // If timeopen or timeclose is 0, then it is either always open or it never closes (respectively)
@@ -154,15 +155,34 @@
         
         // Should results be given?
         // (Either always, or after close)
-        $show_results = ($choice_status->showresults == CHOICE_SHOWRESULTS_ALWAYS || ($choice_status->showresults == CHOICE_SHOWRESULTS_AFTER_CLOSE && $is_open == 'false'));
+        sloodle_debug_output('Determine if results should be shown...<br/>');
+        $show_results = FALSE;
+        if ($choice_status->showresults == CHOICE_SHOWRESULTS_ALWAYS) {
+            $show_results = TRUE;
+            sloodle_debug_output('&nbsp;Always show results.<br/>');
+        } else if ($choice_status->showresults == CHOICE_SHOWRESULTS_AFTER_CLOSE && $is_open == 'false') {
+            $show_results = TRUE;
+            sloodle_debug_output('&nbsp;Showing results because choice is closed.<br/>');
+        } else {
+            sloodle_debug_output('&nbsp;Results display is disallowed.<br/>');
+        }
         
         // Get the number of people who have not yet answered, if we are OK to show results
         $num_unanswered = -1;
         if ($show_results == TRUE && (int)$choice_status->showunanswered != 0) {
-            $num_unanswered = sloodle_get_num_users_not_answered_choice($choice_module_instance);
+            sloodle_debug_output('Checking how many course users have not yet answered...<br/>');
+            $num_unanswered = sloodle_get_num_users_not_answered_choice($choice_status);
+            // Make sure an error did not occur
+            if (!is_int($num_unanswered)) {
+                sloodle_debug_output("ERROR getting num unanswered: $num_unanswered<br/>");
+                $num_unanswered = -1;
+            }
+        } else {
+            sloodle_debug_output('Not allowed to display number unanswered.<br/>');
         }
         
         // Make sure our choice text is safe... remove newlines and such like as they mess up our response data! :-(
+        sloodle_debug_output('Cleaning choice text (removing HTML tags etc.)...<br/>');
         $choice_text = str_replace("\n", " ", $choice_status->text);
         $choice_text = str_replace("\r", "", $choice_text);
         $choice_text = stripslashes(strip_tags($choice_text));
@@ -197,27 +217,37 @@
         exit();
     }
         
-    ///// ///// MODE 3 ///// /////
-    // We must be in mode 3
-    // In this mode, the user has selected a choice, and we must apply it return the result
-    
-    // TODO: check that the choice is open for results
-    
-    // TODO: check if the user data was specified
-    
+///// ///// MODE 3 ///// /////
+// We must be in mode 3
+// In this mode, the user has selected a choice, and we must apply it return the result
+
     // Attempt to login the Moodle user
     sloodle_debug_output('Attempting to login Moodle user...<br/>');
-    if ($lsl->user->login_moodle_user() !== TRUE) {
-        sloodle_debug_output('Failed to login Moodle user.<br/>');
-        $lsl->response->set_status_code(-301);
-        $lsl->response->set_status_descriptor('USER_AUTH');
-        $lsl->response->add_data_line('Failed to login user - avatar possibly not registered?');
-        $lsl->render_to_output();
-        exit();
-    }
-    // TODO: verify that the user is allowed to access this course
-    // TODO: verify that the user is allowed to use this choice
+    $lsl->login_by_request();
+    // Make sure the user is in the course specified
+    sloodle_debug_output('Ensuring that the Moodle user is enrolled in the course...<br/>');
+    $lsl->is_user_enrolled_by_request(); // By default, this is a 'require' style function -- it will terminate the script with an LSL error message if it fails
     
-      
+    // TODO (future): check that the user is allowed to access the choice (i.e. group mode)
+    
+    // Attempt to make the selection
+    sloodle_debug_output('Attempting to selected choice...<br/>');
+    $result = sloodle_select_choice_option($choice_status, $sloodleoptionid, $lsl->user->get_moodle_user_id());
+    // The response will be an integer status code, or a string
+    // Negative status codes and strings mean error messages
+    if (is_int($result)) {
+        if ($result >= 0) sloodle_debug_output("Success with code $result<br/>");
+        else sloodle_debug_output("Failed with code $result<br/>");
+        $lsl->response->set_status_code($result);
+    } else {
+        sloodle_debug_output("Failed with error: $result<br/>");
+        $lsl->response->set_status_code(-10016);
+        $lsl->response->add_data_line($result);
+    }
+    
+    // The status descriptor will be the same in all cases
+    $lsl->response->set_status_descriptor('CHOICE_SELECT');
+    $lsl->response->render_to_output();
+    exit();
 
 ?>

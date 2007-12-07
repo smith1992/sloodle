@@ -758,6 +758,8 @@
                 $this->module_id = optional_param('sloodlemoduleid', NULL, PARAM_INT);
                 $this->avatar_uuid = optional_param('sloodleuuid', NULL, PARAM_RAW);
                 $this->avatar_name = optional_param('sloodleavname', NULL, PARAM_RAW);
+                $this->login_security_token = optional_param('sloodlelst', NULL, PARAM_RAW);
+                
                 $this->response->set_request_descriptor(optional_param('sloodlerequestdesc', NULL, PARAM_RAW));
                 
                 // Fetch the login zone position string
@@ -979,7 +981,7 @@
         //  render appropraitely formatted error messages, which LSL scripts can understand.
         // Returns the parameter if it is found
         // $type is the same as it is for the Moodle function
-        function required_param($parname, $type)
+        function required_param($parname, $type=PARAM_RAW)
         {
             // Attempt to get the parameter
             $par = optional_param($parname, NULL, $type);

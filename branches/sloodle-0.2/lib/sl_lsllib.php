@@ -59,6 +59,18 @@
             $this->request->process_request_data(TRUE); // Force re-processing to ensure accurate user data
             if (!$this->request->authenticate_request($require)) return FALSE;
             
+            // Make sure the items of data were specified
+            if ($this->request->get_avatar_uuid() == NULL && $this->request->get_avatar_name() == NULL) {
+                if ($require) {
+                    $this->response->set_status_code(-311);
+                    $this->response->set_status_descriptor('USER_AUTH');
+                    $this->response->add_data_line('User not identified in request.');
+                    $this->response->render_to_output();
+                    exit();
+                }
+                return FALSE;
+            }
+            
             // Is the user already fully registered?
             if ($this->user->get_sloodle_user_id() > 0 && $this->user->get_moodle_user_id() > 0) {
                 // Yes - attempt to login
@@ -217,6 +229,31 @@
             if (!isset($this->user->sloodle_user_cache->loginsecuritytoken)) return FALSE;
             // Compare the security tokens
             return ($this->request->get_login_security_token() === $this->user->sloodle_user_cache->loginsecuritytoken);
+        }
+        
+        // Check that the specified user is enrolled in the course identified in the request
+        //  If $use_cache is FALSE (default) then the system will update its cache of user course data before performing the check (this is the recommended setting)
+        // If you KNOW that the course cache is valid, then you can set $use_cache to TRUE. Best to ignore this value unless you really know what you are doing! :-)
+        // Returns TRUE if the user is enrolled, or FALSE if not (or if the course is not available)
+        // Note: if $require is TRUE (default) then the script will be terminated with an LSL error message instead of returning FALSE
+        function is_user_enrolled_by_request( $require = TRUE, $use_cache = FALSE )
+        {
+            // Make sure the course exists
+            $course = $this->request->get_course_record($require);
+            // Is the user enrolled?
+            if (!$this->user->is_user_in_course($course->id, $use_cache)) {
+                if ($require) {
+                    $this->response->set_status_code(-421);
+                    $this->response->set_status_descriptor('USER_ENROL');
+                    $this->response->add_data_line('User not enroled in course, and auto-enrolment is not yet implemented.');
+                    $this->response->render_to_output();
+                    exit();
+                }
+                return FALSE;
+            }
+            
+            // Everything seems fine
+            return TRUE;
         }
         
     }

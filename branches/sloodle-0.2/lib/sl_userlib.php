@@ -624,7 +624,7 @@
             // Extract just the course ID's
             $this->enrolled_courses_cache = array();
             foreach ($course_list as $course) {
-                $this->enrolled_courses_cache[] = (int)$course_list->id;
+                $this->enrolled_courses_cache[] = (int)$course->id;
             }
             
             return TRUE;

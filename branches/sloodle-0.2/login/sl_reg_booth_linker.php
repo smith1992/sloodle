@@ -93,6 +93,14 @@ if (!$lsl->user->has_login_security_token()) {
     }
 }
 
+// We will return a URL which the registration booth will forward the user to
+sloodle_debug_output("Constructing user authentication URL...<br>");
+$auth_url = SLOODLE_WWWROOT."/login/sl_welcome_reg.php?";
+$auth_url .= "sloodleuuid={$lsl->user->sloodle_user_cache->uuid}";
+$auth_url .= "&sloodleavname={$lsl->user->sloodle_user_cache->avname}";
+$auth_url .= "&sloodlelst={$lsl->user->sloodle_user_cache->loginsecuritytoken}";
+sloodle_debug_output("Authentication URL: $auth_url");
+
 sloodle_debug_output("Outputting response...<br>");
 
 // Get the Sloodle user cache
@@ -102,7 +110,8 @@ $sloodle_user = $lsl->user->sloodle_user_cache;
 if ($has_moodle_account) $lsl->response->set_status_code(301);
 else $lsl->response->set_status_code(1);
 $lsl->response->set_status_descriptor('USER_REG');
-$lsl->response->add_data_line($sloodle_user->loginsecuritytoken);
+//$lsl->response->add_data_line($sloodle_user->loginsecuritytoken);
+$lsl->response->add_data_line($auth_url); // We'll just output the whole entire URL
 $lsl->response->render_to_output();
 
 exit();
