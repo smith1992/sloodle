@@ -1,7 +1,7 @@
 <?php
     // Get our Sloodle configuration
     require_once($CFG->dirroot.'/mod/sloodle/config.php');
-    require_once($CFG->dirroot.'/mod/sloodle/locallib.php');
+    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
     
     // Attempt to get the configuration settings
     $sloodleprimpwd = sloodle_get_config('sloodle_prim_password');

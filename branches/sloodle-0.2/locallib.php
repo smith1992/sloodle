@@ -5,6 +5,7 @@
     // PLEASE DO NOT ADD ANYTHING HERE!
     // General utility functions can be placed in the 'lib/sl_generallib.php' file
     
-    
-    exit("***** ERROR: 'locallib.php' included by: {$_SERVER['PHP_SELF']} *****");
+    if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+        exit("***** ERROR: 'locallib.php' included by: {$_SERVER['PHP_SELF']}. Please do not include this file anywhere *****");
+    }
 ?>
