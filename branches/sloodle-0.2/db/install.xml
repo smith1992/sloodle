@@ -69,8 +69,8 @@
         <FIELD NAME="loginposition" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avname" NEXT="loginpositionexpires"/>
         <FIELD NAME="loginpositionexpires" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="loginposition" NEXT="loginpositionregion"/>
         <FIELD NAME="loginpositionregion" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="loginpositionexpires" NEXT="loginsecuritytoken"/>
-        <FIELD NAME="loginsecuritytoken" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="loginpositionregion"/>
-
+        <FIELD NAME="loginsecuritytoken" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="loginpositionregion" NEXT="online"/>
+        <FIELD NAME="online" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="loginsecuritytoken"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for sloodle_users"/>

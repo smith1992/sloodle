@@ -17,6 +17,7 @@ CREATE TABLE prefix_sloodle_users
     `loginpositionexpires` varchar(255) DEFAULT '',
     `loginpositionregion` varchar(255) DEFAULT '',
     `loginsecuritytoken` varchar(255) DEFAULT '',
+    `online` int(1) unsigned NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     INDEX `userid` (`userid`),
     INDEX `uuid` (`uuid`)

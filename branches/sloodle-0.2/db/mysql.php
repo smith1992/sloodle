@@ -66,6 +66,14 @@ function sloodle_upgrade($oldversion) {
         // Add the non-unique index in its place
         execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` ADD INDEX `uuid` (`uuid`);");
     }
+    
+    
+    if ($result && $oldversion < 2007120700) {
+    
+        // Add the `online` field to the `sloodle_users` table
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` ADD `online` TINYINT(1) UNSIGNED DEFAULT '0' NOT NULL AFTER `loginsecuritytoken`");
+    
+    }
 
     return $result;
 }

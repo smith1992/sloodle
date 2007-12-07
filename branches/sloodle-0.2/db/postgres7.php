@@ -39,6 +39,14 @@ function sloodle_upgrade($oldversion) {
         echo('Dropping Sloodle configuration table...');
         execute_sql("DROP TABLE {$CFG->prefix}sloodle_config");
     }
+    
+    
+    if ($result && $oldversion < 2007120700) {
+    
+        // Add the `online` field to the `sloodle_users` table
+        execute_sql("ALTER TABLE `{$CFG->prefix}sloodle_users` ADD `online` INTEGER DEFAULT '0' NOT NULL AFTER `loginsecuritytoken`");
+    
+    }
 
     return $result;
 }

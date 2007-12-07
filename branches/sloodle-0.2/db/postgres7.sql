@@ -23,7 +23,8 @@ create table prefix_sloodle_users (
     loginposition varchar(255) not null default '',
     loginpositionexpires varchar(255) not null default '',
     loginpositionregion varchar(255) not null default '',
-    loginsecuritytoken varchar(255) not null default ''
+    loginsecuritytoken varchar(255) not null default '',
+    online integer not null default '0'
 );
 
 CREATE TABLE prefix_sloodle_active_object (
