@@ -428,20 +428,34 @@
     }
 
     // Round the specified 3d vector to integer values
-    // $pos should be a associative array {x,y,z}
-    // Returns a associative array
-    function sloodle_round_vector_array($pos)
+    // $pos should be a vector string "<x,y,z>" or an associative array {x,y,z}
+    // Return is the same as the type passed-in
+    // If the input type is unrecognised, it simply returns it back out unchanged
+    function sloodle_round_vector($pos)
     {
-        // N.B.:
-        // This had been implemented using "foreach", but that is bad practice.
-        // The PHP docs state that foreach should never be used to modify an array. --PRB
+        // We will work with an array, but allow for conversion to/from string
+        $arrayvec = $pos;
+        $returnstring = FALSE;
+        // Is it a string?
+        if (is_string($pos)) {
+            $arrayvec = sloodle_vector_to_array($pos);
+            $returnstring = TRUE;
+        } else if (!is_array($pos)) {
+            return $pos;
+        }
     
-        // Round each component
-        $pos['x'] = round($pos['x'], 0);
-        $pos['y'] = round($pos['y'], 0);
-        $pos['z'] = round($pos['z'], 0);
+        // Construct an output array
+        $output = array();
+        foreach ($arrayvec as $key => $val) {
+            $output[$key] = round($val, 0);
+        }
         
-        return $pos;
+        // If we need to convert it back to a string, then do so
+        if ($returnstring) {
+            return sloodle_array_to_vector($output);
+        }
+        
+        return $output;
     }
     
     // Get the bounds of the loginzone

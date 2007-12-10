@@ -64,6 +64,10 @@
         $sloodlesize = $lsl->request->required_param('sloodlesize', PARAM_RAW);
         $sloodleregion = $lsl->request->required_param('sloodleregion', PARAM_RAW);
         
+        // Remove the decimal places
+        $sloodlepos = sloodle_round_vector($sloodlepos);
+        $sloodlesize = sloodle_round_vector($sloodlesize);
+        
         sloodle_debug_output("<hr><pre>sloodlepos=$sloodlepos\nsloodlesize=$sloodlesize\nsloodleregion=$sloodleregion</pre><hr>");
         
         // Attempt to store all the data
@@ -90,6 +94,9 @@
         // We require therefore that position is specified
         sloodle_debug_output("Obtaining Mode 2 parameters...<br/>");
         $sloodlepos = $lsl->request->required_param('sloodlepos', PARAM_RAW);
+        // Remove the decimal places
+        $sloodlepos = sloodle_round_vector($sloodlepos);
+        
         // Make sure the avatar name and UUID were specified
         $sloodleuuid = $lsl->request->required_param('sloodleuuid', PARAM_RAW);
         $sloodleavname = $lsl->request->required_param('sloodleavname', PARAM_RAW);
@@ -161,6 +168,7 @@
             $lsl->response->set_status_code(-301);
             $lsl->response->set_status_descriptor('USER_AUTH');
             if (is_string($result)) $lsl->response->add_data_line($result);
+            else $lsl->response->add_data_line('No user found with specified Login Position.');
         }
         
     }
