@@ -41,11 +41,7 @@
     
     // Include our other Sloodle libraries
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
-	require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php'); 
-    
-    sloodle_set_loginzone_pos("<128,128,41>");
-    sloodle_set_loginzone_size("<10,10,10>");
-    sloodle_set_loginzone_region("virtuALBA");
+	require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
     
     // We need to use the Sloodle user functionality
     sloodle_debug_output("Instantiating SloodleUser object...<br/>");

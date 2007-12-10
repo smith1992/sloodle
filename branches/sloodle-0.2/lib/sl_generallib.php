@@ -118,12 +118,13 @@
     }
     
     // Set the position of the loginzone object
-    // $pos should be a 3d vector as a string "<x,y,z>"
+    // $pos should be a 3d vector as a string "<x,y,z>" or an associative array {x,y,z}
     // Returns TRUE if successful, or FALSE on failure
     function sloodle_set_loginzone_pos($pos)
     {
-        // Make sure it's a string
-        if (!is_string($pos)) return FALSE;
+        // If it's an array, make it a string
+        if (is_array($pos)) $pos = sloodle_array_to_vector($pos);
+        else if (!is_string($pos)) return FALSE;
         return sloodle_set_config('sloodle_loginzone_pos', $pos);
     }
     
@@ -135,12 +136,13 @@
     }
     
     // Set the size of the loginzone object
-    // $size should be a 3d vector as a string "<x,y,z>"
+    // $size should be a 3d vector as a string "<x,y,z>" or an associative array {x,y,z}
     // Returns TRUE if successful, or FALSE on failure
     function sloodle_set_loginzone_size($size)
     {
-        // Make sure it's a string
-        if (!is_string($size)) return FALSE;
+        // If it's an array, make it a string
+        if (is_array($size)) $size = sloodle_array_to_vector($size);
+        else if (!is_string($size)) return FALSE;
         return sloodle_set_config('sloodle_loginzone_size', $size);
     }
     
@@ -421,7 +423,7 @@
         $pos = array();
         $pos['x'] = rand($zonemin['x'],$zonemax['x']);	
         $pos['y'] = rand($zonemin['y'],$zonemax['y']);	
-        $pos['z'] = rand($zonemin['z'],$zonemax['z']);	
+        $pos['z'] = rand($zonemin['z'],$zonemax['z']);
         return $pos;
     }
 
