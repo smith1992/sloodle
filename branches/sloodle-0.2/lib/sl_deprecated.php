@@ -301,7 +301,95 @@
 		}
 
 	}
-    
+  
+
+
+    // gets a sloodle user record for a moodle user
+	function sloodle_get_sloodle_user_for_moodle_user($mu) {
+		// return a sloodle user record if it exists, null if it doesn't.
+		$userid = $mu->id;
+		if ($userid == null) {
+			return null;
+		}
+		return get_record('sloodle_users','userid',$userid);
+
+	}
+	
+	function sloodle_get_sloodle_user_for_security_code($sc) {
+		return get_record('sloodle_users','loginsecuritytoken',$sc);
+	}
+
+	function sloodle_match_sloodle_user_to_current_user($sloodleuser) {
+		global $USER;
+		if ( ($USER == null) || ($USER->id == null) ) {
+			return false;
+		}
+		$sloodleuser->userid = $USER->id;
+		return update_record('sloodle_users', $sloodleuser);
+	}
+
+
+	
+
+	
+
+	function sloodle_prim_loginzone_login($loginpositionfromprim) {
+
+		global $USER;
+
+		$errors = array();
+
+		// If we can find got an avatar uuid, we'll use it.
+		// Otherwise, use the avatar name.
+		$uuid = optional_param('uuid',null,PARAM_RAW);
+		$avname = optional_param('avname',null,PARAM_RAW);
+
+		if ( ($avname == null) || ($uuid == null) || ($loginpositionfromprim == null) ) {
+
+			$errors[] = 'Missing arguments';
+
+		} else {
+
+			$u = get_record('sloodle_users', 'loginposition', $loginpositionfromprim);
+
+			if ($u) {
+
+				if ($u->loginpositionexpires < time()) {
+
+					$u = null;	
+					$errors[] = 'Slot in landing zone has expired.';
+
+				} else {
+
+					// Must be the first time the user has come here through SL.
+					// Stick their avatar uuid in the database.
+					$u->uuid = $uuid;
+					$u->avname = $avname;
+					$updated = update_record('sloodle_users', $u);
+					if (!$updated) {
+						$errors[] = 'Could not update user table with avatar uuid';
+					}
+					
+					// set global USER variable
+					if ($u != null && $u->userid != 0) {
+						$USER = get_complete_user_data('id',$u->userid);
+					} else {
+                        $USER = null;
+                    }
+
+				}
+
+			} else {
+
+				$errors[] = 'No user found for position';
+
+			}
+		}
+
+		return array($USER, $errors);
+
+	}
+
     
     
 ?>

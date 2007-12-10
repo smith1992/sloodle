@@ -533,7 +533,7 @@
         // Was it provided?
         if (is_null($par)) {
             // No - report the error
-            SloodleLSLResponse::quick_output(-103, "SYSTEM", "Expected request parameter '$parname'.");
+            SloodleLSLResponse::quick_output(-811, "SYSTEM", "Expected request parameter '$parname'.");
             exit();
         }
         
@@ -988,7 +988,7 @@
             // Was it provided?
             if (is_null($par)) {
                 // No - report the error
-                $this->response->set_status_code(-103);
+                $this->response->set_status_code(-811);
                 $this->response->set_status_descriptor('SYSTEM');
                 $this->response->add_data_line("Required parameter not provided: '$parname'.");
                 $this->response->render_to_output();

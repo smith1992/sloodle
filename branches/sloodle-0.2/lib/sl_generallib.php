@@ -26,7 +26,14 @@
     // This data is persistent, and is stored in Moodle's "config" table (i.e. "mdl_config" for most installations)
     // Returns TRUE if successful, or FALSE on failure
     // See also: sloodle_get_config(..)
-    function sloodle_set_config($name,$value) {
+    function sloodle_set_config($name, $value)
+    {
+        // If in debug mode, ensure the name is prefixed appropriately for Sloodle
+        if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+            if (substr_count($name, 'sloodle_') < 1) {
+                exit ("ERROR: sloodle_set_config(..) called with invalid value name \"$name\". Expected \"sloodle_\" prefix.");
+            }
+        }
         // Use the standard Moodle config function, ignoring the 3rd parameter ("plugin", which defaults to NULL)
         return set_config(strtolower($name), $value);
 	}
@@ -37,7 +44,14 @@
     // Retrieves data from Moodle's "config" table (i.e. "mdl_config" for most installations)
     // Returns a string containing the value found, or FALSE if the named value is not found
     // See also: sloodle_set_config(..)
-	function sloodle_get_config($name) {
+	function sloodle_get_config($name)
+    {
+        // If in debug mode, ensure the name is prefixed appropriately for Sloodle
+        if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+            if (substr_count($name, 'sloodle_') < 1) {
+                exit ("ERROR: sloodle_get_config(..) called with invalid value name \"$name\". Expected \"sloodle_\" prefix.");
+            }
+        }
         // Use the Moodle config function, ignoring the plugin parameter
         $val = get_config(NULL, strtolower($name));
         // Older Moodle versions return a database record object instead of the value itself
@@ -48,7 +62,8 @@
     
     // Get the Sloodle prim password from the configuration table
     // Returns a string containing the prim password, or FALSE if no password has yet been specified
-    function sloodle_get_prim_password() {
+    function sloodle_get_prim_password()
+    {
         return sloodle_get_config('sloodle_prim_password');
     }
     
@@ -56,19 +71,22 @@
     // $password should be a string, between 5 and 9 digits, numerical only, and not starting with a 0
     // Returns TRUE if successful, or FALSE if password is invalid (i.e. not a string) or the database query fails
     // Note: no other validation is done in this function -- that must be done elsewhere
-    function sloodle_set_prim_password($password) {
+    function sloodle_set_prim_password($password)
+    {
         // Make sure it's a string
         if (!is_string($password)) return FALSE;
         return sloodle_set_config('sloodle_prim_password', $password);
     }
     
-    function sloodle_prim_password() {
+    function sloodle_prim_password()
+    {
 	    exit("***** Old sloodle_prim_password() function called from: ".$_SERVER['PHP_SELF']." *****");
 	}
     
     // Determine whether or not automatic registration is enabled
     // Returns TRUE if so, or FALSE if no
-    function sloodle_is_automatic_registration_on() {
+    function sloodle_is_automatic_registration_on()
+    {
         // Get the auth method from the config table
 	    $method = sloodle_get_config('sloodle_auth_method');
         // Is it autoreg?
@@ -77,24 +95,79 @@
     
     // Get the user authentication method
     // Returns a string containing the name of the authentication method, or FALSE if none has been specified
-    function sloodle_get_auth_method() {
+    function sloodle_get_auth_method()
+    {
         return sloodle_get_config('sloodle_auth_method');
     }
     
     // Set the user authentication method
     // Returns TRUE if successful, or FALSE if the auth method is invalid (i.e. not a string) or the database query fails
     // Note: no other validation is performed by this function
-    function sloodle_set_auth_method($auth) {
+    function sloodle_set_auth_method($auth)
+    {
         // Make sure it's a string
         if (!is_string($auth)) return FALSE;
         return sloodle_set_config('sloodle_auth_method', $auth);
     }
     
+    // Get the position of the loginzone object
+    // Returns a vector as a string "<x,y,z>", or FALSE if one was not specified
+    function sloodle_get_loginzone_pos()
+    {
+        return sloodle_get_config('sloodle_loginzone_pos');
+    }
+    
+    // Set the position of the loginzone object
+    // $pos should be a 3d vector as a string "<x,y,z>"
+    // Returns TRUE if successful, or FALSE on failure
+    function sloodle_set_loginzone_pos($pos)
+    {
+        // Make sure it's a string
+        if (!is_string($pos)) return FALSE;
+        return sloodle_set_config('sloodle_loginzone_pos', $pos);
+    }
+    
+    // Get the size of the loginzone object
+    // Returns a vector as a string "<x,y,z>", or FALSE if one was not specified
+    function sloodle_get_loginzone_size()
+    {
+        return sloodle_get_config('sloodle_loginzone_size');
+    }
+    
+    // Set the size of the loginzone object
+    // $size should be a 3d vector as a string "<x,y,z>"
+    // Returns TRUE if successful, or FALSE on failure
+    function sloodle_set_loginzone_size($size)
+    {
+        // Make sure it's a string
+        if (!is_string($size)) return FALSE;
+        return sloodle_set_config('sloodle_loginzone_size', $size);
+    }
+    
+    // Get the region where the loginzone object was rezzed
+    // Returns the region name as a string, or FALSE on failure
+    function sloodle_get_loginzone_region()
+    {
+        return sloodle_get_config('sloodle_loginzone_region');
+    }
+    
+    // Set the region of the loginzone object
+    // $region should be a string containing the name of the region
+    // Returns TRUE if successful, or FALSE on failure
+    function sloodle_set_loginzone_region($region)
+    {
+        // Make sure it's a string
+        if (!is_string($region)) return FALSE;
+        return sloodle_set_config('sloodle_loginzone_region', $region);
+    }
+    
+    
     // Send an XMLRPC message into Second Life
     // $channel identifies which XMLRPC channel is being communicated with (should be an SL UUID)
     // $intval and $strval provide the integer and string parts of the message
     // Returns TRUE if successful, or FALSE if an error occurs
-    function sloodle_send_xmlrpc_message($channel,$intval,$strval) {
+    function sloodle_send_xmlrpc_message($channel,$intval,$strval)
+    {
         // Include our XMLRPC library
         require_once(SLOODLE_DIRROOT.'/lib/xmlrpc.inc');
         // Instantiate a new client object for communicating with Second Life
@@ -126,7 +199,8 @@
     }
 
     // Old logging function - TODO: update!
-    function sloodle_add_to_log($courseid = null, $module = null, $action = null, $url = null, $cmid = null, $info = null) {
+    function sloodle_add_to_log($courseid = null, $module = null, $action = null, $url = null, $cmid = null, $info = null)
+    {
 
        global $CFG;
 
@@ -172,7 +246,8 @@
     // Generate a random login security token
     // Uses mixed-case letters and numbers to generate a random 16-character string
     // Returns a string
-    function sloodle_random_security_token() {
+    function sloodle_random_security_token()
+    {
         // Define the characters we can use in our token, and get the length of it
         $str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         $strlen = strlen($str) - 1;
@@ -192,7 +267,8 @@
     // Generate a random web password
     // Uses mixed-case letters and numbers to generate a random 8-character string
     // Returns a string
-    function sloodle_random_web_password() {
+    function sloodle_random_web_password()
+    {
         // Define the characters we can use in our token, and get the length of it
         $str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         $strlen = strlen($str) - 1;
@@ -212,7 +288,8 @@
     // Convert a string vector of format '<x,y,z>' to an array vector
     // $vector should be a string
     // Returns a numeric array containing 3 components: x, y and z
-    function sloodle_vector_to_array($vector) {
+    function sloodle_vector_to_array($vector)
+    {
         if (preg_match('/<(.*?),(.*?),(.*?)>/',$vector,$vectorbits)) {
             $arr = array();
             $arr['x'] = $vectorbits[1];
@@ -226,7 +303,8 @@
     // Convert an array vector to a string vector
     // $arr should be a 3 component numerical array
     // Returns a string in format '<x,y,z>'
-    function sloodle_array_to_vector($arr) {
+    function sloodle_array_to_vector($arr)
+    {
         $ret = '<'.$arr['x'].','.$arr['y'].','.$arr['z'].'>';
         return $ret;
     }
@@ -281,6 +359,117 @@
         
         // Check the type of the instance
         return ($course_module_instance->module == $module_record->id);
+    }
+    
+    // Check if the specified position is in the current loginzone
+    // Returns TRUE if so, or FALSE if not
+    // $pos can be a string containing a vector, in the form "<x,y,z>", or an associative array containing elements {x,y,z}
+    function sloodle_position_is_in_login_zone($pos)
+    {
+        // Get a position array from the parameter
+        $posarr = NULL;
+        if (is_array($pos) && count($pos) == 3) {
+            $posarr = $pos;
+        } else if (is_string($pos)) {
+            $posarr = sloodle_vector_to_array($pos);
+        } else {
+            return FALSE;
+        }
+        // Fetch the loginzone boundaries
+        list($maxarr,$minarr) = sloodle_login_zone_coordinates();
+
+        // Make sure the position is not past the maximum bounds
+        if ( ($posarr['x'] > $maxarr['x']) || ($posarr['y'] > $maxarr['y']) || ($posarr['z'] > $maxarr['z']) ) {
+            return FALSE;
+        }
+        // Make sure the position is not past the minimum bounds
+        if ( ($posarr['x'] < $minarr['x']) || ($posarr['y'] < $minarr['y']) || ($posarr['z'] < $minarr['z']) ) {
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+    
+    // Generate teleport coordinates for a user who has already finished the loginzone process
+    // Returns a 3d vector as an associative array {x,y,z}
+    function sloodle_finished_login_coordinates()
+    {
+        // Get the size and position of the loginzone
+        $pos = sloodle_get_loginzone_pos();
+        $size = sloodle_get_loginzone_size();
+        // Make sure we retrieved both OK
+        if (!is_string($pos) || !is_string($size)) {
+            return FALSE;
+        }
+        // Convert both to arrays
+        $posarr = sloodle_vector_to_array($pos);
+        $sizearr = sloodle_vector_to_array($size);
+        // Calculate a position just below the loginzone
+        $coord = array();
+        $coord['x'] = round($posarr['x'],0);
+        $coord['y'] = round($posarr['y'],0);
+        $coord['z'] = round(($posarr['z']-(($sizearr['z'])/2)-2),0);
+        return $coord;
+    }
+    
+    // Generate a random position within the specified zone
+    // $zonemax and $zonemin should specify the maximum and minimum bounds of the zone
+    // They should be associative arrays containing the vector components {x,y,z}
+    // Returns a vector as an associative array 
+    function sloodle_random_position_in_zone($zonemax,$zonemin)
+    {
+        $pos = array();
+        $pos['x'] = rand($zonemin['x'],$zonemax['x']);	
+        $pos['y'] = rand($zonemin['y'],$zonemax['y']);	
+        $pos['z'] = rand($zonemin['z'],$zonemax['z']);	
+        return $pos;
+    }
+
+    // Round the specified 3d vector to integer values
+    // $pos should be a associative array {x,y,z}
+    // Returns a associative array
+    function sloodle_round_vector_array($pos)
+    {
+        // N.B.:
+        // This had been implemented using "foreach", but that is bad practice.
+        // The PHP docs state that foreach should never be used to modify an array. --PRB
+    
+        // Round each component
+        $pos['x'] = round($pos['x'], 0);
+        $pos['y'] = round($pos['y'], 0);
+        $pos['z'] = round($pos['z'], 0);
+        
+        return $pos;
+    }
+    
+    // Get the bounds of the loginzone
+    // Note: allows for a margin around the outside of the zone
+    // Returns a two parameters: max and min
+    // Both are associative arrays specifying vectors {x,y,z} - the maximum and minimum bounds of the loginzone
+    // Returns FALSE if the data is not available
+    function sloodle_login_zone_coordinates()
+    {
+        // Get the position and size of the loginzone
+        $pos = sloodle_get_loginzone_pos();
+        $size = sloodle_get_loginzone_size();
+        // Make sure both we retrieved successfully
+        if (($pos == FALSE) || ($size == FALSE)) {
+            return FALSE;
+        }
+        // Convert both to arrays
+        $posarr = sloodle_vector_to_array($pos);
+        $sizearr = sloodle_vector_to_array($size);
+        // Calculate the bounds
+        $max = array();
+        $max['x'] = $posarr['x']+(($sizearr['x'])/2)-2;
+        $max['y'] = $posarr['y']+(($sizearr['y'])/2)-2;
+        $max['z'] = $posarr['z']+(($sizearr['z'])/2)-2;
+        $min = array();
+        $min['x'] = $posarr['x']-(($sizearr['x'])/2)+2;
+        $min['y'] = $posarr['y']-(($sizearr['y'])/2)+2;
+        $min['z'] = $posarr['z']-(($sizearr['z'])/2)+2;
+        
+        return array($max,$min);
     }
 
 ?>

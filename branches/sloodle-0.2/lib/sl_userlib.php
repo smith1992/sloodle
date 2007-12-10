@@ -63,6 +63,7 @@
             // Make the caches empty objects
             $this->sloodle_user_cache = new stdClass();
             $this->moodle_user_cache = new stdClass();
+            $enrolled_courses_cache = array();
         }
         
         
@@ -307,6 +308,56 @@
             return update_record('sloodler_users', $sloodle_user_data);
         }
         
+        // Generates a new login position for the current Sloodle user
+        // $expires should be a timestamp indicating when the position should expire
+        // Returns a numerical array containing the new position if successful, FALSE on failure, or a string if an error occurs
+        // Stores the new login position in the database, and refreshes the user cache
+        // Note: requires that a Sloodle user is currently selected by ID
+        function generate_login_position( $expires )
+        {
+            // Make sure the expiry time is not already passed
+            if ((int)$expires < time()) return "Failed to generate login position - specified expiry time is already passed.";
+            // We need a valid Sloodle user ID
+            if ($this->sloodle_user_id <= 0) return "Failed to generate login position - invalid Sloodle user ID.";
+            
+            // Get the bounds of the loginzone
+            list($max,$min) = sloodle_login_zone_coordinates();
+            $newpos_str = NULL;
+            $newpos_arr = NULL;
+            // We will try up to 10 times to find a new available position
+            $maxtries = 10;
+            for ($i = 0; $i < $maxtries && $newpos_str == NULL; $i++) {
+                // Generate a new random position
+                $rndpos_arr = sloodle_random_position_in_zone($max, $min);
+                $rndpos_str = sloodle_array_to_vector($rndpos_arr);
+                // Is the position already taken? (Or was it previously taken by the same user?)
+                $taker = get_record('sloodle_users', 'loginposition', $rndpos_str);
+                if ($taker == FALSE || $taker->userid == $this->moodle_user_id) {
+                    // Nobody has the position
+                    $newpos_arr = $rndpos_arr;
+                    $newpos_str = $rndpos_str;
+                }
+            }
+            
+            // Were we successful?
+            if ($newpos_str != NULL) {
+                // Yes - use the Sloodle user cache to update the database
+                if ($this->update_sloodle_user_cache_from_db() !== TRUE) {
+                    return "Failed to updated Sloodle user cache.";
+                }
+                $this->sloodle_user_cache->loginposition = $newpos_str;
+                $this->sloodle_user_cache->loginpositionexpires = $expires;
+                $this->sloodle_user_cache->loginpositionregion = '';
+                if ($this->update_sloodle_user_cache_to_db() !== TRUE) {
+                    return "Failed to update database from Sloodle user cache.";
+                }
+                
+                return $newpos_arr;
+            }
+            
+            return FALSE;
+        }
+        
         
         // Create a Moodle user account with the specified first name, last name and email address
         // Stores the new user ID and cache
@@ -425,6 +476,35 @@
             return FALSE;
         }
         
+        // Find the Sloodle user linked to the current Moodle user
+        // Stores the Sloodle user ID in $this->sloodle_user_id
+        // If $cache_data is TRUE (default) then the Sloodle user data is automatically cached by this function
+        // WARNING: the Sloodle user cache must be updated before calling this function with $use_cache = TRUE
+        // Returns TRUE if successful, FALSE if no link was found, or a string if an error occurs
+        function find_linked_sloodle_user( $cache_data = TRUE )
+        {
+            // Make sure a valid Moodle user ID has been specified
+            if ($this->moodle_user_id <= 0) return 'No Moodle user ID specified.';
+            
+            // Get all Sloodle user records linking to the Moodle id
+            $recs = get_records('sloodle_users', 'userid', $this->moodle_user_id);
+            
+            // Was nothing found?
+            if (!is_array($recs) || count($recs) == 0) return FALSE;
+            // There is a problem if more than one Sloodle user was found linked to the same Moodle user
+            if (count($recs) > 1) return "More than one Sloodle user linked to Moodle user #{$this->moodle_user_id}.";
+            
+            // Store any necessary data
+            $rec = NULL;
+            foreach ($recs as $currec) {
+                $rec = $currec;
+            }
+            $this->sloodle_user_id = $rec->id;
+            if ($cache_data) $this->sloodle_user_cache = $rec;
+            
+            return TRUE;
+        }
+        
         // Find the Moodle user linked to the current Sloodle user
         // Stores the Moodle user ID in $this->moodle_user_id
         // If $use_cache is FALSE (default) then this function queries the database
@@ -485,7 +565,7 @@
         {
             // Make sure we have a string or array for the login position
             if (!((is_string($position) && !empty($position)) || (is_array($position) && count($position) == 3)) ) {
-                return "Invalid login position - expected to be a string vector '<x,y,z>' or a vector array {x,y,z}";
+                return "Invalid login position - expected to be a string vector '&lt;x,y,z&gt;' or a vector array {x,y,z}";
             }
             
             // If it's an array, then convert it to a string

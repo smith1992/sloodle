@@ -3,11 +3,14 @@
 // It is included automatically by the Moodle framework.
 // Retrieve strings using the Moodle get_string or print_string functions.
 
+$string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
+
 $string['authmethod:default'] = 'User authentication method automatically set to default.';
 $string['authmethod:invalid'] = 'Invalid user authentication method. Please re-select.';
 $string['authmethod:updated'] = 'User authentication method updated';
 
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+$string['avatarname'] = 'Avatar name';
 
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
 
@@ -23,17 +26,29 @@ $string['cfgnotecard:setnote'] = 'Note: if you configure a Sloodle Set, then it 
 $string['choosecourse'] = 'Choose the course you want to use in Second Life.';
 $string['clickchangeit'] = 'Click here to change it';
 $string['clickhere'] = 'click here';
+$string['clicktoteleportanyway'] = 'Click here to teleport to the Sloodle site in-world anyway.';
 $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['createnotecard'] = 'Create notecard';
 
 $string['error'] = 'Error';
+$string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
+
+$string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userauth'] = 'What are the User Authentication methods?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+
+$string['loginzone:datamissing'] = 'Some of the Login Zone data could not be found.';
+$string['loginzone:mayneedrerez'] = 'The Login Zone may need to be re-rezzed.';
+$string['loginzone:useteleportlink'] = 'A Login Position has been allocated for you. Please use the following link to teleport to it:';
+$string['loginzone:teleport'] = 'Click here to teleport to the Login Zone.';
+$string['loginzone:expirynote'] = 'Please note that your Login Position will expire in 15 minutes. If you do not manage to use it in this time, then you will need to return here to re-activate it.';
+$string['loginzone:allocationfailed'] = 'Failed to allocate a Login Position for you. Please wait a few minutes and try again.';
+$string['loginzone:allocationerror'] = 'An error occurred while allocating a Login Position.';
 
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'Some Sloodle objects will require a configuration notecard before you can use them with your Moodle installation. Click the following link to get the text for a configuration notecard:';
