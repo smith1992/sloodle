@@ -363,6 +363,19 @@
         return ($course_module_instance->module == $module_record->id);
     }
     
+    // Obtain the ID number of the specified module (type not instance)
+    // $name should be a string representing its name
+    // Returns an integer, or FALSE if the module is not found
+    function sloodle_get_module_id($name)
+    {
+        // Ensure the name is a non-empty string
+        if (!is_string($name) || empty($name)) return FALSE;
+        // Obtain the module record
+        if (!($module_record = get_record('modules', 'name', $module_name))) return FALSE;
+        
+        return $module_record->id;
+    }
+    
     // Check if the specified position is in the current loginzone
     // Returns TRUE if so, or FALSE if not
     // $pos can be a string containing a vector, in the form "<x,y,z>", or an associative array containing elements {x,y,z}
