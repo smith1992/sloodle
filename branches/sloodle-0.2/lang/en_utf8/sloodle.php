@@ -29,6 +29,7 @@ $string['clickhere'] = 'click here';
 $string['clicktoteleportanyway'] = 'Click here to teleport to the Sloodle site in-world anyway.';
 $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
+$string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['createnotecard'] = 'Create notecard';
 
 $string['error'] = 'Error';
@@ -53,12 +54,20 @@ $string['loginzone:allocationerror'] = 'An error occurred while allocating a Log
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'Some Sloodle objects will require a configuration notecard before you can use them with your Moodle installation. Click the following link to get the text for a configuration notecard:';
 
+$string['objectauth'] = 'Sloodle Object Authorization';
+$string['objectauthcancelled'] = 'You have cancelled the object authorization.';
+$string['objectauthfailed'] = 'Object authorization has failed.';
+$string['objectauthsent'] = 'Object authorization has been sent successfully.';
+$string['objectname'] = 'Object Name';
+$string['objectuuid'] = 'Object UUID';
+
 $string['modulename'] = 'Sloodle Virtual Classroom';
 $string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 
 $string['moodleadminindex'] = 'Moodle administration index';
 
-$string['needadmin'] = 'You need admin privileges to access this page.';
+$string['needadmin'] = 'You need administrator privileges to continue.';
+$string['No'] = 'No';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 
 $string['primpass:set'] = 'Set Prim Password Number';
@@ -105,5 +114,7 @@ $string['wouldneedadmin'] = 'You would normally need admin privileges to access 
 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';
+
+$string['Yes'] = 'Yes';
 
 ?>

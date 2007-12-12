@@ -1,4 +1,15 @@
 <?php
+    // Sloodle classroom profile library functions
+    // Provides back-end functionality for handling and managing Sloodle classroom profiles
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2006-7 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   Edmund Edgar - original design and implementation
+    //
+    
 
 	function sloodle_get_classroom_profiles($courseid = null) {
 		return get_records('sloodle_classroom_setup_profile','courseid',$courseid);
@@ -96,11 +107,22 @@
 		$sc = '';
 		$str="0123456789";
 	    for($length = 0; $length < 9; $length++) {
-			$str= str_shuffle($str);
-			$char = mt_rand(0, strlen($str));
-		    $sc.= $str[$char];
+			$str = str_shuffle($str);
+			$charnum = mt_rand(0, strlen($str));
+            $char = $str[$charnum];
+            // Don't allow 0 as the first character! -PRB
+            if ($length == 0 && $char == '0') $char = '1';
+		    $sc .= $char;
 		}
 		return $sc;
 	}
+    
+    function sloodle_authorize_object($uuid,$name,$userid,$channel) {
+    	$entry = sloodle_register_object($uuid,$name,$userid,$uuid);
+    	if ($entry == null) {
+    		return FALSE;
+    	}
+    	return sloodle_send_xmlrpc_message($channel,0,$entry->pwd);
+    }
 
 ?>

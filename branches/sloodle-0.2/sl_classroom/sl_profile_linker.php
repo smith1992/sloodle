@@ -1,4 +1,9 @@
 <?php
+    // Sloodle classroom profile linker
+    // Allows in-world objects to interact with classroom profiles in the Moodle database
+    // Part of the Sloodle project (www.sloodle.org)
+    //....
+
 
 	require_once('../config.php');
 	require_once('../locallib.php');
