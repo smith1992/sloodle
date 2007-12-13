@@ -26,8 +26,6 @@
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
     require_once($CFG->dirroot .'/blog/lib.php'); // Moodle blog functionality
-
-    sloodle_debug_output('<br/>');
     
     // Create an LSL handler and process the basic request data
     sloodle_debug_output('Creating LSL handler...<br/>');

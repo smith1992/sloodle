@@ -1,4 +1,37 @@
-<?php  // $Id: attempt.php,v 1.87.2.5 2006/08/10 15:31:00 skodak Exp $
+<?php
+    // Sloodle quiz linker
+    // Allows in-world objects to interact with Moodle quizzes
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2006-7 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   (various Moodle authors) - original quiz functionality
+    //   Edmund Edgar - specialized for Sloodle
+    //   Peter R. Bloomfield - updated (partially) to use new API and communications format
+    //
+
+    // This script is expected to be requested by an in-world object.
+    // The following parameters are required:
+    //
+    //   sloodlepwd = prim password to authenticate the request
+    //   sloodleuuid = UUID of the avatar making the request (optional if 'sloodleavname' is specified)
+    //   sloodleavname = avatar name of the user making the request (optional if 'sloodleuuid' is specified)
+    //
+    // The following parameters are optional, depending on the mode we are in:
+    //
+    //   q = ID of the quiz course module instance
+    //   id = ID of the course which this request relates to
+    //   page = ?
+    //   questionids = ?
+    //   finishattempt = ?
+    //   timeup = true if submission was by timer
+    //    forcenew = teacher has requested a new preview
+    //    action = ??
+    
+
+
 /**
 * This page prints a particular instance of quiz
 *
@@ -15,13 +48,18 @@
 *
 */
 
-    require_once("../../config.php");
+    require_once('../../config.php');
+    require_once(SLOODLE_DIRROOT.'/sl_debug.php');
+    require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
     require_once("locallib.php");
 
-    require_once("../../login/sl_authlib.php");
-    require_once("../../locallib.php");
-	sloodle_prim_require_script_authentication();
-	sloodle_prim_require_user_login();
+    
+    // Authenticate the request and login the user
+    $lsl = new SloodleLSLHandler();
+    $lsl->request->process_request_data();
+    $lsl->request->authenticate_request();
+    $lsl->login_by_request();
+    
 
 	$output = array();
 
@@ -48,13 +86,13 @@
 	if ( ($courseid != 0) && ($id == 0) && ($q == 0) ) {
 		// fetch a quiz with the id for the course
 		 if (! $mod = get_record("modules", "name", "quiz") ) {
-			 sloodle_prim_render_error('Could not find quiz module');	
+			 $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
 			 exit;
 		 }
 
 		 //if (! $coursemod = get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
 		 if (! $coursemod = get_record("course_modules", "course", $courseid, "module", $mod->id)) {
-			 sloodle_prim_render_error('Could not find quiz module for course');	
+			 $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find course module instance', FALSE);
 			 exit;
 		 }
 
@@ -63,30 +101,30 @@
 	}
     if ($id) {
         if (! $cm = get_coursemodule_from_id('quiz', $id)) {
-            sloodle_prim_render_error("There is no coursemodule with id $id");
+            $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Identified module instance is not a quiz', FALSE);
         }
 
         if (! $course = get_record("course", "id", $cm->course)) {
-            sloodle_prim_render_error("Course is misconfigured");
+            $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Quiz module is misconfigured', FALSE);
         }
 
         if (! $quiz = get_record("quiz", "id", $cm->instance)) {
-            sloodle_prim_render_error("The quiz with id $cm->instance corresponding to this coursemodule $id is missing");
+            $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
         }
 
     } else {
         if (! $quiz = get_record("quiz", "id", $q)) {
-            sloodle_prim_render_error("There is no quiz with id $q");
+            $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
         }
         if (! $course = get_record("course", "id", $quiz->course)) {
-            sloodle_prim_render_error("The course with id $quiz->course that the quiz with id $q belongs to is missing");
+            $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
         }
         if (! $cm = get_coursemodule_from_instance("quiz", $quiz->id, $course->id)) {
-            sloodle_prim_render_error("The course module for the quiz with id $q is missing");
+            $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Unable to resolve course module instance', FALSE);
         }
     }
 
-    require_login($course->id, false, $cm);
+    //require_login($course->id, false, $cm); // I don't think this is a good idea! -PRB
 
 
 // Get number for the next or unfinished attempt
@@ -108,17 +146,17 @@
     $numberofpreviousattempts = count_records_select('quiz_attempts', "quiz = '{$quiz->id}' AND " .
         "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
     if ($quiz->attempts and $numberofpreviousattempts >= $quiz->attempts) {
-        sloodle_prim_render_error(get_string('nomoreattempts', 'quiz'), "view.php?id={$cm->id}");
+        $lsl->response->quick_output(-701, 'QUIZ', 'You do not have any attempts left', FALSE);
     }
 
 /// Check subnet access
     if ($quiz->subnet and !address_in_subnet(getremoteaddr(), $quiz->subnet)) {
-		sloodle_prim_render_error(get_string("subneterror", "quiz"), "view.php?id=$cm->id");
+        $lsl->response->quick_output(-1, 'MISC', 'A subnet error occurred', FALSE);
     }
 
 /// Check password access
     if ($quiz->password) {
-		sloodle_prim_render_error('Quiz requires password - not supported by Sloodle.');
+        $lsl->response->quick_output(-701, 'QUIZ', 'Quiz requires password - not supported by Sloodle', FALSE);
 	}
 
     if ($quiz->delay1 or $quiz->delay2) {
@@ -135,11 +173,11 @@
         }
         if ($numattempts == 1 && $quiz->delay1) {
             if ($timenow - $quiz->delay1 < $lastattempt) {
-                sloodle_prim_render_error(get_string('timedelay', 'quiz'), 'view.php?q='.$quiz->id);
+                $lsl->response->quick_output(-701, 'QUIZ', 'You need to wait until the time delay has expired.', FALSE);
             }
         } else if($numattempts > 1 && $quiz->delay2) {
             if ($timenow - $quiz->delay2 < $lastattempt) {
-                sloodle_prim_render_error(get_string('timedelay', 'quiz'), 'view.php?q='.$quiz->id);
+                $lsl->response->quick_output(-701, 'QUIZ', 'You need to wait until the time delay has expired.', FALSE);
             }
         }
     }
@@ -160,7 +198,7 @@
         // If this is an attempt by a teacher mark it as a preview
         // Save the attempt
         if (!$attempt->id = insert_record('quiz_attempts', $attempt)) {
-            sloodle_prim_render_error('Could not create new attempt');
+            $lsl->response->quick_output(-701, 'QUIZ', 'Could not create new attempt.', FALSE);
         }
         // make log entries
 		add_to_log($course->id, 'quiz', 'attempt',
@@ -195,7 +233,7 @@
     }
 
     if (!$questionlist) {
-        sloodle_prim_render_error(get_string('noquestionsfound', 'quiz'), 'view.php?q='.$quiz->id);
+        $lsl->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
     }
 
     $sql = "SELECT q.*, i.grade AS maxgrade, i.id AS instance".
@@ -206,18 +244,18 @@
 
     // Load the questions
     if (!$questions = get_records_sql($sql)) {
-        sloodle_prim_render_error(get_string('noquestionsfound', 'quiz'), 'view.php?q='.$quiz->id);
+        $lsl->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
     }
 
     // Load the question type specific information
     if (!get_question_options($questions)) {
-        sloodle_prim_render_error('Could not load question options');
+        $lsl->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
     }
 
     // Restore the question sessions to their most recent states
     // creating new sessions where required
     if (!$states = get_question_states($questions, $quiz, $attempt)) {
-        sloodle_prim_render_error('Could not restore question sessions');
+        $lsl->response->quick_output(-701, 'QUIZ', 'Could not restore questions sessions.', FALSE);
     }
 
     // Save all the newly created states
@@ -231,7 +269,7 @@
     if ($newattempt and $attempt->attempt > 1 and $quiz->attemptonlast and !$attempt->preview) {
         // Find the previous attempt
         if (!$lastattemptid = get_field('quiz_attempts', 'uniqueid', 'quiz', $attempt->quiz, 'userid', $attempt->userid, 'attempt', $attempt->attempt-1)) {
-            sloodle_prim_render_error('Could not find previous attempt to build on');
+            $lsl->response->quick_output(-701, 'QUIZ', 'Could not find previous attempt to build on.', FALSE);
         }
         // For each question find the responses from the previous attempt and save them to the new session
         foreach ($questions as $i => $question) {
@@ -332,17 +370,17 @@
                    " WHERE i.quiz = '$quiz->id' AND q.id = i.question".
                    "   AND q.id IN ($closequestionlist)";
             if (!$closequestions = get_records_sql($sql)) {
-                sloodle_prim_render_error('Questions missing');
+                $lsl->response->quick_output(-701, 'QUIZ', 'Questions missing.', FALSE);
             }
 
             // Load the question type specific information
             if (!get_question_options($closequestions)) {
-                sloodle_prim_render_error('Could not load question options');
+                $lsl->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
             }
 
             // Restore the question sessions
             if (!$closestates = get_question_states($closequestions, $quiz, $attempt)) {
-                sloodle_prim_render_error('Could not restore question sessions');
+                $lsl->response->quick_output(-701, 'QUIZ', 'Could not restore question sessions.', FALSE);
             }
 
             foreach($closequestions as $key => $question) {
@@ -361,7 +399,7 @@
 /// Update the quiz attempt and the overall grade for the quiz
     if ($responses || $finishattempt) {
         if (!update_record('quiz_attempts', $attempt)) {
-            sloodle_prim_render_error('Failed to save the current quiz attempt!');
+            $lsl->response->quick_output(-701, 'QUIZ', 'Failed to save current quiz attempt.', FALSE);
         }
         if (($attempt->attempt > 1 || $attempt->timefinish > 0) and !$attempt->preview) {
             quiz_save_best_grade($quiz);
@@ -373,12 +411,13 @@
     // check the quiz times
 	//TODO: Figure out what this does...
     if ($timestamp < $quiz->timeopen || ($quiz->timeclose and $timestamp > $quiz->timeclose)) {
-		notice(get_string('notavailable', 'quiz'), "view.php?id={$cm->id}");
+        $lsl->response->quick_output(-701, 'QUIZ', 'Quiz not available.', FALSE);
+        exit();
     }
 
     if ($finishattempt) {
         // redirect('review.php?attempt='.$attempt->id);
-		sloodle_prim_render_error('got to finishattempt - but do not yet have sloodle code to handle it');
+        $lsl->response->quick_output(-701, 'QUIZ', 'Got to finishattempt - but do not yet have Sloodle code to handle it.', FALSE);
     }
 
 /// Print the quiz page ////////////////////////////////////////////////////////
@@ -444,7 +483,9 @@
 		}
     }
 
-	sloodle_prim_render_output($output);
+    $lsl->response->set_status_code(1);
+    $lsl->response->set_status_descriptor('QUIZ');
+    $lsl->response->set_data($output);
 	exit;
 
 ?>

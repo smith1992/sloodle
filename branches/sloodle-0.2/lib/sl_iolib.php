@@ -505,11 +505,23 @@
         // Can be called statically to allow simple output of basic data
         // The status code is required, but the other parameters are optional
         // If an error occurs, the LSL-friendly error message is output to the HTTP response, and the script terminated
-        function quick_output($status_code, $status_descriptor = NULL, $data = NULL)
+        // If $static is TRUE (default) then this will be treated as a static call, and a new response object will be used
+        // If $static is FALSE then this is treated as adding data to an existing response object
+        function quick_output($status_code, $status_descriptor = NULL, $data = NULL, $static = TRUE)
         {
-            // Construct and render the output of a response object
-            $response = new SloodleLSLResponse($status_code, $status_descriptor, $data);
-            $response->render_to_output();
+            // Is this s static call?
+            if ($static) {
+                // Construct and render the output of a response object
+                $response = new SloodleLSLResponse($status_code, $status_descriptor, $data);
+                $response->render_to_output();
+            } else {
+                // Set all our data
+                $this->status_code = $status_code;
+                if ($status_descriptor != NULL) $this->status_descriptor = $status_descriptor;
+                if ($data != NULL) $this->add_data_line($data);
+                // Output it
+                $this->render_to_output();
+            }
         }
     
         

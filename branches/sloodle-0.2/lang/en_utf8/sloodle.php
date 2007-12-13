@@ -70,6 +70,8 @@ $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 
+$string['Object'] = 'Object';
+
 $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the configuration of all your Second Life objects which use it.';
 $string['primpass:save'] = 'Save Prim Password';
@@ -89,6 +91,10 @@ $string['primpass:random'] = 'A random prim password has been automatically gene
 
 $string['releasenum'] = 'Module release number';
 
+$string['selectobject'] = 'Select Object';
+$string['selectuser'] = 'Select User';
+$string['sendobject'] = 'Send Object';
+
 $string['sloodle'] = 'Sloodle';
 $string['sloodlenotinstalled'] = 'Sloodle does not appear to be installed yet. Please use visit the Moodle administration index to finish Sloodle installation:';
 $string['sloodlesetup'] = 'Sloodle Setup';
@@ -96,6 +102,11 @@ $string['sloodleversion'] = 'Sloodle Version';
 
 $string['sloodleobjectdistributor'] = 'Sloodle Object Distributor';
 $string['sloodleobjectdistributor:nochannel'] = 'Distribution channel not available - Object not rezzed in-world?';
+$string['sloodleobjectdistributor:unknowncommand'] = 'Distributor command not recognised.';
+$string['sloodleobjectdistributor:usernotfound'] = 'Unable to find requested user.';
+$string['sloodleobjectdistributor:successful'] = 'Object distribution successful.';
+$string['sloodleobjectdistributor:failed'] = 'Object distribution failed.';
+
 
 $string['submit'] = 'Submit';
 
@@ -109,11 +120,14 @@ $string['userauth:save'] = 'Save User Authentication Settings';
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 
+$string['uuid'] = 'UUID';
+
 $string['welcometosloodle'] = 'Welcome to Sloodle';
 $string['wouldneedadmin'] = 'You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.';
 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';
+$string['xmlrpc:channel'] = 'XMLRPC Channel';
 
 $string['Yes'] = 'Yes';
 

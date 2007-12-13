@@ -8,7 +8,7 @@
     //
     // Contributors:
     //   Edmund Edgar - original design and implementation
-    //
+    //   Peter R. Bloomfield - updated slightly and added some simple functions
     
 
 	function sloodle_get_classroom_profiles($courseid = null) {
@@ -23,10 +23,13 @@
 		return get_record('sloodle_classroom_setup_profile','id',$profileid);
 	}
 
-	function sloodle_get_classroom_profile_for_name($name) {
-		return get_record('sloodle_classroom_setup_profile','name',$name);
+	function sloodle_get_classroom_profile_by_name($name, $courseid) {
+		return get_record('sloodle_classroom_setup_profile','name',$name,'courseid',$courseid);
 	}
 
+    function sloodle_classroom_profile_exists_by_name($name, $courseid) {
+        return record_exists('sloodle_classroom_setup_profile','name',$name,'courseid',$courseid);
+    }
 
 	function sloodle_add_classroom_profile($profile) {
 		return insert_record('sloodle_classroom_setup_profile', $profile);
@@ -36,8 +39,8 @@
 		return insert_record('sloodle_classroom_setup_profile_entry', $profileentry);
 	}
 
-	function sloodle_update_classroom_profile_entry($profileentry) {
-		return insert_record('sloodle_classroom_setup_profile_entry', $profileentry);
+	/*function sloodle_update_classroom_profile_entry($profileentry) {
+		return update_record('sloodle_classroom_setup_profile_entry', $profileentry);
 	}
 
 	function sloodle_save_classroom_profile_entry($profileentry) {
@@ -46,15 +49,18 @@
 		} else {
 			return insert_record('sloodle_classroom_setup_profile_entry', $profileentry);
 		}
-	}
+	}*/
 
 	function sloodle_save_classroom_profile_entries($profileid,$entries) {
 		$deleted = delete_records('sloodle_classroom_setup_profile_entry', 'sloodle_classroom_setup_profile_id', $profileid); // Just in case
+        $success = TRUE;
 		foreach($entries as $e) {
-			sloodle_save_classroom_profile_entry($e);
+			if (!sloodle_add_classroom_profile_entry($e)) {
+                $success = FALSE;
+                break;
+            }
 		}
-		return true;
-
+		return $success;
 	}
 
 	function sloodle_save_classroom_profile($profile) {
