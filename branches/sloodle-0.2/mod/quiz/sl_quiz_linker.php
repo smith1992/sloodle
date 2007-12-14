@@ -102,25 +102,31 @@
     if ($id) {
         if (! $cm = get_coursemodule_from_id('quiz', $id)) {
             $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Identified module instance is not a quiz', FALSE);
+            exit();
         }
 
         if (! $course = get_record("course", "id", $cm->course)) {
             $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Quiz module is misconfigured', FALSE);
+            exit();
         }
 
         if (! $quiz = get_record("quiz", "id", $cm->instance)) {
             $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
+            exit();
         }
 
     } else {
         if (! $quiz = get_record("quiz", "id", $q)) {
             $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
+            exit();
         }
         if (! $course = get_record("course", "id", $quiz->course)) {
             $lsl->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
+            exit();
         }
         if (! $cm = get_coursemodule_from_instance("quiz", $quiz->id, $course->id)) {
             $lsl->response->quick_output(-701, 'MODULE_INSTANCE', 'Unable to resolve course module instance', FALSE);
+            exit();
         }
     }
 
@@ -147,16 +153,19 @@
         "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
     if ($quiz->attempts and $numberofpreviousattempts >= $quiz->attempts) {
         $lsl->response->quick_output(-701, 'QUIZ', 'You do not have any attempts left', FALSE);
+        exit();
     }
 
 /// Check subnet access
     if ($quiz->subnet and !address_in_subnet(getremoteaddr(), $quiz->subnet)) {
         $lsl->response->quick_output(-1, 'MISC', 'A subnet error occurred', FALSE);
+        exit();
     }
 
 /// Check password access
     if ($quiz->password) {
         $lsl->response->quick_output(-701, 'QUIZ', 'Quiz requires password - not supported by Sloodle', FALSE);
+        exit();
 	}
 
     if ($quiz->delay1 or $quiz->delay2) {
@@ -174,10 +183,12 @@
         if ($numattempts == 1 && $quiz->delay1) {
             if ($timenow - $quiz->delay1 < $lastattempt) {
                 $lsl->response->quick_output(-701, 'QUIZ', 'You need to wait until the time delay has expired.', FALSE);
+                exit();
             }
         } else if($numattempts > 1 && $quiz->delay2) {
             if ($timenow - $quiz->delay2 < $lastattempt) {
                 $lsl->response->quick_output(-701, 'QUIZ', 'You need to wait until the time delay has expired.', FALSE);
+                exit();
             }
         }
     }
@@ -199,6 +210,7 @@
         // Save the attempt
         if (!$attempt->id = insert_record('quiz_attempts', $attempt)) {
             $lsl->response->quick_output(-701, 'QUIZ', 'Could not create new attempt.', FALSE);
+            exit();
         }
         // make log entries
 		add_to_log($course->id, 'quiz', 'attempt',
@@ -234,6 +246,7 @@
 
     if (!$questionlist) {
         $lsl->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
+        exit();
     }
 
     $sql = "SELECT q.*, i.grade AS maxgrade, i.id AS instance".
@@ -245,17 +258,20 @@
     // Load the questions
     if (!$questions = get_records_sql($sql)) {
         $lsl->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
+        exit();
     }
 
     // Load the question type specific information
     if (!get_question_options($questions)) {
         $lsl->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
+        exit();
     }
 
     // Restore the question sessions to their most recent states
     // creating new sessions where required
     if (!$states = get_question_states($questions, $quiz, $attempt)) {
         $lsl->response->quick_output(-701, 'QUIZ', 'Could not restore questions sessions.', FALSE);
+        exit();
     }
 
     // Save all the newly created states
@@ -270,6 +286,7 @@
         // Find the previous attempt
         if (!$lastattemptid = get_field('quiz_attempts', 'uniqueid', 'quiz', $attempt->quiz, 'userid', $attempt->userid, 'attempt', $attempt->attempt-1)) {
             $lsl->response->quick_output(-701, 'QUIZ', 'Could not find previous attempt to build on.', FALSE);
+            exit();
         }
         // For each question find the responses from the previous attempt and save them to the new session
         foreach ($questions as $i => $question) {
@@ -371,16 +388,19 @@
                    "   AND q.id IN ($closequestionlist)";
             if (!$closequestions = get_records_sql($sql)) {
                 $lsl->response->quick_output(-701, 'QUIZ', 'Questions missing.', FALSE);
+                exit();
             }
 
             // Load the question type specific information
             if (!get_question_options($closequestions)) {
                 $lsl->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
+                exit();
             }
 
             // Restore the question sessions
             if (!$closestates = get_question_states($closequestions, $quiz, $attempt)) {
                 $lsl->response->quick_output(-701, 'QUIZ', 'Could not restore question sessions.', FALSE);
+                exit();
             }
 
             foreach($closequestions as $key => $question) {
@@ -400,6 +420,7 @@
     if ($responses || $finishattempt) {
         if (!update_record('quiz_attempts', $attempt)) {
             $lsl->response->quick_output(-701, 'QUIZ', 'Failed to save current quiz attempt.', FALSE);
+            exit();
         }
         if (($attempt->attempt > 1 || $attempt->timefinish > 0) and !$attempt->preview) {
             quiz_save_best_grade($quiz);
@@ -418,6 +439,7 @@
     if ($finishattempt) {
         // redirect('review.php?attempt='.$attempt->id);
         $lsl->response->quick_output(-701, 'QUIZ', 'Got to finishattempt - but do not yet have Sloodle code to handle it.', FALSE);
+        exit();
     }
 
 /// Print the quiz page ////////////////////////////////////////////////////////
@@ -486,6 +508,7 @@
     $lsl->response->set_status_code(1);
     $lsl->response->set_status_descriptor('QUIZ');
     $lsl->response->set_data($output);
+    $lsl->response->render_to_output();
 	exit;
 
 ?>
