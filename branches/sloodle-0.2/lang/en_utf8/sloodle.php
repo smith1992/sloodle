@@ -32,6 +32,7 @@ $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['createnotecard'] = 'Create notecard';
 
+$string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
 
@@ -61,6 +62,8 @@ $string['objectauthsent'] = 'Object authorization has been sent successfully.';
 $string['objectname'] = 'Object Name';
 $string['objectuuid'] = 'Object UUID';
 
+$string['or'] = 'or';
+
 $string['modulename'] = 'Sloodle Virtual Classroom';
 $string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 
@@ -69,6 +72,7 @@ $string['moodleadminindex'] = 'Moodle administration index';
 $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
+$string['nosloodleusers'] = 'No users registered with Sloodle';
 
 $string['Object'] = 'Object';
 

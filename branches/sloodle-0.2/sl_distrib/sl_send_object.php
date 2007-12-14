@@ -46,7 +46,7 @@
             SloodleLSLResponse::quick_output(-103, 'SYSTEM', 'Distribution channel not available - Object not rezzed in-world?');
             exit();
 		} else {
-			error('sloodleobjectdistributor:nochannel', 'sloodle');
+			error(get_string('sloodleobjectdistributor:nochannel', 'sloodle'));
             exit();
 		}
 	}
@@ -82,13 +82,22 @@
         print '<tr><td align="center">';
 		print '<table>';        
 		if ($sendToArbitraryAvatars) {
-			print '<tr><td>';
+			print '<tr><td style="text-align:right;">';
+            print_string('enteravatarname','sloodle');
+            print ': </td><td>';
 			print '<input type="text" name="fname" value="'.$fname.'" />';	
 			print '</td><td>';
 			print '<input type="text" name="lname" value="'.$lname.'" />';	
 			print '</td></tr>';
 		}
-		print '<tr><td colspan="2">';
+        print '<tr><td style="text-align:right;">';
+        if ($sendToArbitraryAvatars) {
+            print_string('or','sloodle');
+            print '&nbsp;&nbsp;';
+        }
+        
+        print_string('selectuser','sloodle');
+		print ': </td><td colspan="2" style="text-align:left;">';
 		if (count($keysToNames) > 0) {
 			asort($keysToNames);
 			print '<select name="uuid">';
@@ -96,14 +105,16 @@
 				print '<option value="'.$k.'">'.$n.'</option>';
 			}
 			print '</select>';
-		}
+		} else {
+            print '<span style="color:red;">('.get_string('nosloodleusers','sloodle').')</span>';
+        }
 		print '</td></tr>';
 	
 		print '</td></tr>';
-		print '<tr><td align="center">';
+		print '<tr><td align="center" colspan="3" style="padding-top:24px;">';
 		print '<input type="hidden" name="object" value="'.$object.'" />';	
-		print '<input type="hidden" name="cmd" value="sendobject" />';	
-		print '<input type="submit" value="'.get_string('sendobject','sloodle').'"/>';	
+		print '<input type="hidden" name="cmd" value="sendobject" />';
+        print '<input type="submit" value="'.get_string('sendobject','sloodle').'"/>';	
 		print '</td></tr>';
 		print '<table>';
 		print '</td></tr></table>';
