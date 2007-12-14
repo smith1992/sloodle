@@ -1,41 +1,30 @@
-//---------------------------
-/////// SLOODLE CHATCAST
-/////// Version .78
-/////// Connects a Second Life object to a chatroom in Moodle.
-/////// Texture is configured for a cube prim
-/////// Touch the object to give permission to log chat to Moodle.
-/////// Requires a Setting notecard
-/////// Add a sound file to replace the default buzz
+// Sloodle WebIntercom (version 0.8, for Sloodle 0.2)
+// Links in-world SL (text) chat with a Moodle chatroom
+// Part of the Sloodle project (www.sloodle.org)
+//
+// Copyright (c) 2006-7 Sloodle
+// Released under the GNU GPL
+//
+// Contributors:
+//  Paul Andrews & Daniel Livingstone - initial design and implementation
+//  Jeremy Kemp - added SLurls, message formatting, and beeps
+//  Edmund Edgar - added authentication, ability to select chatroom, and to inherit settings from parent
+//  Peter R. Bloomfield - updated to use new communications format (Sloodle 0.2)
+//
 
-//----------
-// PHP REQUIRED:
-// mod/sloodle/mod/chat/sl_user_chat_linker.php
+// This script communicates with "mod/sloodle/mod/chat/sl_webintercom_linker.php"
 
-//----------
-// SUPPORT
-// See the documentation website: 
-// http://slisweb.sjsu.edu/sl/index.php/Sloodle
+// VERSIONS:
+//  0.78 Moodle notification of SL entry/exit - JK
+//  0.76 Inbound and Outbound beep all - JK
+//  0.74 Added Moodle chat URL to starting notes, cleaned up chatter, cleaned SLURL maker - JK
+//  0.72 reset when notecard is changed, to auto reload Moodle and chatroom data. - DL
+//  0.7 added?
+//  0.6 changes - changed the /SLURL to /slurl to avoid clashes with other gestures. - PA
 
-//----------
-// VERSIONS
-// 0.78 Moodle notification of SL entry/exit - JK
-// 0.76 Inbound and Outbound beep all - JK
-// 0.74 Added Moodle chat URL to starting notes, cleaned up chatter, cleaned SLURL maker - JK
-// 0.72 reset when notecard is changed, to auto reload Moodle and chatroom data. - DL
-// 0.7 added?
-// 0.6 changes - changed the /SLURL to /slurl to avoid clashes with other gestures. - PA
-
-//---------
-// CREDITS
-/////// Based upon concepts in:
-/////// http://www.sloodle.com/whitepaper.pdf 
-// This is GNU licensed - it may be distributed under the terms of this General Public License. 
-// Paul and Dan made the first versions work
-// Jeremy cleaned and added SLURLS, messaging formatting and beeping...
-// Edmund Edgar added authentication, ability to select chatroom, ability to inherit settings from parent object
-
-string URL; // this will be constructed out of URL_BASE, CHAT_ID, USER_ID, and some other hard coding
 string CHAT_ID = "";
+
+string linker_script = "/mod/sloodle/mod/chat/sl_webintercom_linker.php";
 
 string SoundFile; //Sound file in object (if one exists)
 
@@ -79,10 +68,16 @@ integer total_len = 0;
 key httprequest;
 integer message_id = 0; // last message cc'd from moodle
 
+
+sloodle_debug(string msg)
+{
+    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
+}
+
 // configure by receiving a linked message from another script in the object
 sloodle_handle_command(string str) 
 {
-    //llWhisper(0,"handling command "+str);    
+    //llWhisper(0, "handling command " +str);    
     list bits = llParseString2List(str,["|"],[]);
         string name = llList2String(bits,0);
         string value = llList2String(bits,1);
@@ -119,7 +114,7 @@ sloodle_init()
 
 default
 {
-    on_rez(integer param)
+    on_rez( integer param)
     {
         sloodle_init();
     }    
@@ -136,30 +131,28 @@ default
 
     }
         
-    touch_start(integer total_number)   {
+    touch_start( integer total_number)   {
         if ( ( llDetectedKey(0) == llGetOwner() ) && (CHAT_ID == "") ) {
             state select_chatroom;
         }
         if (llDetectedKey(0) == llGetOwner() )  {
             llListenRemove(listenID);
             listenID = llListen(CHANNEL,"",llGetOwner(),"");
-            llDialog(llGetOwner(),"\nSelect colour codes to use in log,\nor START to start recording.",menu1,CHANNEL);
+            llDialog(llGetOwner(),"Click START to start recording.",menu1,CHANNEL);
             llSetTimerEvent(10);
         }
     }
     
-    listen(integer channel, string name, key id, string message)    {
+    listen( integer channel, string name, key id, string message)    {
         //llOwnerSay(message);
         if (message == "YES") {
           llSay(0,"Chat logging is on!");
-            llSay(0,"Join this Moodle chat at "+sloodleserverroot+"/mod/chat/gui_header_js/index.php?id="+CHAT_ID);
+            llSay(0,"Join this Moodle chat at "+sloodleserverroot+"/mod/chat/view.php?id="+CHAT_ID);
             llSay(0,"Touch logger to record your chat.");
             llSetText("Chat logging is on!",<0,0,0>,1.0);
             llMessageLinked(LINK_THIS,part,"START",NULL_KEY);
             llSleep(0.1);
             llSetTimerEvent(0);
-            state logging;
-            httprequest = llHTTPRequest(URL+"&chat_message="+llEscapeURL(" <FONT color=#00aaaa>Sloodle</font> Chatcasting opened at"+llGetRegionName()),[HTTP_METHOD,"GET"],"");
             state logging;
         }
     }
@@ -173,7 +166,7 @@ default
 }
 
 state logging   {
-    on_rez(integer param)   {
+    on_rez( integer param)   {
         // goto state default - TO FINISH
         llOwnerSay("chat logging off");
         state default;
@@ -191,7 +184,7 @@ state logging   {
         llSetTimerEvent(12);
     }
     
-    touch_start(integer total_number)   {
+    touch_start( integer total_number)   {
         integer i;
         
         for (i=0; i < total_number; i++)    {
@@ -206,7 +199,7 @@ state logging   {
         }
     }
     
-    listen(integer channel, string name, key id, string message)    {
+    listen( integer channel, string name, key id, string message)    {
 
         if (llGetOwnerKey(id) != id)    { // only true for avatars! Will ignore all object chat
             //llOwnerSay("Attempted spoofing");
@@ -249,56 +242,93 @@ state logging   {
                     SLURL = "http://slurl.com/secondlife/" + Name + "/" + (string)X + "/" + (string)Y + "/" + (string)Z + "/?title=" + Name;
                     message = SLURL;                
                 }
-///////////////SLURL MAKER  
-                //URL = URL_BASE+"/mod/sloodle/mod/chat/sl_user_chat_linker.php.php?chat_id="+CHAT_ID+"&pwd+"+pwd;                  
-                httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd+"&avname="+llEscapeURL(name)+"&chat_message=(SL)"+llEscapeURL(" " +name +": "+ message),[HTTP_METHOD,"GET"],"");
+///////////////SLURL MAKER                   
+                httprequest = llHTTPRequest(sloodleserverroot+linker_script+"?sloodlemoduleid="+CHAT_ID+"&sloodlepwd="+pwd+"&sloodlecourseid="+(string)sloodle_courseid+"&sloodleavname="+llEscapeURL(name)+"&sloodlechatmsg="+MOODLE_NAME+llEscapeURL(" " +name +": "+ message),[HTTP_METHOD,"GET"],"");
                 // llSay(0, httprequest); // DEBUG PURPOSES
             }   
         }
     }
     
     timer()     {
-        httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?chat_id="+CHAT_ID+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
+        httprequest = llHTTPRequest(sloodleserverroot+linker_script+"?sloodlemoduleid="+CHAT_ID+"&sloodlepwd="+pwd+"&sloodlecourseid="+(string)sloodle_courseid,[HTTP_METHOD,"GET"],"");
         // llSay(0, httprequest); // DEBUG PURPOSES
         // llSay(0, URL); // DEBUG PURPOSES
         // FINDINGS:  the timer is working, the request is being properly constructed, and the SLoodle server does send back the proper info from the PHP script. Look further below...
     }
     
-    http_response(key id,integer status, list meta, string body)
+    http_response( key id,integer status, list meta, string body)
     {
+        // Make sure the request worked
+        if (status >= 400) {
+            sloodle_debug("Failed HTTP response. Status: " + (string)status);
+        }
+        // Is it the request we were after?
         if (httprequest == id)
         {
-            if (llStringLength(body) == 0)
+            // Make sure there is a body to the request
+            if (llStringLength(body) == 0) return;
+            // Debug output:
+            sloodle_debug("Receiving chat data:\n" + body);
+            
+            // Split the data up into lines
+            list lines = llParseStringKeepNulls(body, ["\n"], []);  
+            integer numlines = llGetListLength(lines);
+            // Extract all the status fields
+            list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+            // Get the statuscode
+            integer statuscode = llList2Integer(statusfields,0);
+            
+            // Was it an error code?
+            if (statuscode <= 0) {
+                string msg = "ERROR: linker script responded with status code " + (string)statuscode;
+                // Do we have an error message to go with it?
+                if (numlines > 1) {
+                    msg += "\n" + llList2String(lines,1);
+                }
+                sloodle_debug(msg);
                 return;
-                //llSay(0,"message "+body);
-            list message_list = llParseString2List(body,["Line: "],[]);
-            integer i= llGetListLength(message_list);
-
-            string text;
-            string line;
-            integer lno;
-                          
-            while ( i > 0 ) 
-            {
-                i--;
-                text = llList2String(message_list,i);
-                line = llGetSubString(text,0,4);
-                lno = (integer)line;
-                if ( lno > message_id && llSubStringIndex(text," beep ") > -1){ //A Moodle beep!
-                    llStopSound();
-                    if (SoundFile == "") 
-                    { // There is no sound file in inventory - plsy default
-                        llPlaySound("34b0b9d8-306a-4930-b4cd-0299959bb9f4", 1.0);
-                    } else { // Play the included one
-                        llPlaySound(SoundFile, 1.0);
-                    } 
-                } else {// is not a Moodle beep
-                    if ( lno > message_id && llSubStringIndex(text,MOODLE_NAME) == -1) {
-                        llSay(0,llGetSubString(text,5,-1));
+            }
+            
+            // We will use these to store each item of data
+            integer msgnum = 0;
+            string name = "";
+            string text = "";
+            
+            // Every other line should define a chat message "id|name|text"
+            // Start at the line after the status line
+            integer i = 1;
+            for (i = (numlines - 1); i > 0; i--) {
+                // Get all the different fields for this line
+                list fields = llParseStringKeepNulls(llList2String(lines,i),["|"],[]);
+                // Make sure we have enough fields
+                if (llGetListLength(fields) >= 3) {
+                    // Extract each item of data
+                    msgnum = llList2Integer(fields,0);
+                    name = llList2String(fields,1);
+                    text = llList2String(fields,2);
+                    
+                    // Make sure this is a new message
+                    if (msgnum > message_id) {
+                        message_id = msgnum;
+                        // Make sure this wasn't an SL message originally
+                        if (llSubStringIndex(text, MOODLE_NAME) != 0) {
+                            // Is this a Moodle beep?
+                            if (llSubStringIndex(text, "beep ") == 0) {
+                                // Yes - play a beep sound
+                                llStopSound();
+                                if (SoundFile == "") 
+                                { // There is no sound file in inventory - plsy default
+                                    llPlaySound("34b0b9d8-306a-4930-b4cd-0299959bb9f4", 1.0);
+                                } else { // Play the included one
+                                    llPlaySound(SoundFile, 1.0);
+                                }
+                            }
+                            // Finally... just an ordinary chat message... output it
+                            llSay(0, name + ": " + text);
+                        }
                     }
                 }
             }
-            message_id = lno;
         }
     }
 }
@@ -310,33 +340,58 @@ state select_chatroom
             state sloodle_wait_for_configuration;
         } else {
             // fetch list of chatrooms
-            httprequest = llHTTPRequest(sloodleserverroot+"/mod/sloodle/mod/chat/sl_user_chat_linker.php?courseid="+(string)sloodle_courseid+"&pwd="+pwd,[HTTP_METHOD,"GET"],"");
-
+            httprequest = llHTTPRequest(sloodleserverroot+linker_script+"?sloodlecourseid="+(string)sloodle_courseid+"&sloodlepwd="+pwd,[HTTP_METHOD,"GET"],"");
         }
     }
-    http_response(key request_id, integer status, list metadata, string body) {
-        if(status == 200) {
-            if (request_id == httprequest) {        
+    http_response( key request_id, integer status, list metadata, string body) {
+        sloodle_debug("HTTP Response ("+(string)status+"): " + body);
+
+        if(status < 400) {
+            if (request_id == httprequest) {
+                sloodle_debug("Receiving new list of chatrooms:\n" + body);
+            
                 chatroomids = [];
                 chatroomnames = [];
-               
-                list lines = llParseString2List(body,["\n"],[]);  
-                    
-                integer i;
-                for (i=0; i<llGetListLength(lines); i++) {  
-                    string thislinestr = llList2String(lines, i);      
-                    list thisline = llParseString2List(thislinestr,["|"],[]);            
-                    if (llList2String(thisline, 0) == "ERROR") {
-                        llWhisper(0, thislinestr);
-                    } else {
-                        chatroomids = chatroomids + [(integer)llList2String(thisline, 1)];
-                        chatroomnames = chatroomnames + [llList2String(thisline, 2)];
-                        
+                
+                // Split the data up into lines
+                list lines = llParseStringKeepNulls(body, ["\n"], []);  
+                integer numlines = llGetListLength(lines);
+                // Extract all the status fields
+                list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+                // Get the statuscode
+                integer statuscode = llList2Integer(statusfields,0);
+                
+                // Was it an error code?
+                if (statuscode <= 0) {
+                    string msg = "ERROR: linker script responded with status code " + (string)statuscode;
+                    // Do we have an error message to go with it?
+                    if (numlines > 1) {
+                        msg += "\n" + llList2String(lines,1);
+                    }
+                    llSay(0, msg);
+                    return;
+                }
+                
+                // Every other line should define a chatroom "id|name"
+                // Start at the line after the status line
+                integer i = 1;
+                for (i = 1; i < numlines; i++) {
+                    // Get all the data fields for this line
+                    list fields = llParseString2List(llList2String(lines,i),["|"],[]);
+                    // Make sure we have enough fields
+                    if (llGetListLength(fields) >= 2) {
+                        // Store each item of data
+                        chatroomids = chatroomids + [llList2Integer(fields, 0)];
+                        chatroomnames = chatroomnames + [llList2String(fields, 1)];
                     }
                 }
 
             }
+        } else {
+            sloodle_debug("Failed HTTP response. Status: " + (string)status);
         }
+        
+        // Display the chatroom menu
         integer chatroomcount = 0;
         list crmenu = ["Cancel"];
         string crmenustring = "";
@@ -348,7 +403,7 @@ state select_chatroom
         listenID = llListen(CHANNEL,"",llGetOwner(),"");
         llDialog(llGetOwner(),"\nChoose your chatroom:\n"+crmenustring,crmenu,CHANNEL);        
     } 
-    listen(integer lchannel, string name, key id, string message) {
+    listen( integer lchannel, string name, key id, string message) {
 
         if (lchannel == CHANNEL) {
             if (message == "Cancel") {
@@ -368,11 +423,10 @@ state sloodle_wait_for_configuration
     state_entry() {
         //llWhisper(0,"waiting for command");
     }
-    link_message(integer sender_num, integer num, string str, key id) {
+    link_message( integer sender_num, integer num, string str, key id) {
         //llWhisper(0,"got message "+(string)sender_num+str);
        // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
             sloodle_handle_command(str);
         //}   
     }
 }
-

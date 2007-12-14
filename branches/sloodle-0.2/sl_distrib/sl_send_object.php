@@ -161,6 +161,8 @@
 		// Render it to a string so we can send it
         $str = '';
         $response->render_to_string($str);
+        $str = str_replace("\n", "\\n", $str); // Ugly hack to stop the newline character disappearing before it reaches SL
+        
 		// Send the XMLRPC
 		$ok = sloodle_send_xmlrpc_message($distribchannel,0,$str);
         
