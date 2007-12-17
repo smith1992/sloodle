@@ -47,8 +47,11 @@
     // 
     // "Sloodle WebIntercom|<1.4,0.9,2.6>||Sloodle Registration Booth|<2.1,3.0,3.5>||Sloodle MetaGloss|<0.0,1.2,2.6>"
     //
+    // There is not response data.
     
-    // When adding a new profile or saving entries, the return status code will be 1 on success. No data.
+    // When adding a new profile, the response code will be 1 for success, and the ID and name of the profile will be given on the sole data line, e.g.:
+    //
+    //  23|My Profile
     
     // When returning the entries in a given profile, each line contain the entry ID, name and position, e.g.:
     //
@@ -128,31 +131,33 @@
         
         // Check that the named profile does not already exist for this course
         sloodle_debug_output('Checking if profile already exists...<br/>');
-        if (sloodle_classroom_profile_exists_by_name($sloodleprofilename, $lsl->request->get_course_id())) {
-            sloodle_debug_output('-&gt; ERROR: Conflicting profile found.<br/>');
-            $lsl->response->set_status_code(-902);
-            $lsl->response->set_status_descriptor('PROFILE');
-            $lsl->response->add_data_line('Failed to add profile to database.');
-            break;
-        }
+        $profile = sloodle_get_classroom_profile_by_name($sloodleprofilename, $lsl->request->get_course_id());
         
-        // Construct a new profile object
-        sloodle_debug_output('Constructing new profile object...<br/>');
-        $profile = new stdClass();
-        $profile->name = $sloodleprofilename;
-        $profile->courseid = $lsl->request->get_course_id();
-        // Insert it into the database
-        sloodle_debug_output('Adding profile to database...<br/>');
-        if (!sloodle_add_classroom_profile($profile)) {
-            $lsl->response->set_status_code(-901);
-            $lsl->response->set_status_descriptor('PROFILE');
-            $lsl->response->add_data_line('Failed to add profile to database.');
-            break;
+        if ($profile ===FALSE) {
+            // Construct a new profile object
+            sloodle_debug_output('Constructing new profile object...<br/>');
+            $profile = new stdClass();
+            $profile->name = $sloodleprofilename;
+            $profile->courseid = $lsl->request->get_course_id();
+            // Insert it into the database
+            sloodle_debug_output('Adding profile to database...<br/>');
+            $id = sloodle_add_classroom_profile($profile);
+            if ($id === FALSE) {
+                $lsl->response->set_status_code(-901);
+                $lsl->response->set_status_descriptor('PROFILE');
+                $lsl->response->add_data_line('Failed to add profile to database.');
+                break;
+            }
+            $lsl->response->set_status_code(1);
+        } else {
+            sloodle_debug_output('-&gt; Profile exists.<br/>');
+            $lsl->response->set_status_code(-903);
+            $id = $profile->id;
         }
         
         // Everything seems fine
-        $lsl->response->set_status_code(1);
         $lsl->response->set_status_descriptor('OK');        
+        $lsl->response->add_data_line(array($id, $sloodleprofilename));
         break;
         
         
