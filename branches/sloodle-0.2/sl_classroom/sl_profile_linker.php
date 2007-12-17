@@ -115,6 +115,7 @@
     sloodle_debug_output('Obtaining additional parameters...<br/>');
     $sloodlecmd = strtolower($lsl->request->required_param('sloodlecmd', PARAM_RAW));
     $sloodleprofilename = optional_param('sloodleprofilename', NULL, PARAM_RAW);
+    if ($sloodleprofilename != NULL) $sloodleprofilename = trim($sloodleprofilename);
     $sloodleentries = optional_param('sloodleentries', NULL, PARAM_RAW);
         
     
@@ -166,13 +167,7 @@
         sloodle_debug_output('Fetching list of profiles in course...<br/>');
         $profiles = sloodle_get_classroom_profiles($lsl->request->get_course_id());
         // Make sure it was successful
-        if (!is_array($profiles) || count($profiles) == 0) {
-            sloodle_debug_output('-&gt; ERROR: failed to get list of profiles.<br/>');
-            $lsl->response->set_status_code(-103);
-            $lsl->response->set_status_descriptor('SYSTEM');
-            $lsl->response->add_data_line('Failed to find any profiles in the specified course.');
-            break;
-        }
+        if (!is_array($profiles)) $profiles = array();
         
         // List each one
         sloodle_debug_output('Iterating through all profiles...<br/>');
@@ -210,13 +205,7 @@
         sloodle_debug_output('Fetching all entries in profile...<br/>');
         $entries = sloodle_get_classroom_profile_entries($profile->id);
         // Make sure it was successful
-        if (!is_array($entries) || count($entries) == 0) {
-            sloodle_debug_output('-&gt; ERROR: failed to fetch entries in profile.<br/>');
-            $lsl->response->set_status_code(-103);
-            $lsl->response->set_status_descriptor('SYSTEM');
-            $lsl->response->add_data_line('No entries in profile.');
-            break;
-        }
+        if (!is_array($entries)) $entries = array();
         
         // Go through each entry
         sloodle_debug_output('Iterating through list of entries...<br/>');

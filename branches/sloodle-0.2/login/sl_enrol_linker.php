@@ -89,9 +89,13 @@
     switch ($sloodlemode) {
     
     case 'enrol':
+        // Login the user
+        sloodle_debug_output('Logging-in user...<br/>');
+        $lsl->login_by_request();
         // Make sure the course was specified
         sloodle_debug_output('Ensuring course ID was specified...<br/>');
         $lsl->request->required_param('sloodlecourseid', PARAM_INT);
+        
         // Add an enrolment link to the response (if the user is not already enrolled)
         sloodle_debug_output('Constructing response...<br/>');
         // Is the user already enrolled?

@@ -20,6 +20,7 @@
 // The registration booth can use the security code and the avatar's UUID to construct a URL to a login page on the Moodle site.
 // By following that link and entering their Moodle account details, the user can authenticate their avatar.
 //
+// Two success status codes: 1 (meaning user has been newly registered), 301 (user was already fully registered)
 
 require_once('../config.php'); // Sloodle/Moodle configuration
 require_once('../sl_debug.php'); // Sloodle debug mode/functionality
