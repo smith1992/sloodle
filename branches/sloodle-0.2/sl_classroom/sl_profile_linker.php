@@ -56,11 +56,11 @@
     //  Sloodle Registration Booth|<2.1,3.0,3.5>
     //  Sloodle MetaGloss|<0.0,1.2,2.6>
     
-    // When returning the available profiles for the course, each one will be returned by name on its own line, e.g.:
+    // When returning the available profiles for the course, each one will be returned by id and name on its own line, e.g.:
     //
-    //  topic1
-    //  demo
-    //  assessment
+    //  2|topic1
+    //  15|demo
+    //  26|assessment
     
     // Some specific error codes which may be returned:
     //
@@ -172,7 +172,7 @@
         // List each one
         sloodle_debug_output('Iterating through all profiles...<br/>');
         foreach ($profiles as $p) {
-            $lsl->response->add_data_line($p->name);
+            $lsl->response->add_data_line(array($p->id, $p->name));
         }
         
         // Construct the rest of the response
