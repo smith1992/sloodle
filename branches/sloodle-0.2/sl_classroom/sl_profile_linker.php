@@ -50,11 +50,11 @@
     
     // When adding a new profile or saving entries, the return status code will be 1 on success. No data.
     
-    // When returning the entries in a given profile, the return will be a similiar format to the 'addentries' data input, however each entry will be on a single line, e.g.:
+    // When returning the entries in a given profile, each line contain the entry ID, name and position, e.g.:
     //
-    //  Sloodle WebIntercom|<1.4,0.9,2.6>
-    //  Sloodle Registration Booth|<2.1,3.0,3.5>
-    //  Sloodle MetaGloss|<0.0,1.2,2.6>
+    //  6|Sloodle WebIntercom|<1.4,0.9,2.6>
+    //  7|Sloodle Registration Booth|<2.1,3.0,3.5>
+    //  11|Sloodle MetaGloss|<0.0,1.2,2.6>
     
     // When returning the available profiles for the course, each one will be returned by id and name on its own line, e.g.:
     //
@@ -217,7 +217,7 @@
         sloodle_debug_output('Iterating through list of entries...<br/>');
         foreach ($entries as $e) {
             // Add this entry to the response
-            $lsl->response->add_data_line(array($e->name, $e->relative_position));
+            $lsl->response->add_data_line(array($e->id, $e->name, $e->relative_position));
         }
         
         // Construct the rest of the response
