@@ -59,9 +59,9 @@ function sloodle_upgrade($oldversion) {
         $sloodle_loginzone_size = get_record('sloodle_config', 'name', 'loginzonesize');
         $sloodle_loginzone_region = get_record('sloodle_config', 'name', 'loginzoneregion');
         // Only transfer items which had been specified
-        if ($sloodle_loginzone_pos !== FALSE) set_config('sloodle_loginzone_pos', $sloodle_loginzone_pos->value)
-        if ($sloodle_loginzone_size !== FALSE) set_config('sloodle_loginzone_size', $sloodle_loginzone_size->value)
-        if ($sloodle_loginzone_region !== FALSE) set_config('sloodle_loginzone_region', $sloodle_loginzone_region->value)
+        if ($sloodle_loginzone_pos !== FALSE) set_config('sloodle_loginzone_pos', $sloodle_loginzone_pos->value);
+        if ($sloodle_loginzone_size !== FALSE) set_config('sloodle_loginzone_size', $sloodle_loginzone_size->value);
+        if ($sloodle_loginzone_region !== FALSE) set_config('sloodle_loginzone_region', $sloodle_loginzone_region->value);
     
     // Drop the Sloodle config table
         echo('Dropping Sloodle configuration table...');
