@@ -167,23 +167,28 @@ cleanup_all_objects()
 integer handle_touch(key thistoucher) 
 {
     // let anyone do this for now...
-    
 
-if (1 == 0 ) {
+    
     if (toucheruuid != NULL_KEY) {
         if ( (SLOODLE_RESTRICT_TO_OWNER == 1) || (thistoucher != toucheruuid) ) {
             if (thistoucher != llGetOwner()) {
                 if (SLOODLE_RESTRICT_TO_OWNER == 1) {
                     llDialog(thistoucher,"This object can only be used by its owner.",["OK"],SLOODLE_CHANNEL_AVATAR_IGNORE);
-                } else {
-                    //llSay(0,llKey2Name(thistoucher)+", this object is currently in use by "+llKey2Name(toucheruuid)+".");   
-                    llDialog(thistoucher,"This object can only be used by its owner.",["OK"],SLOODLE_CHANNEL_AVATAR_IGNORE); 
+               } else {
+                    llSay(0,llKey2Name(thistoucher)+", this object is currently in use by "+llKey2Name(toucheruuid)+".");   
+                    //llDialog(thistoucher,"This object can only be used by its owner.",["OK"],SLOODLE_CHANNEL_AVATAR_IGNORE); 
                 }
                 return 0;
             }
-        }
+       }
     }
-}
+
+
+//    if ( (SLOODLE_RESTRICT_TO_OWNER == 1) || && thistoucher != llGetOwner()) {
+//        llDialog(thistoucher,"This object can only be used by its owner.",["OK"],SLOODLE_CHANNEL_AVATAR_IGNORE);
+//        return 0;
+//    }
+
     toucheruuid = thistoucher;
     toucheravname = llKey2Name(toucheruuid);
     return 1;
@@ -251,4 +256,3 @@ default
         object_initialize(id);         
     }     
 }
-

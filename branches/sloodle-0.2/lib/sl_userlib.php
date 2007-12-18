@@ -405,7 +405,7 @@
             // If that didn't work, then try a few random variants (just a number added to the end of the name)
             $MAX_RANDOM_TRIES = 3;
             $rnd_try = 0;
-            while ($rnd_try < $MAX_RANDOM_TRIES && $conflict_moodle && (($check_auth && $conflict_auth) || !check_auth)) {
+            while ($rnd_try < $MAX_RANDOM_TRIES && $conflict_moodle && (($check_auth && $conflict_auth) || !$check_auth)) {
                 // Pick a random 3 digit number
                 $rnd_num = mt_rand(100, 999);
                 if ($rnd_num == 666) $rnd_num++; // Some users may object to this number

@@ -70,16 +70,16 @@ sloodle_set_text(string msg)
 sloodle_display_server_course_status()
 {
     if (sloodleserverroot == "") {
-        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,0);
         sloodle_set_text("Moodle URL not set.");
     } else if (pwd == "") {
-        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,0);
         sloodle_set_text(sloodleserverroot + "\nWaiting for authorization.");        
     } else if (sloodle_courseid == 0) {
-        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,ALL_SIDES);
+        llSetTexture(SLOODLE_TEXTURE_TOUCH_TO_SET,0);
         sloodle_set_text(sloodleserverroot + "\nNeed to select course...");                
     } else {
-        llSetTexture(SLOODLE_TEXTURE_READY,ALL_SIDES);
+        llSetTexture(SLOODLE_TEXTURE_READY,0);
         sloodle_set_text(sloodleserverroot + "\n" + sloodle_course_title);                        
     }
 }
@@ -579,7 +579,7 @@ state next_step
         sloodle_tell_other_scripts("set:pwd|"+pwd);
         sloodle_tell_other_scripts("set:toucheruuid|"+(string)toucheruuid);        
         sloodle_debug("course and server set - ready for next step");
-        llSetTexture(SLOODLE_TEXTURE_READY,ALL_SIDES);
+        llSetTexture(SLOODLE_TEXTURE_READY,0);
     } 
     link_message(integer sender_num, integer num, string str, key id) {
         //sloodle_debug("got message "+(string)sender_num+str);
@@ -588,5 +588,4 @@ state next_step
         //}   
     }       
 }
-
 

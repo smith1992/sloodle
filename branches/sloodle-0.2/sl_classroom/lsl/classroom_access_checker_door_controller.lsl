@@ -168,14 +168,12 @@ default
         if ( (sloodleserverroot == "") || (pwd == "") || (sloodle_courseid == 0) ) {
         state sloodle_wait_for_configuration;
         }
-        llVolumeDetect(TRUE); 
     }
     state_entry()
     {
         if ( (sloodleserverroot == "") || (pwd == "") || (sloodle_courseid == 0) ) {
         state sloodle_wait_for_configuration;
         }
-        llVolumeDetect(TRUE); 
     }    
     touch_start(integer total_number)
     {

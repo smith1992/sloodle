@@ -134,6 +134,8 @@
                 // Extract the first and last name parts
                 $firstname = NULL;
                 $lastname = NULL;
+		$avname = $this->request->get_avatar_name();
+		$avbits = array();
                 // Expecting that all SL names are first last, with a space in between
                 if (preg_match('/^(.*)\s(.*?)$/', $avname, $avbits)) {
                     $firstname = $avbits[1];
@@ -143,7 +145,7 @@
                     if ($require) {
                         $this->response->set_status_code(-322);
                         $this->response->set_status_descriptor('USER_AUTO_REG');
-                        $this->response->add_data_line('User auto registration failed - could not extract first and last names from the avatar name.');
+                        $this->response->add_data_line('User auto registration failed - could not extract first and last names from avatar name "'.$avname.'".');
                         $this->response->render_to_output();
                         exit();
                     }
@@ -169,7 +171,7 @@
             // Do we need to register a Sloodle entry?
             if ($this->user->get_sloodle_user_id() <= 0) {
                 // Create the Sloodle entry
-                $newsloodle = $this->create_sloodle_user(
+                $newsloodle = $this->user->create_sloodle_user(
                                 $this->request->get_avatar_uuid(),
                                 $this->request->get_avatar_name(),
                                 $this->user->get_moodle_user_id()
