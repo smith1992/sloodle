@@ -1,3 +1,15 @@
+// Sloodle quiz chair
+// Allows SL users to take Moodle quizzes in-world
+// Part of the Sloodle project (www.sloodle.org)
+//
+// Copyright (c) 2006-7 Sloodle (various contributors)
+// Released under the GNU GPL
+//
+// Contributors:
+//  Edmund Edgar - original design and implementation
+//  Peter R. Bloomfield - updated to use new communications format (Sloodle 0.2)
+//
+
 string sloodleserverroot = ""; // this represents the top directory of the moodle installation
 string pwd = ""; // This is the string the object needs to use when talking to the server to prove that it's authorized. It will be either a single, pre-defined string (with the old prim_password method) or a uuid of a master object combined with an arbitrary numerical code (with the master object authorization method)
 integer sloodle_command_channel = -3857343; // an arbitrary channel the sloodle scripts will use to talk to each other. Doesn't atter what it is, as long as the same thing is set in the sloodle_slave script.
@@ -8,7 +20,7 @@ integer dialog_channel = 352435; // the channel used by dialog boxes
 
 integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
 
-string sloodle_quiz_url = "/mod/sloodle/mod/quiz/attempt.php"; //"http://moodle.edochan.com/mod/sloodle/mod/quiz/attempt.php?pwd=asdf34343lksdjfilajf";
+string sloodle_quiz_url = "/mod/sloodle/mod/quiz/sl_quiz_linker.php";
 
 key populate_request_http_id = NULL_KEY;
 integer qalistpopulated = 0;
@@ -54,9 +66,24 @@ populate_qa_list(string response)
         return 1;
     }
     
-    list lines = llParseString2List(response,["\n"],[]);
+    
+    // Split the response into several lines
+    list lines = llParseStringKeepNulls(response, ["\n"], []);
+    integer numlines = llGetListLength(lines);
     response = "";
-    integer i;
+    list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+    integer statuscode = llList2Integer(statusfields, 0);
+    
+    // Was it an error code?
+    if (statuscode <= 0) {
+        // Check if an error message was reported
+        string errmsg = "";
+        if (numlines > 1) errmsg = llList2String(lines, 1);
+        llSay(0, "Quiz error ("+(string)statuscode+"): "+errmsg);
+        return 0;
+    }
+        
+    integer i = 1;
     integer highestqoptionindex = -1;
 
     qoptionindexes = []; 
@@ -68,32 +95,23 @@ populate_qa_list(string response)
     qoptioncodes = [];
 
     // llWhisper(0,"handling response" + response);
-    for (i=0; i<llGetListLength(lines); i++) {
+    for (i = 1; i < numlines; i++) {
 
         string thislinestr = llList2String(lines, i);
         //llWhisper(0,thislinestr);
         list thisline = llParseString2List(thislinestr,["|"],[]);
-        string rowtype = llList2String( thisline, 1 );
+        string rowtype = llList2String( thisline, 0 );
         string thisqtype = "";
 
-        if (llList2String(thisline, 0) == "ERROR") {
-            if (thislinestr == "User not found") {
-                llDialog(sitter, "Your avatar is not registered in Moodle.\nGo to the registration booth and register, then come back and try again.", ["OK"],SLOODLE_CHANNEL_AVATAR_IGNORE);
-                llUnSit(sitter);
-            }
-            llWhisper(0, thislinestr);
-            return 0;   
-        }
-
         if ( rowtype == "quiz" ) {
-            quizid = llList2Integer( thisline, 5 ); 
+            quizid = llList2Integer( thisline, 4 ); 
         } else if ( rowtype == "question" ) { // column 1 says what kind of data it is...
 
-            thisqtype = llList2String( thisline, 8 ); // multichoice or ???
+            thisqtype = llList2String( thisline, 7 ); // multichoice or ???
             numberOfQuestions = numberOfQuestions + 1;
                         
             //llWhisper(0,"Adding question from line "+thislinestr);
-            qs = qs + [llList2String(thisline, 5)];
+            qs = qs + [llList2String(thisline, 4)];
             qtypes = qtypes + [thisqtype];
 
             // if this is the first qoptionindex, set it to 0.
@@ -110,26 +128,25 @@ populate_qa_list(string response)
             
             // TODO: for single-choice questions, add to as
             as = as + [''];
-            qcodes = qcodes + [llList2Integer(thisline,2)];
+            qcodes = qcodes + [llList2Integer(thisline,1)];
             
             if (questionids != "") {
                 questionids = questionids+",";
             }
-            questionids = questionids + (string)[llList2Integer(thisline,2)];
+            questionids = questionids + (string)[llList2Integer(thisline,1)];
                         
         } else if ( rowtype == "questionoption" ) {
             
             // if it's the first time we've seen a question option for this question, 
-            qoptioncodes = qoptioncodes + [llList2Integer(thisline, 3)];
-            qoptiontexts = qoptiontexts + [llList2String(thisline, 5)];
-            qoptionfeedbacks = qoptionfeedbacks + [llList2String(thisline, 7)];
-            qoptionscores = qoptionscores + [llList2Integer(thisline, 6)];
+            qoptioncodes = qoptioncodes + [llList2Integer(thisline, 2)];
+            qoptiontexts = qoptiontexts + [llList2String(thisline, 4)];
+            qoptionfeedbacks = qoptionfeedbacks + [llList2String(thisline, 6)];
+            qoptionscores = qoptionscores + [llList2Integer(thisline, 5)];
             
             // increment the last qoptioncounts record
             integer oldqoc = llList2Integer(qoptioncounts, -1);
             list newqocl = [oldqoc+1];
             qoptioncounts = llListReplaceList(qoptioncounts, newqocl, -1, -1);
-            // as = as + [llList2String(thisline, 5)];
             
         }
     }    
@@ -143,14 +160,14 @@ populate_qa_list(string response)
 request_question_list()
 {
    // llWhisper(0,"Using sloodle server root "+sloodleserverroot);
-    string url = sloodleserverroot + sloodle_quiz_url + "?pwd=" + pwd + "&avname="+llEscapeURL(llKey2Name(sitter)) + "&courseid=" + (string)sloodle_courseid;
+    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&courseid=" + (string)sloodle_courseid;
    // llWhisper(0,"Reqesting url "+url);
     populate_request_http_id = llHTTPRequest(url,[],"");
 }
 
 notify_server(string qtype, integer questioncode, integer responsecode)
 {
-    string url = sloodleserverroot + sloodle_quiz_url + "?pwd=" + pwd + "&avname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + (string)quizid+"&resp"+(string)questioncode+"_="+(string)responsecode+"&questionids="+questionids+"&resp"+(string)questioncode+"_submit=Submit&timeup="+(string)timeup+"&action=notify";
+    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + (string)quizid+"&resp"+(string)questioncode+"_="+(string)responsecode+"&questionids="+questionids+"&resp"+(string)questioncode+"_submit=Submit&timeup="+(string)timeup+"&action=notify";
     //llWhisper(0,"Reqesting url "+url);
     llHTTPRequest(url,[],"");    
 }
@@ -415,7 +432,6 @@ state sloodle_wait_for_configuration
         //}   
     }
 }
-
 
 
 

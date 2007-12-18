@@ -47,7 +47,7 @@
     $sloodleblogbody = $lsl->request->required_param('sloodleblogbody', PARAM_RAW);
 
     // We need to know if all header data was retrieved
-    $use_slurl = (isset($_SERVER['HTTP_X_SECONDLIFE_REGION']) && isset($_SERVER['HTTP_X_SECONDLIFE_LOCALPOSITION']));
+    $use_slurl = (isset($_SERVER['HTTP_X_SECONDLIFE_REGION']) && isset($_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION']));
     // Use the HTTP headers added by SL to get the region and position data, and construct a SLurl from them
     if ($use_slurl) {
         sloodle_debug_output('Reading header data...<br/>');

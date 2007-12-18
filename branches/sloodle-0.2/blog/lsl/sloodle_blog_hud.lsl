@@ -1,14 +1,20 @@
-//////////
+// Sloodle Blog HUD
+// Allows SL users in-world to write to their Moodle blog
+// Part of the Sloodle project (www.sloodle.org)
 //
-// Sloodle Blog Toolbar script
-// Version: 0.9.2
+// Copyright (c) 2006-7 Sloodle (various contributors)
+// Released under the GNU GPL
 //
-// Originally developed by Daniel Livingstone
-// Visit www.sloodle.org if you need assistance.
+// Contributors:
+//  Daniel Livingstone - original design and implementation
+//  Edmund Edgar - authentication
+//  Peter R. Bloomfield - complete re-write, and added notecard initialisation
+//  Peter R. Bloomfield - updated to use new communications and avatar registration methods (Sloodle 0.2)
 //
-//
+
 // Version history:
 //
+// 1.0 - updated to use new communications and avatar registration methods for Sloodle 0.2
 // 0.9.2 - Corrected the reset calls from 0.9.1 to use "attach" event, and changed authentication link to a chat message
 // 0.9.1 - Added appropriate reset calls for whenever the HUD object gets attached to the HUD
 // 0.9 - Rewritten by Peter Bloomfield to allow full notecard initialisation
@@ -24,77 +30,46 @@
 //        must be authenticated to use this successfully
 // 0.1 - based on sloodle chat 0.72. DL
 //
-//
-// This script expects a notecard called "blog_settings" to exist inside the same prim.
-// The notecard should specify two items:
-//  - MOODLE_ADDRESS = the address of the Moodle site to communicate with
-//    (e.g. http://www.sloodle.com/)
-//    (N.B. this should be the root folder of your Moodle install,
-//          and MUST have a trailing forward slash /)
-//  - PRIM_PASS = the site-wide "prim password" for your Moodle installation
-//    (this is set in the Sloodle setup process)
-//
-// The 2 required lines would look like this (notice the ":=" on each line):
-//
-//MOODLE_ADDRESS:=http://www.sloodle.com/
-//PRIM_PASS:=abcdefg1234
-//
-// (Remove the // at the start of each line though, as lines in the notecard which start with
-//  the double-forward slash will be ignored. This lets you add comments if you need to).
-//
-// SECURITY NOTE:
-// Make sure that the settings notecard is set to "no copy, no modify" for the next owner, otherwise people will be able to steal your prim password!
-//
-//
-//////////
 
 
 ///// CONSTANTS /////
 // Memory-saving hack!
 key null_key = NULL_KEY;
 
-// Name of the settings notecard
-string SETTINGS_NOTECARD_NAME = "blog_settings";
-// Name of each setting in the notecard
-string MOODLE_ADDRESS_SETTING_NAME = "MOODLE_ADDRESS";
-string PRIM_PASS_SETTING_NAME = "PRIM_PASS";
-// The operators in the notecard
-string ASSIGNMENT_OP = ":=";
-string COMMENT_OP = "//";
-
 // Timeout values
-float CHAT_TIMEOUT = 60.0; // Time to wait for the user to chat something
-float CONFIRM_TIMEOUT = 60.0; // Time to wait for the user to confirm the entry
+float CHAT_TIMEOUT = 180.0; // Time to wait for the user to chat something
+float CONFIRM_TIMEOUT = 180.0; // Time to wait for the user to confirm the entry
 float HTTP_TIMEOUT = 15.0; // Time to wait for an HTTP response
 float DATASERVER_TIMEOUT = 10.0; // Time to wait for dataserver events (e.g. reading a notecard line)
 
 // What chat channel should we receive user info on?
 integer USER_CHAT_CHANNEL = 0;
+
+// What channel should configuration data be received on?
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
+
+// What link channel should be used to communicate URLs?
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 ///// --- /////
 
 
 ///// DATA /////
 // The address of the moodle installation
-string MOODLE_ADDRESS = "";
+string sloodleserverroot = "";
 // The prim password for accessing the site
-string PRIM_PASS = "";
+string sloodlepwd = "";
 
 // Relative paths to scripts for authentication and blog submission
-string AUTH_SCRIPT = "mod/sloodle/login/sl_loginzone_manual_entry.php";
-string BLOG_SCRIPT = "mod/sloodle/blog/sl_blog_linker.php";
+string REG_SCRIPT = "/mod/sloodle/login/sl_reg_linker.php";
+string BLOG_SCRIPT = "/mod/sloodle/blog/sl_blog_linker.php";
 
 // The subject and body of the blog entry
 string blogsubject = "";
 string blogbody = "";
 
-// Key of the pending HTTP request for a blog entry
+// Keys of the pending HTTP requests for a blog entry, and for avatar registration
 key httpblogrequest = null_key;
-
-// Notecard reading values
-integer notecardnumlines = 0;
-integer notecardcurline = 0;
-key notecardrequest_numlines = null_key;
-key notecardrequest_line = null_key;
+key httpregrequest = null_key;
 
 // Is the edit in confirmation mode?
 // (i.e. has the entry been made, but is the user editing it to correct something?)
@@ -106,31 +81,34 @@ integer updatepending = FALSE;
 
 
 ///// FUNCTIONS /////
+// Send a debug message (requires the "sloodle_debug" script in the same link)
+sloodle_debug(string msg)
+{
+    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, null_key);
+}
+
 // Reset the entire script
 resetScript()
 {
-    llMessageLinked(LINK_ALL_CHILDREN,1," ",NULL_KEY);
-    llMessageLinked(LINK_ALL_CHILDREN,2," ",NULL_KEY);
+    llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
+    llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
     llResetScript();
 }
 
 // Reset the display
 resetDisplay()
 {
-    llMessageLinked(LINK_ALL_CHILDREN,1," ",NULL_KEY);
-    llMessageLinked(LINK_ALL_CHILDREN,2," ",NULL_KEY);
+    llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
+    llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
 }
 
 // Reset the settings values
 resetSettings()
 {
-    MOODLE_ADDRESS = "";
-    PRIM_PASS = "";
-    notecardnumlines = 0;
-    notecardcurline = 0;
-    notecardrequest_numlines = null_key;
-    notecardrequest_line = null_key;
+    sloodleserverroot = "";
+    sloodlepwd = "";
 }
+
 // Reset the working values
 resetWorkingValues()
 {
@@ -138,15 +116,37 @@ resetWorkingValues()
     blogsubject = "";
     blogbody = "";
     httpblogrequest = null_key;
+    httpregrequest = null_key;
     confirmationmode = FALSE;
     // Cancel any timer request
     llSetTimerEvent(0.0);
 }
+
+// Handle a configuration command - returns TRUE if configuration is complete, or FALSE otherwise
+integer sloodle_handle_command(string str) 
+{
+    // Split the command into separate fields
+    list bits = llParseString2List(str,["|"],[]);
+    string name = llList2String(bits,0);
+    string value = llList2String(bits,1);
+    if (name == "set:sloodleserverroot") {
+        sloodleserverroot = value;
+    } else if (name == "set:pwd") {
+        sloodlepwd = value;
+        if (llGetListLength(bits) >= 3) {
+            sloodlepwd = sloodlepwd + "|" + llList2String(bits,2);
+        }
+    }
+
+    if ((sloodleserverroot != "") && (sloodlepwd != "")) return TRUE;
+    return FALSE;
+}
+
 ///// --- /////
 
 
 /// INITIALISING STATE ///
-// Trying to read settings notecard for basic configuration
+// Waiting for configuration
 default
 {    
     state_entry()
@@ -166,124 +166,23 @@ default
         resetSettings();
         resetWorkingValues();
         updatepending = FALSE;
-        
-        // Make sure we have a settings notecard
-        if (llGetInventoryType(SETTINGS_NOTECARD_NAME) != INVENTORY_NOTECARD)
-        {
-            llOwnerSay("ERROR: This object requires a settings notecard called \"" + SETTINGS_NOTECARD_NAME + "\". Please obtain or create the appropriate notecard for your Moodle installation (if you are a student, please ask your instructor about this).");
-            state error;
-        }
-        
-        // Start loading the notecard
-        notecardrequest_numlines = llGetNumberOfNotecardLines(SETTINGS_NOTECARD_NAME);
-        // Setup a timeout
-        llSetTimerEvent(DATASERVER_TIMEOUT);
     }
     
     state_exit()
     {
-        // Reset the notecard values
-        notecardnumlines = 0;
-        notecardcurline = 0;
-        notecardrequest_numlines = null_key;
-        notecardrequest_line = null_key;
     }
     
-    dataserver(key queryid, string data)
+    link_message(integer sender_num, integer num, string msg, key id)
     {
-        // Was this a request for the number of lines?
-        if (queryid == notecardrequest_numlines)
-        {
-            // Store the number of lines, and get the first line
-            notecardnumlines = (integer)data;
-            notecardcurline = 0;
-            notecardrequest_line = llGetNotecardLine(SETTINGS_NOTECARD_NAME, 0);
-            notecardrequest_numlines = null_key;
-            llSetTimerEvent(DATASERVER_TIMEOUT);
-            return;
-        }
-        
-        // Make sure the request is otherwise recognised
-        if (queryid != notecardrequest_line)
-        {
-            llOwnerSay("ERROR: Received unexpected dataserver event. Terminating.");
-            state error;
-            return;
-        }
-        
-        // Get the length of the data line and the assignment operator
-        integer datalen = llStringLength(data);
-        integer assignlen = llStringLength(ASSIGNMENT_OP);
-        
-        // Make sure this is not an empty line or a comment line
-        if (datalen > 0 && llSubStringIndex(data, COMMENT_OP) != 0)
-        {
-            // Find the first instance of the assignment operator
-            integer assignpos = llSubStringIndex(data, ASSIGNMENT_OP);
-            if (assignpos < 0)
-            {
-                llOwnerSay("ERROR: Expected assignment operator (" + ASSIGNMENT_OP + ") on line " + (string)(notecardcurline + 1) + " of settings notecard.");
-                state error;
+        // Ignore debug messages
+        if (num == DEBUG_CHANNEL) return;
+        // Is this a configuration message?
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Yes - handle the command, and switch states if configuration is finished
+            if (sloodle_handle_command(msg)) {
+                state authenticating;
                 return;
             }
-            
-            // Get a substring containing both sides of the assignment
-            string name = llStringTrim(llGetSubString(data, 0, assignpos - 1), STRING_TRIM);
-            string value = llStringTrim(llGetSubString(data, assignpos + assignlen, datalen - 1), STRING_TRIM);
-
-            // Make sure the name is not empty
-            if (name == "")
-            {
-                llOwnerSay("EMPTY: Empty setting name on line " + (string)(notecardcurline + 1) + " of settings notecard. Stopping.");
-                state error;
-                return;
-            }
-            
-            // Make sure the value is not empty
-            if (value == "")
-            {
-                llOwnerSay("EMPTY: Empty value on line " + (string)(notecardcurline + 1) + " of settings notecard. Stopping.");
-                state error;
-                return;
-            }
-            
-            // What name is it?
-            if (name == MOODLE_ADDRESS_SETTING_NAME) {
-                
-                // Store the Moodle address
-                MOODLE_ADDRESS = value;                
-            }
-            else if (name == PRIM_PASS_SETTING_NAME) {
-                // Store the prim password
-                PRIM_PASS = value;
-            }
-            else {
-                llOwnerSay("WARNING: Unrecognised setting on line " + (string)(notecardcurline + 1) + " of settings notecard. Continuing initialisation.");
-            }
-        }
-        
-        // Reset our dataserver request key
-        notecardrequest_line = null_key;
-        
-        // Was this the last line?
-        if (notecardcurline >= (notecardnumlines - 1)) {
-            // Yes - make sure all values were set
-            if (MOODLE_ADDRESS == "" || PRIM_PASS == "")
-            {
-                llOwnerSay("ERROR: Initialisation failed. Not all necessary values specified in settings notecard.");
-                state error;
-                return;
-            }
-            
-            // Initialisation has been successful
-            llOwnerSay("Initialisation successful.\nNow I need to authenticate your avatar with the external Moodle site before you can make a blog entry.");
-            state authenticating;
-            return;
-        }
-        else {
-            // Get the next line
-            notecardcurline++;
-            notecardrequest_line = llGetNotecardLine(SETTINGS_NOTECARD_NAME, notecardcurline);
         }
     }
     
@@ -330,7 +229,7 @@ state error
     touch_start( integer num )
     {
         // Attempt initialisation
-        state default;
+        resetScript();
     }
     
     changed( integer change )
@@ -358,19 +257,72 @@ state authenticating
 {   
     state_entry()
     {
-        // Construct and load the authentication URL
+        llSetTimerEvent(0.0); // Avoid any unexpected timeouts
+        
+        // Send a request to the registration linker
         key owner = llGetOwner();
-        string authentication_url = MOODLE_ADDRESS + AUTH_SCRIPT + "?avname=" + llEscapeURL(llKey2Name(owner)) + "&uuid=" + (string)owner;
-        //llLoadURL(llGetOwner(), "Please authenticate your avatar with the Moodle installation.", authentication_url);
-        // Send the URL via link message
-        llMessageLinked(LINK_THIS, 0, authentication_url, owner);
-
-        // NOTE: in future, further checking etc. may need to be done here before moving to the "ready" state.
+        sloodle_debug("Sending registration request.");
+        httpregrequest = llHTTPRequest(sloodleserverroot + REG_SCRIPT + "?sloodlepwd="+sloodlepwd+"&sloodleuuid="+(string)owner+"&sloodleavname="+llEscapeURL(llKey2Name(owner)), [], "");
+        // Start a timer
+        llSetTimerEvent(HTTP_TIMEOUT);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Ignore unexpected response
+        if (id != httpregrequest) return;
+        sloodle_debug("HTTP Response ("+(string)status+"): "+body);
+        
+        // Was the HTTP request successful?
+        if (status != 200) {
+            llOwnerSay("ERROR: failed to check avatar registration due to HTTP request failure.");
+            state error;
+            return;
+        }
+        
+        // Split the response into lines and extract the status fields
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+        integer statuscode = llList2Integer(statusfields, 0);
+        // We expect at most 1 data line
+        string dataline = "";
+        if (numlines > 1) dataline = llList2String(lines, 1);
+        
+        // Was the status code an error?
+        if (statuscode <= 0) {
+            // Report the error
+            llOwnerSay("User registration error (" + (string)statuscode + "): " + dataline);
+            state error;
+            return;
+        }
+        
+        // Was the user already fully registered?
+        if (statuscode == 301) {
+            // Nothing to do...
+            llOwnerSay("Your avatar is authenticated. Please continue.");
+        } else {
+            // Provide the user a URL with which to authenticate their registration
+            llOwnerSay("Your avatar has not yet been authenticated. Please use this URL to login to Moodle.");
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, llGetOwner());
+        }
         
         // If we are in confirmation mode, then go back to confirming the entry
         // Otherwise, just continue to the "ready" state
         if (confirmationmode) state confirm;
         else state ready;
+    }
+    
+    timer()
+    {
+        // We have timed-out waiting for an HTTP response
+        llOwnerSay("ERROR: Timeout waiting for HTTP response. Moving to error state.");
+        state error;
     }
     
     changed( integer change )
@@ -414,13 +366,7 @@ state ready
     {
         // Make sure it is the owner touching the HUD
         if (llDetectedKey(0) != llGetOwner()) return;
-        // Is this attached as a HUD?
-        if (llGetAttached() < 30)
-        {
-            llOwnerSay("Please attach me as a HUD item.");
-            return;
-        }
-        
+                
         // Get the name of the prim that was touched
         string name = llGetLinkName(llDetectedLinkNumber(0));
         // Has the "start blog" button been clicked?
@@ -709,7 +655,7 @@ state send
         // Copy the blog body so we can escape one of them for transmission
         string blogbody_copy = blogbody;
         // llEscapeURL currently returns at most 254 char len string. This means we need to do a horrible work around
-        string msg = "pwd="+PRIM_PASS +"&uuid="+(string)llGetOwner() +"&subject="+llEscapeURL(blogsubject) + "&summary=";
+        string msg = "sloodlepwd="+sloodlepwd+"&sloodleuuid="+(string)llGetOwner() +"&sloodleblogsubject="+llEscapeURL(blogsubject) + "&sloodleblogbody=";
         integer len = llStringLength(blogbody_copy);
         integer i;
         integer STEP = 84; // see http://www.lslwiki.com/lslwiki/wakka.php?wakka=llEscapeURL and comments
@@ -722,7 +668,8 @@ state send
             }
             msg = msg + llEscapeURL(llGetSubString(blogbody_copy,i,end));
         }
-        httpblogrequest = llHTTPRequest(MOODLE_ADDRESS + BLOG_SCRIPT, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], msg);
+        sloodle_debug("Sending request to update blog.");
+        httpblogrequest = llHTTPRequest(sloodleserverroot + BLOG_SCRIPT, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], msg);
         
         // Set a timeout event
         llSetTimerEvent(HTTP_TIMEOUT);
@@ -747,19 +694,41 @@ state send
         if (request_id != httpblogrequest) return;
         httpblogrequest = null_key;
         
-        // Was the blog entry successful?
-        if (body == "success") {
-            // Yes
-            llOwnerSay("Updated blog entry successfully.");
-            // Go back to the ready state
-            state ready;
+        sloodle_debug("HTTP Response ("+(string)status+"): "+body);
+        
+        // Was the HTTP request successful?
+        if (status != 200) {
+            llOwnerSay("ERROR: failed to update blog due to HTTP request failure. You may try again or cancel.");
+            state confirm;
+            return;
         }
-        else {
-            // No - try re-authenticating the user
-            key owner = llGetOwner();
-            llOwnerSay("ERROR: Failed to add blog entry. You may need to re-authenticate your avatar with the Moodle installation:");
+        
+        // Split the response into lines and extract the status fields
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+        integer statuscode = llList2Integer(statusfields, 0);
+        // We expect at most 1 data line
+        string dataline = "";
+        if (numlines > 1) dataline = llList2String(lines, 1);
+        
+        // Check the status code
+        if (statuscode <= -300 && statuscode > -400) {
+            // It is a user authentication error - attempt re-authentication
+            llOwnerSay("Failed to update blog due to a user authentication error (" + (string)statuscode + "): " + dataline);
             state authenticating;
+            return;
+            
+        } else if (statuscode <= 0) {
+            // Don't know what kind of error it was
+            llOwnerSay("ERROR (" + (string)statuscode + "): " + dataline + "\nYou may try again or cancel.");
+            state confirm;
+            return;
         }
+        
+        // If we get here, then it must have been successful
+        llOwnerSay("Updated blog entry successfully.");
+        state ready;
     }
     
     changed( integer change )
