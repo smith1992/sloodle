@@ -47,7 +47,6 @@ integer USER_CHAT_CHANNEL = 0;
 
 // What channel should configuration data be received on?
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-
 // What link channel should be used to communicate URLs?
 integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 ///// --- /////

@@ -40,9 +40,8 @@
     // "id|name"
     //
     // The "id" is the course module instance ID.
-    // In the event that no available glossaries are found, the status code with be -103.
     
-    // When returning a definition (lookup mode), the status code returned will be 1 if succesful (or -103 if no defintions are found).
+    // When returning a definition (lookup mode), the status code returned will be 1 if succesful.
     // (Other status codes may be returned if the glossary is not available).
     //
     // Each line of the response will give a definition as raw text:
@@ -109,33 +108,17 @@
         // Fetch a list of all available glossaries in the course
         sloodle_debug_output('Searching for available glossaries in course...<br/>');
         $glossaries = sloodle_get_visible_glossaries_in_course($lsl->request->get_course_id());
-        // Did the search fail?
-        if (!is_array($glossaries)) {
-            sloodle_debug_output('-&gt; Failed.<br/>');
-            $lsl->response->set_status_code(-101);
-            $lsl->response->set_status_descriptor('SYSTEM');
-            $lsl->response->add_data_line('Failed to query for glossaries.');
-            
-        } else if (count($glossaries) == 0) {
-            // No glossaries were found
-            sloodle_debug_output('-&gt; No glossaries found.<br/>');
-            $lsl->response->set_status_code(-103);
-            $lsl->response->set_status_descriptor('SYSTEM');
-            $lsl->response->add_data_line('No glossaries found.');
-            
-        } else {
-            // Success!
-            sloodle_debug_output('-&gt; Success.<br/>');
-            // Construct the response header
-            $lsl->response->set_status_code(1);
-            $lsl->response->set_status_descriptor('OK');
-            
-            // Go through each glossary
-            sloodle_debug_output('Iterating through all glossaries...<br/>');
-            foreach ($glossaries as $id=>$g) {
-                // Add this glossary to the response
-                $lsl->response->add_data_line(array($id, $g->name));
-            }
+        // If the search failed, then there are probably no glossaries to select
+        if (!is_array($glossaries)) $glossaries = array();
+        // Construct the response header
+        $lsl->response->set_status_code(1);
+        $lsl->response->set_status_descriptor('OK');
+        
+        // Go through each glossary
+        sloodle_debug_output('Iterating through all glossaries...<br/>');
+        foreach ($glossaries as $id=>$g) {
+            // Add this glossary to the response
+            $lsl->response->add_data_line(array($id, $g->name));
         }
         
     } else {
@@ -150,30 +133,21 @@
         $lsl->response->set_status_descriptor('OK');
         
         // Did an error occur?
-        if (!is_array($defs) || count($defs) == 0) {
-            sloodle_debug_output('-&gt; No definitions found.<br/>');
-            $lsl->response->set_status_code(-103);
-            $lsl->response->set_status_descriptor('SYSTEM');
-            $lsl->response->add_data_line('No definitions found.');
-            
-        } else {
-            // Success!
-            sloodle_debug_output('-&gt; Success.<br/>');
-            // Go through each entry
-            sloodle_debug_output('Iterating through all entries...<br/>');
-            foreach ($defs as $d) {
-                // Make sure the concept is clean
-                $cleanconcept = clean_text($d->concept);
-                // Strip the definition of tags etc.                
-                $cleandef = $d->definition;
-                $cleandef = str_replace("\n", " ", $cleandef);
-                $cleandef = str_replace("\r", " ", $cleandef);
-                $cleandef = stripslashes($cleandef);
-                $cleandef = strip_tags($cleandef);
-                // Add this entry to the response
-                $lsl->response->add_data_line(array($cleanconcept, $cleandef));
-            }
-            
+        if (!is_array($defs)) $defs = array();
+
+        // Go through each entry
+        sloodle_debug_output('Iterating through all entries...<br/>');
+        foreach ($defs as $d) {
+            // Make sure the concept is clean
+            $cleanconcept = clean_text($d->concept);
+            // Strip the definition of tags etc.                
+            $cleandef = $d->definition;
+            $cleandef = str_replace("\n", " ", $cleandef);
+            $cleandef = str_replace("\r", " ", $cleandef);
+            $cleandef = stripslashes($cleandef);
+            $cleandef = strip_tags($cleandef);
+            // Add this entry to the response
+            $lsl->response->add_data_line(array($cleanconcept, $cleandef));            
         }
     }    
     

@@ -207,9 +207,9 @@ default
                 is_ready = 1;
                 integer invnum = llGetInventoryNumber(INVENTORY_OBJECT);
                 integer i;
-                list menu = ["Cancel"];
+                list menu =[];
                 string caption = "Choose an object to rez:";
-                for (i=0; i<invnum; i++) {
+                for (i=0; i<invnum && i<12; i++) {
                     integer disp = i+1;
                     caption = caption +"\n"+ (string)disp+": "+llGetInventoryName(INVENTORY_OBJECT,i);
                     menu = menu + [(string)disp];
