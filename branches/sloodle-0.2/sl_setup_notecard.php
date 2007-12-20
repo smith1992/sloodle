@@ -1,7 +1,7 @@
 <?php
 
 	require_once('config.php');
-	require_once('locallib.php');
+	require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 
 	$courseid = optional_param('courseid',null,PARAM_RAW);
 
@@ -11,11 +11,10 @@
 	require_login();
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
 
-		if ( (sloodle_prim_password() == null) || (sloodle_prim_password() == '') ) {
-		
-			srand((double)microtime()*1000000); 
-			$sloodle_pwd = (string)mtrand(1000000000,21474836487);
-			$result = sloodle_set_config('SLOODLE_PRIM_PASSWORD',$sloodle_pwd);
+		if ( (sloodle_get_prim_password() == null) || (sloodle_get_prim_password() == '') ) {
+	
+			$sloodle_pwd = (string)mtrand(100000000,999999999);
+			$result = sloodle_set_config('sloodle_prim_password',$sloodle_pwd);
 
 			if (!$result) {
 
@@ -42,7 +41,7 @@
 
 		} else {
 
-			sloodle_print_config_notecard($CFG->wwwroot, sloodle_prim_password(), $courseid);
+			sloodle_print_config_notecard($CFG->wwwroot, sloodle_get_prim_password(), $courseid);
 
 		}
 
