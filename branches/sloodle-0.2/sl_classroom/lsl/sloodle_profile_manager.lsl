@@ -239,7 +239,7 @@ integer handle_profile_entry_reponse(string body)
             // We'll fill in objectuuids when we rez the objets
             objectentryids = objectentryids + [llList2Integer(fields,0)];
             objectnames = objectnames + [llList2String(fields,1)];
-            objectrelativepositions = objectrelativepositions + [llList2Vector(fields,2)];
+            objectrelativepositions = objectrelativepositions + [(vector)llList2String(fields,2)];
         }
     }
 
@@ -260,8 +260,12 @@ integer rez_next_object()
 {
     objectbeingrezzedindex++;
     if (llGetListLength(objectnames) > objectbeingrezzedindex) {
-        sloodle_debug("Rezzing object "+llList2String(objectnames,objectbeingrezzedindex));
-        llMessageLinked(LINK_SET, object_creator_channel, "do:rez|"+llList2String(objectnames,objectbeingrezzedindex)+"|"+(string)llList2Vector(objectrelativepositions,objectbeingrezzedindex),NULL_KEY );
+        
+        string name = llList2String(objectnames,objectbeingrezzedindex);
+        string pos = (string)llList2Vector(objectrelativepositions,objectbeingrezzedindex);
+        
+        sloodle_debug("Rezzing object "+name+" at "+pos);
+        llMessageLinked(LINK_SET, object_creator_channel, "do:rez|"+name+"|"+pos,NULL_KEY );
         // TODO: Check for success...
         llSleep(2);
         rez_next_object();
@@ -294,24 +298,15 @@ integer display_menu() // return listen_id if waiting for a response, 0  if not
     } 
         
     list menu_options = [];
-    //if ( objectsallrezzed == 1) {
-    //    sloodle_debug("all objects rezzed - showning menu");
-        if (objectprofileid > 0) {
-            menu_options = ["Load", "Cleanup", "Save", "Save As","Cancel"]; 
-        } else {
-            menu_options = ["Load", "Cleanup", "Save As","Cancel"];
-        }  
-        sloodle_debug("showing menu to toucher "+(string)toucheruuid);
-        llDialog(toucheruuid, "Menu Options", menu_options, avatar_dialog_channel);
-        listen_id = llListen(avatar_dialog_channel, "", toucheruuid, "");            
-        return listen_id;
-    //} else {
-    //    // get profiles
-    //    sloodle_debug("getting course profiles");
-    //    object_state = "request_course_profiles";
-    //    request_course_profiles();
-    //    return 0;
-    //}
+    if (objectprofilename != "") {
+        menu_options = ["Load", "Cleanup", "Save", "Save As","Cancel"]; 
+    } else {
+        menu_options = ["Load", "Cleanup", "Save As","Cancel"];
+    }  
+    sloodle_debug("showing menu to toucher "+(string)toucheruuid);
+    llDialog(toucheruuid, "Menu Options", menu_options, avatar_dialog_channel);
+    listen_id = llListen(avatar_dialog_channel, "", toucheruuid, "");            
+    return listen_id;
 
 }
 
@@ -329,8 +324,8 @@ integer handle_new_profile_reponse(string body)
     if ((statuscode > 0 || statuscode == -903) && numlines >= 2) {
         // Extract the fields from our data line
         list fields = llParseStringKeepNulls(llList2String(lines,1), ["|"], []);
-        objectprofileid = llList2Integer(fields,1);
-        objectprofilename = llList2String(fields,2);        
+        objectprofileid = llList2Integer(fields,0);
+        objectprofilename = llList2String(fields,1);        
         return 1;
     }
 
@@ -392,18 +387,24 @@ default
     listen( integer channel, string name, key id, string message ) 
     {
         if (channel == avatar_dialog_channel) {
-
+            
+            sloodle_debug("Got listen message on avatar dialog channel: " + message);
             sloodle_debug("object state is "+object_state);
+            
             if (object_state == "offer_profile_select") {
+                
                 objectprofilename = llStringTrim(message, STRING_TRIM);
+                integer num = llListFindList(objectprofilenames, [objectprofilename]);                
+                if (num >= 0) objectprofileid = llList2Integer(objectprofileids, num);
+                else objectprofileid = 0;
+                object_state = "fetch_profile_entry_data";
                 fetch_profile_entry_data();
-                object_state = "fetch_profile_entry_data"; 
                 
             } else {
 
                 //llWhisper(0,"message was "+message);
                 if (message == "Save") {
-                    sloodle_debug("sending save message");       
+                    sloodle_debug("sending save message");
                     string baseurl = sloodleserverroot+sloodleprofilebase+"?sloodlepwd="+pwd+"&sloodlecmd=saveentries&sloodleprofilename="+llEscapeURL(objectprofilename)+"&sloodleavname="+toucheravname+"&sloodleuuid="+(string)toucheruuid+"&sloodlecourseid="+(string)sloodle_courseid;
                     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_DO_SAVE, baseurl, NULL_KEY);   // send a message to the saving script
                 } else if (message == "Save As" || message == "Create") {
@@ -413,11 +414,18 @@ default
                     
                 } else if (message == "Cleanup") {
                     llMessageLinked(LINK_ALL_OTHERS, SLOODLE_CHANNEL_OBJECT_INVENTORY_VENDOR_DO_CLEANUP_ALL,"do:cleanup_all",NULL_KEY);
-                    objectsallrezzed = 0;              
-                } else if (message = "Load") {
+                    objectsallrezzed = 0;
+                    
+                    // Close the current profile:
+                    objectprofilename = "";
+                    objectprofileid = 0;
+                    
+                } else if (message == "Load") {
                     sloodle_debug("getting course profiles");
                     object_state = "request_course_profiles";
                     request_course_profiles();
+                } else if (message == "Cancel") {
+                    // Nothing to do
                 } else {
                     sloodle_debug("message state not recognized "+message);
                 }
@@ -425,8 +433,9 @@ default
             }
         } else if (channel == SLOODLE_CHANNEL_AVATAR_SETTING) {
             if (object_state == "new_profile") {
-                sloodle_debug("Saving profile "+message);
-                string url = sloodleserverroot+sloodleprofilebase+"?sloodlepwd="+pwd+"&sloodlecmd=newprofile&sloodleprofilename="+llEscapeURL(llStringTrim(message,STRING_TRIM))+"&sloodlecourseid="+(string)sloodle_courseid+"&sloodleavname="+toucheravname+"&sloodleuuid="+(string)toucheruuid;        
+                objectprofilename = llStringTrim(message, STRING_TRIM);
+                sloodle_debug("Saving profile "+objectprofilename);
+                string url = sloodleserverroot+sloodleprofilebase+"?sloodlepwd="+pwd+"&sloodlecmd=newprofile&sloodleprofilename="+llEscapeURL(llStringTrim(objectprofilename,STRING_TRIM))+"&sloodlecourseid="+(string)sloodle_courseid+"&sloodleavname="+toucheravname+"&sloodleuuid="+(string)toucheruuid;        
                 sloodle_debug("new profile:"+url);
                 http_id = llHTTPRequest(url,[],"");
                 llListenRemove(listen_id);
@@ -437,7 +446,7 @@ default
     }    
      
     http_response(key request_id, integer status, list metadata, string body) {
-        if(status < 400) {
+        if(status == 200) {
             if (request_id == http_id) {
                 if (object_state == "request_course_profiles") {
                     handle_course_profile_response(body);    

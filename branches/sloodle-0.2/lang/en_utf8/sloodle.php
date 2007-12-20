@@ -10,6 +10,7 @@ $string['authmethod:invalid'] = 'Invalid user authentication method. Please re-s
 $string['authmethod:updated'] = 'User authentication method updated';
 
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+$string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
 $string['avatarname'] = 'Avatar name';
 
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
@@ -110,6 +111,9 @@ $string['sloodleobjectdistributor:unknowncommand'] = 'Distributor command not re
 $string['sloodleobjectdistributor:usernotfound'] = 'Unable to find requested user.';
 $string['sloodleobjectdistributor:successful'] = 'Object distribution successful.';
 $string['sloodleobjectdistributor:failed'] = 'Object distribution failed.';
+$string['sloodleobjectdistributor:noobjects'] = 'No objects are currently available for distribution. The Sloodle Object Distributor may need to be given contents?';
+$string['sloodleobjectdistributor:sendtomyavatar'] = 'Send to me';
+$string['sloodleobjectdistributor:sendtoanotheravatar'] = 'Send to another avatar';
 
 
 $string['submit'] = 'Submit';

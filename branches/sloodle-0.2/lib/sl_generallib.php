@@ -163,6 +163,17 @@
         return sloodle_set_config('sloodle_loginzone_region', $region);
     }
     
+    // Get an array of all available distribution objects
+    // Returns a numeric array of strings (each string being the name of an object)
+    function sloodle_get_distribution_list()
+    {
+        // Get the data from the configuration system
+        $str = sloodle_get_config('sloodle_distrib_objects');
+        if (!is_string($str)) return array();
+        // Split it at pipe-characters |
+        return explode('|', $str);
+    }
+    
     
     // Send an XMLRPC message into Second Life
     // $channel identifies which XMLRPC channel is being communicated with (should be an SL UUID)
@@ -188,7 +199,7 @@
         // Make sure we got a response value
         if (!isset($response->val) || empty($response->val) || is_null($response->val)) {
             // Report an error if we are in debug mode
-            if (defined(SLOODLE_DEBUG) && SLOODLE_DEBUG) {
+            if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
                 print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br/>';
                 if (isset($response->errstr)) print "XMLRPC Error - ".$response->errstr;
                 print '</p>';

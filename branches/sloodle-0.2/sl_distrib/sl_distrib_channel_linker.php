@@ -16,6 +16,7 @@
     //
     //   sloodlepwd = the prim password used to authenticate the request
     //   sloodlechannel = specifies the UUID of the XMLRPC channel on which the object is listening
+    //   sloodlecontents = a pipe-delimited list of inventory items
     //
     
     // On successful storage of channel, status code 1 is returned.
@@ -38,22 +39,42 @@
     
     // Obtain our additional parameters
     sloodle_debug_output('Obtaining additional parameters...<br/>');
-    $sloodlechannel = $lsl->request->required_param('sloodlechannel', PARAM_RAW);    
+    $sloodlechannel = $lsl->request->required_param('sloodlechannel', PARAM_RAW);
+    $sloodlecontents = $lsl->request->required_param('sloodlecontents', PARAM_RAW);
     
+    $result = TRUE;
     
     // Attempt to set the channel in the configuration settings
     sloodle_debug_output('Storing distribution channel...<br/>');
     if (sloodle_set_config('sloodle_distrib_channel', $sloodlechannel)) {
         // Success
         sloodle_debug_output('-&gt; Success.<br/>');
-        $lsl->response->set_status_code(1);
-        $lsl->response->set_status_descriptor('OK');
     } else {
         // Failed
         sloodle_debug_output('-&gt; Failed.<br/>');
+        $lsl->response->set_add_data_line('Failed to store object distribution XMLRPC channel in Moodle configuration table.');
+        $result = FALSE;
+    }
+    
+    // Attempt to store the contents in the configuration settings
+    sloodle_debug_output('Storing distribution contents...<br/>');
+    if (sloodle_set_config('sloodle_distrib_objects', $sloodlecontents)) {
+        // Success
+        sloodle_debug_output('-&gt; Success.<br/>');
+    } else {
+        // Failed
+        sloodle_debug_output('-&gt; Failed.<br/>');
+        $lsl->response->set_add_data_line('Failed to store object distribution XMLRPC channel in Moodle configuration table.');
+        $result = FALSE;
+    }
+    
+    // Construct the rest of the response
+    if ($result) {
+        $lsl->response->set_status_code(1);
+        $lsl->response->set_status_descriptor('OK');
+    } else {
         $lsl->response->set_status_code(-101);
         $lsl->response->set_status_descriptor('SYSTEM');
-        $lsl->response->set_add_data_line('Failed to store object distribution XMLRPC channel in Moodle configuration table.');
     }
     
     // Render the output
