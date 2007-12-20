@@ -650,7 +650,7 @@
             if ($this->sloodle_user_id <= 0) return FALSE;
             // Construct a new user object to alter the existing one
             $sloodle_user_data = new stdClass();
-            $sloodle_user_data->id = $this->sloodle_user->id;
+            $sloodle_user_data->id = $this->sloodle_user_id;
             $sloodle_user_data->loginsecuritytoken = sloodle_random_security_token();
             // Attempt to update the record
             if (update_record('sloodle_users', $sloodle_user_data) === FALSE) return FALSE;
