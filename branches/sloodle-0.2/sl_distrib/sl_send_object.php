@@ -90,7 +90,10 @@
         // Construct a selection box of objects available for distribution
         $objselect = '<select name="object">';
         foreach ($distribobjects as $obj) {
-            $objselect .= "<option value=\"$obj\">$obj</option>";
+            // Make sure it isn't empty
+            if (is_string($obj) && !empty($obj)) {
+                $objselect .= "<option value=\"$obj\">$obj</option>";
+            }
         }
         $objselect .= '</select>';
         

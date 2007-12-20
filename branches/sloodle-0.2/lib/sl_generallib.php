@@ -169,7 +169,7 @@
     {
         // Get the data from the configuration system
         $str = sloodle_get_config('sloodle_distrib_objects');
-        if (!is_string($str)) return array();
+        if (!is_string($str) || empty($str)) return array();
         // Split it at pipe-characters |
         return explode('|', $str);
     }
