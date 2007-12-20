@@ -10,6 +10,16 @@
 //  Peter R. Bloomfield - updated to use new communications format (Sloodle 0.2)
 //
 
+// When configured, opens an XMLRPC channel, and reports the channel key and inventory list to the Moodle server.
+// Note that non-copyable items are NOT made available, and neither will items on the ignore list below.
+
+
+// ***** IGNORE LIST *****
+//
+// This is a list of names of items which should NOT be handed out
+list ignorelist = ["sloodle_config","sloodle_object_distributor","sloodle_setup_notecard","sloodle_slave_object","sloodle_debug"];
+//
+// ***** ----------- *****
 
 
 string sloodleserverroot = "";
@@ -23,6 +33,7 @@ key ch = NULL_KEY;
 
 integer SLOODLE_OBJECT_DIALOG_CHANNEL = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_SETTING = 1;
+integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
 
 
 sloodle_debug(string msg)
@@ -48,6 +59,31 @@ sloodle_handle_command(string str)
 
     //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
     
+}
+
+// Get a string containing a list of all available inventory
+// NOTE: 
+string get_available_inventory()
+{
+    // We're going to build a string of all copyable inventory items
+    string invlist = "";
+    integer numitems = llGetInventoryNumber(INVENTORY_ALL);
+    string itemname;
+    
+    // Go through each item
+    integer i = 0;
+    
+    for (i = 0; i < numitems; i++) {
+        // Get the name of this item
+        itemname = llGetInventoryName(INVENTORY_ALL, i);
+        // Make sure it's copyable and not on the ignore list
+        if((llGetInventoryPermMask(itemname, MASK_OWNER) & PERM_COPY) && llListFindList(ignorelist, [itemname]) == -1) {
+            if (i > 0) invlist += "|";
+            invlist += itemname;
+        }
+    }
+    
+    return invlist;
 }
 
 
@@ -98,10 +134,19 @@ state connecting
     remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
     {
         if (type == REMOTE_DATA_CHANNEL) { // channel created
+            
             ch = channel;
             llSetText("Establishing connection with outside server...", <0.0,0.0,0.7>, 0.7);
-            llSay(0, "Ready to receive requests on channel "+(string)ch+ " with server root "+sloodleserverroot);
-            llHTTPRequest( sloodleserverroot+linkerscript+"?sloodlepwd="+pwd+"&sloodlechannel="+(string)ch, [], "");            
+            sloodle_debug("Opened XMLRPC channel "+(string)ch);
+        
+            // Get all available inventory
+            sloodle_debug("Getting inventory...");
+            string invlist = get_available_inventory();
+            sloodle_debug("Inventory list = " + invlist);
+        
+            // Send the request
+            sloodle_debug("Reporting to Moodle server...");
+            llHTTPRequest( sloodleserverroot+linkerscript+"?sloodlepwd="+pwd+"&sloodlechannel="+(string)ch+"&sloodlecontents="+llEscapeURL(invlist), [], "");
         }
     }
     
@@ -174,7 +219,7 @@ state connected
 {
     state_entry()
     {
-        llSetText("Connected.", <0.1,0.9,0.1>, 0.9);
+        llSetText("Connected.\n"+sloodleserverroot, <0.1,0.9,0.1>, 0.9);
     }
     
     on_rez(integer start_param)
@@ -202,7 +247,8 @@ state connected
             // Was the status code successful?
             integer statuscode = llList2Integer(statusfields, 0);
             if (statuscode < 0) {
-                sloodle_debug("Error give in status code: " + (string)statuscode);
+                sloodle_debug("Error given in status code: " + (string)statuscode);
+                llRemoteDataReply(channel,NULL_KEY,"-1|DISTRIBUTOR\nError given in request",0);
                 return;
             }
             
