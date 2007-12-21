@@ -371,6 +371,9 @@ state sloodle_wait_for_configuration
     
     link_message(integer sender_num, integer num, string str, key id)
     {
+        // Ignore debug messages
+        if (num == DEBUG_CHANNEL) return;
+    
         sloodle_handle_command(str);
 
         if ( (sloodleserverroot != "") && (pwd != "") ) {
