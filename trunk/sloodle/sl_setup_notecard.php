@@ -1,7 +1,7 @@
 <?php
 
 	require_once('config.php');
-	require_once('locallib.php');
+	require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 
 	$courseid = optional_param('courseid',null,PARAM_RAW);
 
@@ -11,11 +11,10 @@
 	require_login();
 	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
 
-		if ( (sloodle_prim_password() == null) || (sloodle_prim_password() == '') ) {
-		
-			srand((double)microtime()*1000000); 
-			$sloodle_pwd = rand(1000000000,21474836487);
-			$result = sloodle_set_config('SLOODLE_PRIM_PASSWORD',$sloodle_pwd);
+		if ( (sloodle_get_prim_password() == null) || (sloodle_get_prim_password() == '') ) {
+	
+			$sloodle_pwd = (string)mtrand(100000000,999999999);
+			$result = sloodle_set_config('sloodle_prim_password',$sloodle_pwd);
 
 			if (!$result) {
 
@@ -28,7 +27,7 @@
 		if ($courseid == NULL) {
 
 			print '<h3>'. get_string("choosecourse", "sloodle") .'</h3>';
-			print '<p>'. get_string("cfgnotecard:paste", "sloodle") .'</p>';
+			print '<p>'. get_string("cfgnotecard:choosecourse", "sloodle") .'</p>';
 			print '<form method="post" action="sl_setup_notecard.php">';
 			$courses = get_courses();
 			foreach($courses as $c) {
@@ -42,7 +41,7 @@
 
 		} else {
 
-			sloodle_print_config_notecard($CFG->wwwroot, sloodle_prim_password(), $courseid);
+			sloodle_print_config_notecard($CFG->wwwroot, sloodle_get_prim_password(), $courseid);
 
 		}
 
@@ -57,7 +56,7 @@
 	exit;
 
 	function sloodle_print_config_notecard($wwwroot,$pwd,$courseid) {
-
+        global $CFG;
 		print '<div align="center">';
 		print '<p>'. get_string("cfgnotecard:instructions", "sloodle") .'</p>';
        print '<p>'. get_string("cfgnotecard:security", "sloodle") .'</p>';
@@ -69,8 +68,8 @@
 		print 'set:sloodle_courseid|'.$courseid;
 		print "\n";
 		print '</textarea>';
-		print '<p>'. get_string("cfgnotecard:inworld", "sloodle") .'</p>';
-		print '<p><a href="sl_setup.php">'. get_string("backtosloodlesetup", "sloodle") .'</a>.';
+		print '<p>'. get_string("cfgnotecard:setnote", "sloodle") .'</p>';
+		print '<p><a href="'.$CFG->wwwroot.'/admin/module.php?module=sloodle">'. get_string("backtosloodlesetup", "sloodle") .'</a>.';
 		print '</div>';
 
 	}
