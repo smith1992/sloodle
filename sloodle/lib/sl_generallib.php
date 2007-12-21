@@ -200,12 +200,18 @@
         if (!isset($response->val) || empty($response->val) || is_null($response->val)) {
             // Report an error if we are in debug mode
             if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
-                print '<p align="center">Not getting the expected XMLRPC response. Is Second Life broken again?<br/>';
+                print '<p align="left">Not getting the expected XMLRPC response. Is Second Life broken again?<br/>';
                 if (isset($response->errstr)) print "XMLRPC Error - ".$response->errstr;
                 print '</p>';
             }
             return FALSE;
         }
+        
+        // Check the contents of the response value
+        if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+            print_r($response->val);
+        }
+        
         //TODO: Check the details of the response to see if this was successful or not...
         return TRUE;
     
