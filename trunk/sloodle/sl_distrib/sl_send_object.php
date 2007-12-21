@@ -1,6 +1,6 @@
 <?php
     // Sloodle object distribution request script
-    // Can be called by browsers or scripts to request the distribution of an object to in-world avatars
+    // Can be called by browsers to request the distribution of an object to in-world avatars
     // Part of the Sloodle project (www.sloodle.org)
     //
     // Copyright (c) 2006-7 Sloodle
@@ -12,14 +12,14 @@
     //   Peter R. Bloomfield - added permissions limitation, and ability to select specific objects for distribution
     //
         
-    // This script should only be accessed by a browser (a script linker version may be developed later).
+    // This script should only be accessed by a browser (a script linker version can be found at "sl_send_object_linker.php")
     // The following parameters are optional, but are typically provided by this script submitting a form to itself:
     //
     //   cmd = indicates what action should be carried out (can be 'sendobject' to send an object, or ommitted completely to select the users)
     //   fname = first name of the avatar to whom to send an object (required if 'lname' is specified)
     //   lname = last name of the avatar to whom to send an object (required if 'fname' is specified)
     //   uuid = UUID of an avatar to whom to send an object
-    //   object = name of the object to send (required if 'cmd' is 'send_object')
+    //   object = name of the object to send (required if 'cmd' is 'sendobject')
     //
     
 
@@ -28,7 +28,7 @@
 	require_once('../config.php');
     
     require_login();
-        
+    
 	require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
     
     // See if we can find a Sloodle user for this account
