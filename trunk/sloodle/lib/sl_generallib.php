@@ -208,9 +208,9 @@
         }
         
         // Check the contents of the response value
-        if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
-            print_r($response->val);
-        }
+        //if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+        //    print_r($response->val);
+        //}
         
         //TODO: Check the details of the response to see if this was successful or not...
         return TRUE;
