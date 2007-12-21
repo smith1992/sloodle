@@ -40,6 +40,9 @@
         error(get_string('needadmin', 'sloodle'));
         exit();
     }
+
+    // This is a weird way of doing things
+    if (isset($_REQUEST['sloodledebug'])) require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     
     // Get our Sloodle classroom library
     require_once(SLOODLE_DIRROOT.'/lib/sl_classroomlib.php');
@@ -56,7 +59,7 @@
     
     // Check for our required parameters
     $sloodleobjuuid = required_param('sloodleobjuuid', PARAM_RAW);
-    $sloodleobjname = required_param('sloodleobjname', PARAM_RAW);
+    $sloodleobjname = optional_param('sloodleobjname', '', PARAM_RAW);
     $sloodlechannel = required_param('sloodlechannel', PARAM_RAW);
     
     // Construct a breadcrumb navigation menu
@@ -97,9 +100,16 @@
   <?php echo get_string('objectuuid','sloodle') .': '. $sloodleobjuuid; ?>
  </p>
  <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-  <input type="hidden" name="sloodleobjuuid" value="'.$objuuid.'" />
-  <input type="hidden" name="sloodleobjname" value="'.$objname.'" />
-  <input type="hidden" name="sloodlechannel" value="'.$channel.'" />
+  <input type="hidden" name="sloodleobjuuid" value="<?php echo $sloodleobjuuid; ?>" />
+  <input type="hidden" name="sloodleobjname" value="<?php echo $sloodleobjname; ?>" />
+  <input type="hidden" name="sloodlechannel" value="<?php echo $sloodlechannel; ?>" />
+
+<?php
+if (defined('SLOODLE_DEBUG') && SLOODLE_DEBUG) {
+   echo "<input type=\"hidden\" name=\"sloodledebug\" value=\"true\" />";
+}
+?>
+
   <input type="submit" name="auth" value="<?php print_string('Yes','sloodle'); ?>" />
   &nbsp;&nbsp;
   <input type="submit" name="auth" value="<?php print_string('No','sloodle'); ?>" />
