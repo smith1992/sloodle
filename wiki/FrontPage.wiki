@@ -1,5 +1,3 @@
-#Sloodle Front Page
+#Sloodle FrontPage
 
-= Introduction =
-
-Visit the [http://slisweb.sjsu.edu/sl/index.php/Sloodle Official Sloodle Wiki].
+= Visit the [http://slisweb.sjsu.edu/sl/index.php/Sloodle Official Sloodle Wiki]. =
