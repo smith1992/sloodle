@@ -10,6 +10,7 @@
     //   Edmund Edgar - original design and implementation
     //   Peter R. Bloomfield - updated slightly and added some simple functions
     
+    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 
 	function sloodle_get_classroom_profiles($courseid = null) {
 		return get_records('sloodle_classroom_setup_profile','courseid',$courseid);
@@ -77,7 +78,7 @@
 		$o = null;
 		$isnew = true;
 		$o = get_record('sloodle_active_object', 'uuid',$uuid);
-		if ( ($o->id != null) && ($o->id != '') ) {
+		if (is_object($o)) {
 			$isnew = false;
 		} else {
 			$o = new stdClass();
@@ -114,7 +115,7 @@
 		$str="0123456789";
 	    for($length = 0; $length < 9; $length++) {
 			$str = str_shuffle($str);
-			$charnum = mt_rand(0, strlen($str));
+			$charnum = mt_rand(0, strlen($str)-1);
             $char = $str[$charnum];
             // Don't allow 0 as the first character! -PRB
             if ($length == 0 && $char == '0') $char = '1';
