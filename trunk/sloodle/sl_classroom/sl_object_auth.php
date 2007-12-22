@@ -16,10 +16,10 @@
     // Confirmation mode, and auth mode.
     //
     // In confirmation mode, the user is asked to confirm that they want to authorise a certain object.
-    // The following parameters are required:
+    // These are the standard parameters:
     //
     //   sloodleobjuuid = UUID of the object to be validated
-    //   sloodleobjname = name of the object to be validated
+    //   sloodleobjname = name of the object to be validated (optional)
     //   sloodlechannel = channel for the XMLRPC response to the object
     //
     // Auth mode is used after the user has confirmed that they want to authorise it.
