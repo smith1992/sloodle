@@ -12,10 +12,10 @@ string sloodleserverroot = ""; //"http://moodle.edochan.com";
 string pwd = "";
 string pwdcode = "";
 
-string sloodleregurlbase = "/mod/sloodle/login/sl_sloodle_reg.php";
+string sloodleregurlbase = "/mod/sloodle/login/sl_reg_linker.php";
 string sloodlewelcomebase = "/mod/sloodle/login/sl_welcome_reg.php";
-string sloodleteachercoursesbase = "/mod/sloodle/login/sl_teacher_courses.php";
-string sloodleobjectvalidationbase = "/mod/sloodle/sl_classroom/sl_validate_object.php";
+string sloodleteachercoursesbase = "/mod/sloodle/login/sl_teacher_courses_linker.php";
+string sloodleobjectvalidationbase = "/mod/sloodle/sl_classroom/sl_object_auth.php";
 
 integer object_dialog_channel = -3857343;
 integer avatar_dialog_channel = 3857343;
@@ -34,7 +34,7 @@ string toucheravname;
 key toucheruuid;
 
 string toucherurl = "";
-string sloodle_toucher_code = "";
+string toucherloginurl = "";
 
 integer sloodle_courseid = 0;
 string sloodle_course_title = "";
@@ -153,8 +153,8 @@ handle_site_missing() {
 
 require_sloodle_registration()
 {
-    string sloodleregurl = sloodleserverroot + sloodleregurlbase + "?pwd=" + pwd;
-    string url = sloodleregurl+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
+    string sloodleregurl = sloodleserverroot + sloodleregurlbase + "?sloodlepwd=" + pwd;
+    string url = sloodleregurl+"&sloodleavname="+llEscapeURL(toucheravname)+"&sloodleuuid="+(string)toucheruuid;
     sloodle_debug("Requesting login URL for "+(string)toucheruuid);
     sloodle_debug(url);
     sloodle_set_text(sloodleserverroot+"\nAuthenticating "+toucheravname);
@@ -169,32 +169,34 @@ integer handle_already_registered()
 
 integer handle_authentication_response(string body) 
 {
-    list data = llParseString2List(body,["|"],[]);
-    string resultCode = llList2String(data,0);
-    if(resultCode == "ERROR") {
+    // Split the response into lines, and extract some key fields
+    list lines = llParseStringKeepNulls(body, ["\n"], []);
+    integer numlines = llGetListLength(lines);
+    list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+    integer statuscode = llList2Integer(statusfields, 0);
+    string dataline = "";
+    if (numlines > 1) dataline = llList2String(lines, 1);
+    key checkuuid = NULL_KEY;
+    if (llGetListLength(statusfields) >= 7) checkuuid = llList2Key(statusfields, 6);
+    
+    // Check the status code
+    if(statuscode <= 0) {
         sloodle_debug("authentication response:"+body);
-        if(llList2String(data,2) == "user already registered with all the info sloodle needs") {
-            return handle_already_registered();  
-        } else {
-            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
-            integer i;
-            for (i=1;i<llGetListLength(data);i++) {
-                sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);
-            }
-        }
-    } else {
-        key uuid = llList2Key(data,1); //TODO: Check this matches the toucheruuid...
-        sloodle_toucher_code = llList2String(data,2);                    
-        sloodle_set_text(sloodleserverroot+"\nWaiting for "+toucheravname + "to login to Moodle.");        
-        llOpenRemoteDataChannel(); // create an XML-RPC channel so that the server can tell us when it's done. 
+        llWhisper(0,"An error occurred while trying to register your avatar.");
+        return 0;
     }
-    return 0;
+    
+    // Everything is fine
+    toucherloginurl = dataline;
+    sloodle_set_text(sloodleserverroot+"\nWaiting for "+toucheravname + "to login to Moodle.");        
+    llOpenRemoteDataChannel(); // create an XML-RPC channel so that the server can tell us when it's done. 
+    return 1;
 }
 
 request_teacher_courses()
 {
-    string url = sloodleserverroot + sloodleteachercoursesbase + "?pwd=" + pwd;
-    url = url+"&avname="+llEscapeURL(toucheravname)+"&uuid="+(string)toucheruuid;
+    string url = sloodleserverroot + sloodleteachercoursesbase + "?sloodlepwd=" + pwd;
+    url = url+"&sloodleavname="+llEscapeURL(toucheravname)+"&sloodleuuid="+(string)toucheruuid;
     sloodle_set_text(sloodleserverroot+"\nLooking up courses for "+toucheravname);       
     sloodle_debug("courses request:");
     sloodle_debug(url);
@@ -204,31 +206,36 @@ request_teacher_courses()
 
 handle_teacher_courses_response(string body)
 {
-    list lines = llParseString2List(body,["\n"],[]);
-    string firstline = llList2String(lines,0);
-    list data = llParseString2List(firstline,["|"],[]);                
-    string resultCode = llList2String(data,0);
-    key responseuuid = llList2Key(data,1);
+    // Split the response into lines, and extract some key fields
+    list lines = llParseStringKeepNulls(body, ["\n"], []);
+    integer numlines = llGetListLength(lines);
+    list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+    integer resultCode = llList2Integer(statusfields, 0);
+    key responseuuid = NULL_KEY;
+    if (llGetListLength(statusfields) >= 7) responseuuid = llList2Key(statusfields, 6);
+    
+    // Make sure it's the correct agent we're dealing with
     if (responseuuid == toucheruuid) {            
-        if(resultCode == "ERROR") {
-            llWhisper(0,"Sorry, I tried to get some data out of Moodle but it didn't work out...");
-            integer i;
-            for (i=1;i<llGetListLength(data);i++) {
-                sloodle_debug(":" + llList2String(data,i) + ":" + (string)i);   
-            }
-        } else {            
+        if(resultCode <= 0) {
+            llWhisper(0,"Failed to retrieve teacher courses - response had status code " + (string)resultCode);
+        } else {
         
+            // Reset our course data
             courseids = [];
             coursetitles = [];
             coursecodes = [];
-                        
-            integer i;
-            for (i=0;i<llGetListLength(lines);i++) {
-                string curline = llList2String(lines,i); 
-                data = llParseString2List(curline,["|"],[]); 
-                courseids = courseids + [llList2Integer(data,2)];
-                coursecodes = coursecodes + [llList2String(data,3)];
-                coursetitles = coursetitles + [llList2String(data,4)];
+            
+            // Each subsequent line contains course data
+            integer i = 1;
+            for (i = 1; i < numlines; i++) {
+                // Split the current line into fields
+                list fields = llParseStringKeepNulls(llList2String(lines,i), ["|"], []);
+                // Make sure we've got enough items, and store the data
+                if (llGetListLength(fields) >= 3) {
+                    courseids += [llList2Integer(fields, 0)];
+                    coursecodes += [llList2String(fields, 1)];
+                    coursetitles += [llList2String(fields, 2)];
+                }
             }
             sloodle_debug("Loaded courses");
 
@@ -428,7 +435,8 @@ state server_selection
         if (type == REMOTE_DATA_CHANNEL) { // channel created
             sloodle_debug("Channel opened");
             sloodle_debug("Ready to receive requests on channel \"" + (string)channel +"\"");
-            llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this object",toucherurl+sloodleobjectvalidationbase+"?objuuid="+(string)llGetKey()+"&objname="+llEscapeURL(llGetObjectName())+"&ch="+(string)channel);
+//            llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this object",toucherurl+sloodleobjectvalidationbase+"?sloodleobjuuid="+(string)llGetKey()+"&sloodleobjname="+llEscapeURL(llGetObjectName())+"&sloodlechannel="+(string)channel);
+            llLoadURL(toucheruuid,"Login to Moodle and confirm that you trust this object",toucherurl+sloodleobjectvalidationbase+"?sloodleobjuuid="+(string)llGetKey()+"&sloodlechannel="+(string)channel);
             sloodle_set_text(toucherurl + "\nWaiting for Moodle to send me authorization...");;
         } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
             sloodle_debug("Request received"+sval);
@@ -438,7 +446,7 @@ state server_selection
             pwd = (string)llGetKey()+"|"+pwdcode;        
             sloodle_debug("Got pwd "+pwd);
             sloodle_display_server_course_status();
-            llRemoteDataReply(channel, message_id, "OK", 1); 
+            llRemoteDataReply(channel, message_id, "1", 1); 
             llCloseRemoteDataChannel(channel);      
             state authentication; 
         }  
@@ -503,12 +511,22 @@ state authentication
         if (type == REMOTE_DATA_CHANNEL) { // channel created
             sloodle_debug("Channel opened");
             sloodle_debug("Ready to receive requests on channel \"" + (string)channel +"\"");
-            string sloodlewelcomeurl = sloodleserverroot + sloodlewelcomebase;
-            llLoadURL(toucheruuid,"Go here and login to Moodle",sloodlewelcomeurl+"?lsc="+sloodle_toucher_code+"&ch="+(string)channel);
+            
+            //string sloodlewelcomeurl = sloodleserverroot + sloodlewelcomebase;
+            //llLoadURL(toucheruuid,"Go here and login to Moodle",sloodlewelcomeurl+"?sloodleuuid="+(string)toucheruuid+"&sloodlelst="+sloodle_toucher_code+"&sloodlechannel="+(string)channel);
+            llLoadURL(toucheruuid, "Go here and login to Moodle", toucherloginurl + "&sloodlechannel="+(string)channel);
+
             sloodle_set_text(toucherurl + "\nWaiting for Moodle to send me authorization...");;
         } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
             sloodle_debug("Request received"+sval);
-            if (sval == "OK|SLOODLE_AUTHENTICATION_DONE|"+(string)toucheruuid) {
+            
+            // Extract the status code and user UUID
+            list parts = llParseStringKeepNulls(sval, ["|"], []);
+            integer statuscode = llList2Integer(parts, 0);
+            key checkuuid = NULL_KEY;
+            if (llGetListLength(parts) >= 7) checkuuid = llList2Key(parts, 6);
+            
+            if (statuscode > 0 && checkuuid == toucheruuid) {
                sloodle_display_server_course_status();
                llRemoteDataReply(channel, message_id, "OK", 1); 
                llCloseRemoteDataChannel(channel);      
