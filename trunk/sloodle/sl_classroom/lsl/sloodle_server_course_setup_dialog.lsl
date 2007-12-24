@@ -501,8 +501,8 @@ state authentication
         if(status == 200) {
             if(request_id == http_id) {
                 integer ok = handle_authentication_response(body);
-                if (ok == 1) {
-                    state course_selection;
+                if (ok == 0) {
+                    llResetScript();
                 }
             }
         }
@@ -520,12 +520,15 @@ state authentication
         } else if (type == REMOTE_DATA_REQUEST) { // handle requests sent to us
             sloodle_debug("Request received"+sval);
             
-            // Extract the status code and user UUID
-            list parts = llParseStringKeepNulls(sval, ["|"], []);
-            integer statuscode = llList2Integer(parts, 0);
+            // Split the response at each line (note: double-escaped newlines)
+            list lines = llParseStringKeepNulls(sval, ["\\n"], []);
+            integer numlines = llGetListLength(lines);
+            list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+            integer statuscode = llList2Integer(statusfields, 0);
             key checkuuid = NULL_KEY;
-            if (llGetListLength(parts) >= 7) checkuuid = llList2Key(parts, 6);
-            
+            if (llGetListLength(statusfields) >= 7) checkuuid = llList2Key(statusfields, 6);
+           
+            // CHeck the status code
             if (statuscode > 0 && checkuuid == toucheruuid) {
                sloodle_display_server_course_status();
                llRemoteDataReply(channel, message_id, "OK", 1); 
