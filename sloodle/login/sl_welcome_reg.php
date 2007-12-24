@@ -144,6 +144,9 @@
         $lsl->response->add_data_line('User has been successfully registered.');
         $lsl->response->render_to_string($str);
         
+        // XMLRPC hack -- double escape the newlines
+        $str = str_replace("\n", "\\n", $str);
+        
         sloodle_debug_output('Sending XMLRPC confirmation message...<br/>');
         $xmlrpcresult = sloodle_send_xmlrpc_message($channel, 0, $str);
         if (!$xmlrpcresult) {
@@ -152,7 +155,7 @@
             echo 'ERROR: Unable to tell the object that sent you here that you have been authenticated.';
             echo '</div>';
         } else {
-            sloodle_debug_output('Success fully send XMLRPC confirmation message.<br/>');
+            sloodle_debug_output('Successfully sent XMLRPC confirmation message.<br/>');
         }
     } else {
         sloodle_debug_output('XMLRPC confirmation message not requested.<br/>');
