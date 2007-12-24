@@ -186,6 +186,11 @@ integer handle_authentication_response(string body)
         return 0;
     }
     
+    if (statuscode == 301) {
+        // User is already fully enrolled - no need to do anything else
+        return 2;
+    }
+    
     // Everything is fine
     toucherloginurl = dataline;
     sloodle_set_text(sloodleserverroot+"\nWaiting for "+toucheravname + "to login to Moodle.");        
@@ -501,8 +506,12 @@ state authentication
         if(status == 200) {
             if(request_id == http_id) {
                 integer ok = handle_authentication_response(body);
+                // Check the return code
+                // 0 = error, 1 = registration process start, 2 = already fully registered
                 if (ok == 0) {
                     llResetScript();
+                } else if (ok == 2) {
+                    state course_selection;
                 }
             }
         }
