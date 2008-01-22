@@ -18,6 +18,10 @@
     //   sloodleuuid = UUID of the user's avatar (note: optional if sloodleavname is provided)
     //   sloodleavname = name of the user's avatar (note: optional if sloodleuuid is provided)
     //
+    // The following parameter is optional:
+    //
+    //   sloodlecategoryid = ID of the category to which results should be limited (leave blank or set to 'all' to retrieve all categories)
+    //
     
     // The response code will 1 (OK) for success.
     // Each data line will contain course information: "<id>|<shortname>|<fullname>"
@@ -34,15 +38,24 @@
     sloodle_debug_output('Processing basic request data...<br/>');
     $lsl->request->process_request_data();
     
+    // Authenticate the request
+    sloodle_debug_output('Authenticating request...<br/>');
+    $lsl->request->authenticate_request();
+    
     // Login the user identified in the request
     sloodle_debug_output('Logging-in user...<br/>');
     $lsl->login_by_request();
     
+    // Retreive the category parameter
+    sloodle_debug_output('Fetching additional parameters...<br/>');
+    $sloodlecategoryid = optional_param('sloodlecategoryid', NULL, PARAM_INT);
+    if ($sloodlecategoryid == NULL) $sloodlecategoryid = 'all';
     
-    // Obtain a list of all courses (ought to make this query more efficient by reducing number of fields retrieved)
-    sloodle_debug_output('Fetching list of courses...<br/>');
-    $courses = get_courses();
-    // Go through each
+    // Fetch a list of all courses (just their ID's, short names, and long names)
+    sloodle_debug_output("Fetching list of all courses (category: $sloodlecategoryid)...<br/>");
+    // N.B.: ought to make this query more efficient by reducing number of retrieved fields
+    $courses = get_courses($sloodlecategoryid);
+    // Go through each course
     sloodle_debug_output('Iterating through courses...<br/>');
     foreach ($courses as $c) {
         // Is the user a teacher of this course, or just an admin?
