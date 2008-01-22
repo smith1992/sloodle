@@ -9,7 +9,7 @@
 	print_heading(get_string("cfgnotecard:header", "sloodle"));
 
 	require_login();
-	if (isadmin() || SLOODLE_ALLOW_NORMAL_USER_ACCESS_TO_ADMIN_FUNCTIONS_FOR_TESTING) {
+	if (isadmin()) {
 
 		if ( (sloodle_get_prim_password() == null) || (sloodle_get_prim_password() == '') ) {
 	
