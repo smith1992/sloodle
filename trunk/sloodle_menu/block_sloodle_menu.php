@@ -1,16 +1,17 @@
 <?php
 
-require_once($CFG->dirroot .'/mod/sloodle/config.php');
-require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
-require_once(SLOODLE_DIRROOT.'/lib/sl_userlib.php');
+@include_once($CFG->dirroot .'/mod/sloodle/config.php');
+if (defined('SLOODLE_DIRROOT')) {
+    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
+    require_once(SLOODLE_DIRROOT.'/lib/sl_userlib.php');
+}
 
 class block_sloodle_menu extends block_base {
 
     function init() {
         global $CFG;
         
-        $this->title = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16"/>';
-        $this->title .= get_string('blockname', 'block_sloodle_menu');
+        $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
         $this->version = 2008012300;
     }
@@ -42,7 +43,7 @@ class block_sloodle_menu extends block_base {
         }
         
         // Has the Sloodle activity module been installed?
-        if (!sloodle_is_installed()) {
+        if (!(function_exists("sloodle_is_installed") && sloodle_is_installed())) {
             $this->content->text = get_string('sloodlenotinstalled', 'block_sloodle_menu');
             return $this->content;
         }       
