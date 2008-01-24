@@ -366,8 +366,9 @@
         {
             global $CFG;
             // Include the Moodle authentication library
-            require_once("{$CFG->dirroot}/auth/{$CFG->auth}/lib.php");
-    
+            include_once("{$CFG->dirroot}/auth/{$CFG->auth}/lib.php");
+            include_once("{$CFG->dirroot}/auth/{$CFG->auth}/auth.php");
+
             // Make sure we have all necessary parameters
             if (!isset($firstname) || empty($firstname)) return "Cannot register Moodle user - first name not specified.";
             if (!isset($lastname) || empty($lastname)) return "Cannot register Moodle user - last name not specified.";
@@ -392,6 +393,7 @@
             $moodleuser->firstaccess = time();
             $moodleuser->secret = random_string(15);
             $moodleuser->auth = $CFG->auth;
+            $moodleuser->mnethostid = 1;
             
             // Do we need to check for username conflicts in the authentication module?
             $check_auth = empty($CFG->auth_user_create) == FALSE && function_exists('auth_user_exists') && function_exists('auth_user_create');
