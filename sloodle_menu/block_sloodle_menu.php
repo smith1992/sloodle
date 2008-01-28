@@ -66,7 +66,7 @@ class block_sloodle_menu extends block_base {
             
         } else if (is_string($userresult)) {
             // An error occurred
-            $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>ERROR ('.$result.')</center>';
+            $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>ERROR ('.$userresult.')</center>';
             
         } else {
             // No avatar linked yet
