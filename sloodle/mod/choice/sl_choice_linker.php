@@ -29,7 +29,7 @@
     //    sloodlecourseid = ID of the course being accessed
     //
     // Required for modes 2 and 3:
-    //    sloodlechoiceid = ID of the choice being accessed
+    //    sloodlemoduleid = ID of the choice module instance being accessed
     //
     // Required for mode 3:
     //    sloodleoptionid = ID of the option being selected
@@ -39,7 +39,7 @@
     //
     // The script will default to mode 1.
     // If the "optionid" is specified, it will attempt to adopt mode 3.
-    // Otherwise, if the additional "sloodlechoiceid" parameter is specified, then it will adopt mode 2.
+    // Otherwise, if the additional "sloodlemoduleid" parameter is specified, then it will adopt mode 2.
     //
     ////////////////////////////////////////////////////////////
     
