@@ -50,7 +50,9 @@
     //
     // Note that some glossaries  may contain multiple definitions of a single term.
     // Also note that the search process will find partial matches (e.g. "pri" will find the definition for "prim").
-    
+
+    header ('Content-Type: text/plain; charset=UTF-8');
+ 
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
