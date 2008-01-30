@@ -44,6 +44,8 @@
     // 'msg' is the chat message text.
     //
     
+    header ('Content-Type: text/plain; charset=UTF-8');
+
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
