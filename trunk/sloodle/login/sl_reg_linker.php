@@ -113,7 +113,9 @@ else $lsl->response->set_status_code(1);
 $lsl->response->set_status_descriptor('USER_REG');
 //$lsl->response->add_data_line($sloodle_user->loginsecuritytoken);
 $lsl->response->add_data_line($auth_url); // We'll just output the whole entire URL
+sloodle_debug_output("<pre>");
 $lsl->response->render_to_output();
+sloodle_debug_output("</pre>");
 
 exit();
 ?>
