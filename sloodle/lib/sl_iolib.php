@@ -740,14 +740,14 @@
         // If $response is an object, then it is used as the response object for this request to write to (should be SloodleLSLResponse)
         // If $user is an object, then it is used as the user object for the request (should be SloodleUser)
         // This is useful to allow the same response object to be used in the controlling script as here
-        function SloodleLSLRequest($response = NULL, $user = NULL)
+        function SloodleLSLRequest(&$response, &$user)
         {
             // Store or instantiate our response object
-            if (is_object($response)) $this->response = $response;
+            if (is_object($response)) $this->response = &$response;
             else $this->response = new SloodleLSLResponse();
             
             // Store or instantiate our user object
-            if (is_object($user)) $this->user = $user;
+            if (is_object($user)) $this->user = &$user;
             else $this->user = new SloodleUser();
         }
         
