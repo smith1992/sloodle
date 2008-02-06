@@ -103,12 +103,13 @@
         sloodle_debug_output('Setting up response...<br/>');
         $lsl->response->set_status_code(10021);
         $lsl->response->set_status_descriptor('CHOICE_LIST_QUERY');
-        $lsl->response->add_data_line(array('num_instances',$num_choices));
+        //$lsl->response->add_data_line(array('num_instances',$num_choices)); // removed from spec 2008-02-06
         // Go throgh each choice module instance
         sloodle_debug_output('Going through each choice module instance...<br/>');
         foreach ($choices as $id => $cur_choice) {
             // Output each instance in the format "choice_instance|{id}|{name}"
-            $lsl->response->add_data_line(array('choice_instance', $id, $cur_choice->name));
+            //$lsl->response->add_data_line(array('choice_instance', $id, $cur_choice->name));
+            $lsl->response->add_data_line(array($id, $cur_choice->name)); // changed in spec 2008-02-06
         }
         // Output the response and finish
         sloodle_debug_output('<pre>');
@@ -193,7 +194,7 @@
         $lsl->response->set_status_descriptor('CHOICE_QUERY');
         $lsl->response->add_data_line(array('choice_name',$choice_status->name));
         $lsl->response->add_data_line(array('choice_text',$choice_text));
-        $lsl->response->add_data_line(array('num_options',count($choice_status->option)));
+        //$lsl->response->add_data_line(array('num_options',count($choice_status->option))); // removed from spec 2008-02-06
                 
         // Go throgh each option
         sloodle_debug_output('Going through each option in the choice...<br/>');
