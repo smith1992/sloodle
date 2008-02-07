@@ -6,8 +6,8 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 // Internal module version number
-$module->version  = 2008013100;  // YYYYMMDD##
-$module->requires = 2006050512;   // The version of Moodle that is required
-$module->cron     = 0;            // How often should cron check this module (seconds)?
+$module->version  = 2008020700;  // YYYYMMDD##
+$module->requires = 2006050512;  // The version of Moodle that is required
+$module->cron     = 0;           // How often should cron check this module (seconds)?
 
 ?>
