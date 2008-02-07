@@ -38,6 +38,8 @@ string modulename = "";
 
 // What channel should configuration data be received on?
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
+// What channel should choice control operate over?
+integer SLOODLE_CHANNEL_OBJECT_CHOICE = -1639270051;
 // This channel will be used for the avatar setting options
 integer SLOODLE_CHANNEL_AVATAR_SETTING = 1;
 // Relative path to the choice linker script from the Moodle root
@@ -97,10 +99,17 @@ integer sloodle_handle_command(string str)
     return FALSE;
 }
 
+// Reset the whole script
+resetScript()
+{
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
+    llResetScript();
+}
+
 // Send a message to the front-end of the choice
 notify_frontend(string str, key k)
 {
-    llMessageLinked(LINK_ALL_OTHERS, SLOODLE_CHANNEL_OBJECT_DIALOG, str, k);
+    llMessageLinked(LINK_ALL_OTHERS, SLOODLE_CHANNEL_OBJECT_CHOICE, str, k);
 }
 
 // Send a request for a list of choices
@@ -360,6 +369,11 @@ default
             }
         }
     }
+    
+    touch_start(integer num_detected)
+    {
+        if (llDetectedKey(0) == llGetOwner()) resetScript();
+    }
 }
 
 
@@ -554,7 +568,7 @@ state active
             msg = llToLower(msg);
             if (msg == "reset") {
                 // We are to reset the entire script
-                llResetScript();
+                resetScript();
                 return;
             }
             
@@ -566,7 +580,7 @@ state active
     link_message(integer sender_num, integer num, string str, key id)
     {
         // Received a link message - check the channel
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+        if (num == SLOODLE_CHANNEL_OBJECT_CHOICE) {
             // Split the message into parts (separated by a pipe character)
             list parts = llParseStringKeepNulls(str, ["|"], []);
             integer numparts = llGetListLength(parts);
