@@ -2,18 +2,18 @@
 // Allows SL users in-world to write to their Moodle blog
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-7 Sloodle (various contributors)
+// Copyright (c) 2006-8 Sloodle (various contributors)
 // Released under the GNU GPL
 //
 // Contributors:
-//  Daniel Livingstone - original design and implementation
-//  Edmund Edgar - authentication
-//  Peter R. Bloomfield - complete re-write, and added notecard initialisation
-//  Peter R. Bloomfield - updated to use new communications and avatar registration methods (Sloodle 0.2)
+//  Daniel Livingstone
+//  Edmund Edgar
+//  Peter R. Bloomfield
 //
 
 // Version history:
 //
+// 1.1 - added channel menu and "ready" display
 // 1.0 - updated to use new communications and avatar registration methods for Sloodle 0.2
 // 0.9.2 - Corrected the reset calls from 0.9.1 to use "attach" event, and changed authentication link to a chat message
 // 0.9.1 - Added appropriate reset calls for whenever the HUD object gets attached to the HUD
@@ -37,22 +37,36 @@
 key null_key = NULL_KEY;
 
 // Timeout values
-float CHAT_TIMEOUT = 180.0; // Time to wait for the user to chat something
-float CONFIRM_TIMEOUT = 180.0; // Time to wait for the user to confirm the entry
+float CHAT_TIMEOUT = 600.0; // Time to wait for the user to chat something
+float CONFIRM_TIMEOUT = 600.0; // Time to wait for the user to confirm the entry
 float HTTP_TIMEOUT = 15.0; // Time to wait for an HTTP response
-float DATASERVER_TIMEOUT = 10.0; // Time to wait for dataserver events (e.g. reading a notecard line)
-
-// What chat channel should we receive user info on?
-integer USER_CHAT_CHANNEL = 0;
 
 // What channel should configuration data be received on?
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 // What link channel should be used to communicate URLs?
 integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
+// What channel should we listen on for avatar dialogs?
+integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+
+
+// Commands to other parts of the object
+string SLOODLE_CMD_BLOG = "blog";
+string SLOODLE_CMD_CHANNEL = "channel";
+// Command statuses
+string SLOODLE_CMD_READY = "ready";
+string SLOODLE_CMD_NOTREADY = "notready";
+string SLOODLE_CMD_ERROR = "error";
+
 ///// --- /////
 
 
 ///// DATA /////
+
+// What chat channel should we receive user info on?
+integer user_chat_channel = 0;
+// Handle for the current "listen" command for user dialog
+integer user_listen_handle = 0;
+
 // The address of the moodle installation
 string sloodleserverroot = "";
 // The prim password for accessing the site
@@ -141,6 +155,28 @@ integer sloodle_handle_command(string str)
     return FALSE;
 }
 
+// Show the menu for which chat channel to listen on
+// (Shows menu to owner, and starts listening for owner messages)
+show_channel_menu()
+{
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llGetOwner(), "");
+    llDialog(llGetOwner(), "Currently using channel: " + (string)user_chat_channel + ".\nPlease select which channel you would like to use:", ["0", "1", "2", "Cancel"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+}
+
+// Handle a channel change message
+handle_channel_change(integer ch)
+{
+    // Make sure it's a valid number
+    if (ch >= 0 || ch <= 2) {
+        // Store the new channel number and change the "listen" command
+        user_chat_channel = ch;
+        llListenRemove(user_listen_handle);
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
+        // Update the display
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_CHANNEL + "|" + (string)ch, NULL_KEY);
+    }
+}
+
 ///// --- /////
 
 
@@ -152,6 +188,10 @@ default
     {
         // Clear any item text
         llSetText("", <0.0,0.0,0.0>, 0.0);
+        // Reset our channel number display
+        handle_channel_change(0);
+        
+        
         // Make sure this is attached as a HUD object
         if (llGetAttached() < 30)
         {
@@ -165,6 +205,9 @@ default
         resetSettings();
         resetWorkingValues();
         updatepending = FALSE;
+        
+        // Update the display to say "not ready"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_NOTREADY, NULL_KEY);
     }
     
     state_exit()
@@ -217,6 +260,9 @@ state error
         // Inform the user that they can retry the setup process
         llOwnerSay("Touch me to retry the setup process.");
         llSetText("Initialisation/authentication failed.\nTouch me to retry the setup process.", <1.0,0.0,0.0>, 1.0);
+        
+        // Update the display to say "error"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_ERROR, NULL_KEY);
     }
     
     state_exit()
@@ -359,6 +405,9 @@ state ready
         // Reset all of the working values and display from the last blog entry
         resetDisplay();
         resetWorkingValues();
+        
+        // Update display to say "ready"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_READY, NULL_KEY);
     }
     
     touch_start( integer num )
@@ -368,10 +417,22 @@ state ready
                 
         // Get the name of the prim that was touched
         string name = llGetLinkName(llDetectedLinkNumber(0));
-        // Has the "start blog" button been clicked?
-        if (name == "start_blog")
-        {
+        if (name == "start_blog") {
             state get_subject;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
+        }
+    }
+    
+    listen( integer channel, string name, key id, string msg )
+    {
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Update our channel number
+            handle_channel_change((integer)msg);
+            return;
         }
     }
     
@@ -405,7 +466,7 @@ state get_subject
         
         // Listen for chat messages from the owner of this object
         llOwnerSay("Please chat the subject line of your blog entry.");
-        llListen(USER_CHAT_CHANNEL, "", llGetOwner(), "");
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
         
         // Set a timeout
         llSetTimerEvent(CHAT_TIMEOUT);
@@ -436,28 +497,41 @@ state get_subject
             // The "cancel" button was touched
             llOwnerSay("Blog entry cancelled.");
             state ready;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
         }
     }
     
     listen( integer channel, string name, key id, string msg )
     {
-        // Make sure the message is not empty
-        if (msg == "") {
-            llOwnerSay("The blog subject cannot be empty. Please enter it again.");
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Update our channel number
+            handle_channel_change((integer)msg);
             return;
-        }
-        
-        // Store and display the blog subject
-        blogsubject = msg;
-        llMessageLinked(LINK_ALL_CHILDREN, 1, msg, NULL_KEY);
+            
+        } else if (channel == user_chat_channel) {
+            // Make sure the message is not empty
+            if (msg == "") {
+                llOwnerSay("The blog subject cannot be empty. Please enter it again.");
+                return;
+            }
+            
+            // Store and display the blog subject
+            blogsubject = msg;
+            llMessageLinked(LINK_ALL_CHILDREN, 1, msg, NULL_KEY);
 
-        // Are we in confirmation mode?
-        if (confirmationmode) {
-            // Yes - go back to the confirmation state
-            state confirm;
-        } else {
-            // Get the body of the blog now
-            state get_body;
+            // Are we in confirmation mode?
+            if (confirmationmode) {
+                // Yes - go back to the confirmation state
+                state confirm;
+            } else {
+                // Get the body of the blog now
+                state get_body;
+            }
+            return;
         }
     }
     
@@ -491,7 +565,7 @@ state get_body
         
         // Listen for chat messages from the owner of this object
         llOwnerSay("Please chat the body of your blog entry.");
-        llListen(USER_CHAT_CHANNEL, "", llGetOwner(), "");
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
         
         // Set a timeout
         llSetTimerEvent(CHAT_TIMEOUT);
@@ -522,23 +596,36 @@ state get_body
             // The "cancel" button was touched
             llOwnerSay("Blog entry cancelled.");
             state ready;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
         }
     }
     
     listen( integer channel, string name, key id, string msg )
     {
-        // Make sure the message is not empty
-        if (msg == "") {
-            llOwnerSay("The blog body cannot be empty. Please enter it again.");
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Update our channel number
+            handle_channel_change((integer)msg);
+            return;
+            
+        } else if (channel == user_chat_channel) {
+            // Make sure the message is not empty
+            if (msg == "") {
+                llOwnerSay("The blog body cannot be empty. Please enter it again.");
+                return;
+            }
+            
+            // Store and display the blog subject
+            blogbody = msg;
+            llMessageLinked(LINK_ALL_CHILDREN, 2, msg, NULL_KEY);
+            
+            // Confirm the blog entry now
+            state confirm;
             return;
         }
-        
-        // Store and display the blog subject
-        blogbody = msg;
-        llMessageLinked(LINK_ALL_CHILDREN, 2, msg, NULL_KEY);
-        
-        // Confirm the blog entry now
-        state confirm;
     }
     
     changed( integer change )
@@ -606,11 +693,25 @@ state confirm
             }
             // Send it
             state send;
-        }
-        else if (name == "cancel") {
+        } else if (name == "cancel") {
             // The "cancel" button was touched
             llOwnerSay("Blog entry cancelled.");
             state ready;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
+        }
+    }
+    
+    listen( integer channel, string name, key id, string msg )
+    {
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Update our channel number
+            handle_channel_change((integer)msg);
+            return;
+            
         }
     }
     
@@ -683,6 +784,7 @@ state send
     timer()
     {
         // We have timed-out waiting for an HTTP response
+        llSetTimerEvent(0.0);
         llOwnerSay("ERROR: Timeout waiting for HTTP response. You may try again, or cancel.");
         state confirm;
     }
