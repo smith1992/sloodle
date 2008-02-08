@@ -56,7 +56,7 @@ default
             if (status == SLOODLE_CMD_READY) {
                 llSetTexture(SLOODLE_TEX_READY, TEXTURE_SIDE);
             } else if (status == SLOODLE_CMD_NOTREADY) {
-                llSetTexture(SLOODLE_TEX_READY, TEXTURE_SIDE);
+                llSetTexture(SLOODLE_TEX_NOTREADY, TEXTURE_SIDE);
             } else if (status == SLOODLE_CMD_ERROR) {
                 llSetTexture(SLOODLE_TEX_ERROR, TEXTURE_SIDE);
             }
