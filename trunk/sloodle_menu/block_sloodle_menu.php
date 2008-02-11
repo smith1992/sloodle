@@ -52,14 +52,27 @@ class block_sloodle_menu extends block_base {
         $this->content->footer = '<span style="color:#565656;font-style:italic;">'.get_string('sloodleversion', 'block_sloodle_menu').': '.(string)SLOODLE_VERSION.'</span>';
                 
         // Attempt to find a Sloodle user for the Moodle user
-        $sl_user = new SloodleUser();
-        $sl_user->set_moodle_user_id($USER->id);
-        $sl_avatar_name = '';
-        $userresult = $sl_user->find_linked_sloodle_user();
+        //$sl_user = new SloodleUser();
+        //$sl_user->set_moodle_user_id($USER->id);
+        //$sl_avatar_name = '';
+        //$userresult = $sl_user->find_linked_sloodle_user();
+
+        $dbquery = "    SELECT * FROM `{$CFG->prefix}sloodle_users`
+                        WHERE `userid` = {$USER->id} AND !(`avname` = '' AND `uuid` = '')
+                        LIMIT 0,2
+                    ";
+        $dbresult = get_records_sql($dbquery);
+        $sl_avatar_name = "";
+        if (!is_array($dbresult) || count($dbresult) == 0) $userresult = FALSE;
+        else if (count($dbresult) > 1) $userresult = "Multiple avatars associated with your Moodle account.";
+        else {
+            $userresult = TRUE;
+            reset($dbresult);
+            $sl_avatar_name = current($dbresult)->avname;
+        }
         
         if ($userresult === TRUE) {
-            // Success - store the avatar name locally
-            $sl_avatar_name = $sl_user->sloodle_user_cache->avname;
+            // Success
             // Make sure there was a name
             if (empty($sl_avatar_name)) $sl_avatar_name = '('.get_string('nameunknown', 'block_sloodle_menu').')';
             $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>'.$sl_avatar_name.'</center>';
