@@ -1,6 +1,6 @@
 //////////
 //
-// Sloodle Toolbar menu script
+// Sloodle Toolbar menu script (v2.0)
 // Controls the Toolbar as a whole, and runs the Classroom Gestures
 // Part of the Sloodle project (www.sloodle.org)
 //
@@ -9,17 +9,38 @@
 //
 // Contributors:
 //  - <unknown>
+//  - Peter R. Bloomfield
 //
 //////////
 //
 // Versions:
+//  2.1 - added auto-hide feature (although it might not be very good yet... I think we need a better method!)
+//  2.0 - centralised animation control in this script (rather than separate scripts)
 //  - <history unknown>
 //
 //////////
+//
+// Usage:
+//  This script should be in the *root* prim of an object, and expects that a series of linked
+//   child prims are given names such as "gesture:wave". These objects should *not* process their
+//   own "touch_start" events, but should pass them back to the parent (this is the default behaviour).
+//  When "touch_start" is called, this object will get the name of the prim that was touched, and
+//   look it up in a list of animation data. It will start/stop the associated animation as appropriate.
+//
+//  If the root prim is touched, then it flips between the two modes of operation.
+//  If the "minimize_button" is touched, then it auto-hides or unhides itself.
+//  
+//
+//////////
 
+// Name of the minimize and restore button objects
+string MINIMIZE_BUTTON = "minimize_button";
+string RESTORE_BUTTON = "restore_button";
 
 // Is the toolbar flipped over? (i.e. is it on gestures?)
 integer flipped = 0;
+// Is the toolbar currently hidden ('minimized')?
+integer hidden = 0;
 // Sound to be played when the toolbar is touched
 string touchSound = "";
 
@@ -68,6 +89,28 @@ default
         // Which link was touched?
         integer linknumber = llDetectedLinkNumber(0);
         string name = llGetLinkName(linknumber);
+
+        // Is the toolbar currently hidden?
+        if (hidden == 1) {
+            // If the restore button was pressed, then unhide it. Otherwise, ignore the touch.
+            if (name == RESTORE_BUTTON) {
+                hidden = 0;
+                if (flipped) llSetRot(llEuler2Rot(<0,PI,0>));
+                else llSetRot(ZERO_ROTATION);
+            }
+            return;
+        }
+        // Was the minimize button pressed?
+        if (name == MINIMIZE_BUTTON) {
+            // Hide it
+            hidden = 1;
+            llSetRot(llEuler2Rot(<0,PI * 0.5,0>));
+            return;
+        }
+
+        // Ignore any other touches if we are hidden
+        if (hidden == 1) return;
+        
         if (name == llGetObjectName()) {
             // Toggle the rotation between gestures and blog
             if (!flipped)
@@ -120,3 +163,4 @@ default
         }
     }
 }
+

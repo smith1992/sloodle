@@ -20,11 +20,19 @@ string SLOODLE_CMD_BLOG = "blog";
 string SLOODLE_CMD_READY = "ready";
 string SLOODLE_CMD_NOTREADY = "notready";
 string SLOODLE_CMD_ERROR = "error";
+string SLOODLE_CMD_SUBJECT = "subject";
+string SLOODLE_CMD_BODY = "body";
+string SLOODLE_CMD_CONFIRM = "confirm";
+string SLOODLE_CMD_SENDING = "sending";
 
 // Name of each texture
 string SLOODLE_TEX_READY = "ready";
 string SLOODLE_TEX_NOTREADY = "not_ready";
 string SLOODLE_TEX_ERROR = "error";
+string SLOODLE_TEX_SUBJECT = "subject";
+string SLOODLE_TEX_BODY = "body";
+string SLOODLE_TEX_CONFIRM = "confirm";
+string SLOODLE_TEX_SENDING = "sending";
 
 // Which side will the texture apply to?
 integer TEXTURE_SIDE = 5;
@@ -55,10 +63,25 @@ default
             // Check what the status is
             if (status == SLOODLE_CMD_READY) {
                 llSetTexture(SLOODLE_TEX_READY, TEXTURE_SIDE);
+                
             } else if (status == SLOODLE_CMD_NOTREADY) {
                 llSetTexture(SLOODLE_TEX_NOTREADY, TEXTURE_SIDE);
+                
             } else if (status == SLOODLE_CMD_ERROR) {
                 llSetTexture(SLOODLE_TEX_ERROR, TEXTURE_SIDE);
+                
+            } else if (status == SLOODLE_CMD_SUBJECT) {
+                llSetTexture(SLOODLE_TEX_SUBJECT, TEXTURE_SIDE);
+                
+            } else if (status == SLOODLE_CMD_BODY) {
+                llSetTexture(SLOODLE_TEX_BODY, TEXTURE_SIDE);
+                
+            } else if (status == SLOODLE_CMD_CONFIRM) {
+                llSetTexture(SLOODLE_TEX_CONFIRM, TEXTURE_SIDE);
+                
+            } else if (status == SLOODLE_CMD_SENDING) {
+                llSetTexture(SLOODLE_TEX_SENDING, TEXTURE_SIDE);
+                
             }
         }
     }

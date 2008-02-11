@@ -56,6 +56,10 @@ string SLOODLE_CMD_CHANNEL = "channel";
 string SLOODLE_CMD_READY = "ready";
 string SLOODLE_CMD_NOTREADY = "notready";
 string SLOODLE_CMD_ERROR = "error";
+string SLOODLE_CMD_SUBJECT = "subject";
+string SLOODLE_CMD_BODY = "body";
+string SLOODLE_CMD_CONFIRM = "confirm";
+string SLOODLE_CMD_SENDING = "sending";
 
 ///// --- /////
 
@@ -470,6 +474,9 @@ state get_subject
         
         // Set a timeout
         llSetTimerEvent(CHAT_TIMEOUT);
+
+        // Update display to say "subject"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_SUBJECT, NULL_KEY);
     }
     
     state_exit()
@@ -569,6 +576,9 @@ state get_body
         
         // Set a timeout
         llSetTimerEvent(CHAT_TIMEOUT);
+
+        // Update display to say "body"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_BODY, NULL_KEY);
     }
     
     state_exit()
@@ -664,6 +674,9 @@ state confirm
         
         // Set a timeout
         llSetTimerEvent(CONFIRM_TIMEOUT);
+
+        // Update display to say "confirm"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_CONFIRM, NULL_KEY);
     }
     
     state_exit()
@@ -751,6 +764,9 @@ state send
         llSetTimerEvent(0.0);
         
         llOwnerSay("Thank you! Please wait while the entry is sent...");
+        
+        // Update display to say "sending"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_SENDING, NULL_KEY);
         
         // Copy the blog body so we can escape one of them for transmission
         string blogbody_copy = blogbody;
