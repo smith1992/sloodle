@@ -5,6 +5,8 @@
 
 $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
 
+$string['allocated'] = 'Allocated';
+
 $string['authmethod:default'] = 'User authentication method automatically set to default.';
 $string['authmethod:invalid'] = 'Invalid user authentication method. Please re-select.';
 $string['authmethod:updated'] = 'User authentication method updated';
@@ -12,6 +14,7 @@ $string['authmethod:updated'] = 'User authentication method updated';
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
 $string['avatarname'] = 'Avatar name';
+$string['avataruuid'] = 'Avatar UUID';
 
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
 
@@ -27,24 +30,36 @@ $string['cfgnotecard:setnote'] = 'Note: if you configure a Sloodle Set, then it 
 $string['choosecourse'] = 'Choose the course you want to use in Second Life.';
 $string['clickchangeit'] = 'Click here to change it';
 $string['clickhere'] = 'click here';
+$string['clicktodeleteentry'] = 'Click here to delete this entry.';
 $string['clicktoteleportanyway'] = 'Click here to teleport to the Sloodle site in-world anyway.';
 $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['createnotecard'] = 'Create notecard';
 
+$string['databasequeryfailed'] = 'Database query failed.';
+$string['delete'] = 'Delete';
+$string['deletionfailed'] = 'Deletion failed';
+$string['deletionsuccessful'] = 'Deletion successful';
+
 $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
+$string['expired'] = 'Expired';
 
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userauth'] = 'What are the User Authentication methods?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
+$string['help:multipleentries'] = 'Why are there multiple entries? What does it mean?';
+
+$string['invalidid'] = 'Invalid ID';
+$string['insufficientpermission'] = 'You do not have sufficient permission';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 
+$string['loginzoneposition'] = 'LoginZone Position?';
 $string['loginzone:datamissing'] = 'Some of the Login Zone data could not be found.';
 $string['loginzone:mayneedrerez'] = 'The Login Zone may need to be re-rezzed.';
 $string['loginzone:useteleportlink'] = 'A Login Position has been allocated for you. Please use the following link to teleport to it:';
@@ -58,6 +73,20 @@ $string['mod.html:placeholder2'] = 'We hope to have the instance capability adde
 $string['mod.html:placeholder3'] = 'Please refer to our website for further information:';
 $string['mod.html:placeholder4'] = 'Sorry for any inconvenience.';
 
+$string['modulename'] = 'Sloodle Virtual Classroom';
+$string['modulenameplural'] = 'Sloodle Virtual Classrooms';
+$string['moodleadminindex'] = 'Moodle administration index';
+$string['multipleentries'] = 'Warning: there are multiple Sloodle entries associated with this Moodle account.';
+
+$string['name'] = 'Name:';
+$string['needadmin'] = 'You need administrator privileges to continue.';
+$string['No'] = 'No';
+$string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
+$string['nosloodleusers'] = 'No users registered with Sloodle';
+$string['nodeletepermission'] = 'You do not have permission to delete this entry.';
+$string['noentries'] = 'The are no entries associated with this Moodle account.';
+
+$string['Object'] = 'Object';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'Some Sloodle objects will require a configuration notecard before you can use them with your Moodle installation. Click the following link to get the text for a configuration notecard:';
 
@@ -69,18 +98,6 @@ $string['objectname'] = 'Object Name';
 $string['objectuuid'] = 'Object UUID';
 
 $string['or'] = 'or';
-
-$string['modulename'] = 'Sloodle Virtual Classroom';
-$string['modulenameplural'] = 'Sloodle Virtual Classrooms';
-
-$string['moodleadminindex'] = 'Moodle administration index';
-
-$string['needadmin'] = 'You need administrator privileges to continue.';
-$string['No'] = 'No';
-$string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
-$string['nosloodleusers'] = 'No users registered with Sloodle';
-
-$string['Object'] = 'Object';
 
 $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the configuration of all your Second Life objects which use it.';
@@ -133,6 +150,7 @@ $string['userauth:save'] = 'Save User Authentication Settings';
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 
+$string['sloodleuserprofile'] = 'Sloodle User Profile';
 $string['uuid'] = 'UUID';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
