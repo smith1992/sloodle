@@ -1,15 +1,18 @@
 <?php
-    // Sloodle object distribution channel linker
-    // Allows an in-world distribution object to set the XMLRPC channel which the server should use to instruct it to distribute objects in-world
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2006-7 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Edmund Edgar - original design and implementation
-    //   Peter R. Bloomfield - updated to use new API and communications format (Sloodle 0.2)
-    //
+    
+    /**
+    * Sloodle object distribution channel linker.
+    *
+    * Allows an in-world Sloodle Object Distributor object to send object distribution information to the Moodle database (including inventory list).
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2006-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // Expected to be called from in-world by an LSL script.
     // The following parameters are required:

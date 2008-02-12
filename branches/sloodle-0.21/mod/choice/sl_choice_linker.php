@@ -1,15 +1,16 @@
 <?php
-    // Sloodle choice linker
-    // Allows Sloodle "choice" objects in Second Life to interact with Moodle choice module instances
-    // Part of the Sloodle Project
-    // See www.sloodle.org for more information
-    //
-    // Copyright (c) 2007 Sloodle
-    // Release under the GNU GPL
-    //
-    // Contributors:
-    //  Peter R. Bloomfield - original design and implementation
-    //
+    /**
+    * Sloodle choice linker.
+    *
+    * Allows Sloodle "choice" objects in Second Life to interact with Moodle choice module instances.
+    *
+    * @package sloodlechoice
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     
     ////////////////////////////////////////////////////////////

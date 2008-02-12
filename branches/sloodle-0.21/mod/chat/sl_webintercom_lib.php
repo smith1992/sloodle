@@ -1,15 +1,17 @@
 <?php
-    // Sloodle WebIntercom local library functions
-    // Allows access to the Moodle chat data
-    // See www.sloodle.org for more information
-    //
-    // Part of the Sloodle project (www.sloodle.org)
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Peter R. Bloomfield - original design and implementation
-    //
+
+    /**
+    * Sloodle WebIntercom local library functions.
+    *
+    * Allows easier access to the Moodle chatroom data.
+    *
+    * @package sloodlechat
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script expects that the Sloodle configuration script has already been included
 

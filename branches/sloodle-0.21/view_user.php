@@ -1,13 +1,17 @@
 <?php
-    // User profile interface script
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2008 Sloodle (various contributors)
-    // Released under the GNU GPL v3
-    //
-    // Contributors:
-    //  Peter R. Bloomfield
-    //
+    
+    /**
+    * Sloodle user profile page.
+    *
+    * Shows all Sloodle avatar entries associated with a particular user's Moodle account.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     //
     // This script will display Sloodle-related user information about a particular Moodle user.

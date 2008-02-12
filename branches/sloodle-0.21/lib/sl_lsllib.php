@@ -1,14 +1,17 @@
-<?php
-    // Sloodle LSL handling library
-    // Provides functionality for handling LSL requests etc.
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) Sloodle 2007
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Peter R. Bloomfield - original design and implementation
-    //
+<?php    
+    /**
+    * Sloodle LSL handling library.
+    *
+    * Provides the central API functionality, automatically combining several other API elements.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    * @since Sloodle 0.2
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This library expects that the Sloodle config file has already been included
     //  (along with the Moodle libraries)

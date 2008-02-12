@@ -1,15 +1,20 @@
 <?php 
-    // Sloodle blog linker
-    // Allows the Sloodle Toolbar object in Second Life to write to a user's Moodle blog
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   various - original design and implementation
-    //   Peter R. Bloomfield - udpated to use new API and communications format
-    //
+    
+    // This file is part of the Sloodle project (www.sloodle.org) and is released under the GNU GPL v3.
+    
+    /**
+    * Sloodle blog linker.
+    *
+    * Allows the Sloodle Toolbar HUD object in Second Life to write to a user's Moodle blog.
+    *
+    * @package sloodleblog
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor (various - original design and implementation)
+    * @contributor Peter R. Bloomfield - updated to use new API and communications format
+    *
+    */
 
     // This script is expected to be accessed from in-world.
     // The following parameters are required:

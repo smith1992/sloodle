@@ -1,4 +1,12 @@
 <?php
+    /**
+    * Sloodle core script.
+    *
+    * Sets up the basic Sloodle information, and includes the necessary Moodle data/functionality.
+    *
+    * @package sloodle
+    *
+    */
 
 	// Pull in the main moodle config
 	// NB the following is necessary for when we pull in this config.php from a module under sloodle/mod

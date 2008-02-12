@@ -1,5 +1,19 @@
 <?php
 
+    /**
+    * Sloodle configuration notecard generation script.
+    *
+    * Can be accessed by a Moodle administrator via web-browser to generate text for a configuration notecard.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
+
 	require_once('config.php');
 	require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 

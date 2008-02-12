@@ -1,17 +1,22 @@
 <?php
-    // Sloodle quiz linker
-    // Allows in-world objects to interact with Moodle quizzes
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2006-7 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   (various Moodle authors) - original quiz functionality
-    //   Edmund Edgar - specialized for Sloodle
-    //   Peter R. Bloomfield - updated (partially) to use new API and communications format
-    //
+    // This file is part of the Sloodle project (www.sloodle.org).
 
+    /**
+    * Sloodle quiz linker.
+    * 
+    * Allows in-world objects to interact with Moodle quizzes.
+    * <b>Note:</b> this script was copied and changed from the Moodle quiz script.
+    * 
+    * @package sloodlequiz
+    * @copyright Original copyright (c) Moodle (various contributors)
+    * @copyright Sloodle changes copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+    *
+    * @contributor (various Moodle developers - original quiz functionality)
+    * @contributor Edmund Edgar - altered script for use in Sloodle
+    * @contributor Peter R. Bloomfield - updated to use new communications format
+    */
+    
     // This script is expected to be requested by an in-world object.
     // The following parameters are required:
     //
@@ -29,25 +34,8 @@
     //   timeup = true if submission was by timer
     //    forcenew = teacher has requested a new preview
     //    action = ??
+
     
-
-
-/**
-* This page prints a particular instance of quiz
-*
-* @version $Id: attempt.php,v 1.87.2.5 2006/08/10 15:31:00 skodak Exp $
-* @author Martin Dougiamas and many others. This has recently been completely
-*         rewritten by Alex Smith, Julian Sedding and Gustav Delius as part of
-*         the Serving Mathematics project
-*         {@link http://maths.york.ac.uk/serving_maths}
-* @license http://www.gnu.org/copyleft/gpl.html GNU Public License
-* @package quiz
-*
-* Sloodlized by Edmund Edgar, 2006-11
-* Changed to give responses to an lsl script
-*
-*/
-
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');

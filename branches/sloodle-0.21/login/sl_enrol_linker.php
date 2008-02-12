@@ -1,15 +1,20 @@
 <?php
-    // Sloodle enrolment linker
-    // Allows SL objects in-world to check and initiate student enrolment in courses
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Edmund Edgar - original design and implementation
-    //   Peter R. Bloomfield - updated to use new API and communications format
-    //
+    
+    // This file is part of the Sloodle project (www.sloodle.org) and is released under the GNU GPL v3.
+    
+    /**
+    * Sloodle enrolment linker.
+    *
+    * Allows SL objects in-world to query and initiate student enrolment in courses.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script is expected to be called from an LSL script in-world
     // The following parameters (GET or POST) are required in all circumstances:

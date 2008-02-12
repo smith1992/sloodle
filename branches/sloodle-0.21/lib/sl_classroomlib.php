@@ -1,14 +1,19 @@
 <?php
-    // Sloodle classroom profile library functions
-    // Provides back-end functionality for handling and managing Sloodle classroom profiles
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2006-7 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Edmund Edgar - original design and implementation
-    //   Peter R. Bloomfield - updated slightly and added some simple functions
+    
+    /**
+    * Sloodle classroom setup profile library.
+    *
+    * Provides back-end functionality for handling and managing Sloodle classroom setup profiles.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2006-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
+    
     
     require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 

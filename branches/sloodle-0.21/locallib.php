@@ -1,4 +1,12 @@
 <?php
+    /**
+    * Former library file. Superceded by contents of "lib" folder.
+    *
+    * @package sloodle
+    * @deprecated
+    *
+    */
+
     // Note: this script is no longer in use
     // Library functionality has been moved to various files in the 'lib' folder
     

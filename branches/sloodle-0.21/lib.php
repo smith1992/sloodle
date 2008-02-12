@@ -1,6 +1,17 @@
 <?php
 
-
+    /**
+    * Sloodle module core library functionality.
+    *
+    * This script is required by Moodle to contain certain key functionality for the module.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
 
 // Process the configuration options for the Sloodle module
 // $config is a reference to the submitted configuration settings

@@ -1,4 +1,17 @@
 <?php
+    /**
+    * Sloodle module instance view placeholder script.
+    *
+    * A temporary placeholder to give information when a user attempts to browse Sloodle module instances.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
+
     // Include the Sloodle configuration
     require_once('config.php');
     

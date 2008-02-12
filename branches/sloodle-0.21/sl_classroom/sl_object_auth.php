@@ -1,15 +1,17 @@
 <?php
-    // Sloodle object authorization page
-    // Allows users to authorize in-world objects to communicate with Moodle
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2006-7 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //    Edmund Edgar - original design and implementation
-    //    Peter R. Bloomfield - cleaned and updated script
-    //
+    /**
+    * Sloodle object authorization page.
+    *
+    * Allows users in Moodle to authorize or deny in-world objects' access to Moodle.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script should be accessed from a web-browser.
     // There are two modes of operation.

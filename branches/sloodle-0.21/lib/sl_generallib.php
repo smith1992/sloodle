@@ -1,15 +1,18 @@
 <?php
-    // Sloodle general library
-    // Provides functionality various utility functions for a variety of purposes
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) Sloodle 2007
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Edmund Edgar - several original functions
-    //  Peter R. Bloomfield - constructed library file and updated functions
-    //
+    
+    /**
+    * Sloodle general library.
+    *
+    * Provides various utility functionality for general Sloodle purposes.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This library expects that the Sloodle config file has already been included
     //  (along with the Moodle libraries)
