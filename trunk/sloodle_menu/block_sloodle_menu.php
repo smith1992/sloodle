@@ -75,7 +75,16 @@ class block_sloodle_menu extends block_base {
             // Success
             // Make sure there was a name
             if (empty($sl_avatar_name)) $sl_avatar_name = '('.get_string('nameunknown', 'block_sloodle_menu').')';
-            $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>'.$sl_avatar_name.'</center>';
+            $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>';
+            
+            // Make the avatar name a link if the user management page exists
+            if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
+                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}\">$sl_avatar_name</a>";
+            } else {
+                $this->content->text .= $sl_avatar_name;
+            }
+
+            $this->content->text .= '<br/></center>';
             
         } else if (is_string($userresult)) {
             // An error occurred
@@ -88,7 +97,13 @@ class block_sloodle_menu extends block_base {
         
         // Add links to common Sloodle stuff
         $this->content->text .= '<div style="padding:1px; margin-top:4px; margin-bottom:4px; border-top:solid 1px #cccccc; border-bottom:solid 1px #cccccc;">';
-        
+
+        // Only add this if the file exists
+        if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
+            $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user.gif\" width=\"16\" height=\"16\"/> ";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";
+        }        
+
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/boxes.gif\" width=\"16\" height=\"16\"/> ";
         $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/sl_distrib/sl_send_object.php\">".get_string('objectdistributor', 'block_sloodle_menu')."</a><br/>";
         
