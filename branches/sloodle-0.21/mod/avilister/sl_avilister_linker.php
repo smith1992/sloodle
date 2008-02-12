@@ -1,15 +1,17 @@
 <?php
-    // Sloodle AviLister linker script
-    // Allows a tool in-world to fetch a list of avatars' associated Moodle names
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Jeremy Kemp (and others?) - original design and implementation
-    //   Peter R. Bloomfield - rewritten and expanded for Sloodle 0.2 (using new API/comms. format, and added list mode)
-    //
+    /**
+    * Sloodle AviLister linker script.
+    *
+    * Allows a tool in-world to fetch avatars' associated Moodle names.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Jeremy Kemp (and others?)
+    * @contributor Peter R. Bloomfield - rewritten and expanded for Sloodle 0.2 (using new API/comms. format, and added list mode)
+    *
+    */
     
     // This script is expected to be called by in-world Sloodle objects.
     // The following parameters are required:
@@ -34,6 +36,8 @@
     //  "<avatar_name>|<moodle_name>|<online>"
     // (The <online> parameter is either 1 or 0, indicating whether or not that user is currently online in SL)
     // Lookup mode returns 1 entry, whereas list mode may return many
+    //
+    // Note: list mode will *not* list Moodle users who have no avatar, nor avatars not linked to a Moodle user
     
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
@@ -62,9 +66,15 @@
             $lsl->response->set_status_descriptor('REQUEST');
             $lsl->response->add_data_line('Expected avatar UUID and name, or course ID.');
         } else {
+            // Make sure the course exists
+            if (!record_exists('course', 'id', $lsl->request->get_course_id())) {
+                $lsl->response->quick_output(-512, 'COURSE', 'The specified course does not exist.', FALSE);
+                exit();
+            }
             // Everything seems OK... fetch a list of users in the course
             sloodle_debug_output('Fetching list of users in course...<br/>');
             $courseusers = get_course_users($lsl->request->get_course_id());
+            if (!is_array($courseusers)) $courseusers = array();
             // Construct the response header
             $lsl->response->set_status_code(1);
             $lsl->response->set_status_descriptor('OK');
