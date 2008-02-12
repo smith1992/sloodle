@@ -25,6 +25,7 @@ $string['sloodlenotinstalled'] = 'You need to install the Sloodle activity modul
 $string['sloodleconfig'] = 'Sloodle Configuration';
 $string['sloodleversion'] = 'Sloodle Version';
 
+$string['usermanagement'] = 'User Management';
 
 $string['youravatar'] = 'Your avatar';
 
