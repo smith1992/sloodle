@@ -46,6 +46,7 @@ $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
 $string['expired'] = 'Expired';
+$string['expiresin'] = 'expires in';
 
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 
@@ -67,6 +68,9 @@ $string['loginzone:teleport'] = 'Click here to teleport to the Login Zone.';
 $string['loginzone:expirynote'] = 'Please note that your Login Position will expire in 15 minutes. If you do not manage to use it in this time, then you will need to return here to re-activate it.';
 $string['loginzone:allocationfailed'] = 'Failed to allocate a Login Position for you. Please wait a few minutes and try again.';
 $string['loginzone:allocationerror'] = 'An error occurred while allocating a Login Position.';
+
+$string['minute'] = 'minute';
+$string['minutes'] = 'minutes';
 
 $string['mod.html:placeholder1'] = 'Currently, Sloodle does not have the facility to add separate instances to your Moodle courses. Instead, Sloodle acts as a single instance for your entire Moodle site.';
 $string['mod.html:placeholder2'] = 'We hope to have the instance capability added in Sloodle version 0.3.';
@@ -117,6 +121,9 @@ $string['primpass:leadingzero'] = 'Prim Password should not start with a 0.';
 $string['primpass:random'] = 'A random prim password has been automatically generated for you.';
 
 $string['releasenum'] = 'Module release number';
+
+$string['second'] = 'second';
+$string['seconds'] = 'seconds';
 
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';

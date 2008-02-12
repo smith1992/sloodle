@@ -107,7 +107,7 @@
     echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
     // Display the deletion message if we have one
     if (!empty($deletemsg)) {
-        echo '<div style="text-align:center; padding:3px; border:solid 1px #aaaaaa; background-color:#dfdfdf; font-weight:bold;">';
+        echo '<div style="text-align:center; padding:3px; border:solid 1px #aaaaaa; background-color:#dfdfdf; font-weight:bold; color:#dd0000;">';
         echo $deletemsg;
         echo '</div>';
     }
@@ -152,16 +152,27 @@
             // Is there LoginZone position information in this entry?
             if (!empty($su->loginposition)) {
                 // Has the LoginZone position expired?
-                if ((integer)($su->loginpositionexpires) < time()) {
+                if ((int)($su->loginpositionexpires) < time()) {
                     // Expired
                     $line[] = '<span style="color:#dd0000;">'.get_string('expired', 'sloodle').'</span>';
                 } else {
-                    // Still active
+                    // Still active - calculate how long until expiry
+                    $timeleft = (int)$su->loginpositionexpires - time();
+                    $secondsleft = $timeleft % 60;
+                    $minutesleft = (int)(($timeleft - $secondsleft) / 60);
+                    $expiretext = "(".get_string('expiresin','sloodle').' ';
+                    if ($minutesleft > 1) $expiretext .= $minutesleft.' '.get_string('minutes','sloodle');
+                    else if ($minutesleft == 1) $expiretext .= '1 '.get_string('minute','sloodle');
+                    if ($secondsleft > 1) $expiretext .= ' '.$secondsleft.' '.get_string('seconds','sloodle');
+                    else $expiretext .= ' 1 '.get_string('second','sloodle');
+                    $expiretext .= ')';
+
+                    // Construct the link
                     $loginpos = sloodle_vector_to_array($su->loginposition);
                     $loginurl = "secondlife://{$su->loginpositionregion}/{$loginpos['x']}/{$loginpos['y']}/{$loginpos['z']}";
                     $logincaption = get_string('loginzone:teleport','sloodle');
                     $logintext = get_string('allocated','sloodle');
-                    $line[] = "<a href=\"$loginurl\" title=\"$logincaption\">$logintext</a>";
+                    $line[] = "<a href=\"$loginurl\" title=\"$logincaption\">$logintext</a> $expiretext";
                 }                
             } else {
                 $line[] = '-';
