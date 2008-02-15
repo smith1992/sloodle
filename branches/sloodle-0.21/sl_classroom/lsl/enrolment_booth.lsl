@@ -73,7 +73,7 @@ integer handle_course_membership_confirmation_response(string body)
         // Looks like we've been successful
         string msg = "";
         // Check if auto-registration occurred
-        if (llListFindList(sideeffects, ["322"])) {
+        if (llListFindList(sideeffects, ["322"]) >= 0) {
             msg += "A new Moodle account was automatically created for you. ";
         }
         msg += "Please follow this link to enrol in this course.";

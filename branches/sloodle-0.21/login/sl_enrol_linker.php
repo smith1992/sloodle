@@ -105,7 +105,7 @@
         sloodle_debug_output('Constructing response...<br/>');
         // Is the user already enrolled?
         sloodle_debug_output('Checking if user is enrolled in course #'.$lsl->request->get_course_id().'...<br/>');
-        if ($lsl->user->is_user_in_course($lsl->request->get_course_id()) === TRUE) {
+        if (isadmin() || $lsl->user->is_user_in_course($lsl->request->get_course_id()) === TRUE) {
             // Yes - nothing much to do
             $lsl->response->set_status_code(401);
             $lsl->response->set_status_descriptor('MISC_ENROL');
