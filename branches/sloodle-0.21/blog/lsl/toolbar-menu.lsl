@@ -33,9 +33,13 @@
 //
 //////////
 
-// Name of the minimize and restore button objects
+// Name of the button objects
 string MINIMIZE_BUTTON = "minimize_button";
 string RESTORE_BUTTON = "restore_button";
+string HELP_BUTTON = "help_button";
+
+// Name of the help notecard
+string HELP_NOTECARD = "Sloodle Toolbar v1.3 Help";
 
 // Is the toolbar flipped over? (i.e. is it on gestures?)
 integer flipped = 0;
@@ -111,7 +115,9 @@ default
         // Ignore any other touches if we are hidden
         if (hidden == 1) return;
         
+        // So what else was touched?
         if (name == llGetObjectName()) {
+            // The toggle tabs were touched
             // Toggle the rotation between gestures and blog
             if (!flipped)
             {
@@ -122,6 +128,15 @@ default
             {
                 llSetRot(ZERO_ROTATION);
                 flipped = 0;
+            }
+            return;
+        } else if (name == HELP_BUTTON) {
+            // The help button was touched - give the help notecard
+            if (llGetInventoryType(HELP_NOTECARD) == INVENTORY_NOTECARD) {
+                llGiveInventory(llDetectedKey(0), HELP_NOTECARD);
+            } else {
+                // Nothing to give
+                llOwnerSay("Cannot give help - notecard \"" + HELP_NOTECARD + "\" not found in my inventory.");
             }
             return;
         }
