@@ -115,7 +115,7 @@
             $lsl->response->set_status_code(1);
             $lsl->response->set_status_descriptor('OK');
             sloodle_debug_output('-&gt; User is not enrolled in course.<br/>');
-            $lsl->response->add_data_line($CFG->wwwroot.'/course/enrol.php?id='.$lsl->request->get_course_id());
+            $lsl->response->add_data_line($CFG->wwwroot.'/mod/sloodle/login/sl_enrolment.php?sloodlecourseid='.$lsl->request->get_course_id());
         }        
         break;
         
