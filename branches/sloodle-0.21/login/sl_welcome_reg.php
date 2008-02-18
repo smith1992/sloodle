@@ -33,6 +33,9 @@
     //
     //  sloodleconfirm - 'true' if the change/overwrite of existing details is confirmed
     //
+    // A new optional is the following:
+    //
+    //  sloodlecourseid - the integer ID of the course which the user should be enrolled in after registration
     
     // At some stage, we may implement the use of an XMLRPC channel to send a
     //  confirmation back to the in-world object which initiated the registration.
@@ -69,8 +72,10 @@
     sloodle_debug_output('Processing request data...<br/>');
     $lsl->request->process_request_data();
     
-    // Get an additional channel paramter if it was specified
+    // Get additional parameters
+    sloodle_debug_output('Fetching additional request parameters...<br/>');
     $channel = optional_param('sloodlechannel', NULL, PARAM_RAW);
+    $sloodlecourseid = optional_param('sloodlecourseid', NULL, PARAM_INT);
     
     // Make sure a Sloodle user has been identified
     sloodle_debug_output('Checking if a Sloodle user has been identified...<br/>');
@@ -163,6 +168,13 @@
     }
     
     sloodle_debug_output('Finished.<br/>');
+    
+    
+    // We we asked to enrol the user as well?
+    if ($sloodlecourseid != NULL) {
+        redirect("{$CFG->wwwroot}/course/enrol.php?id=$sloodlecourseid", get_string('nowenrol','sloodle'));
+    }
+    
     
     print_footer();
     exit();

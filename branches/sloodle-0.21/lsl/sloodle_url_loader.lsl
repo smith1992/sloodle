@@ -1,5 +1,5 @@
 // Sloodle URL loader
-// Allows parallelization of URL loading by off-loading the task to another script
+// Allows other scripts to transfer the loading of a *single* URL to another script
 // Part of the Sloodle project (www.sloodle.org)
 //
 // Copyright (c) 2007 Sloodle (various contributors)

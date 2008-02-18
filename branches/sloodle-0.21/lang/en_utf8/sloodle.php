@@ -89,6 +89,7 @@ $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
 $string['noentries'] = 'The are no entries associated with this Moodle account.';
+$string['nowenrol'] = 'Please continue to enrol in this course.';
 
 $string['Object'] = 'Object';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';

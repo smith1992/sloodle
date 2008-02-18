@@ -23,6 +23,8 @@ string sloodleenrolbase = "/mod/sloodle/login/sl_enrol_linker.php";
 integer object_dialog_channel = -3857343;
 integer avatar_dialog_channel = 3857343;
 integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
+// Channel used for requesting URL loading
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 
 integer sloodle_courseid = 0; //3;
 
@@ -80,7 +82,9 @@ integer handle_authentication_response(string body)
         
     } else if (statuscode > 0) {
         // Looks like we've been successful
-        llLoadURL(uuid, "Follow this link to finish registering your avatar.", dataline);
+        //llLoadURL(uuid, "Follow this link to finish registering your avatar.", dataline);
+        llWhisper(0, llKey2Name(uuid) + ", please use this URL to finish registering your avatar.");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
         return 1;
     }
     
@@ -115,7 +119,9 @@ integer handle_course_membership_confirmation_response(string body)
     } else if (statuscode > 0) {
         // Looks like we've been successful
         key uuid = llList2Key(statusfields, 6);
-        llLoadURL(uuid, "Please follow this link to enrol in this course.", dataline);
+        //llLoadURL(uuid, "Please follow this link to enrol in this course.", dataline);
+        llWhisper(0, llKey2Name(uuid) + ", please use this URL to enrol in this Moodle course.");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
         return 1;
     }
     
