@@ -40,12 +40,12 @@
         exit;
     }
     
-    // Is the user permitted to edit the details?
-    $canedit = isadmin() || ($USER->id == $moodleuserid);
-    
     // Fetch the parameters
     $moodleuserid = required_param('id', PARAM_INT);
     $deletesloodleentry = optional_param('delete', NULL, PARAM_INT);
+    
+    // Is the user permitted to edit the details?
+    $canedit = isadmin() || ($USER->id == $moodleuserid);
     
     // Are we deleting a Sloodle entry?
     $deletemsg = '';

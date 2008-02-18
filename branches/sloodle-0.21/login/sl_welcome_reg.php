@@ -172,7 +172,8 @@
     
     // We we asked to enrol the user as well?
     if ($sloodlecourseid != NULL) {
-        redirect("{$CFG->wwwroot}/course/enrol.php?id=$sloodlecourseid", get_string('nowenrol','sloodle'));
+        echo "<br/><br/><br/>";
+        redirect("{$CFG->wwwroot}/course/enrol.php?id=$sloodlecourseid", get_string('nowenrol','sloodle'), 3);
     }
     
     
