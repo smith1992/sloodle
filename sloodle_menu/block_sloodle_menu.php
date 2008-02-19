@@ -13,7 +13,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008012300;
+        $this->version = 2008021900;
     }
     
     function has_config() {
@@ -25,7 +25,7 @@ class block_sloodle_menu extends block_base {
     }
 
     function get_content() {
-        global $CFG, $course, $USER;
+        global $CFG, $COURSE, $USER;
         
         // Construct the content
         $this->content = new stdClass;
@@ -33,8 +33,8 @@ class block_sloodle_menu extends block_base {
         $this->content->footer = '';
         
         // If no course has been specified, then we are using the site course
-        if (!isset($course)) {
-            $course = SITEID;
+        if (!isset($COURSE)) {
+            $COURSE = get_site();
         }
         
         // If the user is not logged in or if they are using guest access, then we can't show anything
@@ -52,11 +52,6 @@ class block_sloodle_menu extends block_base {
         $this->content->footer = '<span style="color:#565656;font-style:italic;">'.get_string('sloodleversion', 'block_sloodle_menu').': '.(string)SLOODLE_VERSION.'</span>';
                 
         // Attempt to find a Sloodle user for the Moodle user
-        //$sl_user = new SloodleUser();
-        //$sl_user->set_moodle_user_id($USER->id);
-        //$sl_avatar_name = '';
-        //$userresult = $sl_user->find_linked_sloodle_user();
-
         $dbquery = "    SELECT * FROM `{$CFG->prefix}sloodle_users`
                         WHERE `userid` = {$USER->id} AND !(`avname` = '' AND `uuid` = '')
                         LIMIT 0,2
@@ -79,7 +74,7 @@ class block_sloodle_menu extends block_base {
             
             // Make the avatar name a link if the user management page exists
             if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
-                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}\">$sl_avatar_name</a>";
+                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course=$course\">$sl_avatar_name</a>";
             } else {
                 $this->content->text .= $sl_avatar_name;
             }
@@ -101,7 +96,7 @@ class block_sloodle_menu extends block_base {
         // Only add this if the file exists
         if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";
         }        
 
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/boxes.gif\" width=\"16\" height=\"16\"/> ";
@@ -120,7 +115,6 @@ class block_sloodle_menu extends block_base {
         }
         
         $this->content->text .= '</div>';
-        
         
         return $this->content;
     }
