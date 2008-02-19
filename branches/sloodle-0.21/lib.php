@@ -43,6 +43,12 @@ function sloodle_process_options(&$config)
     if ($len >= 1 && substr($sloodle_pwd, 0, 1) == "0") {
         $error_codes .= "&sloodlepwdleadzero=yes";
     }
+    
+    // Is the flag for allowing teachers to edit user data valid?
+    if (isset($config->allow_user_edit_by_teachers) == FALSE || ($config->allow_user_edit_by_teachers != 'true' && $config->allow_user_edit_by_teachers != 'false')) {
+        // Force it to a default value
+        $config->allow_user_edit_by_teachers = 'false';
+    }
 
     // Is the auth method recognised?
     if (!($config->auth_method == "web" || $config->auth_method == "autoregister")) {
@@ -60,7 +66,7 @@ function sloodle_process_options(&$config)
             exit();
         }
         redirect($redirect . $error_codes . "&header_redirect=false", "There was an error in the configuration. Please try again.");
-	exit();
+        exit();
     }
 }
 

@@ -27,6 +27,11 @@
     //
     // The following parameter should be specified when a Sloodle entry is to be deleted:
     //  delete = ID number the Sloodle entry to be deleted
+    // The following parameter should be used when the user confirms or rejects deletion
+    //  confirm = "Yes" (according to a localization table) if confirmed, unspecified if not yet confirmed, or anything else if cancelled.
+    //
+    // Optionally, the following parameter can also be specified. It defaults to the site if unspecified:
+    //  course = ID of a Moodle course
 
 
     require_once('config.php');
@@ -43,13 +48,40 @@
     // Fetch the parameters
     $moodleuserid = required_param('id', PARAM_INT);
     $deletesloodleentry = optional_param('delete', NULL, PARAM_INT);
+    $userconfirmed = optional_param('confirm', NULL, PARAM_RAW);
+    $courseid = optional_param('course', 1, PARAM_INT);
+    
+    // Get the name of the course
+    $courserecord = get_record('course', 'id', $courseid);
+    if (!$courserecord) error(get_string('invalidcourseid','sloodle'));
+    $courseurl = $CFG->wwwroot.'/course/view.php?id='.$courseid;
+    $courseshortname = $courserecord->shortname;
+    $coursefullname = $courserecord->fullname;
+    
+    // Reject the user's attempt to view this page if they are not a teacher or admin, but are trying to view someone else's details
+    if ($moodleuserid != $USER->id && isadmin() == false && isteacherinanycourse() == false) {
+        error(get_string('insufficientpermissiontoviewpage','sloodle'));
+        exit();
+    }
+    
+    // This value will indicate if we are currently confirming a deletion
+    $confirmingdeletion = false;
     
     // Is the user permitted to edit the details?
-    $canedit = isadmin() || ($USER->id == $moodleuserid);
+    // Users can edit their own details, but admins can edit anybody's. Teachers can edit anybody's if the setting is enabled.
+    $canedit = false;
+    if (($USER->id == $moodleuserid) || isadmin()) $canedit = true;
+    else if (isteacherinanycourse() && isset($CFG->sloodle_allow_user_edit_by_teachers) && $CFG->sloodle_allow_user_edit_by_teachers == 'true') $canedit = true;
+    
+    
+    // These are localization strings used by the deletion confirmation form
+    $form_yes = get_string('Yes', 'sloodle');
+    $form_no = get_string('No', 'sloodle');
+    
     
     // Are we deleting a Sloodle entry?
-    $deletemsg = '';
-    if ($deletesloodleentry != NULL && record_exists('sloodle_users', 'id', $deletesloodleentry)) {
+    $deletemsg = '';    
+    if ($deletesloodleentry != NULL) {
         // Determine if the user is allowed to delete this entry
         $allowdelete = FALSE;
         // Admins are always allowed to delete
@@ -61,25 +93,45 @@
                 $allowdelete = ($deleterecord->userid == $USER->id);
             }
         }
-    
-        if ($allowdelete) {
-            // Make sure it's a valid ID
-            if (is_int($deletesloodleentry) && $deletesloodleentry > 0) {
-                
-                // Attempt to delete the entry
-                $deleteresult = delete_records('sloodle_users', 'id', $deletesloodleentry);
-                if ($deleteresult === FALSE) {
-                    $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('databasequeryfailed', 'sloodle');
+        
+        // Has the deletion been confirmed?
+        if ($userconfirmed == $form_yes) {
+            if (record_exists('sloodle_users', 'id', $deletesloodleentry)) {
+                // Is the user allowed to delete this?
+                if ($allowdelete) {
+                    // Make sure it's a valid ID
+                    if (is_int($deletesloodleentry) && $deletesloodleentry > 0) {
+                        // Attempt to delete the entry
+                        $deleteresult = delete_records('sloodle_users', 'id', $deletesloodleentry);
+                        if ($deleteresult === FALSE) {
+                            $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('databasequeryfailed', 'sloodle');
+                        } else {
+                            $deletemsg = get_string('deletionsuccessful', 'sloodle');
+                        }
+                    } else {
+                        $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('invalidid', 'sloodle');
+                    }
                 } else {
-                    $deletemsg = get_string('deletionsuccessful', 'sloodle');
+                    $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('insufficientpermission', 'sloodle');
                 }
-                
-            
-            } else {
-                $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('invalidid', 'sloodle');
             }
+        } else if (is_null($userconfirmed)) {
+            // User needs to confirm deletion
+            $confirmingdeletion = true;
+            
+            $form_url = SLOODLE_WWWROOT."/view_user.php";
+            
+            $deletemsg .= '<h3>'.get_string('delete','sloodle').' '.get_string('ID','sloodle').': '.$deletesloodleentry.'<br/>'.get_string('confirmdelete','sloodle').'</h3>';
+            $deletemsg .= '<form action="'.$form_url.'" method="get">';
+            $deletemsg .= '<input type="hidden" name="id" value="'.$moodleuserid.'" />';
+            if (!is_null($courseid)) $deletemsg .= '<input type="hidden" name="course" value="'.$courseid.'" />';
+            $deletemsg .= '<input type="hidden" name="delete" value="'.$deletesloodleentry.'" />';
+            $deletemsg .= '<input style="color:green;" type="submit" value="'.$form_yes.'" name="confirm" />&nbsp;&nbsp;';
+            $deletemsg .= '<input style="color:red;" type="submit" value="'.$form_no.'" name="confirm" />';
+            $deletemsg .= '</form><br/>';
+            
         } else {
-            $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('insufficientpermission', 'sloodle');
+            $deletemsg = get_string('deletecancelled','sloodle');
         }
     }
     
@@ -98,8 +150,11 @@
     $strsloodles = get_string('modulenameplural', 'sloodle');
     
     // Display the header
-    $navigation = "<a href=\"\">$strsloodle</a> -> ";
-    $navigation .= get_string('sloodleuserprofile', 'sloodle');
+    //$navigation = "$strsloodle -> ";
+    $navigation = "";
+    if ($courseid != 1) $navigation .= "<a href=\"$courseurl\">$courseshortname</a> -> ";
+    $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view_users.php?course=$courseid\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
+    $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
     print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
 
     
@@ -114,12 +169,17 @@
     
     // Display general information about the Moodle account
     echo '<p>';
-    print_string('name', 'sloodle');
-    echo ' '. $moodleuserdata->firstname .' '. $moodleuserdata->lastname .'<br/>';
+    echo '<span style="font-size:18pt; font-weight:bold;">'. $moodleuserdata->firstname .' '. $moodleuserdata->lastname.'</span>';
+    echo " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/user/view.php?id=$moodleuserid&amp;course=$courseid\">".get_string('moodleuserprofile','sloodle')."</a>)</span><br/>";
+    echo "<br/><br/>\n";
     
-    if ($numsloodleentries == 0) print_string('noentries', 'sloodle');
-    else if ($numsloodleentries > 1) {
-        echo '<span style="color:red;">';
+    // Check for issues such as no entries, or multiple entries
+    if ($numsloodleentries == 0) {
+        echo '<span style="color:red; font-weight:bold;">';
+        print_string('noentries', 'sloodle');
+        echo '</span>';
+    } else if ($numsloodleentries > 1) {
+        echo '<span style="color:red; font-weight:bold; border:solid 2px #990000; padding:4px; background-color:white;">';
         print_string('multipleentries', 'sloodle');
         helpbutton('multiple_entries', get_string('help:multipleentries', 'sloodle'), 'sloodle', true, false);
         echo '</span>';
@@ -130,23 +190,36 @@
     // Construct and display a table of Sloodle entries
     if ($numsloodleentries > 0) {
         $sloodletable = new stdClass();
-        $sloodletable->head = array(    get_string('avatarname', 'sloodle'),
+        $sloodletable->head = array(    get_string('ID', 'sloodle'),
+                                        get_string('avatarname', 'sloodle'),
                                         get_string('avataruuid', 'sloodle'),
                                         get_string('loginzoneposition', 'sloodle'),
                                         ''
                                     );
-        $sloodletable->align = array('left', 'left', 'left', 'left');
+        $sloodletable->align = array('center', 'left', 'left', 'left', 'left');
         
         $deletestr = get_string('delete', 'sloodle');
                 
         // Go through each Sloodle entry for this user
         foreach ($sloodleentries as $su) {
-            // Add the avatar name and UUID
+            // Is this entry being deleted (i.e. is the user being asked to confirm its deletion)?
+            $deletingcurrent = ($confirmingdeletion == true && $su->id == $deletesloodleentry);
+            
+            // Reset the line's content
             $line = array();
-            if (empty($su->avname)) $line[] = '-';
-            else $line[] = $su->avname;
-            if (empty($su->uuid)) $line[] = '-';
-            else $line[] = $su->uuid;
+            
+            // Add the ID to the line
+            if ($deletingcurrent) $line[] = '<span style="color:red; font-weight:bold;">'.$su->id.'</span>';
+            else $line[] = $su->id;
+        
+            // Fetch the avatar name and UUID
+            $curavname = '-';
+            $curuuid = '-';
+            if (!empty($su->avname)) $curavname = $su->avname;
+            if (!empty($su->uuid)) $curuuid = $su->uuid;
+            // Add them to the table
+            $line[] = $curavname;
+            $line[] = $curuuid;
             
             // Display the LoginZone status
             // Is there LoginZone position information in this entry?
@@ -180,7 +253,7 @@
             
             // Display the "delete" action
             if ($canedit) {
-                $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=$moodleuserid&delete={$su->id}";
+                $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
                 $deletecaption = get_string('clicktodeleteentry','sloodle');
                 $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
                 

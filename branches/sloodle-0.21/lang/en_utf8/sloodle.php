@@ -35,10 +35,12 @@ $string['clicktoteleportanyway'] = 'Click here to teleport to the Sloodle site i
 $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
+$string['confirmdelete'] = 'Are you sure?';
 $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
+$string['deletecancelled'] = 'Deletion cancelled.';
 $string['deletionfailed'] = 'Deletion failed';
 $string['deletionsuccessful'] = 'Deletion successful';
 
@@ -51,12 +53,16 @@ $string['expiresin'] = 'expires in';
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
+$string['help:userediting'] = 'What is the risk?';
 $string['help:userauth'] = 'What are the User Authentication methods?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
 $string['help:multipleentries'] = 'Why are there multiple entries? What does it mean?';
 
+$string['ID'] = 'ID';
 $string['invalidid'] = 'Invalid ID';
+$string['invalidcourseid'] = 'Invalid course ID';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
+$string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 
@@ -80,6 +86,7 @@ $string['mod.html:placeholder4'] = 'Sorry for any inconvenience.';
 $string['modulename'] = 'Sloodle Virtual Classroom';
 $string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 $string['moodleadminindex'] = 'Moodle administration index';
+$string['moodleuserprofile'] = 'Moodle user profile';
 $string['multipleentries'] = 'Warning: there are multiple Sloodle entries associated with this Moodle account.';
 
 $string['name'] = 'Name:';
@@ -89,7 +96,10 @@ $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
 $string['noentries'] = 'The are no entries associated with this Moodle account.';
+$string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
+$string['notenrolled'] = 'User not enrolled in this course.';
+$string['numsloodleentries'] = '# Sloodle entries';
 
 $string['Object'] = 'Object';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
@@ -145,6 +155,11 @@ $string['sloodleobjectdistributor:noobjects'] = 'No objects are currently availa
 $string['sloodleobjectdistributor:sendtomyavatar'] = 'Send to me';
 $string['sloodleobjectdistributor:sendtoanotheravatar'] = 'Send to another avatar';
 
+$string['sloodleuserediting:allowteachers'] = 'Allow teachers to edit Sloodle user data';
+$string['sloodleuserediting'] = 'Sloodle User Editing';
+$string['sloodleuserprofile'] = 'Sloodle User Profile';
+$string['sloodleuserprofiles'] = 'Sloodle User Profiles';
+
 
 $string['submit'] = 'Submit';
 
@@ -158,7 +173,6 @@ $string['userauth:save'] = 'Save User Authentication Settings';
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 
-$string['sloodleuserprofile'] = 'Sloodle User Profile';
 $string['uuid'] = 'UUID';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
