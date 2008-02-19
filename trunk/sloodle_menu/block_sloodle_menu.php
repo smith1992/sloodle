@@ -13,7 +13,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008021900;
+        $this->version = 2008021901;
     }
     
     function has_config() {
@@ -74,7 +74,7 @@ class block_sloodle_menu extends block_base {
             
             // Make the avatar name a link if the user management page exists
             if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
-                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course=$course\">$sl_avatar_name</a>";
+                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
             } else {
                 $this->content->text .= $sl_avatar_name;
             }
