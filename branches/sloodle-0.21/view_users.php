@@ -13,8 +13,11 @@
     *
     */
     
-    // The 'course' parameter is required, and should be an integer ID of the course to show users from
+    // The 'course' parameter is optional, and should be an integer ID of the course to show users from.
+    // Alternatively, if the 'search' parameter is specified, then 'course' is ignored, the the search string is used to search for Moodle users.
+    
     // The 'sloodleonly' parameter is optional, and if 'true', will show only users who have associated Sloodle data
+    //
     
     // Note: this page is accessible only by teachers and administrators
        
@@ -32,17 +35,23 @@
     }
     
     // Fetch the parameters
-    $courseid = required_param('course', PARAM_INT);
+    $courseid = optional_param('course', NULL, PARAM_INT);
+    $searchstr = optional_param('search', NULL, PARAM_RAW);
     $sloodleonly = optional_param('sloodleonly', false, PARAM_BOOL);
     
-    // Get the course data
+    // If a search string was specified, then force the course value to the site course
+    if ($searchstr != NULL) $courseid = 1;
+    // If neither a search string nor a course was specified, then stop on an error
+    if ($searchstr == NULL && $courseid == NULL) error(get_string('error:expectedsearchorcourse', 'sloodle'));
+    
+    // Get the course data (if no course specified, use the site course)
     $courserecord = get_record('course', 'id', $courseid);
     if (!$courserecord) error(get_string('invalidcourseid','sloodle'));
     $courseurl = $CFG->wwwroot.'/course/view.php?id='.$courseid;
     $courseshortname = $courserecord->shortname;
     $coursefullname = $courserecord->fullname;
     
-    // Only allow teachers and admions
+    // Only allow teachers and admins
     if (isadmin() == false && isteachercourse($courseid) == false) {
         error(get_string('insufficientpermissiontoviewpage','sloodle'));
         exit();
@@ -58,18 +67,22 @@
     $navigation .= get_string('sloodleuserprofiles', 'sloodle');
     print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
     
-    
-    echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
-    // Display the deletion message if we have one
-    if (!empty($deletemsg)) {
-        echo '<div style="text-align:center; padding:3px; border:solid 1px #aaaaaa; background-color:#dfdfdf; font-weight:bold; color:#dd0000;">';
-        echo $deletemsg;
-        echo '</div>';
+    // Are we searching for users?
+    if ($searchstr != NULL)
+    {
+        // Display the search term
+        echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
+        echo '<br/><span style="font-size:16pt; font-weight:bold;">'.get_string('usersearch','sloodle').': '.$searchstr.'</span><br/><br/>';
+        // Search the list of users
+        $userlist = get_users(true, $searchstr);
+    } else {
+        // Display the name of the course
+        echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
+        echo '<br/><span style="font-size:18pt; font-weight:bold;">'.$coursefullname.'</span><br/><br/>';
+        // Obtain a list of all Moodle users enrolled in the specified course
+        $userlist = get_course_users($courseid, 'lastname, firstname', '', 'user.id, firstname, lastname');
     }
     
-    
-    // Obtain a list of all Moodle users enrolled in the specified course
-    $userlist = get_course_users($courseid, 'lastname, firstname', '', 'user.id, firstname, lastname');    
     // Construct and display a table of Sloodle entries
     if ($userlist) {
         $sloodletable = new stdClass();
@@ -135,6 +148,71 @@
         print_string('nouserdata','sloodle');
         echo '</div>';
     }
+    echo '</div>';
+    
+    
+// // SEARCH FORMS // //
+    echo '<br/><center><table style="text-align:left; vertical-align:top;">';
+    // COURSE SELECT FORM //
+    echo '<tr>';
+    echo '<td style="width:350px; border:solid 1px #888888; padding:4px;">';
+    
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
+    echo '<span style="font-weight:bold;">'.get_string('changecourse','sloodle').'</span><br/>';
+    
+    echo '<select name="course" size="1">';
+    
+    // Get a list of all courses
+    $allcourses = get_courses('all', 'c.shortname', 'c.id, c.shortname, c.fullname');
+    if (!$allcourses) $allcourses = array();
+    foreach ($allcourses as $as) {
+        // Get if the user is a teacher on this course
+        if (isteacher($as->id)) {
+            // Output this as an option
+            echo "<option value=\"{$as->id}\"";
+            if ($as->id == $courseid) echo "selected";
+            echo ">{$as->fullname}</option>";
+        }
+    }    
+    echo '</select><br/>';
+    
+    echo '<input type="checkbox" value="true" name="sloodleonly"';
+    if ($sloodleonly) echo "checked";
+    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
+    
+    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
+    echo '</form>';
+    
+    echo '</td>';
+    
+    echo '<td style="width:350px; border:solid 1px #888888; padding:4px;">';
+    
+    // SEARCH FORM //
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
+    echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
+    echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
+    
+    echo '<input type="checkbox" value="true" name="sloodleonly"';
+    if ($sloodleonly) echo "checked";
+    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
+    
+    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
+    echo '</form>';
+    
+    echo '</td>';
+    echo '</tr>';
+    
+    
+    // VIEW UNLINKED //
+    
+    echo "<tr><td colspan=\"2\" style=\"text-align:center; font-size:10pt;\"><a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=0\" title=\"".get_string('viewunlinked','sloodle')."\">";
+    print_string('viewunlinked','sloodle');
+    echo '</a></td></tr>';
+    
+    
+    echo '</table></center>';
+// // - END FORMS - // //
+
     
     // Display the footer
     print_footer();

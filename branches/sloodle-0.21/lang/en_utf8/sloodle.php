@@ -27,6 +27,7 @@ $string['cfgnotecard:security'] = 'For security reasons, you should make sure th
 $string['cfgnotecard:inworld'] = '* If you prefer to configure your object in-world, just delete or rename the sloodle_config notecard in the Sloodle Set object. It will ask your avatar for the appropriate settings.';
 $string['cfgnotecard:setnote'] = 'Note: if you configure a Sloodle Set, then it will automatically configure any other objects it creates (although you can still manually configure them if you want to).';
 
+$string['changecourse'] = 'Change Course';
 $string['choosecourse'] = 'Choose the course you want to use in Second Life.';
 $string['clickchangeit'] = 'Click here to change it';
 $string['clickhere'] = 'click here';
@@ -47,6 +48,7 @@ $string['deletionsuccessful'] = 'Deletion successful';
 $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
+$string['error:expectedsearchorcourse'] = 'Expected search string or course ID.';
 $string['expired'] = 'Expired';
 $string['expiresin'] = 'expires in';
 
@@ -86,6 +88,7 @@ $string['mod.html:placeholder4'] = 'Sorry for any inconvenience.';
 $string['modulename'] = 'Sloodle Virtual Classroom';
 $string['modulenameplural'] = 'Sloodle Virtual Classrooms';
 $string['moodleadminindex'] = 'Moodle administration index';
+$string['moodleusernotfound'] = 'That Moodle user does not appear to exist. It may have been completely deleted from the database, or else you may have the wrong user ID.';
 $string['moodleuserprofile'] = 'Moodle user profile';
 $string['multipleentries'] = 'Warning: there are multiple Sloodle entries associated with this Moodle account.';
 
@@ -95,7 +98,7 @@ $string['No'] = 'No';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
-$string['noentries'] = 'The are no entries associated with this Moodle account.';
+$string['noentries'] = 'No entries found.';
 $string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
@@ -139,6 +142,7 @@ $string['seconds'] = 'seconds';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['sendobject'] = 'Send Object';
+$string['showavatarsonly'] = 'Only show accounts with Sloodle entries';
 
 $string['sloodle'] = 'Sloodle';
 $string['sloodlenotinstalled'] = 'Sloodle does not appear to be installed yet. Please use visit the Moodle administration index to finish Sloodle installation:';
@@ -163,6 +167,10 @@ $string['sloodleuserprofiles'] = 'Sloodle User Profiles';
 
 $string['submit'] = 'Submit';
 
+$string['unknownuser'] = 'unknown user';
+$string['unlinkedsloodleentries'] = 'Unlinked Sloodle User Entries';
+$string['unlinkedsloodleentries:desc'] = 'These are entries in the Sloodle users table which are not linked to a particular Moodle account. When in-world registration tools are used, temporary entries like this are created until the user logs into Moodle to authenticate themselves. Only delete entries if they have been lingering for a long time, or you suspect them of causing problems.';
+
 $string['userauth:header'] = 'User Authentication';
 $string['userauth:desc'] = 'What should Sloodle objects do when they meet an avatar they haven\'t seen before?';
 $string['userauth:sendtopage'] = '<b>Web</b>: Send avatars to a web page and make them login or register there.';
@@ -172,8 +180,11 @@ $string['userauth:save'] = 'Save User Authentication Settings';
 
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
+$string['usersearch'] = 'User search';
 
 $string['uuid'] = 'UUID';
+
+$string['viewunlinked'] = 'View unlinked Sloodle entries';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
 $string['wouldneedadmin'] = 'You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.';

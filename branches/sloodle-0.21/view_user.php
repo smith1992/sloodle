@@ -51,6 +51,9 @@
     $userconfirmed = optional_param('confirm', NULL, PARAM_RAW);
     $courseid = optional_param('course', 1, PARAM_INT);
     
+    // Force the course ID to the site course if we are dealing with unlinked users
+    if ($moodleuserid <= 0) $courseid = 1;
+    
     // Get the name of the course
     $courserecord = get_record('course', 'id', $courseid);
     if (!$courserecord) error(get_string('invalidcourseid','sloodle'));
@@ -136,9 +139,8 @@
     }
     
     
-    // Fetch the Moodle user data
+    // Attempt to fetch the Moodle user data
     $moodleuserdata = get_record('user', 'id', $moodleuserid);
-    if ($moodleuserdata === FALSE) error(get_string('databasequeryfailed', 'sloodle'));
     // Fetch a list of all Sloodle user entries associated with this Moodle account
     $sloodleentries = get_records('sloodle_users', 'userid', $moodleuserid);
     if ($sloodleentries === FALSE) $sloodleentries = array();
@@ -149,12 +151,18 @@
     $strsloodle = get_string('modulename', 'sloodle');
     $strsloodles = get_string('modulenameplural', 'sloodle');
     
-    // Display the header
-    //$navigation = "$strsloodle -> ";
+    // Construct the breadcrumb links
     $navigation = "";
     if ($courseid != 1) $navigation .= "<a href=\"$courseurl\">$courseshortname</a> -> ";
     $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view_users.php?course=$courseid\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
-    $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
+    if ($moodleuserid > 0) {
+        if ($moodleuserdata) $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
+        else $navigation .= get_string('unknownuser','sloodle');
+    } else {
+        $navigation.= get_string('unlinkedsloodleentries', 'sloodle');
+    }
+    
+    // Display the header
     print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
 
     
@@ -167,24 +175,45 @@
         echo '</div>';
     }
     
-    // Display general information about the Moodle account
-    echo '<p>';
-    echo '<span style="font-size:18pt; font-weight:bold;">'. $moodleuserdata->firstname .' '. $moodleuserdata->lastname.'</span>';
-    echo " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/user/view.php?id=$moodleuserid&amp;course=$courseid\">".get_string('moodleuserprofile','sloodle')."</a>)</span><br/>";
-    echo "<br/><br/>\n";
-    
-    // Check for issues such as no entries, or multiple entries
-    if ($numsloodleentries == 0) {
-        echo '<span style="color:red; font-weight:bold;">';
-        print_string('noentries', 'sloodle');
-        echo '</span>';
-    } else if ($numsloodleentries > 1) {
-        echo '<span style="color:red; font-weight:bold; border:solid 2px #990000; padding:4px; background-color:white;">';
-        print_string('multipleentries', 'sloodle');
-        helpbutton('multiple_entries', get_string('help:multipleentries', 'sloodle'), 'sloodle', true, false);
-        echo '</span>';
-    }
-    echo '</p></div>';
+    // Are we dealing with unlinked users?
+    if ($moodleuserid > 0) {
+        echo '<p>';
+        // No - do we have an account?
+        if ($moodleuserdata) {
+            // Yes - display the name and other general info
+            echo '<span style="font-size:18pt; font-weight:bold;">'. $moodleuserdata->firstname .' '. $moodleuserdata->lastname.'</span>';
+            echo " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/user/view.php?id=$moodleuserid&amp;course=$courseid\">".get_string('moodleuserprofile','sloodle')."</a>)</span><br/>";
+        } else {
+            echo get_string('moodleusernotfound', 'sloodle').'<br/>';
+        }        
+        echo "<br/><br/>\n";
+        
+        // Check for issues such as no entries, or multiple entries
+        if ($numsloodleentries == 0) {
+            echo '<span style="color:red; font-weight:bold;">';
+            print_string('noentries', 'sloodle');
+            echo '</span>';
+        } else if ($numsloodleentries > 1) {
+            echo '<span style="color:red; font-weight:bold; border:solid 2px #990000; padding:4px; background-color:white;">';
+            print_string('multipleentries', 'sloodle');
+            helpbutton('multiple_entries', get_string('help:multipleentries', 'sloodle'), 'sloodle', true, false);
+            echo '</span>';
+        }
+        echo '</p>';
+        
+    } else {
+        // Unlinked users - describe what this means
+        echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('unlinkedsloodleentries','sloodle').'</span><br/>';
+        echo '<center><p style="width:550px; text-align:left;">'.get_string('unlinkedsloodleentries:desc', 'sloodle').'</p></center>';
+        
+        // Check to see if there are no entries
+        if ($numsloodleentries == 0) {
+            echo '<span style="color:red; font-weight:bold;">';
+            print_string('noentries', 'sloodle');
+            echo '</span>';
+        }
+    }    
+    echo '</div>';
     
     
     // Construct and display a table of Sloodle entries
