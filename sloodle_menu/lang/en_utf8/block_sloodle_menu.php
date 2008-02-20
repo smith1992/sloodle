@@ -11,6 +11,7 @@ $string['blocknameplural'] = 'Sloodle Menus';
 $string['loginzone'] = 'Login Zone';
 
 $string['moduleversion'] = 'Module Version';
+$string['mysloodleprofile'] = 'My Sloodle profile';
 
 $string['nameunknown'] = 'name unknown';
 $string['noavatar'] = 'no avatar';

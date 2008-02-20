@@ -13,7 +13,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008021901;
+        $this->version = 2008022000;
     }
     
     function has_config() {
@@ -73,7 +73,7 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>';
             
             // Make the avatar name a link if the user management page exists
-            if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
+            if (SLOODLE_VERSION >= 0.21) {
                 $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
             } else {
                 $this->content->text .= $sl_avatar_name;
@@ -93,11 +93,11 @@ class block_sloodle_menu extends block_base {
         // Add links to common Sloodle stuff
         $this->content->text .= '<div style="padding:1px; margin-top:4px; margin-bottom:4px; border-top:solid 1px #cccccc; border-bottom:solid 1px #cccccc;">';
 
-        // Only add this if the file exists
-        if (file_exists($CFG->dirroot.'/mod/sloodle/view_user.php')) {
+        // Add the Sloodle profile link if we are running Sloodle >= 0.21
+        if (SLOODLE_VERSION >= 0.21) {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";
-        }        
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">".get_string('mysloodleprofile', 'block_sloodle_menu')."</a><br/>";
+        }     
 
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/boxes.gif\" width=\"16\" height=\"16\"/> ";
         $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/sl_distrib/sl_send_object.php\">".get_string('objectdistributor', 'block_sloodle_menu')."</a><br/>";
@@ -105,8 +105,20 @@ class block_sloodle_menu extends block_base {
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/loginzone.gif\" width=\"16\" height=\"16\"/> ";
         $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/login/sl_loginzone_entry.php\">".get_string('loginzone', 'block_sloodle_menu')."</a><br/>";
         
+        // Only display these if the user is a teacher
+        if (isteacherinanycourse()) {
+            $this->content->text .= '<hr>';
+            
+            // Add the user management link if we are running Sloodle >= 0.21
+            if (SLOODLE_VERSION >= 0.21) {
+                $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user_mng.gif\" width=\"16\" height=\"16\"/> ";
+                $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_users.php?course={$COURSE->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";
+            }
+            
+        }
+        
         // Only display these if the user is an admin
-        if (isadmin()) {
+        if (isadmin()) {        
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/configure.gif\" width=\"16\" height=\"16\"/> ";
             $this->content->text .= "<a href=\"{$CFG->wwwroot}/admin/module.php?module=sloodle\">".get_string('sloodleconfig', 'block_sloodle_menu')."</a><br/>";
             
