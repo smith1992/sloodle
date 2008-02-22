@@ -62,10 +62,10 @@
     $strsloodles = get_string('modulenameplural', 'sloodle');
     
     // Display the header
-    $navigation = "";
+    $navigation = '';
     if ($courseid != 1) $navigation .= "<a href=\"$courseurl\">$courseshortname</a> -> ";
     $navigation .= get_string('sloodleuserprofiles', 'sloodle');
-    print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
+    print_header(get_string('sloodleuserprofiles', 'sloodle'), get_string('sloodleuserprofiles', 'sloodle'), $navigation, "", "", false);
     
     // Open the main body section
     echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
@@ -82,7 +82,7 @@
         // Display the name of the course
         echo '<br/><span style="font-size:18pt; font-weight:bold;">'.$coursefullname.'</span><br/><br/>';
         // Obtain a list of all Moodle users enrolled in the specified course
-        $userlist = get_course_users($courseid, 'lastname, firstname', '', 'user.id, firstname, lastname');
+        $userlist = get_course_users($courseid, 'lastname, firstname', '', 'u.id, firstname, lastname');
     }
     
     // Construct and display a table of Sloodle entries

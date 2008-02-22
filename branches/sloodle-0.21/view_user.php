@@ -187,7 +187,7 @@
     }
     
     // Display the header
-    print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");    
+    print_header(get_string('sloodleuserprofile', 'sloodle'), get_string('sloodleuserprofile','sloodle'), $navigation, "", "", true);
     
     echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
     // Display the deletion message if we have one
