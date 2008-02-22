@@ -6,6 +6,8 @@
 $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
 
 $string['allocated'] = 'Allocated';
+$string['allentries'] = 'All Sloodle Entries';
+$string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 
 $string['authmethod:default'] = 'User authentication method automatically set to default.';
 $string['authmethod:invalid'] = 'Invalid user authentication method. Please re-select.';
@@ -66,8 +68,9 @@ $string['invalidcourseid'] = 'Invalid course ID';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
 $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
 
-$string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+$string['linkedtomoodleusernum'] = 'Moodle User #';
 
+$string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['loginzoneposition'] = 'LoginZone Position?';
 $string['loginzone:datamissing'] = 'Some of the Login Zone data could not be found.';
 $string['loginzone:mayneedrerez'] = 'The Login Zone may need to be re-rezzed.';
@@ -163,6 +166,7 @@ $string['sloodleuserediting:allowteachers'] = 'Allow teachers to edit Sloodle us
 $string['sloodleuserediting'] = 'Sloodle User Editing';
 $string['sloodleuserprofile'] = 'Sloodle User Profile';
 $string['sloodleuserprofiles'] = 'Sloodle User Profiles';
+$string['specialpages'] = 'Special Pages';
 
 
 $string['submit'] = 'Submit';
@@ -185,6 +189,7 @@ $string['usersearch'] = 'User search';
 $string['uuid'] = 'UUID';
 
 $string['viewunlinked'] = 'View unlinked Sloodle entries';
+$string['viewall'] = 'View all Sloodle entries';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
 $string['wouldneedadmin'] = 'You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.';

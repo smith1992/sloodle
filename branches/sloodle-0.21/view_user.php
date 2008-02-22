@@ -23,7 +23,7 @@
     
     //
     // This script requires the following paramter:
-    //  id = the ID number of a Moodle user
+    //  id = the ID number of a Moodle user, or 0 for unlinked entries, or 'all' for all Sloodle entries
     //
     // The following parameter should be specified when a Sloodle entry is to be deleted:
     //  delete = ID number the Sloodle entry to be deleted
@@ -46,10 +46,21 @@
     }
     
     // Fetch the parameters
-    $moodleuserid = required_param('id', PARAM_INT);
+    $moodleuserid = required_param('id', PARAM_RAW);
     $deletesloodleentry = optional_param('delete', NULL, PARAM_INT);
     $userconfirmed = optional_param('confirm', NULL, PARAM_RAW);
     $courseid = optional_param('course', 1, PARAM_INT);
+    
+    // Are we showing all entries?
+    $allentries = false;
+    if ($moodleuserid == 'all') {
+        $allentries = true;
+        $moodleuserid = -1;
+    } else {
+        // Make sure the Moodle user ID is an integer
+        $moodleuserid = (integer)$moodleuserid;
+        if ($moodleuserid < 0) $moodleuserid = 0;
+    }
     
     // Force the course ID to the site course if we are dealing with unlinked users
     if ($moodleuserid <= 0) $courseid = 1;
@@ -126,7 +137,10 @@
             
             $deletemsg .= '<h3>'.get_string('delete','sloodle').' '.get_string('ID','sloodle').': '.$deletesloodleentry.'<br/>'.get_string('confirmdelete','sloodle').'</h3>';
             $deletemsg .= '<form action="'.$form_url.'" method="get">';
-            $deletemsg .= '<input type="hidden" name="id" value="'.$moodleuserid.'" />';
+            
+            if ($allentries) $deletemsg .= '<input type="hidden" name="id" value="all" />';
+            else $deletemsg .= '<input type="hidden" name="id" value="'.$moodleuserid.'" />';
+            
             if (!is_null($courseid)) $deletemsg .= '<input type="hidden" name="course" value="'.$courseid.'" />';
             $deletemsg .= '<input type="hidden" name="delete" value="'.$deletesloodleentry.'" />';
             $deletemsg .= '<input style="color:green;" type="submit" value="'.$form_yes.'" name="confirm" />&nbsp;&nbsp;';
@@ -138,11 +152,19 @@
         }
     }
     
-    
-    // Attempt to fetch the Moodle user data
-    $moodleuserdata = get_record('user', 'id', $moodleuserid);
-    // Fetch a list of all Sloodle user entries associated with this Moodle account
-    $sloodleentries = get_records('sloodle_users', 'userid', $moodleuserid);
+    // Are we getting all entries?
+    if ($allentries) {
+        // Yes
+        $moodleuserdata = null;
+        // Fetch a list of all Sloodle user entries
+        $sloodleentries = get_records('sloodle_users');
+    } else {
+        // Attempt to fetch the Moodle user data
+        $moodleuserdata = get_record('user', 'id', $moodleuserid);
+        // Fetch a list of all Sloodle user entries associated with this Moodle account
+        $sloodleentries = get_records('sloodle_users', 'userid', $moodleuserid);
+    }
+    // Post-process the query results
     if ($sloodleentries === FALSE) $sloodleentries = array();
     $numsloodleentries = count($sloodleentries);
     
@@ -158,14 +180,14 @@
     if ($moodleuserid > 0) {
         if ($moodleuserdata) $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
         else $navigation .= get_string('unknownuser','sloodle');
-    } else {
+    } else if ($moodleuserid == 0) {
         $navigation.= get_string('unlinkedsloodleentries', 'sloodle');
+    } else {
+        $navigation.= get_string('allentries', 'sloodle');
     }
     
     // Display the header
-    print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
-
-    
+    print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");    
     
     echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
     // Display the deletion message if we have one
@@ -174,11 +196,12 @@
         echo $deletemsg;
         echo '</div>';
     }
+    echo '<br/>';
     
-    // Are we dealing with unlinked users?
+    // Are we dealing with an actual Moodle account
     if ($moodleuserid > 0) {
         echo '<p>';
-        // No - do we have an account?
+        // Yes - do we have an account?
         if ($moodleuserdata) {
             // Yes - display the name and other general info
             echo '<span style="font-size:18pt; font-weight:bold;">'. $moodleuserdata->firstname .' '. $moodleuserdata->lastname.'</span>';
@@ -201,7 +224,7 @@
         }
         echo '</p>';
         
-    } else {
+    } else if ($moodleuserid == 0) {
         // Unlinked users - describe what this means
         echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('unlinkedsloodleentries','sloodle').'</span><br/>';
         echo '<center><p style="width:550px; text-align:left;">'.get_string('unlinkedsloodleentries:desc', 'sloodle').'</p></center>';
@@ -212,20 +235,31 @@
             print_string('noentries', 'sloodle');
             echo '</span>';
         }
+    } else {
+        // Assume we're getting all entries - explain what this means
+        echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('allentries','sloodle').'</span><br/>';
+        echo '<center><p style="width:550px; text-align:left;">'.get_string('allentries:info', 'sloodle').'</p></center>';
+        
+        // Check to see if there are no entries
+        if ($numsloodleentries == 0) {
+            echo '<span style="color:red; font-weight:bold;">';
+            print_string('noentries', 'sloodle');
+            echo '</span>';
+        }
     }    
-    echo '</div>';
-    
     
     // Construct and display a table of Sloodle entries
     if ($numsloodleentries > 0) {
         $sloodletable = new stdClass();
         $sloodletable->head = array(    get_string('ID', 'sloodle'),
+                                        get_string('linkedtomoodleusernum', 'sloodle'),
                                         get_string('avatarname', 'sloodle'),
                                         get_string('avataruuid', 'sloodle'),
                                         get_string('loginzoneposition', 'sloodle'),
                                         ''
                                     );
-        $sloodletable->align = array('center', 'left', 'left', 'left', 'left');
+        $sloodletable->align = array('center', 'center', 'left', 'left', 'left', 'left');
+        $sloodletable->size = array('5%', '5%', '27%', '35%', '20%', '8%');
         
         $deletestr = get_string('delete', 'sloodle');
                 
@@ -240,6 +274,9 @@
             // Add the ID to the line
             if ($deletingcurrent) $line[] = '<span style="color:red; font-weight:bold;">'.$su->id.'</span>';
             else $line[] = $su->id;
+            
+            // Add the Moodle user ID and link
+            $line[] = "<a href=\"{$CFG->wwwroot}/user/view.php?id={$su->userid}&amp;course=$courseid\">{$su->userid}</a>";            
         
             // Fetch the avatar name and UUID
             $curavname = '-';
@@ -282,7 +319,8 @@
             
             // Display the "delete" action
             if ($canedit) {
-                $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
+                if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=all&amp;course=$courseid&amp;delete={$su->id}";
+                else $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
                 $deletecaption = get_string('clicktodeleteentry','sloodle');
                 $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
                 
@@ -297,6 +335,7 @@
         // Display the table
         print_table($sloodletable);
     }
+    echo '</div>';
     
     // Display the footer
     print_footer();

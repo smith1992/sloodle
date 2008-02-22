@@ -1,7 +1,7 @@
 <?php
     
     /**
-    * Sloodle user profilew page.
+    * Sloodle user profile page.
     *
     * Shows a list of users, with links to information about associated avatars/LoginZone allocations
     *
@@ -13,7 +13,7 @@
     *
     */
     
-    // The 'course' parameter is optional, and should be an integer ID of the course to show users from.
+    // The 'course' parameter is optional, and should be an integer ID of the course to show users from
     // Alternatively, if the 'search' parameter is specified, then 'course' is ignored, the the search string is used to search for Moodle users.
     
     // The 'sloodleonly' parameter is optional, and if 'true', will show only users who have associated Sloodle data
@@ -67,17 +67,19 @@
     $navigation .= get_string('sloodleuserprofiles', 'sloodle');
     print_header_simple(get_string('sloodleuserprofile', 'sloodle'), "", $navigation, "", "", true, "");
     
+    // Open the main body section
+    echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
+    
     // Are we searching for users?
     if ($searchstr != NULL)
     {
         // Display the search term
-        echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
         echo '<br/><span style="font-size:16pt; font-weight:bold;">'.get_string('usersearch','sloodle').': '.$searchstr.'</span><br/><br/>';
         // Search the list of users
         $userlist = get_users(true, $searchstr);
     } else {
+        // Getting all users in a course
         // Display the name of the course
-        echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
         echo '<br/><span style="font-size:18pt; font-weight:bold;">'.$coursefullname.'</span><br/><br/>';
         // Obtain a list of all Moodle users enrolled in the specified course
         $userlist = get_course_users($courseid, 'lastname, firstname', '', 'user.id, firstname, lastname');
@@ -151,11 +153,15 @@
     echo '</div>';
     
     
-// // SEARCH FORMS // //
+
+    
     echo '<br/><center><table style="text-align:left; vertical-align:top;">';
-    // COURSE SELECT FORM //
+// // SEARCH FORMS // //
     echo '<tr>';
-    echo '<td style="width:350px; border:solid 1px #888888; padding:4px;">';
+
+    // COURSE SELECT FORM //
+    
+    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';
     
     echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
     echo '<span style="font-weight:bold;">'.get_string('changecourse','sloodle').'</span><br/>';
@@ -185,9 +191,9 @@
     
     echo '</td>';
     
-    echo '<td style="width:350px; border:solid 1px #888888; padding:4px;">';
-    
     // SEARCH FORM //
+    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';    
+    
     echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
     echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
     echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
@@ -200,18 +206,33 @@
     echo '</form>';
     
     echo '</td>';
-    echo '</tr>';
     
     
-    // VIEW UNLINKED //
     
-    echo "<tr><td colspan=\"2\" style=\"text-align:center; font-size:10pt;\"><a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=0\" title=\"".get_string('viewunlinked','sloodle')."\">";
+    // SPECIAL PAGES //
+    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';
+    echo '<span style="font-weight:bold;">'.get_string('specialpages','sloodle').'</span><br/>';
+    
+    echo '<p>';
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=0\" title=\"".get_string('viewunlinked','sloodle')."\">";
     print_string('viewunlinked','sloodle');
-    echo '</a></td></tr>';
+    echo '</a><br/>';
+    
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=all\" title=\"".get_string('viewall','sloodle')."\">";
+    print_string('viewall','sloodle');
+    echo '</a><br/>';
+    echo '</p>';
+    
+    echo '</td>';
     
     
-    echo '</table></center>';
+    
 // // - END FORMS - // //
+    echo '</tr>';
+    echo '</table></center>';
+    
+    // Close the main body section
+    echo '</div>';
 
     
     // Display the footer
