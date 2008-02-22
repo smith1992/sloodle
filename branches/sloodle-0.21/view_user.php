@@ -217,7 +217,11 @@
             print_string('noentries', 'sloodle');
             echo '</span>';
             // If it is the profile owner who is viewing this, then offer a link to the loginzone entry page
-            
+            if ($moodleuserid == $USER->id) {
+                echo "<br/><br/><p style=\"padding:8px; border:solid 1px #555555;\"><a href=\"{$CFG->wwwroot}/mod/sloodle/login/sl_loginzone_entry.php\">";
+                print_string('getnewloginzoneallocation', 'sloodle');
+                echo '</a></p>';
+            }            
             
         } else if ($numsloodleentries > 1) {
             echo '<span style="color:red; font-weight:bold; border:solid 2px #990000; padding:4px; background-color:white;">';

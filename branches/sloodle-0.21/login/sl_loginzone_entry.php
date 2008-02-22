@@ -26,9 +26,13 @@
     // Make sure the user is logged-in to Moodle
     require_login();
     
+    // Construct breadcrumb navigation links
+    $navigation = "";
+    if ($COURSE && $COURSE->id > 1) $navigation .= "<a href=\"{$CFG->wwwroot}/course/view.php?id={$COURSE->id}\">{$COURSE->shortname}</a> -> ";
+    $navigation .= get_string('loginzone:entry', 'sloodle');
+    
     // Display the Moodle page headers
-    print_header('Teleport to Second Life', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle entrance to login zone');
+    print_header(get_string('loginzone:entry', 'sloodle'), get_string('loginzone:entry','sloodle'), $navigation, "", "", false);
     
     // Make sure it's not a guest who is logged in
     if (isguest()) {

@@ -56,6 +56,8 @@ $string['expiresin'] = 'expires in';
 
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 
+$string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
+
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userediting'] = 'What is the risk?';
 $string['help:userauth'] = 'What are the User Authentication methods?';
@@ -73,6 +75,7 @@ $string['linkedtomoodleusernum'] = 'Moodle User #';
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['loginzoneposition'] = 'LoginZone Position?';
 $string['loginzone:datamissing'] = 'Some of the Login Zone data could not be found.';
+$string['loginzone:entry'] = 'Sloodle LoginZone Entry';
 $string['loginzone:mayneedrerez'] = 'The Login Zone may need to be re-rezzed.';
 $string['loginzone:useteleportlink'] = 'A Login Position has been allocated for you. Please use the following link to teleport to it:';
 $string['loginzone:teleport'] = 'Click here to teleport to the Login Zone.';
