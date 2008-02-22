@@ -1,16 +1,15 @@
 <?php
-    /**
-    * Sloodle choice linker.
-    *
-    * Allows Sloodle "choice" objects in Second Life to interact with Moodle choice module instances.
-    *
-    * @package sloodlechoice
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Peter R. Bloomfield
-    *
-    */
+    // Sloodle choice linker
+    // Allows Sloodle "choice" objects in Second Life to interact with Moodle choice module instances
+    // Part of the Sloodle Project
+    // See www.sloodle.org for more information
+    //
+    // Copyright (c) 2007 Sloodle
+    // Release under the GNU GPL
+    //
+    // Contributors:
+    //  Peter R. Bloomfield - original design and implementation
+    //
     
     
     ////////////////////////////////////////////////////////////
@@ -104,12 +103,13 @@
         sloodle_debug_output('Setting up response...<br/>');
         $lsl->response->set_status_code(10021);
         $lsl->response->set_status_descriptor('CHOICE_LIST_QUERY');
-        $lsl->response->add_data_line(array('num_instances',$num_choices));
+        //$lsl->response->add_data_line(array('num_instances',$num_choices)); // removed from spec 2008-02-06
         // Go throgh each choice module instance
         sloodle_debug_output('Going through each choice module instance...<br/>');
         foreach ($choices as $id => $cur_choice) {
             // Output each instance in the format "choice_instance|{id}|{name}"
-            $lsl->response->add_data_line(array('choice_instance', $id, $cur_choice->name));
+            //$lsl->response->add_data_line(array('choice_instance', $id, $cur_choice->name));
+            $lsl->response->add_data_line(array($id, $cur_choice->name)); // changed in spec 2008-02-06
         }
         // Output the response and finish
         sloodle_debug_output('<pre>');
@@ -194,7 +194,7 @@
         $lsl->response->set_status_descriptor('CHOICE_QUERY');
         $lsl->response->add_data_line(array('choice_name',$choice_status->name));
         $lsl->response->add_data_line(array('choice_text',$choice_text));
-        $lsl->response->add_data_line(array('num_options',count($choice_status->option)));
+        //$lsl->response->add_data_line(array('num_options',count($choice_status->option))); // removed from spec 2008-02-06
                 
         // Go throgh each option
         sloodle_debug_output('Going through each option in the choice...<br/>');
