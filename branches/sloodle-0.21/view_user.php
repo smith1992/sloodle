@@ -216,6 +216,9 @@
             echo '<span style="color:red; font-weight:bold;">';
             print_string('noentries', 'sloodle');
             echo '</span>';
+            // If it is the profile owner who is viewing this, then offer a link to the loginzone entry page
+            
+            
         } else if ($numsloodleentries > 1) {
             echo '<span style="color:red; font-weight:bold; border:solid 2px #990000; padding:4px; background-color:white;">';
             print_string('multipleentries', 'sloodle');

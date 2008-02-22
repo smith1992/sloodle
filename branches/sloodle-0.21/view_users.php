@@ -52,7 +52,7 @@
     $coursefullname = $courserecord->fullname;
     
     // Only allow teachers and admins
-    if (isadmin() == false && isteachercourse($courseid) == false) {
+    if (isadmin() == false && isteacherinanycourse() == false) {
         error(get_string('insufficientpermissiontoviewpage','sloodle'));
         exit();
     }
