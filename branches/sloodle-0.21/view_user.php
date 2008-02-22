@@ -283,9 +283,15 @@
             $curuuid = '-';
             if (!empty($su->avname)) $curavname = $su->avname;
             if (!empty($su->uuid)) $curuuid = $su->uuid;
+            
+            // If we are in 'all entries' mode, add a link to the Sloodle user profile
+            if ($allentries) {
+                $curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$su->userid}&amp;course=$courseid\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
+            }
+            
             // Add them to the table
             $line[] = $curavname;
-            $line[] = $curuuid;
+            $line[] = $curuuid; 
             
             // Display the LoginZone status
             // Is there LoginZone position information in this entry?
