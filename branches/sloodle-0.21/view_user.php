@@ -312,9 +312,13 @@
                     else $expiretext .= ' 1 '.get_string('second','sloodle');
                     $expiretext .= ')';
 
+                    // If there has been a loginzone region stored explicitly for this user, then use it
+                    // Otherwise, get the configuration setting
+                    if (empty($su->loginpositionregion)) $lpregion = sloodle_get_config('sloodle_loginzone_region');
+                    else $lpregion = $su->loginpositionregion;
                     // Construct the link
                     $loginpos = sloodle_vector_to_array($su->loginposition);
-                    $loginurl = "secondlife://{$su->loginpositionregion}/{$loginpos['x']}/{$loginpos['y']}/{$loginpos['z']}";
+                    $loginurl = "secondlife://$lpregion/{$loginpos['x']}/{$loginpos['y']}/{$loginpos['z']}";
                     $logincaption = get_string('loginzone:teleport','sloodle');
                     $logintext = get_string('allocated','sloodle');
                     $line[] = "<a href=\"$loginurl\" title=\"$logincaption\">$logintext</a> $expiretext";
