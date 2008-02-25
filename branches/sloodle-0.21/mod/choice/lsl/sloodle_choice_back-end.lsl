@@ -65,6 +65,9 @@ list choicenames = [];
 // This list contains all of our pending selection requests. Each entry is 2 elements: avatar UUID, and selection id (integer)
 list pendingselections = [];
 
+// ID of a dialog listen command
+integer listenid = 0;
+
 
 ///// FUNCTIONS /////
 
@@ -103,6 +106,7 @@ integer sloodle_handle_command(string str)
 resetScript()
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
+    llMessageLinked(LINK_ALL_OTHERS, SLOODLE_CHANNEL_OBJECT_CHOICE, "reset", NULL_KEY);
     llResetScript();
 }
 
@@ -225,9 +229,6 @@ process_selection_queue()
             sloodle_debug("Existing selection request is still current... waiting...");
             return;
         }
-        
-        // Notify the front-end of the problem
-        notify_frontend("selection_response|-10016", selectingavatar);
     }
 
     // Force us to ignore any existing selection (which may have failed)
@@ -245,8 +246,10 @@ process_selection_queue()
     pendingselections = llDeleteSubList(pendingselections, 0, 1);
     
     // Make a request
-    httpselectionrequest = llHTTPRequest(sloodleserverroot + SLOODLE_CHOICE_LINKER_SCRIPT + "?sloodlepwd=" + sloodlepwd + "&sloodlecourseid=" + (string)sloodlecourseid + "&sloodlemoduleid=" + (string)sloodlemoduleid + "&sloodleuuid=" + (string)selectingavatar + "&sloodleoptionid=" + (string)optionid, [], "");
-    timestatusrequest = llGetUnixTime();
+    if (selectingavatar != NULL_KEY) {
+        httpselectionrequest = llHTTPRequest(sloodleserverroot + SLOODLE_CHOICE_LINKER_SCRIPT + "?sloodlepwd=" + sloodlepwd + "&sloodlecourseid=" + (string)sloodlecourseid + "&sloodlemoduleid=" + (string)sloodlemoduleid + "&sloodleuuid=" + (string)selectingavatar + "&sloodleoptionid=" + (string)optionid, [], "");
+        timestatusrequest = llGetUnixTime();
+    }
 }
 
 // Request a selection of the specified choice module
@@ -309,6 +312,9 @@ handle_status_response(string body)
             }
         }
     }
+    
+    // Notify the frontend that the update has completed
+    notify_frontend("update_complete", NULL_KEY);
 }
 
 // Handle a response to a selection request
@@ -329,6 +335,9 @@ handle_selection_response(string body)
     
     // Whether it was an error or not, report to the frontend
     notify_frontend("selection_response|" + (string)statuscode, selectingavatar);
+    
+    // Now perform a status update
+    request_status_update(sloodlemoduleid);
 }
 
 
@@ -516,6 +525,7 @@ state active
     {
         // Check what response this is
         if (id == httpstatusrequest) {
+            sloodle_debug("HTTP response - choice status");
             // Request for a status update
             httpstatusrequest = NULL_KEY;
             timestatusrequest = 0;
@@ -530,6 +540,7 @@ state active
             return;
             
         } else if (id == httpselectionrequest) {
+            sloodle_debug("HTTP response - choice selection");
             // Request to make a selection
             httpselectionrequest = NULL_KEY;
             timeselectionrequest = 0;
@@ -540,9 +551,10 @@ state active
                 notify_frontend("", selectingavatar);
                 selectingavatar = NULL_KEY;
                 
+            } else {
+                // Handle the response
+                handle_selection_response(body);
             }
-            // Handle the response
-            handle_selection_response(body);
             
             // Keep processing the selection queue
             selectingavatar = NULL_KEY;
@@ -556,7 +568,8 @@ state active
         // Ignore anybody but the owner
         if (llDetectedKey(0) != llGetOwner()) return;
         // Show a menu offering the owner to reset
-        llListen(SLOODLE_CHANNEL_AVATAR_SETTING, "", llGetOwner(), "");
+        llListenRemove(listenid);
+        listenid = llListen(SLOODLE_CHANNEL_AVATAR_SETTING, "", llGetOwner(), "");
         llDialog(llGetOwner(), "Would you like to reset this choice tool?", ["Reset", "Cancel"], SLOODLE_CHANNEL_AVATAR_SETTING);
     }
     
@@ -572,8 +585,8 @@ state active
                 return;
             }
             
-            // Possibly cancel the listen just here?
-            //...
+            // Cancel the listen
+            llListenRemove(listenid);
         }
     }
     
