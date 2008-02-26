@@ -703,7 +703,13 @@
             // Make sure we have a Moodle user
             if ($this->moodle_user_id <= 0) return FALSE;
             // Obtain the array of courses and make sure the query succeeded
-            $course_list = get_my_courses($this->moodle_user_id);
+            if (isadmin($this->moodle_user_id)) {
+                // Admins technically have all courses
+                $course_list = get_courses('all', 'c.sortorder ASC', 'c.id');
+            } else {
+                // Just get the enrolled courses
+                $course_list = get_my_courses($this->moodle_user_id);
+            }
             if ($course_list === FALSE) return FALSE;
             
             // Extract just the course ID's
@@ -724,6 +730,10 @@
         {
             // Make sure we have a Moodle user
             if ($this->moodle_user_id <= 0) return FALSE;
+            
+            // If the user is an admin, then we needn't bother checking
+            if (isadmin($this->moodle_user_id)) return TRUE;
+            
             // Do we need to refresh the cache?
             if (!$use_cache) {
                 if (!$this->update_enrolled_courses_cache_from_db()) return FALSE;

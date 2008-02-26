@@ -94,7 +94,9 @@ string CMD_OPTION_POSITION = "option_position"; // data = the position vector fo
 // Distance from root up to first option
 float distance_to_first_option = 0.3;
 // Separate between option objects
-float option_separation = 0.32;
+float option_separation = 0.4;
+// Minimum allowable size of an option
+float MIN_OPTION_SIZE = 0.04;
 
 
 ///// FUNCTIONS /////
@@ -221,7 +223,7 @@ update_options()
 {
     // The maximum size should be the same as the front-end object
     vector rootsize = llGetScale();
-    float maxsize = rootsize.x;
+    float maxsize = rootsize.x - MIN_OPTION_SIZE;
     // Determine the maximum number of selections so far, if any
     integer maxnumselections = -1;
     integer numoptions = llGetListLength(optionsels);
@@ -245,11 +247,14 @@ update_options()
         curnum = llList2Integer(optionsels, i);
         curid = llList2Integer(optionids, i);
         if (curnum >= 0) {
-            cursize = (float)curnum * sizeperselection;
+            cursize = MIN_OPTION_SIZE + ((float)curnum * sizeperselection);
             llWhisper(SLOODLE_CHANNEL_OBJECT_CHOICE_OPTION, CMD_OPTION_SIZE + "|" + (string)curid + "|" + (string)cursize);
         } else {
             llWhisper(SLOODLE_CHANNEL_OBJECT_CHOICE_OPTION, CMD_OPTION_SIZE + "|" + (string)curid + "|" + (string)maxsize);
         }
+        
+        // Send the question text with the number of votes appended
+        llWhisper(SLOODLE_CHANNEL_OBJECT_CHOICE_OPTION, CMD_OPTION_TEXT + "|" + (string)curid + "|" + llList2String(optiontexts, i) + " [" + (string)curnum + "]");
     }
     
 }

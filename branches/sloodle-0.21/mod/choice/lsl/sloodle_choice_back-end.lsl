@@ -296,7 +296,7 @@ handle_status_response(string body)
             if (cmd == "choice_name") {
                 modulename = llList2String(fields, 1);
             } else if (cmd == "choice_text") {
-                notify_frontend("choice_text|" + llList2String(fields, 1), NULL_KEY);
+                notify_frontend("question|" + llList2String(fields, 1), NULL_KEY);
                 
             } else if (cmd == "option") {
                 optionid = llList2String(fields, 1);
