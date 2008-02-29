@@ -13,6 +13,8 @@
 
 // Version history:
 //
+// 1.2.1 - resolved bug in multi-part blogging causing stack/heap collision is subject was too lon
+// 1.2 - multi-part blogging
 // 1.1 - added channel menu and "ready" display
 // 1.0 - updated to use new communications and avatar registration methods for Sloodle 0.2
 // 0.9.2 - Corrected the reset calls from 0.9.1 to use "attach" event, and changed authentication link to a chat message
@@ -591,8 +593,11 @@ state get_body
         // Disable any existing timeout event
         llSetTimerEvent(0.0);
         
+        // Set the initial blog body length to the length of the subject line
+        blogbodylength = llStringLength(blogsubject);
+        
         // Listen for chat messages from the owner of this object
-        llOwnerSay("Please chat the body of your blog entry. You can use multiple chat messages, up to a total of " + (string)(MAX_BLOG_BODY_LENGTH - 1) + " characters.");
+        llOwnerSay("Please chat the body of your blog entry. You can use multiple chat messages, up to a total of " + (string)(MAX_BLOG_BODY_LENGTH - blogbodylength - 1) + " characters.");
         user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
         
         // Set a timeout
