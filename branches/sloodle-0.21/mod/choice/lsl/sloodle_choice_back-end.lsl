@@ -40,13 +40,34 @@ string modulename = "";
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 // What channel should choice control operate over?
 integer SLOODLE_CHANNEL_OBJECT_CHOICE = -1639270051;
-// This channel will be used for the avatar setting options
+// This channel will be used for the avatar setting options in chat
 integer SLOODLE_CHANNEL_AVATAR_SETTING = 1;
+// This channel will be used for the avatar dialogs
+integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 // Relative path to the choice linker script from the Moodle root
 string SLOODLE_CHOICE_LINKER_SCRIPT = "/mod/sloodle/mod/choice/sl_choice_linker.php";
+
 // How long should we wait for HTTP responses? (seconds)
 float HTTP_TIMEOUT = 10.0;
 integer HTTP_TIMEOUT_INT = 10;
+// Timeout for rezzing
+float REZ_TIMEOUT = 5.0;
+
+// Object name prefix for Sloodle Choice frontend objects
+string FRONTEND_PREFIX = "sloodle_choice_frontend:";
+
+// Various menu option texts
+string MENU_RESET = "Reset";
+string MENU_SETUP = "Setup";
+string MENU_NONE = "None";
+string MENU_CANCEL = "Cancel";
+string MENU_PREVIOUS = "<<";
+string MENU_NEXT = ">>";
+// Current menu page number (total 12 items per menu, but 2 reserved for next/previous buttons)
+integer menupagenumber = 0;
+// List of frontend object names
+list frontendobjects = [];
+
 
 // ID of our HTTP requests for various purposes
 key httplistrequest = NULL_KEY; // List of available choices
@@ -114,6 +135,59 @@ resetScript()
 notify_frontend(string str, key k)
 {
     llMessageLinked(LINK_ALL_OTHERS, SLOODLE_CHANNEL_OBJECT_CHOICE, str, k);
+}
+
+// Show the idle menu to the specified avatar
+show_idle_menu(key id)
+{
+    // Present the menu
+    llDialog(id, "Sloodle Choice Menu\n\nWhat would you like to do?", [MENU_SETUP, MENU_RESET], SLOODLE_CHANNEL_AVATAR_DIALOG);
+    // Listen for response
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
+}
+
+// Update the list of frontend objects
+update_frontend_list()
+{
+    // Clear the existing list
+    frontendobjects = [];
+    // Go through each object in the inventory
+    integer num = llGetInventoryNumber(INVENTORY_OBJECT);
+    string name = "";
+    integer i = 0;
+    integer prefixlen = llStringLength(FRONTEND_PREFIX);
+    for (; i < num; i++) {
+        // Check if this is a frontend object
+        name = llGetInventoryName(INVENTORY_OBJECT, i);
+        if (llSubStringIndex(name, FRONTEND_PREFIX) == 0) {
+            frontendobjects += [llGetSubString(name, prefixlen, -1)];
+        }
+    }
+    
+}
+
+// Show the frontend selection menu, at the current page (menupagenumber)
+show_frontend_menu(key id)
+{
+    // Perform basic validation of the menu page number
+    if (menupagenumber < 0) menupagenumber = 0;
+    // Check how many frontend objects we have
+    integer numobjects = llGetListLength(frontendobjects);
+    if (numobjects == 0) {
+        llDialog(id, "Sloodle Choice Frontend Menu\nSorry, there are no frontends available. Select \"None\" to go ahead without rezzing a front-end, or \"Cancel\" to return to idle state.", [MENU_NONE, MENU_CANCEL], SLOODLE_CHANNEL_AVATAR_IGNORE);
+        return;
+    }
+    
+    // Check how many pages we ought to have
+    integer totalnumpages = numobjects / 9;
+    
+    // Construct the list of buttons
+    //...
+    // Display the menu
+    //...
+    
+    // Listen for response
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
 }
 
 // Send a request for a list of choices
@@ -196,8 +270,8 @@ show_choice_menu( key uuid )
     }
     
     // Start listening for the avatar, and show them the dialog
-    llListen(SLOODLE_CHANNEL_AVATAR_SETTING, "", uuid, "");
-    llDialog(uuid, dlg, btns, SLOODLE_CHANNEL_AVATAR_SETTING);
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", uuid, "");
+    llDialog(uuid, dlg, btns, SLOODLE_CHANNEL_AVATAR_DIALOG);
 }
 
 // Request a status update of the specified choice module
@@ -348,7 +422,9 @@ default
 {
     state_entry()
     {
+        // Indicate the status
         sloodle_debug("Waiting for configuration...");
+        llSetText("Waiting for configuration...", <1.0, 0.5, 0.0>, 0.5);
         
         // Reset everything
         sloodlecourseid = 0;
@@ -372,8 +448,9 @@ default
             // Handle the command
             if (sloodle_handle_command(msg)) {
                 // Has the module already been specified?
-                if (sloodlemoduleid != 0) state active;
-                else state update_choice_list;
+                //if (sloodlemoduleid != 0) state active;
+                //else state update_choice_list;
+                state idle;
                 return;
             }
         }
@@ -386,11 +463,159 @@ default
 }
 
 
+// In this state, the object is initialised, but not doing anything
+// The owner can touch it to select options
+state idle
+{
+    state_entry()
+    {
+        // Indicate the status
+        sloodle_debug("Idle.");
+        llSetText("Initialised.\nTouch me for setup/reset menu.", <1.0, 0.5, 0.0>, 0.5);
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Ignore anybody but the owner
+        if (llDetectedKey(0) != llGetOwner()) {
+            llSay(0, "Sorry " + llDetectedName(0) + ". Only the owner can perform the setup process.");
+            return;
+        }
+        
+        // Show the menu
+        show_idle_menu();
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel number
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Check what the message was
+            if (msg == MENU_SETUP) {
+                // Start the setup process
+                state select_frontend;
+                retunr;
+            } else if (msg == MENU_RESET) {
+                // Reset the whole thing
+                resetScript();
+            }
+        }
+    }
+}
+
+
+// Select and rez a front-end display
+state select_frontend
+{
+    state_entry()
+    {
+        // Indicate the status
+        sloodle_debug("Selecting frontend.");
+        llSetText("Selecting frontend.\nSelect a frontend from the menu.\n(Or touch me to see the menu again)", <1.0, 0.5, 0.0>, 0.5);
+        
+        // Reset and show the frontend menu
+        menupagenumber = 0;
+        show_frontend_menu();
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Ignore anybody but the owner
+        if (llDetectedKey(0) != llGetOwner()) {
+            llSay(0, "Sorry " + llDetectedName(0) + ". Only the owner can select a frontend.");
+            return;
+        }
+        
+        // Reset and show the menu
+        menupagenumber = 0;
+        show_frontend_menu();
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check channel
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+        
+            // Check for expected standard messages
+            if (msg == MENU_PREVIOUS) {
+                // Move to the previous menu page and show the menu again
+                if (currentmenupage > 0) currentmenupage -= 1;
+                else currentmenupage = 0;
+                show_frontend_menu();
+                return;
+            } else if (msg == MENU_NEXT) {
+                // Move to the next menu page and show the menu again
+                if (currentmenupage >= 0) currentmenupage += 1;
+                else currentmenupage = 1;
+                show_frontend_menu();
+                return;
+            } else if (msg == MENU_NONE) {
+                // Do not rez a frontend at all -- just move on
+                state update_choice_list;
+                return;
+            } else {
+                // Convert the message to an integer
+                integer optionnum = (integer)msg;
+                // The menu items should have been numbered from 1, so ignore anything <= 0 or bigger than the list length
+                if (optionnum <= 0 || optionnum > llGetListLength(frontendobjects)) {
+                    llOwnerSay("Invalid selection. Please try again.");
+                    return;
+                }
+                // The list of items is numbered from 0, so subtract one
+                optionnum -= 1;
+                
+                // Attempt to rez the selected item above this one
+                string objname = FRONTEND_PREFIX + llList2String(frontendobjects, optionnum);
+                if (llGetInventoryType(objname) != INVENTORY_OBJECT) {
+                    llOwnerSay("Error: frontend object \"" + objname + "\" not found. Please try again.");
+                    return;
+                }
+                vector myscale = llGetScale();
+                vector pos = llGetPos();
+                pos.z += (myscale.z / 2.0);
+                // Note: we give it a non-zero starting parameter so it knows it was automatically rezzed.
+                //  It should be programmed to delete itself on unlinking if automatically rezzed.
+                sloodle_debug("Rezzing object: " + objname);
+                llRezObject(objname, pos, <0.0,0.0,0.0>, ZERO_ROTATION, -123);
+                // Start the rez timeout (in case rezzing fails)
+                llSetTimerEvent(REZ_TIMEOUT);
+            }
+            
+        
+            // Move on to selecting the choice
+            state update_choice_list;
+            return;
+        }
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        llOwnerSay("Frontend failed to rez. Touch me to try again.");
+        sloodle_debug("Object rezzing timeout.");
+    }
+    
+    object_rez(key id)
+    {
+        // A frontend was just rezzed
+        // De-link any existing frontend
+        sloodle_debug("Object rezzed. Breaking existing links.");
+        llBreakAllLinks();
+        // Link with the new item
+        sloodle_debug("Creating new link.");
+        llCreateLink(id, TRUE);
+    }
+}
+
+
 // In this state, the script will retrieve a list of available choices
 state update_choice_list
 {
     state_entry()
     {
+        // Indicate the status
+        sloodle_debug("Updating list of choices.");
+        llSetText("Fetching list of choices...", <1.0, 0.5, 0.0>, 0.5);
         request_choice_list();
     }
     
@@ -451,36 +676,59 @@ state select_choice
 {
     state_entry()
     {
+        // Indicate the status
+        sloodle_debug("Selecting choice.");
+        llSetText("Selecting choice.\nSelect a choice from the menu.\n(Or touch me to see the menu again)", <1.0, 0.5, 0.0>, 0.5);
+        
         // Show a list of choice modules to the owner
+        menupagenumber = 0;
         show_choice_menu(llGetOwner());
     }
     
     touch_start(integer num_detected)
     {
         // If the owner touched us, then show the choice module menu
-        if (llDetectedKey(0) == llGetOwner())
+        if (llDetectedKey(0) == llGetOwner()) {
+            menupagenumber = 0;
             show_choice_menu(llGetOwner());
+        }
     }
     
     listen(integer channel, string name, key id, string msg)
     {
         // Check the channel
-        if (channel = SLOODLE_CHANNEL_AVATAR_SETTING) {
+        if (channel = SLOODLE_CHANNEL_AVATAR_DIALOG) {
             // Make sure it was the owner
             if (id != llGetOwner()) return;
         
-            // Check the contents of the message
-            msg = llToLower(msg);
-            if (msg == "refresh") {
-                // We are to refresh the list of choices
-                state update_choice_list;
+            // Check for standard messages
+            if (msg == MENU_PREVIOUS) {
+                // Move back to the previous menu page, and show the menu again
+                if (menupagenumber > 0) menupagenumber -= 1;
+                else menupagenumber = 0;
+                show_choice_menu(llGetOwner());
+                return;
+                
+            } else if (msg == MENU_NEXT) {
+                // Move forward to the next menu page, and show the menu again
+                if (menupagenumber >= 0) menupagenumber += 1;
+                else menupagenumber = 0;
+                show_choice_menu(llGetOwner());
+                return;
+                
+            } else if (msg == MENU_CANCEL) {
+                // Go back to the idle state
+                state idle;
                 return;
             }
             
             // Maybe it's a number
             integer num = (integer)msg;
             // Ignore it if it's invalid
-            if (num <= 0 || num > llGetListLength(choiceids)) return;
+            if (num <= 0 || num > llGetListLength(choiceids)) {
+                llOwnerSay("Invalid choice number. Please try again.");
+                return;
+            }
             
             // Fetch the appropriate name and id from our list
             sloodlemoduleid = llList2Integer(choiceids, (num - 1));
@@ -569,14 +817,14 @@ state active
         if (llDetectedKey(0) != llGetOwner()) return;
         // Show a menu offering the owner to reset
         llListenRemove(listenid);
-        listenid = llListen(SLOODLE_CHANNEL_AVATAR_SETTING, "", llGetOwner(), "");
-        llDialog(llGetOwner(), "Would you like to reset this choice tool?", ["Reset", "Cancel"], SLOODLE_CHANNEL_AVATAR_SETTING);
+        listenid = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llGetOwner(), "");
+        llDialog(llGetOwner(), "Would you like to reset this choice tool?", ["Reset", "Cancel"], SLOODLE_CHANNEL_AVATAR_DIALOG);
     }
     
     listen(integer channel, string name, key id, string msg)
     {
         // Check the channel
-        if (channel = SLOODLE_CHANNEL_AVATAR_SETTING) {
+        if (channel = SLOODLE_CHANNEL_AVATAR_DIALOG) {
             // Check the contents of the message
             msg = llToLower(msg);
             if (msg == "reset") {

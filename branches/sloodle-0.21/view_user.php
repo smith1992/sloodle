@@ -34,7 +34,9 @@
     //  course = ID of a Moodle course
 
 
+    /** Sloodle/Moodle configuration. */
     require_once('config.php');
+    /** General Sloodle functionality. */
     require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
     
     // Enforce login

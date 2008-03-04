@@ -457,6 +457,8 @@
         * @param int $status_code The initial status code for the response (optional - ignore if NULL)
         * @param string $status_descriptor The initial status descriptor for the response (optional - ignore if NULL)
         * @param mixed $data The initial data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleLSLResponse::$data}) (optional - ignore if NULL)
+        * @return void
+        * @access public
         */
         function SloodleLSLResponse($status_code = NULL, $status_descriptor = NULL, $data = NULL)
         {
@@ -472,6 +474,8 @@
         * If anything fails, then the script will terminate with an LSL-friendly error message.
         *
         * @param string &$str Reference to a string object which the response should be rendered to.
+        * @return void
+        * @access public
         */
         function render_to_string(&$str)
         {
@@ -601,6 +605,8 @@
         /**
         * Outputs the response directly to the HTTP response.
         *
+        * @access public
+        * @return void
         * @uses SloodleLSLResponse::render_to_string() Outputs the result from this function directly to the HTTP response stream.
         */
         function render_to_output()
@@ -628,6 +634,8 @@
         * @param string $status_descriptor The status descriptor for the response (optional - ignored if NULL)
         * @param mixed $data The data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleLSLResponse::$data}) (optional - ignored if NULL)
         * @param bool $static If TRUE (default), then this function will assume it is being call statically, and construct its own response object. Otherwise, it will all the existing member data to render the output.
+        * @return void
+        * @access public
         */
         function quick_output($status_code, $status_descriptor = NULL, $data = NULL, $static = TRUE)
         {
@@ -652,6 +660,8 @@
         * Outputs an LSL-friendly error message, and terminates the script
         *
         * @param string $msg The error message to output.
+        * @return void
+        * @access private
         */
         function _internal_validation_error($msg)
         {
@@ -667,8 +677,8 @@
     *  which conforms for the {@link http://slisweb.sjsu.edu/sl/index.php/Sloodle_communications_specification Sloodle communications specification},
     *  making it suitable for use in {@link http://slisweb.sjsu.edu/sl/index.php/Linker_Script linker scripts}.
     *
-    * @param $parname string Name of the HTTP request parameter to fetch.
-    * @param $type int Type of parameter expected, such as "PARAM_RAW". See Moodle documentation for a complete list.
+    * @param string $parname Name of the HTTP request parameter to fetch.
+    * @param int $type Type of parameter expected, such as "PARAM_RAW". See Moodle documentation for a complete list.
     * @return mixed The appropriately parsed and/or cleaned parameter value, if it was found.
     */
     function sloodle_required_param($parname, $type)

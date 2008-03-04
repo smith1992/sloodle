@@ -1,7 +1,9 @@
 <?php
 
 /**
+* Database upgrade script for MySQL.
 * @ignore
+* @package sloodledb
 */
 
 function sloodle_upgrade($oldversion) {

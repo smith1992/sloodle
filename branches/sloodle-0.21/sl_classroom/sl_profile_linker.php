@@ -5,7 +5,7 @@
     *
     * Allows in-world objects (typically Sloodle Sets) to interact with Sloodle classroom setup profiles in the Moodle database.
     *
-    * @package sloodle
+    * @package sloodleclassroom
     * @copyright Copyright (c) 2006-7 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

@@ -3,6 +3,7 @@
     * Former library file. Superceded by contents of "lib" folder.
     *
     * @package sloodle
+    * @ignore
     * @deprecated
     *
     */

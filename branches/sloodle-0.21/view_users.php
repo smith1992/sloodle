@@ -21,9 +21,9 @@
     
     // Note: this page is accessible only by teachers and administrators
        
-
-
+    /** Sloodle/Moodle configuration. */
     require_once('config.php');
+    /** General Sloodle functionality. */
     require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
     
     // Enforce login

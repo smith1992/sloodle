@@ -4,7 +4,7 @@
     *
     * Allows users in Moodle to authorize or deny in-world objects' access to Moodle.
     *
-    * @package sloodle
+    * @package sloodleclassroom
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

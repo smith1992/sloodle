@@ -5,7 +5,7 @@
     * Allows users who have clicked an in-world registration booth to complete their
     *  avatar registration by logging-in to their Moodle account (or creating one).
     *
-    * @package sloodle
+    * @package sloodlelogin
     * @copyright Copyright (c) 2007 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

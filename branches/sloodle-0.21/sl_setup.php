@@ -4,6 +4,7 @@
     *
     * Acts as a placeholder to re-direct users to the new configuration script.
     *
+    * @ignore
     * @package sloodle
     * @deprecated
     *

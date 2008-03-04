@@ -5,7 +5,7 @@
     *
     * Allows an in-world Sloodle Object Distributor object to send object distribution information to the Moodle database (including inventory list).
     *
-    * @package sloodle
+    * @package sloodledistrib
     * @copyright Copyright (c) 2006-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

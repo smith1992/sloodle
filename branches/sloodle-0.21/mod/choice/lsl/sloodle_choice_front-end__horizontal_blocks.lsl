@@ -112,6 +112,8 @@ resetScript()
 {
     // Delete all option objects
     kill_all_options();
+    // Clear the question text
+    llSetText("", <0.0,0.0,0.0>, 0.0);
     // Completely reset the script
     llResetScript();
 }
@@ -270,6 +272,7 @@ default
     {
         // Listen for option selection commands coming in
         llListen(SLOODLE_CHANNEL_OBJECT_CHOICE_OPTION, "", NULL_KEY, "");
+        llSetText("", <0.0,0.0,0.0>, 0.0);
     }
     
     state_exit()

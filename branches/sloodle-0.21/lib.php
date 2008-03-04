@@ -78,6 +78,7 @@ function sloodle_process_options(&$config)
  * (defined by the form in mod.html) this function 
  * will create a new instance and return the id number 
  * of the new instance.
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return int The id of the newly inserted sloodle record
@@ -91,6 +92,7 @@ function sloodle_add_instance($sloodle) {
  * Given an object containing all the necessary data, 
  * (defined by the form in mod.html) this function 
  * will update an existing instance with new data.
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return boolean Success/Fail
@@ -104,6 +106,7 @@ function sloodle_update_instance($sloodle) {
  * Given an ID of an instance of this module, 
  * this function will permanently delete the instance 
  * and any data that depends on it. 
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param int $id Id of the module instance
  * @return boolean Success/Failure

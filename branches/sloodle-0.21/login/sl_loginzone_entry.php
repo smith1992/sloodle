@@ -5,7 +5,7 @@
     *
     * Provides an entry-point for Moodle users who want to create a new Sloodle loginzone to authenticate their avatar
     *
-    * @package sloodle
+    * @package sloodlelogin
     * @copyright Copyright (c) 2007 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

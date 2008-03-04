@@ -1,7 +1,10 @@
 <?php
-// Esta es la versión en español del módulo Sloodle. Traducida por DKA FORMACIÖN http://www.formacion-dka.es
-// Se incluye automáticamente en el módulo de Moodle.
-// Recuperar el uso de cadenas Moodle get_string o print_string funciones.
+/**
+* Esta es la versión en español del módulo Sloodle. Traducida por DKA FORMACIÖN http://www.formacion-dka.es
+* Se incluye automáticamente en el módulo de Moodle.
+* Recuperar el uso de cadenas Moodle get_string o print_string funciones.
+* @package sloodlelang
+*/
 
 $string['alreadyauthenticated'] = 'Su avatar en Second Life ya se ha vinculado y autenticado en su cuenta Moodle.';
 

@@ -1,7 +1,10 @@
 <?php
-// This is the English language file for Sloodle.
-// It is included automatically by the Moodle framework.
-// Retrieve strings using the Moodle get_string or print_string functions.
+/**
+* This is the English language file for Sloodle.
+* It is included automatically by the Moodle framework.
+* Retrieve strings using the Moodle get_string or print_string functions.
+* @package sloodlelang
+*/
 
 $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
 

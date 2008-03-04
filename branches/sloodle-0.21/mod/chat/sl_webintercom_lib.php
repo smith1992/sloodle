@@ -15,12 +15,16 @@
     
     // This script expects that the Sloodle configuration script has already been included
 
-
-    // Get an array of chatrooms appearing in the specified course
-    // $course_id is the ID number of a particular course
-    // Returns a numeric array, associating module instance ID's with database record objects of the activity modules
-    // Returns FALSE if an error occurs
-    // TODO: generalise this function to support any module type
+    /**
+    * Gets an array of available chatrooms in the specified course.
+    * Chatrooms which are hidden, or which are in a hidden section of the course, are ignored.
+    *
+    * @param int $course_id Integer ID of a Moodle course
+    * @return mixed If successful, a numeric array, associating module instance ID's with database record objects of the activity modules. Returns boolean false if an error occurs.
+    * @see sloodle_get_visible_glossaries_in_course()
+    * @see sloodle_get_visible_choices_in_course()
+    * @todo: Generalise this function to support any module type
+    */
     function sloodle_get_visible_chatrooms_in_course( $course_id )
     {
         // THIS IS HIDEOUSLY COMPLICATED! My brain is officially fried... :-|.... PRB

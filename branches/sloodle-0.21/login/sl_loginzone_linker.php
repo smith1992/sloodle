@@ -4,7 +4,7 @@
     *
     * Allows an in-world LoginZone to communicate with the main server
     *
-    * @package sloodle
+    * @package sloodlelogin
     * @copyright Copyright (c) 2007 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

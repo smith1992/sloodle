@@ -4,7 +4,7 @@
     *
     * A temporary placeholder to give information when a user attempts to browse Sloodle module instances.
     *
-    * @package sloodle
+    * @package sloodleplaceholders
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
@@ -13,7 +13,7 @@
     */
 
 
-    // Include the Sloodle configuration
+    /** Sloodle/Moodle configuration. */
     require_once('config.php');
     
     // Get the localization strings

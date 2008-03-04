@@ -1,7 +1,9 @@
 <?php
 
 /**
+* Database upgrade script for Moodle's db-independent XMLDB.
 * @ignore
+* @package sloodledb
 */
 
 

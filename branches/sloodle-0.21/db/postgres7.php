@@ -1,7 +1,9 @@
 <?php
 
 /**
+* Database upgrade script for PostreSQL.
 * @ignore
+* @package sloodledb
 */
 
 function sloodle_upgrade($oldversion) {

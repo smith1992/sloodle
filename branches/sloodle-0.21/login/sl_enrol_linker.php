@@ -7,7 +7,7 @@
     *
     * Allows SL objects in-world to query and initiate student enrolment in courses.
     *
-    * @package sloodle
+    * @package sloodlelogin
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

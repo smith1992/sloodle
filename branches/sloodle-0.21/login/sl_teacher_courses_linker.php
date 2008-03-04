@@ -4,7 +4,7 @@
     *
     * Allows an LSL script to retrieve a list of courses for which the specified user is a teacher.
     *
-    * @package sloodle
+    * @package sloodlelogin
     * @copyright Copyright (c) 2007 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

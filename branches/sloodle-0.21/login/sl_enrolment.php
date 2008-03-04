@@ -7,7 +7,7 @@
 *
 * @copyright Copyright (c) 2008 Sloodle (various contributors)
 * @contributor Peter R. Bloomfield
-* @package sloodle
+* @package sloodlelogin
 */
 
 require_once('../config.php');

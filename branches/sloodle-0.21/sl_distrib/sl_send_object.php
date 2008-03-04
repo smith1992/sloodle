@@ -4,7 +4,7 @@
     *
     * Can be accessed by Moodle users in a web-browser to request the distribution of in-world objects.
     *
-    * @package sloodle
+    * @package sloodledistrib
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

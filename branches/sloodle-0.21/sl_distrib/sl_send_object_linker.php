@@ -4,7 +4,7 @@
     *
     * Can be called by scripts to request in-world distribution of objects.
     *
-    * @package sloodle
+    * @package sloodledistrib
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
