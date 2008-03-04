@@ -3,6 +3,8 @@
 	//This file should sit in the www ROOT dir of you main Moodle course.
     
     /**
+    * Not used yet!
+    * @package sloodleprimdrop
     * @ignore
     */
 
