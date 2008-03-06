@@ -16,7 +16,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008022800;
+        $this->version = 2008030600;
     }
     
     function has_config() {

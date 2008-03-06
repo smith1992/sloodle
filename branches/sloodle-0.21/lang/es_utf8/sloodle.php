@@ -1,8 +1,9 @@
 <?php
 /**
-* Esta es la versión en español del módulo Sloodle. Traducida por DKA FORMACIÖN http://www.formacion-dka.es
-* Se incluye automáticamente en el módulo de Moodle.
-* Recuperar el uso de cadenas Moodle get_string o print_string funciones.
+* This is the Spanish language file for the Sloodle module.
+* It is included automatically by the Moodle framework.
+* Retrieve strings using the Moodle get_string or print_string functions.
+*
 * @package sloodlelang
 */
 
@@ -10,9 +11,9 @@ $string['alreadyauthenticated'] = 'Su avatar en Second Life ya se ha vinculado y
 
 $string['allocated'] = 'Asignado';
 $string['allentries'] = 'Todas las entradas Sloodle';
-$string['allentries:info'] = 'Sloodle, lista de todas las entradas de usuario para todo el sitio. Estos pueden ser los avatares o las asignaciones de zona de usuario, y pueden o no estar vinculado a una cuenta de Moodle.';
+$string['allentries:info'] = 'Sloodle, lista de todas las entradas de usuario para todo el sitio. Estos pueden ser los avatares o las asignaciones de zona de usuario, y pueden o no estar vinculados a una cuenta de Moodle.';
 
-$string['authmethod:default'] = 'M&eacute;todo de autentificación de usuarios determinado automáticamente por defecto.';
+$string['authmethod:default'] = 'M&eacute;todo de autentificaci&oacute;n de usuarios determinado autom&aacute;ticamente por defecto.';
 $string['authmethod:invalid'] = 'M&eacute;todo de autenticaci&oacute;n de usuario no v&aacute;lido. Por favor, vuelva a rregistrarse.';
 $string['authmethod:updated'] = 'M&eacute;todo de autenticaci&oacute;n de usuario actualizada';
 
@@ -27,7 +28,7 @@ $string['cfgnotecard:header'] = 'Sloodle configuraci&oacute;n Notecard';
 $string['cfgnotecard:choosecourse'] = 'Seleccione el curso que le gustar&iacute;a configurar en sus objetos Sloodle para comunicarse con:';
 $string['cfgnotecard:paste'] = 'Pegue el siguiente texto en el sloodle_config notecard en su objeto Sloodle.'; //Deprecated
 $string['cfgnotecard:generate'] = 'Generar texto del notecard';
-$string['cfgnotecard:instructions'] = 'Para configurar un objeto Sloodle, editar o crear un notecard llamado sloodle_config en su inventario y añadir el texto de la casilla siguiente.';
+$string['cfgnotecard:instructions'] = 'Para configurar un objeto Sloodle, editar o crear un notecard llamado sloodle_config en su inventario y a&ntilde;adir el texto de la casilla siguiente.';
 $string['cfgnotecard:security'] = 'Por razones de seguridad, debe asegurarse de que el sloodle_config notecard * y * el objeto en s&iacute; no puede ser modificado por el pr&oacute;ximo propietario.';
 $string['cfgnotecard:inworld'] = '* Si prefiere configurar su objeto en el mundo, acaba de borrar o cambiar el nombre de la sloodle_config notecard en el SET Sloodle. Nos preguntar&aacute; tu avatar para los valores adecuados.';
 $string['cfgnotecard:setnote'] = 'Nota: si configura el SET Sloodle, entonces se configurar&aacute; autom&aacute;ticamente todos los objetos que cree (aunque a&uacute;n puede configurarlo manualmente si lo desea).';
@@ -53,7 +54,7 @@ $string['deletionsuccessful'] = 'Eliminaci&oacute;n confirmada';
 $string['enteravatarname'] = 'Entre el nombre del avatar';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'Se ha producido un error al intentar Sloodle encontrar los datos de usuario de Moodle vinculado a su cuenta.';
-$string['error:expectedsearchorcourse'] = 'Logros de búsqueda o curso de identificación ID.';
+$string['error:expectedsearchorcourse'] = 'Logros de b&uacute;squeda o curso de identificaci&oacute:n ID.';
 $string['expired'] = 'Caducado';
 $string['expiresin'] = 'Expira en';
 
@@ -61,9 +62,9 @@ $string['failedcreatesloodleuser'] = 'No se ha podido crear una Sloodle cuenta d
 
 $string['getnewloginzoneallocation'] = 'Haga clic aqu&iacute; para obtener una nueva asignaci&oacute;n de la Zona de Usuario.';
 
-$string['help:primpassword'] = '¿Cu&aacute;l es la contraseña para Prim?';
+$string['help:primpassword'] = '¿Cu&aacute;l es la contrase&ntilde;a para Prim?';
 $string['help:userediting'] = '¿Cu&aacute;l es el riesgo?';
-$string['help:userauth'] = '¿Cuáles son los m&eacute;todos de autenticaci&oacute;n de usuario?';
+$string['help:userauth'] = '¿Cu&acute;les son los m&eacute;todos de autenticaci&oacute;n de usuario?';
 $string['help:versionnumbers'] = '¿Qu&eacute; significan estos n&uacute;meros?';
 $string['help:multipleentries'] = '¿Por qu&eacute; existen m&uacute;ltiples entradas? ¿Qu&eacute; significa?';
 
@@ -77,7 +78,7 @@ $string['linkedtomoodleusernum'] = 'Usuario Moodle #';
 
 $string['loginsecuritytokenfailed'] = 'Su nombre de usuario token de seguridad no es v&aacute;lido. Por favor, intente utilizar el Registro de Cabina de nuevo, y garantizar que sigui&oacute; la URL correcta para acceder a esta p&aacute;gina.';
 $string['loginzoneposition'] = 'Posici&oacute;n de la zona de usuario?';
-$string['loginzone:datamissing'] = 'Algunos de los datos de inicio de sesión no se han encontrado.';
+$string['loginzone:datamissing'] = 'Algunos de los datos de inicio de sesi&oacute;n no se han encontrado.';
 $string['loginzone:entry'] = 'Entrada a Zona de Usuario Sloodle';
 $string['loginzone:mayneedrerez'] = 'La zona de inicio de sesi&oacute;n puede ser necesario volver a r-rezzed.';
 $string['loginzone:useteleportlink'] = 'Un inicio de sesi&oacute;n ha sido asignado para usted. Por favor, utilice el siguiente enlace para teletransportarse a ella:';
@@ -126,24 +127,24 @@ $string['objectuuid'] = 'Objeto UUID';
 
 $string['or'] = 'o';
 
-$string['primpass:set'] = 'Set Prim n&uacute;mero de contraseña';
-$string['primpass:setdesc'] = 'La contraseña debe ser un n&uacute;mero entre 5 y 9 dígitos como m&aacute;ximo, y que no comienze con un 0. Por favor tenga en cuenta que si cambia esta contraseña, tendr&aacute; que actualizar la configuraci&oacute;n de todos sus objetos de Second Life que la utilizan.';
-$string['primpass:save'] = 'Guardar contraseña Prim';
-$string['primpass:change'] = 'Cambiar contraseña Prim';
-$string['primpass:changedesc'] = 'La contraseña debe ser un n&uacute;mero entre 5 y 9 d&iacute;gitos como m&aacute;ximo, y que no comienze con un 0. Por favor tenga en cuenta que si cambia la contraseña, tendr&aacute;s que actualizar todos los scripts en los objetos de Second Life que la utilizan.';
-$string['primpass:isset'] = 'Contraseña Prim del Set';
-$string['primpass:issetdesc'] = 'Su contraseña prim le ser&aacute; autom&aacute;ticamente incluida en su LSL scripts.';
-$string['primpass:errornotset'] = 'Error: Su contraseña Prim no pudo ser creada';
+$string['primpass:set'] = 'Set Prim n&uacute;mero de contrase&ntilde;a';
+$string['primpass:setdesc'] = 'La contrase&ntilde;a debe ser un n&uacute;mero entre 5 y 9 d&iacute;gitos como m&aacute;ximo, y que no comienze con un 0. Por favor tenga en cuenta que si cambia esta contrase&ntilde;a, tendr&aacute; que actualizar la configuraci&oacute;n de todos sus objetos de Second Life que la utilizan.';
+$string['primpass:save'] = 'Guardar contrase&ntilde;a Prim';
+$string['primpass:change'] = 'Cambiar contrase&ntilde;a Prim';
+$string['primpass:changedesc'] = 'La contrase&ntilde;a debe ser un n&uacute;mero entre 5 y 9 d&iacute;gitos como m&aacute;ximo, y que no comienze con un 0. Por favor tenga en cuenta que si cambia la contrase&ntilde;a, tendr&aacute;s que actualizar todos los scripts en los objetos de Second Life que la utilizan.';
+$string['primpass:isset'] = 'Contrase&ntilde;a Prim del Set';
+$string['primpass:issetdesc'] = 'Su contrase&ntilde;a prim le ser&aacute; autom&aacute;ticamente incluida en su LSL scripts.';
+$string['primpass:errornotset'] = 'Error: Su contrase&ntilde;a Prim no pudo ser creada';
 
-$string['primpass:tooshort'] = 'La contraseña Prim debe ser de al menos 5 d&iacute;gitos de largo.';
-$string['primpass:toolong'] = 'La contraseña Prim Password no debe de tener m&aacute;s de 9 d&iacute;gitos.';
-$string['primpass:numonly'] = 'La contraseña Prim debe contener solamente d&iacute;gitos num&eacute;ricos (0 a 9).';
-$string['primpass:error'] = 'Contraseña Prim Error';
-$string['primpass:updated'] = 'Contraseña Prim actualizada.';
-$string['primpass:leadingzero'] = 'La Contraseña Prim no puede comenzar con un 0.';
-$string['primpass:random'] = 'Una contraseña aleatoria prim se ha generado autom&aacute;ticamente por usted.';
+$string['primpass:tooshort'] = 'La contrase&ntilde;a Prim debe ser de al menos 5 d&iacute;gitos de largo.';
+$string['primpass:toolong'] = 'La contrase&ntilde;a Prim Password no debe de tener m&aacute;s de 9 d&iacute;gitos.';
+$string['primpass:numonly'] = 'La contrase&ntilde;a Prim debe contener solamente d&iacute;gitos num&eacute;ricos (0 a 9).';
+$string['primpass:error'] = 'Contrase&ntilde;a Prim Error';
+$string['primpass:updated'] = 'Contrase&ntilde;a Prim actualizada.';
+$string['primpass:leadingzero'] = 'La Contrase&ntilde;a Prim no puede comenzar con un 0.';
+$string['primpass:random'] = 'Una contrase&ntilde;a aleatoria prim se ha generado autom&aacute;ticamente por usted.';
 
-$string['releasenum'] = 'M&oacute;dulo número de versi&oacute;n';
+$string['releasenum'] = 'M&oacute;dulo n&uacute:mero de versi&oacute;n';
 
 $string['second'] = 'segundo';
 $string['seconds'] = 'segundos';
@@ -172,7 +173,7 @@ $string['sloodleuserediting:allowteachers'] = 'Permitir a los profesores Sloodle
 $string['sloodleuserediting'] = 'Sloodle editar usuario';
 $string['sloodleuserprofile'] = 'Sloodle perfil de usuario';
 $string['sloodleuserprofiles'] = 'Sloodle perfiles de usuario';
-$string['specialpages'] = 'Páginas especiales';
+$string['specialpages'] = 'P&aacute;ginas especiales';
 
 
 $string['submit'] = 'Enviar';
