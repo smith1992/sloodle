@@ -1,7 +1,11 @@
 <?php
-// Esta es la versión en español del bloque Sloodle. Traducida por: DKA FORMACIÖN http://www.formacion-dka.es
-// Se incluye automáticamente en el bloque de Moodle.
-// Recuperar el uso de cadenas Moodle get_string o print_string funciones.
+/**
+* This is the Spanish language file for the Sloodle menu block.
+* It is included automatically by the Moodle framework.
+* Retrieve strings using the Moodle get_string or print_string functions.
+*
+* @package sloodlelang
+*/
 
 $string['avatarname'] = 'Nombre del Avatar';
 
