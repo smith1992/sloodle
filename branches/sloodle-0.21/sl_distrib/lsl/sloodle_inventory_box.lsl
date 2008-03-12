@@ -32,6 +32,11 @@ integer sloodlecourseid = 0;
 string avilisterlinkerscript = "/mod/sloodle/mod/avilister/sl_avilister_linker.php";
 string enrollinkerscript = "/mod/sloodle/login/sl_enrol_linker.php";
 
+// Version of Sloodle installed
+float sloodleversion = 0.0;
+// Name of the course (optional)
+string coursename = "";
+
 // Sloodle communication channels
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_SETTING = 1;
@@ -280,6 +285,7 @@ default
         sloodleserverroot = "";
         sloodlepwd = "";
         sloodlecourseid = 0;
+        coursename = "";
     }
     
     on_rez(integer start_param)
@@ -394,13 +400,13 @@ state setup
                 if (msg == MENU_SITE) {
                     // Site-level access
                     myaccesslevel = ACCESS_SITE;
-                    state ready;
+                    state check_site;
                     return;
                     
                 } else if (msg == MENU_COURSE) {
                     // Course-level access
                     myaccesslevel = ACCESS_COURSE;
-                    state ready;
+                    state check_site;
                     return;
                 }
             }
@@ -409,6 +415,152 @@ state setup
         }
     }    
 }
+
+
+// Check that the site is valid
+// (NOTE: older versions of Sloodle 0.2 do not have the "version_linker.php" script, so we can't rely on it!)
+state check_site
+{
+    state_entry()
+    {
+        llSetText("Checking Moodle site...", <0.0,1.0,1.0>, 0.8);
+        sloodleversion = 0.0;
+        coursename = "";
+        
+        // Attempt to request a standard Sloodle script
+        llHTTPRequest(sloodleserverroot + "/mod/sloodle/version_linker.php", [HTTP_METHOD, "GET"], "");
+        llSetTimerEvent(TIMEOUT_HTTP);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        llOwnerSay("WARNING: timeout while checking Moodle site. This device may not function properly.");
+        if (myaccesslevel == ACCESS_COURSE) state check_course;
+        else state ready;
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Check the status code
+        if (status != 200 || body == "") {
+            llOwnerSay("WARNING: failed to check Moodle site. (Ignore this warning if you are running an old release of Sloodle 0.2)");
+            if (myaccesslevel == ACCESS_COURSE) state check_course;
+            else state ready;
+            return;
+        }
+        
+        // Split the response body into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        list datafields = [];
+        if (numlines >= 2) {
+            datafields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
+        }
+        
+        // Check if Sloodle is installed
+        if ((integer)llList2Integer(statusfields, 0) <= 0) {
+            llOwnerSay("WARNING: Sloodle does not appear to be installed on the Moodle site (although the Sloodle files are present). Please check with your Moodle administrator to see if the module has been installed fully.");
+            if (myaccesslevel == ACCESS_COURSE) state check_course;
+            else state ready;
+            return;
+        }
+        
+        // Extract the version info
+        string sloodleversionstr = llList2String(datafields, 0);
+        sloodleversion = (float)sloodleversionstr;
+        string moduleversionstr = "?";
+        if (llGetListLength(datafields) >= 2) moduleversionstr = llList2String(datafields, 1);
+        llOwnerSay("Connected to Moodle site successfully. Your installed Sloodle version: " + sloodleversionstr + "." + moduleversionstr);
+        
+        if (myaccesslevel == ACCESS_COURSE) state check_course;
+        else state ready;
+    }
+}
+
+
+// Check that the course is valid
+state check_course
+{
+    state_entry()
+    {        
+        llSetText("Checking Moodle course...", <0.0,1.0,0.5>, 0.8);
+        
+        // Attempt to request a standard Sloodle script
+        llHTTPRequest(sloodleserverroot + "/mod/sloodle/login/sl_enrol_linker.php?sloodlepwd=" + sloodlepwd + "&sloodlemode=list-all", [HTTP_METHOD, "GET"], "");
+        llSetTimerEvent(TIMEOUT_HTTP);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        llOwnerSay("WARNING: timeout while checking Moodle course. This device may not function properly.");
+        state ready;
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Check the status code
+        if (status != 200) {
+            llOwnerSay("WARNING: failed to check Moodle course (HTTP status " + (string)status + ". This device may not function properly.");
+            state ready;
+            return;
+        }
+        
+        // Check the response body
+        if (body == "") {
+            llOwnerSay("WARNING: failed to check Moodle course (empty response). This device may not function properly.");
+            state ready;
+            return;
+        }
+        
+        // Split the response body into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Check the status code
+        if (statuscode <= 0) {
+            string errmsg = "";
+            if (numlines >= 2) errmsg = llList2String(lines, 1);
+            llOwnerSay("WARNING: this device may not function properly. Error reported while checking Moodle course. (" + (string)statuscode + ") " + errmsg);
+            state ready;
+            return;
+        }
+        
+        // Go through each line
+        integer i = 1;
+        list fields = [];
+        coursename = "";
+        for (; i < numlines && coursename == ""; i++) {
+            // Split this line into fields
+            fields = llParseStringKeepNulls(llList2String(lines, i), ["|"], []);
+            if (llGetListLength(fields) >= 3 && sloodlecourseid == (integer)llList2String(fields, 0)) {
+                coursename = llList2String(fields, 2);
+            }
+        }
+        
+        // Was the course verified?
+        if (coursename != "") {
+            llOwnerSay("Verified course #" + (string)sloodlecourseid + ": " + coursename);
+        } else {
+            llOwnerSay("WARNING: failed to verify course #" + (string)sloodlecourseid + ". This device may not work properly.");
+        }
+        
+        state ready;
+    }
+}
+
 
 // Ready for use - will respond to clicks
 state ready
@@ -427,7 +579,15 @@ state ready
         } else if (myaccesslevel == ACCESS_SITE) {
             hovertext += "\nSITE: only registered avatars may use this object\n[site: " + sloodleserverroot + "]";
         } else if (myaccesslevel == ACCESS_COURSE) {
-            hovertext += "\nCOURSE: only registered and enrolled users may use this object\n[site: " + sloodleserverroot + "]\n[course #" + (string)sloodlecourseid + "]";
+            // Construct the course text depending on whether or not the course was verified
+            string coursetext = "";
+            if (coursename == "") {
+                coursetext = "[course #" + (string)sloodlecourseid + "]";
+            } else {
+                coursetext = "[course #" + (string)sloodlecourseid + ": " + coursename + "]";
+            }
+            
+            hovertext += "\nCOURSE: only registered and enrolled users may use this object\n[site: " + sloodleserverroot + "]\n" + coursetext;
         }
     
         // Set the hover text
@@ -453,7 +613,10 @@ state ready
                 
             } else {
                 // No - check the access requirements
-                if (myaccesslevel == ACCESS_PUBLIC) {
+                if (llDetectedKey(i) == llGetOwner()) {
+                    // Owner - always has access
+                    add_user(llDetectedKey(i));
+                } else if (myaccesslevel == ACCESS_PUBLIC) {
                     // Public - add them happily!
                     add_user(llDetectedKey(i));
                 } else if (myaccesslevel == ACCESS_GROUP) {
