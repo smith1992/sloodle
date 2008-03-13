@@ -1,0 +1,144 @@
+<?php
+    /**
+    * Sloodle module configuration fragment.
+    *
+    * This PHP/HTML fragment shows a web-form for configuring the Sloodle module.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor (various)
+    * @contributor Peter R. Bloomfield
+    *
+    */
+    
+
+    // Get our Sloodle configuration
+    require_once($CFG->dirroot.'/mod/sloodle/config.php');
+    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
+    
+    // Attempt to get the configuration settings
+    $sloodleprimpwd = sloodle_get_config('sloodle_prim_password');
+    $allow_user_edit_by_teachers = sloodle_get_config('sloodle_allow_user_edit_by_teachers');
+    
+    // Is the prim password setting missing from the configuration?
+    if (isset($sloodleprimpwd) == FALSE || is_null($sloodleprimpwd) || empty($sloodleprimpwd)) {
+        // Not set - generate a random one
+        $sloodleprimpwd = (string)mt_rand(100000000, 999999999);
+        sloodle_set_config('sloodle_prim_password', $sloodleprimpwd);
+    }
+    // If a prim password has been passed back to this form, then use it
+    // Otherwise, get the setting from the database
+    $temppwd = optional_param('sloodlepwd', NULL, PARAM_RAW);
+    if ($temppwd != NULL) $sloodleprimpwd = $temppwd;
+    
+    // Has an appropriate value been set in the 'allow user edit by teachers' field?
+    if ($allow_user_edit_by_teachers != 'true' && $allow_user_edit_by_teachers != 'false') {
+        // Set a default value
+        $allow_user_edit_by_teachers = 'false';
+        sloodle_set_config('allow_user_edit_by_teachers', 'false');
+    }
+?>
+
+
+<!-- Version Numbers -->
+<?php
+    // Display the Sloodle version
+    print_heading(get_string('sloodleversion','sloodle').': '.(string)SLOODLE_VERSION, 'center', 3);
+    // Get and display the module version number (from version.php)
+    $sloodlemodule = get_record('modules', 'name', 'sloodle');
+    $releasenum = 0;
+    if ($sloodlemodule !== FALSE) $releasenum = $sloodlemodule->version;
+    print_heading(get_string('releasenum','sloodle').': '.(string)$releasenum, 'center', 5);
+    
+    // Display a help button regarding the version numbers
+    echo '<div style="text-align:center;">(';
+    helpbutton('version_numbers', get_string('help:versionnumbers', 'sloodle'), 'sloodle', true, true);
+    echo ')</div>';
+?>
+
+<!-- ERROR REPORTING -->
+<?php
+
+    // Configuration errors will be reported by the presence of various GET parameters
+    $sloodlepwdshort = optional_param("sloodlepwdshort", FALSE, PARAM_BOOL);
+    $sloodlepwdlong = optional_param("sloodlepwdlong", FALSE, PARAM_BOOL);
+    $sloodlepwdnonnum = optional_param("sloodlepwdnonnum", FALSE, PARAM_BOOL);
+    $sloodlepwdleadzero = optional_param("sloodlepwdleadzero", FALSE, PARAM_BOOL);
+    
+    // If at least one error was raised, then display an error box
+    if ($sloodlepwdshort || $sloodlepwdlong || $sloodlepwdnonnum || $sloodlepwdleadzero || $sloodleauthinvalid) {
+        echo '<div style="border:solid 2px red; background-color:white;">';
+        // Check each error in turn
+        //echo '<h3>'.get_string('configerror','sloodle').'</h3>';
+        $error_strings = array();
+        if ($sloodlepwdshort) $error_strings[] = get_string('primpass:tooshort','sloodle') . "\n";
+        if ($sloodlepwdlong) $error_strings[] = get_string('primpass:toolong','sloodle') . "\n";
+        if ($sloodlepwdnonnum) $error_strings[] = get_string('primpass:numonly','sloodle') . "\n";
+        if ($sloodlepwdleadzero) $error_strings[] = get_string('primpass:leadingzero','sloodle') . "\n";
+        
+        echo '<ul>';
+        foreach ($error_strings as $err) {
+            echo "<li>$err</li>\n";
+            
+        }
+        echo '</ul>';
+        echo '</div>';
+    }
+?>
+
+<!-- Sloodle configuration form -->
+
+<form method="post" action="module.php" id="form">
+<!--<div>-->
+<!-- Session key and module name -->
+<input type="hidden" name="sesskey" value="<?php echo $USER->sesskey ?>" />
+<input type="hidden" name="module" value="sloodle" />
+
+<table cellpadding="9" cellspacing="0" >
+
+<!-- Notecard -->
+<tr>
+    <td colspan="3" align="left">
+            <h3><?php print_string("objectconfig:header", "sloodle"); ?></h3>
+            <p>
+             <?php print_string("objectconfig:body", "sloodle"); ?>
+             <a href="<?php echo SLOODLE_WWWROOT; ?>/sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
+            </p>
+    </td>
+</tr>
+
+<!-- Prim Password -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string("primpass:set", "sloodle"); ?> <?php echo helpbutton('prim_password', get_string('help:primpassword','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p><?php print_string("primpass:setdesc", "sloodle"); ?></p>
+        <input size="40" maxlength="40" type="text" name="prim_password" value="<?php echo $sloodleprimpwd; ?>"/>
+    </td>
+</tr>
+
+<!-- Avatar Editing -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string("sloodleuserediting", "sloodle"); ?> <?php echo helpbutton('user_editing', get_string('help:userediting','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p>
+         <input type="checkbox" name="allow_user_edit_by_teachers" <?php if ($allow_user_edit_by_teachers == 'true') echo 'checked'; ?> value="true"/>
+         <?php print_string("sloodleuserediting:allowteachers", "sloodle"); ?>
+        </p>
+    </td>
+</tr>
+
+<!-- Form Submission -->
+<tr>
+    <td colspan="3" align="center">
+        <input type="submit" value="<?php print_string("savechanges") ?>" />
+    </td>
+</tr>
+</table>
+<!--</div>-->
+</form>
+
+<!-- End Sloodle configuration form -->
