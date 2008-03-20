@@ -20,9 +20,18 @@
 	require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
 
 	$courseid = optional_param('courseid',null,PARAM_RAW);
-
-	print_header(get_string("cfgnotecard:header", "sloodle"), '', '', '', false, '', '', false, '');
-	print_heading(get_string("cfgnotecard:header", "sloodle"));
+ 
+    // Construct the breadcrumb links
+    $navigation = "";
+    $navigation .= "<a href=\"{$CFG->wwwroot}/admin\">".get_string('administration').'</a> -> ';
+    $navigation .= "<a href=\"{$CFG->wwwroot}/admin/module.php?module=sloodle\">".get_string('modulename', 'sloodle') . '</a> -> ';
+    $navigation .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/sl_setup_notecard.php\">".get_string('cfgnotecard:header', 'sloodle')."</a>";
+    
+    // Display the header
+    print_header(get_string('cfgnotecard:header', 'sloodle'), get_string('cfgnotecard:header','sloodle'), $navigation, "", "", true);
+    print_heading(get_string("cfgnotecard:header", "sloodle"));
+    
+    
 
 	require_login();
 	if (isadmin()) {
@@ -46,12 +55,13 @@
 			print '<p>'. get_string("cfgnotecard:choosecourse", "sloodle") .'</p>';
 			print '<form method="post" action="sl_setup_notecard.php">';
 			$courses = get_courses();
-            // Sort the array of courses by name
-            $sortedcourses = array();
-            foreach ($courses as $c) {
-                $sortedcourses[$c->id] = $c->fullname;
-            }
-            natcasesort($sortedcourses);
+                        // Sort the array of courses by name
+                        $sortedcourses = array();
+                        foreach ($courses as $cid => $c) {
+                            $sortedcourses[$cid] = $c->fullname;
+                        }
+                        asort($sortedcourses);
+
 
 			foreach($sortedcourses as $cid => $cname) {
 				print '<input type="radio" name="courseid" value="'.$cid.'" />'.$cname;
@@ -96,3 +106,4 @@
 	}
 
 ?>
+
