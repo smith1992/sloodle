@@ -58,6 +58,8 @@ $string['expired'] = 'Expired';
 $string['expiresin'] = 'expires in';
 
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
+$string['failedaddinstance'] = 'Failed to add a new Sloodle module instance.';
+$string['failedaddsecondarytable'] = 'Failed to add the secondary table for the Sloodle module instance.';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
 
@@ -89,18 +91,15 @@ $string['loginzone:allocationerror'] = 'An error occurred while allocating a Log
 $string['minute'] = 'minute';
 $string['minutes'] = 'minutes';
 
-$string['mod.html:placeholder1'] = 'Currently, Sloodle does not have the facility to add separate instances to your Moodle courses. Instead, Sloodle acts as a single instance for your entire Moodle site.';
-$string['mod.html:placeholder2'] = 'We hope to have the instance capability added in Sloodle version 0.3.';
-$string['mod.html:placeholder3'] = 'Please refer to our website for further information:';
-$string['mod.html:placeholder4'] = 'Sorry for any inconvenience.';
-
-$string['moduletype:controlcenter'] = 'Control Center';
-$string['moduletype:classroom'] = 'Virtual Classroom';
+$string['moduletype:controller'] = 'Sloodle Controller';
 $string['moduletype:distributor'] = 'Distributor';
-$string['moduletype:loginzone'] = 'LoginZone';
 
 $string['modulename'] = 'Sloodle Module';
 $string['modulenameplural'] = 'Sloodle Modules';
+$string['modulenotfound'] = 'Sloodle module not found.';
+$string['moduletype'] = 'Sloodle Module Type';
+$string['moduletypemismatch'] = 'Sloodle module type mismatch. You cannot change the Sloodle module type after it is created.';
+$string['moduletypeunknown'] = 'Sloodle module type unknown.';
 $string['moodleadminindex'] = 'Moodle administration index';
 $string['moodleusernotfound'] = 'That Moodle user does not appear to exist. It may have been completely deleted from the database, or else you may have the wrong user ID.';
 $string['moodleuserprofile'] = 'Moodle user profile';
@@ -152,6 +151,7 @@ $string['releasenum'] = 'Module release number';
 
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';
+$string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. Module instance may need to be created again.';
 
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';

@@ -14,7 +14,6 @@
     */
     
     require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
-    require_once(SLOODLE_LIBROOT.'/sl_generallib.php');
     
 
 // Process the configuration options for the Sloodle module
@@ -77,7 +76,6 @@ function sloodle_process_options(&$config)
  * (defined by the form in mod.html) this function 
  * will create a new instance and return the id number 
  * of the new instance.
- * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return int The id of the newly inserted sloodle record
@@ -88,20 +86,65 @@ function sloodle_add_instance($sloodle) {
     // Set the creation and modification times
     $sloodle->timecreated = time();
     $sloodle->timemodified = time();
-
-    // Determine if the default site-wide prim password should be used
-    if (isset($sloodle->usesitepassword) && $sloodle->usesitepassword) {
-        $sloodle->password = '';
-    }
     
     // Prefix the full type name on the instance name
-    $sloodle->name = get_string("moduletype:{$sloodle->type}", 'sloodle') . ': ' . $sloodle_name;
-    
-    // Attempt to insert the record
+    $sloodle->name = get_string("moduletype:{$sloodle->type}", 'sloodle') . ': ' . $sloodle->name;
+        
+    // Attempt to insert the new Sloodle record
     if (!$sloodle->id = insert_record('sloodle', $sloodle)) {
-        return false;
+        error(get_string('failedaddinstance', 'sloodle'));
     }
     
+    // We need to create a new secondary table for this module
+    $sec_table = new stdClass();
+    $sec_table->sloodleid = $sloodle->id;
+    
+    // Check the type of this module
+    $result = FALSE;
+    $errormsg = '';
+    switch ($sloodle->type) {
+    case SLOODLE_TYPE_CTRL:
+        // Create a new controller record
+        $sec_table->enabled = 0;
+        $sec_table->password = mt_rand(100000000, 999999999);
+        $sec_table->autoreg = 0;
+        // Attempt to add it to the database
+        if (!insert_record('sloodle_controller', $sec_table)) {
+            $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+        } else {
+            $result = TRUE;
+        }
+        break;
+        
+    case SLOODLE_TYPE_DISTRIB:
+        // Attempt to add it to the database
+        if (!insert_record('sloodle_distributor', $sec_table)) {
+            $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+        } else {
+            $result = TRUE;
+        }        
+        break;
+        
+    // ADD FURTHER MODULE TYPES HERE!
+        
+    default:
+        // Type not recognised
+        $errormsg = error(get_string('moduletypeunknown', 'sloodle'));
+        break;
+    }
+    
+    // Was there a problem?
+    if (!$result) {
+        // Yes
+        // Delete the Sloodle instance
+        delete_records('sloodle', 'id', $sloodle->id);
+        
+        // Show the error message (if there was one)
+        if (!empty($errormsg)) error($errormsg);
+        return FALSE;
+    }
+    
+    // Success!
     return $sloodle->id;
 }
 
@@ -109,27 +152,43 @@ function sloodle_add_instance($sloodle) {
  * Given an object containing all the necessary data, 
  * (defined by the form in mod.html) this function 
  * will update an existing instance with new data.
- * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return boolean Success/Fail
  **/
 function sloodle_update_instance($sloodle) {
+    global $CFG;
 
     // Update the modification time
-    $forum->timemodified = time();
+    $sloodle->timemodified = time();
     // Make sure the ID is correct for update
-    $forum->id = $forum->instance;
+    $sloodle->id = $sloodle->instance;
     
-    // Determine if the default site-wide prim password should be used
-    if (isset($sloodle->usesitepassword) && $sloodle->usesitepassword) {
-        $sloodle->password = '';
-    } else {
-        // Validate the prim password
-        $len = strlen($sloodle->password);
-        if ($len < 5 || $len > 9) return false;
-        if (!ctype_digit($len)) return false;
-        if ($len[0] == '0') return false;
+    // Make sure the type is the same as the existing record
+    $existing_record = get_record('sloodle', 'id', $sloodle->id);
+    if (!$existing_record) error(get_string('modulenotfound', 'sloodle'));
+    if ($existing_record->type != $sloodle->type) error(get_string('moduletypemismatch', 'sloodle'));
+    
+    // Check the type of this module
+    switch ($sloodle->type) {
+    case SLOODLE_TYPE_CTRL:
+        // Attempt to fetch the controller record
+        $ctrl = get_record('sloodle_controller', 'sloodleid', $sloodle->id);
+        if (!$ctrl) error(get_string('secondarytablenotfound', 'sloodle'));
+        break;
+        
+    case SLOODLE_TYPE_DISTRIB:
+        // Attempt to fetch the distributor record
+        $distrib = get_record('sloodle_distributor', 'sloodleid', $sloodle->id);
+        if (!$distrib) error(get_string('secondarytablenotfound', 'sloodle'));
+        break;
+        
+    // ADD FURTHER MODULE TYPES HERE!
+        
+    default:
+        // Type not recognised
+        error(get_string('moduletypeunknown', 'sloodle'));
+        break;
     }
 
     // Attempt the update
@@ -140,28 +199,38 @@ function sloodle_update_instance($sloodle) {
  * Given an ID of an instance of this module, 
  * this function will permanently delete the instance 
  * and any data that depends on it. 
- * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
  **/
 function sloodle_delete_instance($id) {
 
-    // Make sure it exists before trying to delete it
-    if (!$sloodle = get_record('sloodle', 'id', $id)) {
-        return false;
-    }
-
     // Determine our success or otherwise
-    $result = true;
+    $result = false;
 
-    // Delete all the related Sloodle stuff
-    //...
-
-    // Attempt the deletion
-    if (!delete_records('forum', 'id', $forum->id)) {
+    // Attempt to delete the main Sloodle instance
+    if (!delete_records('sloodle', 'id', $sloodle->id)) {
         $result = false;
     }
+    
+    // Delete any secondary controller tables
+    delete_records('sloodle_controller', 'sloodleid', $id);
+    
+    // Attempt to get any secondary distributor tables
+    $distribs = get_records('sloodle_distributor', 'sloodleid', $id);
+    if (is_array($distribs) && count($distribs) > 0) {
+        // Go through each distributor
+        foreach ($distribs as $d) {
+            // Delete any related distributor entries
+            delete_records('sloodle_distributor_entry', 'distributorid', $d->id);
+        }
+    }
+    // Delete all the distributors
+    delete_records('sloodle_distributor', 'sloodleid', $id);
+    
+    
+    // ADD FURTHER MODULE TYPES HERE!
+    
 
     return $result;
 }
@@ -174,7 +243,7 @@ function sloodle_delete_instance($id) {
  * $return->info = a short text description
  *
  * @return null
- * @todo Finish documenting this function
+ * @todo Do we need this function to do anything?
  **/
 function sloodle_user_outline($course, $user, $mod, $sloodle) {
     return NULL;
@@ -185,7 +254,7 @@ function sloodle_user_outline($course, $user, $mod, $sloodle) {
  * a given particular instance of this module, for user activity reports.
  *
  * @return boolean
- * @todo Finish documenting this function
+ * @todo Do we need this function to do anything?
  **/
 function sloodle_user_complete($course, $user, $mod, $sloodle) {
     return true;
@@ -198,7 +267,7 @@ function sloodle_user_complete($course, $user, $mod, $sloodle) {
  *
  * @uses $CFG
  * @return boolean
- * @todo Finish documenting this function
+ * @todo Figure out if we need this function to do anything!
  **/
 function sloodle_print_recent_activity($course, $isteacher, $timestart) {
     global $CFG;
@@ -207,16 +276,22 @@ function sloodle_print_recent_activity($course, $isteacher, $timestart) {
 }
 
 /**
- * Function to be run periodically according to the moodle cron
- * This function searches for things that need to be done, such 
- * as sending out mail, toggling flags etc ... 
+ * Function to be run periodically according to the Moodle cron.
+ * Clears out expired pending user entries, session keys, etc.
  *
- * @uses $CFG
  * @return boolean
- * @todo Finish documenting this function
+ * @todo Implement me!
  **/
 function sloodle_cron () {
-    global $CFG;
+    
+    // Delete any pending user entries which have expired
+    //...
+    
+    // Delete any active objects and session keys which have expired
+    //...
+    
+    // More stuff?
+    //...
 
     return true;
 }
@@ -246,6 +321,7 @@ function sloodle_grades($sloodleid) {
  *
  * @param int $sloodleid ID of an instance of this module
  * @return mixed boolean/array of students
+ * @todo Possibly make it return a list of users registered via the Sloodle instance?
  **/
 function sloodle_get_participants($sloodleid) {
     return false;
@@ -259,24 +335,22 @@ function sloodle_get_participants($sloodleid) {
  *
  * @param int $sloodleid ID of an instance of this module
  * @return mixed
- * @todo Finish documenting this function
  **/
 function sloodle_scale_used ($sloodleid,$scaleid) {
     $return = false;
-
-    //$rec = get_record("sloodle","id","$sloodleid","scale","-$scaleid");
-    //
-    //if (!empty($rec)  && !empty($scaleid)) {
-    //    $return = true;
-    //}
    
     return $return;
 }
 
 
-// Gets the different types of module available
+/**
+* Gets the different sub-types of Sloodle module available as a list for the "Add Activity..." menu.
+*
+* $return array Entries for the "Add Activity..." sub-menu for Sloodle
+*/
+
 function sloodle_get_types() {
-    global $CFG, $SLOODLE_TYPES, $SLOODLE_TYPE_CTRL, $COURSE;
+    global $CFG, $SLOODLE_TYPES;
     $types = array();
 
     // Start the group
@@ -285,31 +359,14 @@ function sloodle_get_types() {
     $type->type = "sloodle_group_start";
     $type->typestr = '--'.get_string('modulenameplural', 'sloodle');
     $types[] = $type;
-    
-    // Does the current course have a Control Center already?
-    $hascontrolcenter = false;
-    if (isset($COURSE)) sloodle_course_has_control_center($COURSE->id);
-    
-    // Add the Control Center type if necessary
-    if (!$hascontrolcenter) {
+     
+    // Go through each Sloodle module type, and add it
+    foreach ($SLOODLE_TYPES as $st) {
         $type = new object();
         $type->modclass = MOD_CLASS_ACTIVITY;
-        $type->type = "sloodle&amp;type=$SLOODLE_TYPE_CTRL";
-        $type->typestr = get_string("moduletype:$SLOODLE_TYPE_CTRL", 'sloodle');
+        $type->type = "sloodle&amp;type=$st";
+        $type->typestr = get_string("moduletype:$st", 'sloodle');
         $types[] = $type;
-    }
-    
-    // Add the standard types if necessary
-    // (Note: add these even if the course could not be identified)
-    if ($hascontrolcenter || !isset($COURSE)) {
-        // Go through each standard type
-        foreach ($SLOODLE_TYPES as $st) {
-            $type = new object();
-            $type->modclass = MOD_CLASS_ACTIVITY;
-            $type->type = "sloodle&amp;type=$st";
-            $type->typestr = get_string("moduletype:$st", 'sloodle');
-            $types[] = $type;
-        }
     }
 
     // End the group
