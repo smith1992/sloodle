@@ -55,13 +55,12 @@
 			print '<p>'. get_string("cfgnotecard:choosecourse", "sloodle") .'</p>';
 			print '<form method="post" action="sl_setup_notecard.php">';
 			$courses = get_courses();
-                        // Sort the array of courses by name
-                        $sortedcourses = array();
-                        foreach ($courses as $cid => $c) {
-                            $sortedcourses[$cid] = $c->fullname;
-                        }
-                        asort($sortedcourses);
-
+            // Sort the array of courses by name
+            $sortedcourses = array();
+            foreach ($courses as $c) {
+                $sortedcourses[$c->id] = $c->fullname;
+            }
+            natcasesort($sortedcourses);
 
 			foreach($sortedcourses as $cid => $cname) {
 				print '<input type="radio" name="courseid" value="'.$cid.'" />'.$cname;
