@@ -12,9 +12,10 @@ $string['allocated'] = 'Allocated';
 $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 
-$string['authmethod:default'] = 'User authentication method automatically set to default.';
-$string['authmethod:invalid'] = 'Invalid user authentication method. Please re-select.';
-$string['authmethod:updated'] = 'User authentication method updated';
+$string['autoreg'] = 'User Auto-Registration';
+$string['autoreg:allowforsite'] = 'Allow auto-registration for this site';
+$string['autoreg:allowforcourse'] = 'Allow auto-registration for this course';
+
 
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
@@ -65,7 +66,7 @@ $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone alloca
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userediting'] = 'What is the risk?';
-$string['help:userauth'] = 'What are the User Authentication methods?';
+$string['help:autoreg'] = 'What is auto-registration?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
 $string['help:multipleentries'] = 'Why are there multiple entries? What does it mean?';
 
@@ -139,6 +140,7 @@ $string['primpass:isset'] = 'Prim Password is set.';
 $string['primpass:issetdesc'] = 'Your prim password will be automatically included in your LSL scripts.';
 $string['primpass:errornotset'] = 'Error: Prim password isn\'t set, and I couldn\'t create one';
 
+$string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long.';
 $string['primpass:toolong'] = 'Prim Password should be at most 9 digits long.';
 $string['primpass:numonly'] = 'Prim Password should only contain numeric digits (0 to 9).';
@@ -186,13 +188,6 @@ $string['unknownuser'] = 'unknown user';
 $string['unlinkedsloodleentries'] = 'Unlinked Sloodle User Entries';
 $string['unlinkedsloodleentries:desc'] = 'These are entries in the Sloodle users table which are not linked to a particular Moodle account. When in-world registration tools are used, temporary entries like this are created until the user logs into Moodle to authenticate themselves. Only delete entries if they have been lingering for a long time, or you suspect them of causing problems.';
 
-$string['userauth:header'] = 'User Authentication';
-$string['userauth:desc'] = 'What should Sloodle objects do when they meet an avatar they haven\'t seen before?';
-$string['userauth:sendtopage'] = '<b>Web</b>: Send avatars to a web page and make them login or register there.';
-$string['userauth:autoreg'] = '<b>Auto</b>: Automatically register them as a new user in Moodle.';
-$string['userauth:autoregnote'] = 'Note: Allowing automatic registration may conflict with your usual Moodle administration policies, and may not work properly with some authentication methods.';
-$string['userauth:save'] = 'Save User Authentication Settings';
-
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 $string['usersearch'] = 'User search';
@@ -203,7 +198,6 @@ $string['viewunlinked'] = 'View unlinked Sloodle entries';
 $string['viewall'] = 'View all Sloodle entries';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
-$string['wouldneedadmin'] = 'You would normally need admin privileges to access this page, but I\'ve let you in, since it\'s a demo.';
 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';
