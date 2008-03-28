@@ -50,7 +50,9 @@ $string['delete'] = 'Delete';
 $string['deletecancelled'] = 'Deletion cancelled.';
 $string['deletionfailed'] = 'Deletion failed';
 $string['deletionsuccessful'] = 'Deletion successful';
+$string['disabled'] = 'Disabled';
 
+$string['enabled'] = 'Enabled';
 $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find Sloodle user data linked to your Moodle account.';
@@ -58,6 +60,7 @@ $string['error:expectedsearchorcourse'] = 'Expected search string or course ID.'
 $string['expired'] = 'Expired';
 $string['expiresin'] = 'expires in';
 
+$string['failedupdate'] = 'Update failed.';
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 $string['failedaddinstance'] = 'Failed to add a new Sloodle module instance.';
 $string['failedaddsecondarytable'] = 'Failed to add the secondary table for the Sloodle module instance.';
@@ -92,12 +95,14 @@ $string['loginzone:allocationerror'] = 'An error occurred while allocating a Log
 $string['minute'] = 'minute';
 $string['minutes'] = 'minutes';
 
+$string['moduletype'] = 'Module Type';
 $string['moduletype:controller'] = 'Sloodle Controller';
 $string['moduletype:distributor'] = 'Distributor';
 
 $string['modulename'] = 'Sloodle Module';
 $string['modulenameplural'] = 'Sloodle Modules';
 $string['modulenotfound'] = 'Sloodle module not found.';
+$string['modulesetup'] = 'Module Setup';
 $string['moduletype'] = 'Sloodle Module Type';
 $string['moduletypemismatch'] = 'Sloodle module type mismatch. You cannot change the Sloodle module type after it is created.';
 $string['moduletypeunknown'] = 'Sloodle module type unknown.';
@@ -131,6 +136,7 @@ $string['objectuuid'] = 'Object UUID';
 
 $string['or'] = 'or';
 
+$string['primpass'] = 'Prim Password';
 $string['primpass:set'] = 'Set Prim Password Number';
 $string['primpass:setdesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the configuration of all your Second Life objects which use it.';
 $string['primpass:save'] = 'Save Prim Password';
@@ -181,7 +187,7 @@ $string['sloodleuserprofile'] = 'Sloodle User Profile';
 $string['sloodleuserprofiles'] = 'Sloodle User Profiles';
 $string['specialpages'] = 'Special Pages';
 
-
+$string['status'] = 'Status';
 $string['submit'] = 'Submit';
 
 $string['unknownuser'] = 'unknown user';

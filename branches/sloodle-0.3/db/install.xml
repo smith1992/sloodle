@@ -27,8 +27,7 @@
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
             <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="id" NEXT="enabled" COMMENT="Identifies which Sloodle instance this refers to."/>
             <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="sloodleid" NEXT="password" COMMENT="Shortname of the access level for this controller."/>
-            <FIELD NAME="password" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="autoreg" COMENT="Prim Password for this instance. If left blank, it should use the site default."/>
-            <FIELD NAME="autoreg" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="password" COMMENT="If non-zero, then this instance uses auto-registration. Otherwise, it uses web-based registration (recommended)."/>
+            <FIELD NAME="password" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" COMENT="Prim Password for this instance. If left blank, it should use the site default."/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>

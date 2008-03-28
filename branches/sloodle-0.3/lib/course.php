@@ -20,9 +20,9 @@
     * The Sloodle course data class
     * @package sloodle
     */
-    class SloodleCourseData
+    class SloodleCourse
     {
-    // PUBLIC DATA //
+    // DATA //
     
         /**
         * The database object of the course to which this object relates.
@@ -33,12 +33,10 @@
         */
         var $course_object = null;
     
-    // PRIVATE DATA //
-    
         /**
         * Stores the ID of the entry in the Sloodle course table.
         * @var int
-        * @access private
+        * @access public
         */
         var $id = 0;
     
@@ -46,73 +44,40 @@
         * Indicates if auto-registration/enrolment is permitted on this course.
         * Note: this does not take the site-wide setting into account.
         * @var bool
-        * @access private
+        * @access public
         */
-        var $autoreg_enabled = false;
+        var $autoreg = false;
         
         
         // More stuff?
         
         
-    // CONSTRUCTOR //
+    // FUNCTIONS //
     
         /**
         * Constructor
         */
-        function sloodle_course_data()
+        function SloodleCourse()
         {
         }
         
-        
-    // ACCESSORS //
-            
         /**
-        * Gets the autoreg value for this course (ignores the site-wide setting)
-        * @return bool
-        */
-        function get_autoreg()
-        {
-            return $this->autoreg_enabled;
-        }
-        
-        /**
-        * Sets the autoreg value for this course.
-        * @param bool $autoreg True if autoreg should be enabled on this course, or false otherwise.
-        * @return void
-        */
-        function set_autoreg($autoreg)
-        {
-            $this->autoreg_enabled = $autoreg;
-        }
-        
-        /**
-        * Is auto registration permitted through this controller?
+        * Is auto registration permitted on this course?
         * Takes into account the site-wide setting as well.
         * @return bool
         */
-        function is_autoreg_permitted()
+        function check_autoreg()
         {
             // Check the site *and* the course value
-            return (sloodle_autoreg_enabled_site() && $this->autoreg_enabled);
+            return (sloodle_autoreg_enabled_site() && $this->autoreg);
         }
-        
-        /**
-        * Is there a database entry in Sloodle about the current course?
-        * @return bool
-        */
-        function sloodle_entry_exists()
-        {
-            return ($this->id > 0);
-        }
-        
-        
-    // OPERATIONS //
+
     
         /**
         * Reads fresh data into the structure from the database.
         * Fetches Moodle and Sloodle data about the course specified.
         * Returns true if successful, or false on failure.
-        * @param int $courseid Integer ID of the course to read data from
+        * @param int $courseid Integer ID of the Moodle course to read data from
         * @return bool
         */
         function read_database($courseid)
@@ -122,7 +87,7 @@
             
             // Reset our member data
             $this->id = 0;
-            $this->autoreg_enabled = false;
+            $this->autoreg = false;
             //.. add other members here
             
             // Fetch the Moodle course data
@@ -134,7 +99,7 @@
             if ($sloodle_data) {
                 // Store the Sloodle data
                 $this->id = $sloodle_data->id;
-                $this->autoreg_enabled = (bool)$sloodle_data->autoreg;
+                $this->autoreg = (bool)$sloodle_data->autoreg;
                 //.. add other items here
             }
             
@@ -153,7 +118,7 @@
             if (empty($this->course_object) || $this->course_object->id <= 0) return false;
             // Construct the database object
             $data = new stdClass();
-            $data->autoreg = $this->autoreg_enabled;
+            $data->autoreg = $this->autoreg;
             //.. other data here
             
             $result = false;

@@ -1,283 +1,275 @@
-<?php  // $Id: view.php,v 1.94.2.4 2007/05/15 18:27:01 skodak Exp $
+<?php
+    // This file is part of the Sloodle project (www.sloodle.org)
 
-    require_once('../../config.php');
-    require_once('lib.php');
+    /**
+    * Index page for listing a particular instances of the Sloodle module.
+    * Used as an interface script by the Moodle framework.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
 
+    /** Sloodle/Moodle configuration script. */
+    require_once('sl_config.php');
+    /** Sloodle core library functionality */
+    require_once(SLOODLE_DIRROOT.'/lib.php');
+    /** General Sloodle functions. */
+    require_once(SLOODLE_LIBROOT.'/general.php');
 
-    $id          = optional_param('id', 0, PARAM_INT);       // Course Module ID
-    $f           = optional_param('f', 0, PARAM_INT);        // Forum ID
-    $mode        = optional_param('mode', 0, PARAM_INT);     // Display mode (for single forum)
-    $showall     = optional_param('showall', '', PARAM_INT); // show all discussions on one page
-    $changegroup = optional_param('group', -1, PARAM_INT);   // choose the current group
-    $page        = optional_param('page', 0, PARAM_INT);     // which page to show
-    $search      = optional_param('search', '');             // search string
-
-
-    echo "<h1>Sloodle Module, cmi #$id</h1>";
-
-    exit();
+    // Fetch our request parameters
+    $id = optional_param('id', 0, PARAM_INT); // Course Module instance ID
+    $s = optional_param('s', 0, PARAM_INT); // Sloodle instance ID
+    $editing = optional_param('edit', 0, PARAM_BOOL); // Editing mode
+    $formsubmit = optional_param('formsubmit', 0, PARAM_BOOL); // Form submission
     
+    
+    // Fetch string table text
+    $strsloodle = get_string('modulename', 'sloodle');
+    $strsloodles = get_string('modulenameplural', 'sloodle');
+    $strsavechanges = get_string('savechanges');
+    $stryes = get_string('yes');
+    $strno = get_string('no');
+        
+    // Attempt to fetch the course module instance
     if ($id) {
-
-        if (! $cm = get_coursemodule_from_id('forum', $id)) {
+        if (! $cm = get_coursemodule_from_id('sloodle', $id)) {
             error("Course Module ID was incorrect");
         }
-        if (! $course = get_record("course", "id", $cm->course)) {
-            error("Course is misconfigured");
+    } else if ($s) {       
+        if (! $cm = get_coursemodule_from_instance('sloodle', $s)) {
+            error("Instance ID was incorrect");
         }
-        if (! $forum = get_record("forum", "id", $cm->instance)) {
-            error("Forum ID was incorrect");
-        }
-        $strforums = get_string("modulenameplural", "forum");
-        $strforum = get_string("modulename", "forum");
-        $buttontext = update_module_button($cm->id, $course->id, $strforum);
-
-    } else if ($f) {
-
-        if (! $forum = get_record("forum", "id", $f)) {
-            error("Forum ID was incorrect or no longer exists");
-        }
-        if (! $course = get_record("course", "id", $forum->course)) {
-            error("Forum is misconfigured - don't know what course it's from");
-        }
-
-        $strforums = get_string("modulenameplural", "forum");
-        $strforum = get_string("modulename", "forum");
-
-        if ($cm = get_coursemodule_from_instance("forum", $forum->id, $course->id)) {
-            $buttontext = update_module_button($cm->id, $course->id, $strforum);
-        } else {
-            $cm->id = 0;
-            $cm->visible = 1;
-            $cm->course = $course->id;
-            $buttontext = "";
-        }
-
     } else {
-        error('Must specify a course module or a forum ID');
+        error('Must specify a course module or a module instance');
     }
-
-    if (!$buttontext) {
-        $buttontext = forum_search_form($course, $search);
+    
+    // Get the course data
+    if (! $course = get_record("course", "id", $cm->course)) {
+        error("Course is misconfigured");
     }
-
-
+    // Get the Sloodle instance
+    if (! $sloodle = get_record('sloodle', 'id', $cm->instance)) {
+        error('Failed to find Sloodle module instance.');
+    }
+    
+    // Ensure that the user is logged-in for this course
     require_course_login($course, true, $cm);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    
+    // Is the user allowed to edit the module?
+    $canedit = false;
+    if (has_capability('moodle/course:manageactivities', get_context_instance(CONTEXT_MODULE, $cm->id))) {
+        $canedit = true;
+    } else {
+        $editing = false;
+    }    
+    
+    // Only show the editing buttons if the user is allowed to edit this stuff
+    $editbuttons = '';
+    if ($canedit) {
+        // Editing button stuff
+        if ($editing) {
+            $streditbutton = get_string('turneditingoff');
+            $editbuttonval = 0;
+        } else {
+            $streditbutton = get_string('turneditingon');
+            $editbuttonval = 1;
+        }
+        $strmodulesetup = get_string('modulesetup', 'sloodle');
+        $sesskey = sesskey();
+        // The editing buttons
+        $editbuttons = <<<XXXEODXXX
+         <!-- Module editing buttons. -->
+          <form  method="get" action="" onsubmit="this.target='_top'; return true">
+            <input type="hidden" name="id" value="{$cm->id}" />
+            <input type="hidden" name="sesskey" value="$sesskey" />
+            <input type="hidden" name="edit" value="$editbuttonval" />
+            <input type="submit" value="$streditbutton" />
+          </form>
+          
+          <form  method="get" action="{$CFG->wwwroot}/course/mod.php" onsubmit="this.target='_top'; return true">
+            <input type="hidden" name="update" value="7" />
+            <input type="hidden" name="return" value="true" />
+            <input type="hidden" name="sesskey" value="$sesskey" />
+            <input type="submit" value="$strmodulesetup" />
+          </form>
+XXXEODXXX;
+        unset($sesskey); // for security
+    }
+
+    // Display the page header
+    $navigation = "<a href=\"index.php?id=$course->id\">$strsloodles</a> ->";
+    print_header_simple(format_string($sloodle->name), "", "$navigation ".format_string($sloodle->name), "", "", true, $editbuttons, navmenu($course, $cm));
 
 
-/// Print header.
-    $navigation = "<a href=\"index.php?id=$course->id\">$strforums</a> ->";
-    print_header_simple(format_string($forum->name), "",
-                 "$navigation ".format_string($forum->name), "", "", true, $buttontext, navmenu($course, $cm));
-
-
-/// Some capability checks.
+    // If the module is hidden, then can the user still view it?
     if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $context)) {
+        // No - issue a notice
         notice(get_string("activityiscurrentlyhidden"));
     }
     
-    if (!has_capability('mod/forum:viewdiscussion', $context)) {
-        notice(get_string('noviewdiscussionspermission', 'forum'));
-    }
-    
-/// find out current groups mode
+    // Find out current groups mode
     $groupmode = groupmode($course, $cm);
     $currentgroup = setup_and_print_groups($course, $groupmode, 'view.php?id=' . $cm->id);
 
-/// Okay, we can show the discussions. Log the forum view.
-    if ($cm->id) {
-        add_to_log($course->id, "forum", "view forum", "view.php?id=$cm->id", "$forum->id", $cm->id);
-    } else {
-        add_to_log($course->id, "forum", "view forum", "view.php?f=$forum->id", "$forum->id");
-    }
+    // We can display the Sloodle module info... log the view
+    add_to_log($course->id, 'sloodle', 'view sloodle module', "view.php?id=$cm->id", "$sloodle->id", $cm->id);
+    
+    // Get the full Sloodle module type name
+    $fulltypename = get_string("moduletype:{$sloodle->type}", 'sloodle');
+    
+    // Display the module name
+    print_heading($sloodle->name, 'center');
+    
+    // Display the module type and description
+    echo '<h4 style="text-align:center;">'.get_string('moduletype', 'sloodle').': '.$fulltypename;
+    echo helpbutton("moduletype_{$sloodle->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
+    
+    print_box_start();
+    echo '<p style="text-align:center;">'.$sloodle->intro.'</p>';
+    print_box_end();
+    
+    
+    print_box_start();
 
-
-
-/// Print settings and things across the top
-
-    // If it's a simple single discussion forum, we need to print the display
-    // mode control.
-    if ($forum->type == 'single') {
-        if (! $discussion = get_record("forum_discussions", "forum", $forum->id)) {
-            if ($discussions = get_records("forum_discussions", "forum", $forum->id, "timemodified ASC")) {
-                $discussion = array_pop($discussions);
-            }
-        }
-        if ($discussion) {
-            if ($mode) {
-                set_user_preference("forum_displaymode", $mode);
-            }
-            $displaymode = get_user_preferences("forum_displaymode", $CFG->forum_displaymode);
-            forum_print_mode_form($forum->id, $displaymode, $forum->type);
-        }
-    }
-
-
-    print_box_start('forumcontrol');
-
-    print_box_start('subscription');
-
-    if (!empty($USER->id) && !has_capability('moodle/legacy:guest', $context, NULL, false)) {
-        $SESSION->fromdiscussion = "$FULLME";
-        if (forum_is_forcesubscribed($forum->id)) {
-            $streveryoneisnowsubscribed = get_string('everyoneisnowsubscribed', 'forum');
-            $strallowchoice = get_string('allowchoice', 'forum');
-            echo '<span class="helplink">' . get_string("forcessubscribe", 'forum') . '</span><br />';
-            helpbutton("subscription", $strallowchoice, "forum");
-            echo '&nbsp;<span class="helplink">';
-            if (has_capability('moodle/course:manageactivities', $context)) {
-                echo "<a title=\"$strallowchoice\" href=\"subscribe.php?id=$forum->id&amp;force=no\">$strallowchoice</a>";
-            } else {
-                echo $streveryoneisnowsubscribed;
-            }
-            echo '</span>';
-
-        } else if ($forum->forcesubscribe == FORUM_DISALLOWSUBSCRIBE) {
-            $strsubscriptionsoff = get_string('disallowsubscribe','forum');
-            echo $strsubscriptionsoff;
-            helpbutton("subscription", $strsubscriptionsoff, "forum");
-        } else {
-            $streveryonecannowchoose = get_string("everyonecannowchoose", "forum");
-            $strforcesubscribe = get_string("forcesubscribe", "forum");
-            $strshowsubscribers = get_string("showsubscribers", "forum");
-            echo '<span class="helplink">' . get_string("allowsallsubscribe", 'forum') . '</span><br />';
-            helpbutton("subscription", $strforcesubscribe, "forum");
-            echo '&nbsp;';
-            if (has_capability('moodle/course:manageactivities', $context)) {
-                echo "<span class=\"helplink\"><a title=\"$strforcesubscribe\" href=\"subscribe.php?id=$forum->id&amp;force=yes\">$strforcesubscribe</a></span>";
-                echo "<br />";
-                echo "<span class=\"helplink\"><a href=\"subscribers.php?id=$forum->id\">$strshowsubscribers</a></span>";
-            } else {
-                echo '<span class="helplink">'.$streveryonecannowchoose.'</span>';
-            }
-
-            if (forum_is_subscribed($USER->id, $forum->id)) {
-                $subtexttitle = get_string("subscribestop", "forum");
-                $subtext = get_string("unsubscribe", "forum");
-            } else {
-                $subtexttitle = get_string("subscribestart", "forum");
-                $subtext = get_string("subscribe", "forum");
-            }
-            echo "<br />";
-            echo "<span class=\"helplink\"><a title=\"$subtexttitle\" href=\"subscribe.php?id=$forum->id\">$subtext</a></span>";
-        }
-
-        if (forum_tp_can_track_forums($forum) && ($forum->trackingtype == FORUM_TRACKING_OPTIONAL)) {
-            if (forum_tp_is_tracked($forum, $USER->id)) {
-                $trtitle = get_string('notrackforum', 'forum');
-                $trackedlink = '<a title="'.get_string('notrackforum', 'forum').'" href="settracking.php?id='.
-                               $forum->id.'&amp;returnpage=view.php">'.get_string('forumtracked', 'forum').'</a>';
-            } else {
-                $trtitle = get_string('trackforum', 'forum');
-                $trackedlink = '<a title="'.get_string('trackforum', 'forum').'" href="settracking.php?id='.
-                               $forum->id.'&amp;returnpage=view.php">'.get_string('forumtrackednot', 'forum').'</a>';
-            }
-            echo '<br />';
-            echo "<span class=\"helplink\">$trackedlink</span>";
-        }
-
-    }
-
-    /// If rss are activated at site and forum level and this forum has rss defined, show link
-    if (isset($CFG->enablerssfeeds) && isset($CFG->forum_enablerssfeeds) &&
-        $CFG->enablerssfeeds && $CFG->forum_enablerssfeeds && $forum->rsstype and $forum->rssarticles) {
-
-        if ($forum->rsstype == 1) {
-            $tooltiptext = get_string("rsssubscriberssdiscussions","forum",format_string($forum->name));
-        } else {
-            $tooltiptext = get_string("rsssubscriberssposts","forum",format_string($forum->name));
-        }
-        if (empty($USER->id)) {
-            $userid = 0;
-        } else {
-            $userid = $USER->id;
-        }
-        print_box_start('rsslink');
-        rss_print_link($course->id, $userid, "forum", $forum->id, $tooltiptext);
-        print_box_end(); // subscription
-
-    }
-    print_box_end(); // subscription
-
-    print_box_end();  // forumcontrol
-
-    print_box('&nbsp;', 'clearer'); 
-
-
-    if (!empty($forum->blockafter) && !empty($forum->blockperiod)) {
-        $a->blockafter = $forum->blockafter;
-        $a->blockperiod = get_string('secondstotime'.$forum->blockperiod);
-        notify(get_string('thisforumisthrottled','forum',$a));
-    }
-
-    if ($forum->type == 'qanda' && !has_capability('moodle/course:manageactivities', $context)) {
-        notify(get_string('qandanotify','forum'));
-    }
-
-    $forum->intro = trim($forum->intro);
-
-    switch ($forum->type) {
-        case 'single':
-            if (! $discussion = get_record("forum_discussions", "forum", $forum->id)) {
-                if ($discussions = get_records("forum_discussions", "forum", $forum->id, "timemodified ASC")) {
-                    notify("Warning! There is more than one discussion in this forum - using the most recent");
-                    $discussion = array_pop($discussions);
+    // Check what type the module is
+    switch ($sloodle->type) {
+    case SLOODLE_TYPE_CTRL:
+    
+        // Fetch the controller data from the database
+        $ctrldata = get_record('sloodle_controller', 'sloodleid', $sloodle->id);
+        if (!$ctrldata) error('Failed to locate secondary data table.');
+        
+        // Has data been submitted AND is editing possible?
+        if ($formsubmit && $canedit) {
+            // Yes - fetch the data items
+            $form_password = optional_param('password', '', PARAM_RAW);
+            $form_enabled = optional_param('enabled', 0, PARAM_BOOL);
+            
+            // Validate the password
+            $pwderrors = array();
+            $pwdvalid = sloodle_validate_prim_password_verbose($form_password, $pwderrors);
+            
+            // Was everything valid?
+            $msg = '';
+            if ($pwdvalid) {
+                // Yes - update the database
+                if ($form_enabled) $ctrldata->enabled = 1;
+                else $ctrldata->enabled = 0;
+                $ctrldata->password = $form_password;
+                if (update_record('sloodle_controller', $ctrldata)) {
+                    // Everything was OK - we can deactivate edit mode
+                    $editing = 0;
+                    // Output a success message
+                    $msg = get_string('updated', '', $strsloodle);
                 } else {
-                    error("Could not find the discussion in this forum");
+                    $editing = 1;
+                    $msg = get_string('failedupdate', 'sloodle');
+                }
+                
+            } else {
+                // There were errors
+                $msg = get_string('failedupdate', 'sloodle').'<br><br>';
+                $editing = 1;
+                
+                // Were there any prim password errors?
+                if (count($pwderrors) > 0) {
+                    $msg .= '<br><br>'.get_string('primpass:error', 'sloodle').':<br>';
+                    $msg .= '<ul>';
+                    // Go through each one and add it
+                    foreach ($pwderrors as $pe) {
+                        $msg .= '<li>'.get_string("primpass:$pe", 'sloodle').'</li>';
+                    }
+                    $msg .= '</ul><br>';
                 }
             }
-            if (! $post = forum_get_post_full($discussion->firstpost)) {
-                error("Could not find the first post in this forum");
-            }
-            if ($mode) {
-                set_user_preference("forum_displaymode", $mode);
-            }
-            $displaymode = get_user_preferences("forum_displaymode", $CFG->forum_displaymode);
-            $canrate = has_capability('mod/forum:rate', $context);
-            forum_print_discussion($course, $forum, $discussion, $post, $displaymode, NULL, $canrate);
-            break;
-
-        case 'eachuser':
-            if (!empty($forum->intro)) {
-                print_box(format_text($forum->intro), 'generalbox', 'intro');
-            }
-            echo '<p align="center">';
-            if (forum_user_can_post_discussion($forum)) {
-                print_string("allowsdiscussions", "forum");
-            } else {
-                echo '&nbsp;';
-            }
-            echo '</p>';
-            if (!empty($showall)) {
-                forum_print_latest_discussions($course, $forum, 0, 'header', '', $currentgroup, $groupmode);
-            } else {
-                forum_print_latest_discussions($course, $forum, $CFG->forum_manydiscussions, 'header', '', $currentgroup, $groupmode, $page);
-            }
-            break;
-
-        case 'teacher':
-            if (!empty($showall)) {
-                forum_print_latest_discussions($course, $forum, 0, 'header', '', $currentgroup, $groupmode);
-            } else {
-                forum_print_latest_discussions($course, $forum, $CFG->forum_manydiscussions, 'header', '', $currentgroup, $groupmode, $page);
-            }
-            break;
-
-        default:
-            if (!empty($forum->intro)) {
-                print_box(format_text($forum->intro), 'generalbox', 'intro');
-            }
-            echo '<br />';
-            if (!empty($showall)) {
-                forum_print_latest_discussions($course, $forum, 0, 'header', '', $currentgroup, $groupmode);
-            } else {
-                forum_print_latest_discussions($course, $forum, $CFG->forum_manydiscussions, 'header', '', $currentgroup, $groupmode, $page);
-            }
             
+            // Display the message
+            print_box($msg);
+        }
+        
+        // Instead of a form submission, the active objects list may be getting cleared
+        if (optional_param('clearactiveobjects', 0, PARAM_BOOL)) {
+            // Clear all active objects associated with this controller
+            //..
+        }
+    
+        // If we are in edit mode, then open a new form
+        if ($editing) {
+            $sesskey = sesskey();
+            echo <<<XXXEODXXX
+             <form method="POST" action="">
+             <input type="hidden" name="id" value="{$cm->id}" />
+             <input type="hidden" name="sesskey" value="$sesskey" />
+             <input type="hidden" name="edit" value="0" />
+             <input type="hidden" name="formsubmit" value="1" />
+XXXEODXXX;
+            unset($sesskey); // for security
+        }
+        
+        // We will create a table for the data
+        $ctrltable = new stdClass();
+        $ctrltable->head = array('Field', 'Value');
+        $ctrltable->align = array('right', 'left');
+        
+        // The contents of the table depends on whether or not we are in editing mode
+        if ($editing) {
+            // Enabled?
+            $ctrltable->data[0][] = get_string('enabled','sloodle').': ';
+            $ctrltable->data[0][] = choose_from_menu_yesno('enabled', $ctrldata->enabled, '', true);
             
-            break;
+            // Prim password
+            $ctrltable->data[1][] = get_string('primpass','sloodle').':';
+            $ctrltable->data[1][] = "<input type=\"text\" value=\"{$ctrldata->password}\" size=\"15\" maxlength=\"9\" name=\"password\" />";
+            
+            // Add count of active objects through this controller, and button to clear list
+            //...
+            
+            // Submit button
+            $ctrltable->data[2][] = '&nbsp;';            
+            $ctrltable->data[2][] = "<input type=\"submit\" value=\"$strsavechanges\">";
+            
+        } else {
+            // Just display the data (where possible... but hide sensitive stuff!)
+            
+            // Enabled?
+            $ctrltable->data[0][] = get_string('enabled','sloodle').': ';
+            if (empty($ctrldata->enabled)) $ctrltable->data[0][] = '<span style="color:red;">'.$strno.'</span>';
+            else $ctrltable->data[0][] = '<span style="color:green;">'.$stryes.'</span>';
+            
+            // Prim password
+            $ctrltable->data[1][] = get_string('primpass','sloodle').':';
+            $ctrltable->data[1][] = '<input type="password" value="*********" size="15" maxlength="9" readonly="true" />';
+            
+            // Add count of active objects through this controller
+            //...
+        }
+        
+        // Display the table
+        print_table($ctrltable);
+        
+        // If we are in edit mode, then close the form
+        if ($editing) {
+            echo "</form>";
+        }
+        
+        break;
+        
+    case SLOODLE_TYPE_DISTRIB:
+        break;
+        
+    default:
+        // Unknown type
+        notice(get_string('moduletypeunknown'));
+        break;
     }
+    
+    print_box_end();
+    
     print_footer($course);
     
 ?>

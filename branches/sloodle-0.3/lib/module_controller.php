@@ -5,12 +5,14 @@
     * This file defines the Sloodle Controller module sub-type.
     *
     * @package sloodle
-    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
     */
     
+    /** The Sloodle module base. */
+    require_once(SLOODLE_LIBROOT.'/module_base.php');
     
     /**
     * The Sloodle Controller module class.
@@ -18,42 +20,39 @@
     */
     class SloodleModuleController extends SloodleModule
     {
-    // PRIVATE DATA //
+    // DATA //
+    
+        /**
+        * The ID of the controller.
+        * Corresponds to the 'id' field of the 'sloodle_controller' table.
+        * @var int
+        * @access public
+        */
+        var $ctrl_id = 0;
     
         /**
         * Indicates whether or not this controller is enabled.
         * @var bool
-        * @access private
+        * @access public
         */
         var $enabled = false;
             
         /**
         * The prim password for this controller.
+        * NOTE: use {@link set_password()} accessors to ensure validity of password.
         * @var string
-        * @access private
+        * @access public
         */
         var $password = '';
                 
         
-    // CONSTRUCTOR //
+    // FUNCTIONS //
     
         /**
         * Constructor
         */
         function SloodleModuleController()
         {
-        }
-        
-        
-    // ACCESSORS //
-    
-        /**
-        * Checks whether or not this controller is enabled.
-        * @return bool
-        */
-        function is_enabled()
-        {
-            return $this->enabled;
         }
         
         /**
@@ -73,16 +72,7 @@
         {
             $this->enabled = false;
         }
-            
-        /**
-        * Gets the prim password of this instance
-        * @return string
-        */
-        function get_password()
-        {
-            return $this->password;
-        }
-        
+                
         /**
         * Sets the prim password of this instance.
         * Also checks for validity before storing.
@@ -96,36 +86,7 @@
             // Store it
             $this->password = $password;
             return true;
-        }
-        
-        
-    // OPERATIONS //
-        
-        /**
-        * Reads fresh data into the structure from the database.
-        * Returns true if successful, or false on failure.
-        * @param int $sloodleid Integer ID of the Sloodle instance to read data from
-        * @return bool
-        *
-        * @todo Implement me!
-        */
-        function read_database($sloodleid)
-            return false;
-        }
-        
-        /**
-        * Writes current Sloodle module data back to the database.
-        * Updates the existing entry, or creates a new one, as necessary.
-        * @return bool True if successful, or false on failure
-        *
-        * @todo Implement me!
-        */
-        function write_database()
-        {
-            return false;
-        }
-        
-    
+        }    
     }
 
 ?>
