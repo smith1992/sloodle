@@ -43,6 +43,7 @@ $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
+$string['controlaccess'] = 'You can control access to your courses by enabling or disabling the Sloodle Controllers';
 $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
@@ -103,7 +104,6 @@ $string['modulename'] = 'Sloodle Module';
 $string['modulenameplural'] = 'Sloodle Modules';
 $string['modulenotfound'] = 'Sloodle module not found.';
 $string['modulesetup'] = 'Module Setup';
-$string['moduletype'] = 'Sloodle Module Type';
 $string['moduletypemismatch'] = 'Sloodle module type mismatch. You cannot change the Sloodle module type after it is created.';
 $string['moduletypeunknown'] = 'Sloodle module type unknown.';
 $string['moodleadminindex'] = 'Moodle administration index';
@@ -122,6 +122,7 @@ $string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
 $string['numsloodleentries'] = '# Sloodle entries';
+$string['numobjects'] = 'Number of objects';
 
 $string['Object'] = 'Object';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
@@ -173,12 +174,14 @@ $string['sloodleversion'] = 'Sloodle Version';
 
 $string['sloodleobjectdistributor'] = 'Sloodle Object Distributor';
 $string['sloodleobjectdistributor:nochannel'] = 'Distribution channel not available - Object not rezzed in-world?';
+$string['sloodleobjectdistributor:reset'] = 'Check this to clear the cached Distributor data, including channel UUID and object names.';
 $string['sloodleobjectdistributor:unknowncommand'] = 'Distributor command not recognised.';
 $string['sloodleobjectdistributor:usernotfound'] = 'Unable to find requested user.';
 $string['sloodleobjectdistributor:successful'] = 'Object distribution successful.';
 $string['sloodleobjectdistributor:failed'] = 'Object distribution failed.';
 $string['sloodleobjectdistributor:noobjects'] = 'No objects are currently available for distribution. The Sloodle Object Distributor may need to be given contents?';
 $string['sloodleobjectdistributor:sendtomyavatar'] = 'Send to me';
+$string['sloodleobjectdistributor:sendtocustomavatar'] = 'Send to custom avatar';
 $string['sloodleobjectdistributor:sendtoanotheravatar'] = 'Send to another avatar';
 
 $string['sloodleuserediting:allowteachers'] = 'Allow teachers to edit Sloodle user data';

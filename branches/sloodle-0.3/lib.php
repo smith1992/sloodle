@@ -63,9 +63,10 @@
         switch ($sloodle->type) {
         case SLOODLE_TYPE_CTRL:
             // Create a new controller record
-            $sec_table->enabled = 0;
-            $sec_table->password = mt_rand(100000000, 999999999);
-            $sec_table->autoreg = 0;
+            if (isset($sloodle->controller_enabled) && $sloodle->controller_enabled) $sec_table->enabled = 1;
+            else $sec_table->enabled = 0;
+            $sec_table->password = $sloodle->controller_password;
+            
             // Attempt to add it to the database
             if (!insert_record('sloodle_controller', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
@@ -75,6 +76,10 @@
             break;
             
         case SLOODLE_TYPE_DISTRIB:
+            // Add in a default blank channel number and update time
+            $sec_table->channel = '';
+            $sec_table->timeupdated = 0;
+        
             // Attempt to add it to the database
             if (!insert_record('sloodle_distributor', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
@@ -133,12 +138,37 @@
             // Attempt to fetch the controller record
             $ctrl = get_record('sloodle_controller', 'sloodleid', $sloodle->id);
             if (!$ctrl) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add the updated 'enabled' value
+            if (isset($sloodle->controller_enabled) && $sloodle->controller_enabled) $ctrl->enabled = 1;
+            else $ctrl->enabled = 0;
+            // Add the updated password
+            $ctrl->password = $sloodle->controller_password;
+            
+            
+            // Update the database
+            update_record('sloodle_controller', $ctrl);
+            
             break;
             
         case SLOODLE_TYPE_DISTRIB:
             // Attempt to fetch the distributor record
             $distrib = get_record('sloodle_distributor', 'sloodleid', $sloodle->id);
             if (!$distrib) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Has a reset been requested?
+            if ($sloodle->distributor_reset) {
+                // Yes - clear the distributor channel
+                $distrib->channel = '';
+                
+                // Delete all objects associated with the Distributor
+                delete_records('sloodle_distributor_entry', 'distributorid', $distrib->id);
+            }
+            
+            
+            // Update the database
+            update_record('sloodle_distributor', $distrib);
+            
             break;
             
         // ADD FURTHER MODULE TYPES HERE!

@@ -19,6 +19,12 @@
     require_once(SLOODLE_DIRROOT.'/lib.php');
     /** General Sloodle functions. */
     require_once(SLOODLE_LIBROOT.'/general.php');
+    
+    /** Viewing functionality for the Sloodle Controller. */
+    require_once(SLOODLE_DIRROOT.'/view/view_controller.php');
+    /** Viewing functionality for the Distributor. */
+    require_once(SLOODLE_DIRROOT.'/view/view_distributor.php');
+    
 
     // Fetch our request parameters
     $id = optional_param('id', 0, PARAM_INT); // Course Module instance ID
@@ -66,40 +72,11 @@
         $canedit = true;
     } else {
         $editing = false;
-    }    
+    }
     
     // Only show the editing buttons if the user is allowed to edit this stuff
     $editbuttons = '';
-    if ($canedit) {
-        // Editing button stuff
-        if ($editing) {
-            $streditbutton = get_string('turneditingoff');
-            $editbuttonval = 0;
-        } else {
-            $streditbutton = get_string('turneditingon');
-            $editbuttonval = 1;
-        }
-        $strmodulesetup = get_string('modulesetup', 'sloodle');
-        $sesskey = sesskey();
-        // The editing buttons
-        $editbuttons = <<<XXXEODXXX
-         <!-- Module editing buttons. -->
-          <form  method="get" action="" onsubmit="this.target='_top'; return true">
-            <input type="hidden" name="id" value="{$cm->id}" />
-            <input type="hidden" name="sesskey" value="$sesskey" />
-            <input type="hidden" name="edit" value="$editbuttonval" />
-            <input type="submit" value="$streditbutton" />
-          </form>
-          
-          <form  method="get" action="{$CFG->wwwroot}/course/mod.php" onsubmit="this.target='_top'; return true">
-            <input type="hidden" name="update" value="7" />
-            <input type="hidden" name="return" value="true" />
-            <input type="hidden" name="sesskey" value="$sesskey" />
-            <input type="submit" value="$strmodulesetup" />
-          </form>
-XXXEODXXX;
-        unset($sesskey); // for security
-    }
+    if ($canedit) $editbuttons = $buttontext = update_module_button($cm->id, $course->id, $strsloodle);
 
     // Display the page header
     $navigation = "<a href=\"index.php?id=$course->id\">$strsloodles</a> ->";
@@ -123,143 +100,30 @@ XXXEODXXX;
     $fulltypename = get_string("moduletype:{$sloodle->type}", 'sloodle');
     
     // Display the module name
-    print_heading($sloodle->name, 'center');
+    $img = '<img src="icon.gif" width="16" height="16" alt=""/> ';
+    print_heading($img.$sloodle->name, 'center');
     
     // Display the module type and description
     echo '<h4 style="text-align:center;">'.get_string('moduletype', 'sloodle').': '.$fulltypename;
     echo helpbutton("moduletype_{$sloodle->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
     
-    print_box_start();
+    print_box_start('generalbox boxaligncenter boxwidthnormal', '');
     echo '<p style="text-align:center;">'.$sloodle->intro.'</p>';
     print_box_end();
     
     
-    print_box_start();
+    print_box_start('generalbox boxaligncenter boxwidthwide');
 
+    // We need to kow the result of the display attempt
+    $result = false;
     // Check what type the module is
     switch ($sloodle->type) {
     case SLOODLE_TYPE_CTRL:
-    
-        // Fetch the controller data from the database
-        $ctrldata = get_record('sloodle_controller', 'sloodleid', $sloodle->id);
-        if (!$ctrldata) error('Failed to locate secondary data table.');
-        
-        // Has data been submitted AND is editing possible?
-        if ($formsubmit && $canedit) {
-            // Yes - fetch the data items
-            $form_password = optional_param('password', '', PARAM_RAW);
-            $form_enabled = optional_param('enabled', 0, PARAM_BOOL);
-            
-            // Validate the password
-            $pwderrors = array();
-            $pwdvalid = sloodle_validate_prim_password_verbose($form_password, $pwderrors);
-            
-            // Was everything valid?
-            $msg = '';
-            if ($pwdvalid) {
-                // Yes - update the database
-                if ($form_enabled) $ctrldata->enabled = 1;
-                else $ctrldata->enabled = 0;
-                $ctrldata->password = $form_password;
-                if (update_record('sloodle_controller', $ctrldata)) {
-                    // Everything was OK - we can deactivate edit mode
-                    $editing = 0;
-                    // Output a success message
-                    $msg = get_string('updated', '', $strsloodle);
-                } else {
-                    $editing = 1;
-                    $msg = get_string('failedupdate', 'sloodle');
-                }
-                
-            } else {
-                // There were errors
-                $msg = get_string('failedupdate', 'sloodle').'<br><br>';
-                $editing = 1;
-                
-                // Were there any prim password errors?
-                if (count($pwderrors) > 0) {
-                    $msg .= '<br><br>'.get_string('primpass:error', 'sloodle').':<br>';
-                    $msg .= '<ul>';
-                    // Go through each one and add it
-                    foreach ($pwderrors as $pe) {
-                        $msg .= '<li>'.get_string("primpass:$pe", 'sloodle').'</li>';
-                    }
-                    $msg .= '</ul><br>';
-                }
-            }
-            
-            // Display the message
-            print_box($msg);
-        }
-        
-        // Instead of a form submission, the active objects list may be getting cleared
-        if (optional_param('clearactiveobjects', 0, PARAM_BOOL)) {
-            // Clear all active objects associated with this controller
-            //..
-        }
-    
-        // If we are in edit mode, then open a new form
-        if ($editing) {
-            $sesskey = sesskey();
-            echo <<<XXXEODXXX
-             <form method="POST" action="">
-             <input type="hidden" name="id" value="{$cm->id}" />
-             <input type="hidden" name="sesskey" value="$sesskey" />
-             <input type="hidden" name="edit" value="0" />
-             <input type="hidden" name="formsubmit" value="1" />
-XXXEODXXX;
-            unset($sesskey); // for security
-        }
-        
-        // We will create a table for the data
-        $ctrltable = new stdClass();
-        $ctrltable->head = array('Field', 'Value');
-        $ctrltable->align = array('right', 'left');
-        
-        // The contents of the table depends on whether or not we are in editing mode
-        if ($editing) {
-            // Enabled?
-            $ctrltable->data[0][] = get_string('enabled','sloodle').': ';
-            $ctrltable->data[0][] = choose_from_menu_yesno('enabled', $ctrldata->enabled, '', true);
-            
-            // Prim password
-            $ctrltable->data[1][] = get_string('primpass','sloodle').':';
-            $ctrltable->data[1][] = "<input type=\"text\" value=\"{$ctrldata->password}\" size=\"15\" maxlength=\"9\" name=\"password\" />";
-            
-            // Add count of active objects through this controller, and button to clear list
-            //...
-            
-            // Submit button
-            $ctrltable->data[2][] = '&nbsp;';            
-            $ctrltable->data[2][] = "<input type=\"submit\" value=\"$strsavechanges\">";
-            
-        } else {
-            // Just display the data (where possible... but hide sensitive stuff!)
-            
-            // Enabled?
-            $ctrltable->data[0][] = get_string('enabled','sloodle').': ';
-            if (empty($ctrldata->enabled)) $ctrltable->data[0][] = '<span style="color:red;">'.$strno.'</span>';
-            else $ctrltable->data[0][] = '<span style="color:green;">'.$stryes.'</span>';
-            
-            // Prim password
-            $ctrltable->data[1][] = get_string('primpass','sloodle').':';
-            $ctrltable->data[1][] = '<input type="password" value="*********" size="15" maxlength="9" readonly="true" />';
-            
-            // Add count of active objects through this controller
-            //...
-        }
-        
-        // Display the table
-        print_table($ctrltable);
-        
-        // If we are in edit mode, then close the form
-        if ($editing) {
-            echo "</form>";
-        }
-        
+        $result = sloodle_view_controller($sloodle, $canedit);
         break;
         
     case SLOODLE_TYPE_DISTRIB:
+        $result = sloodle_view_distributor($sloodle, $canedit);
         break;
         
     default:
@@ -267,6 +131,9 @@ XXXEODXXX;
         notice(get_string('moduletypeunknown'));
         break;
     }
+    
+    // Were we able to display the information?
+    if (!$result) notice(get_string('error'));
     
     print_box_end();
     

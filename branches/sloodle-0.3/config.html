@@ -16,7 +16,7 @@
 
     // Get our Sloodle configuration
     require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
-    require_once(SLOODLE_LIBROOT.'/sl_generallib.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Attempt to get the configuration settings
     $allow_user_edit_by_teachers = (sloodle_teachers_can_edit_user_data()) ? 1 : 0;
@@ -52,6 +52,7 @@
 <table cellpadding="9" cellspacing="0" >
 
 <!-- Notecard -->
+<!-- N.B: ****** possibly add a note here to say how to find the new notecard configuration pages? *******
 <tr>
     <td colspan="3" align="left">
             <h3><?php print_string("objectconfig:header", "sloodle"); ?></h3>
@@ -60,7 +61,7 @@
              <a href="<?php echo SLOODLE_WWWROOT; ?>/sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
             </p>
     </td>
-</tr>
+</tr>-->
 
 
 <!-- Sloodle User Editing -->
