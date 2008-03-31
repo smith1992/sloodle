@@ -1,30 +1,18 @@
-CREATE TABLE prefix_sloodle (
-  id SERIAL PRIMARY KEY,
-  course integer NOT NULL default '0',
-  name varchar(255) NOT NULL default 'untitled'
+create table prefix_sloodle_users ( 
+id SERIAL PRIMARY KEY,
+userid integer not null,
+uuid varchar(255) not null default '',
+avname varchar(255) not null default '',
+loginposition varchar(255) not null default '',
+loginpositionexpires varchar(255) not null default '',
+loginpositionregion varchar(255) not null default '',
+loginsecuritytoken varchar(255) not null default ''
 );
 
-create table prefix_sloodle_users ( 
-    id SERIAL PRIMARY KEY,
-    userid integer not null,
-    uuid varchar(255) not null default '',
-    avname varchar(255) not null default '',
-    loginposition varchar(255) not null default '',
-    loginpositionexpires varchar(255) not null default '',
-    loginpositionregion varchar(255) not null default '',
-    loginsecuritytoken varchar(255) not null default ''
-);
-
-create table prefix_sloodle_users ( 
-    id SERIAL PRIMARY KEY,
-    userid integer not null,
-    uuid varchar(255) not null default '',
-    avname varchar(255) not null default '',
-    loginposition varchar(255) not null default '',
-    loginpositionexpires varchar(255) not null default '',
-    loginpositionregion varchar(255) not null default '',
-    loginsecuritytoken varchar(255) not null default '',
-    online integer not null default '0'
+create table prefix_sloodle_config ( 
+id SERIAL PRIMARY KEY,
+name varchar(255) not null default '',
+value varchar(255) not null default ''
 );
 
 CREATE TABLE prefix_sloodle_active_object (
@@ -56,3 +44,5 @@ CREATE TABLE prefix_sloodle_classroom_setup_profile_entry (
 );
 
 ALTER TABLE ONLY prefix_sloodle_classroom_setup_profile_entry ADD CONSTRAINT prefix_sloodle_classroom_setup_profile_entry_pkey PRIMARY KEY (id);
+
+
