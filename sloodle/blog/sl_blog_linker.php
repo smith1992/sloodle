@@ -1,109 +1,66 @@
 <?php 
-    
-    // This file is part of the Sloodle project (www.sloodle.org) and is released under the GNU GPL v3.
-    
-    /**
-    * Sloodle blog linker.
-    *
-    * Allows the Sloodle Toolbar HUD object in Second Life to write to a user's Moodle blog.
-    *
-    * @package sloodleblog
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor (various - original design and implementation)
-    * @contributor Peter R. Bloomfield - updated to use new API and communications format
-    *
-    */
+// Sloodle blog linker
+// Allows the Sloodle Toolbar object in Second Life to write to a user's Moodle blog
+// See www.sloodle.org for more information.
 
-    // This script is expected to be accessed from in-world.
-    // The following parameters are required:
-    //
-    //   sloodlepwd = the prim password used to authenticate the blog toolbar for this site
-    //   sloodleuuid = the SL UUID of the agent making the blog entry (optional if 'sloodleavname' is specified)
-    //   sloodleavname = the name of the avatar making the blog entry (optional if 'sloodleuuid' is specified)
-    //   sloodleblogsubject = the subject line of the blog entry
-    //   sloodleblogbody = the main body of the blog entry
-    //
-    
+// This script is expected to be accessed with the following parameters (GET or POST):
+// subject = the subject line of the blog entry
+// summary = the main body of the blog entry
+// uuid = the SL UUID of the agent making the blog entry
+// pwd = the prim password used to authenticate the blog toolbar for this site
 
-    require_once('../config.php');
-    require_once(SLOODLE_DIRROOT.'/sl_debug.php');
-    require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
-    require_once($CFG->dirroot .'/blog/lib.php'); // Moodle blog functionality
-    
-    // Create an LSL handler and process the basic request data
-    sloodle_debug_output('Creating LSL handler...<br/>');
-    $lsl = new SloodleLSLHandler();
-    sloodle_debug_output('Processing basic request data...<br/>');
-    $lsl->request->process_request_data();
-    
-    // Ensure the request is authenticated
-    sloodle_debug_output('Authenticating request...<br/>');
-    $lsl->request->authenticate_request();
-    // Attempt to login the user
-    sloodle_debug_output('Logging-in user...<br/>');
-    $lsl->login_by_request();
-    
-    
-    // Obtain the additional parameters for the blog entry
-    sloodle_debug_output('Obtaining additional parameters...<br/>');
-    $sloodleblogsubject = $lsl->request->required_param('sloodleblogsubject', PARAM_RAW);
-    $sloodleblogbody = $lsl->request->required_param('sloodleblogbody', PARAM_RAW);
+require_once('../config.php'); // Moodle/Sloodle configuration
+require_once($CFG->dirroot .'/blog/lib.php'); // Moodle blog functionality
+require_once('../locallib.php'); // General Sloodle functionality
+require_once('../login/sl_authlib.php'); // Sloodle authentication functions
 
-    // We need to know if all header data was retrieved
-    $use_slurl = (isset($_SERVER['HTTP_X_SECONDLIFE_REGION']) && isset($_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION']));
-    // Use the HTTP headers added by SL to get the region and position data, and construct a SLurl from them
-    if ($use_slurl) {
-        sloodle_debug_output('Reading header data...<br/>');
-        $region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
-        $region = substr ( $region,0, strpos($region, '(' ) - 1 );
-        $position = $_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION'];
-        sloodle_debug_output('Constructing SLurl...<br/>');
-        sscanf($position, "(%f, %f, %f)", $x, $y, $z);
-        $slurl = "http://slurl.com/secondlife/" .$region ."/" .$x ."/" .$y ."/" .$z;
-        $slurl = '<a href="' .$slurl .'">' .$region .'</a>';
-    } else {
-        sloodle_debug_output('Header data not available. Skipping SLurl...<br/>');
-        $slurl = '[location unknown]';
-    }
 
-    // Make all string data safe
-    sloodle_debug_output('Processing data...<br/>');
-    $sloodleblogsubject = addslashes(clean_text(stripslashes($sloodleblogsubject), FORMAT_MOODLE));
-    $sloodleblogbody = addslashes(clean_text(stripslashes($sloodleblogbody), FORMAT_MOODLE));
-    // Construct the final blog body
-    sloodle_debug_output('Constructing entry text...<br/>');
-    $sloodleblogbody = "Posted from Second Life: " .$slurl ."\n\n" .$sloodleblogbody;
-    
+// Ensure the prim password is valid
+// (The script is automatically terminated with an error message if this fails)
+sloodle_prim_require_script_authentication();
+// Authenticate the user
+sloodle_prim_require_user_login();
+
+// Obtain the raw parameters for the blog entry
+$sl_blog_subject = required_param('subject', PARAM_RAW);
+$sl_blog_summary = required_param('summary', PARAM_RAW);
+
+// Use the HTTP headers added by SL to get the region and position data
+$region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
+$region = substr ( $region,0, strpos($region, '(' ) - 1 );
+$position = $_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION'];
+sscanf($position, "(%f, %f, %f)", $x, $y, $z);
+$slurl = "http://slurl.com/secondlife/" .$region ."/" .$x ."/" .$y ."/" .$z;
+$slurl = '<a href="' .$slurl .'">' .$region .'</a>';
+// Ok so if we reach this point then all the variables have been passed from Second Life - Hurrah!
+
+// Make all string data safe
+$sl_blog_subject = addslashes(clean_text(stripslashes($sl_blog_subject), FORMAT_MOODLE));
+$sl_region = addslashes(clean_text(stripslashes($region), FORMAT_MOODLE));
+$sl_blog_summary = addslashes(clean_text(stripslashes($sl_blog_summary), FORMAT_MOODLE));
+// Construct the final blog body	
+$sl_blog_summary = "Posted from Second Life: " .$slurl ."\n\n" .$sl_blog_summary;
+
+
+if ($sl_blog_summary == '') {
+    // This will check that there IS a post to make!
+    $post->error =  get_string('nomessagebodyerror', 'blog');
+} else {
     // Write a blog entry into database
-    sloodle_debug_output('Constructing database entry...<br/>');
-    $blogEntry = new stdClass();
-    $blogEntry->subject = $sloodleblogsubject;
-    $blogEntry->summary = $sloodleblogbody;
+    $blogEntry = new object;
+    $blogEntry->subject = $sl_blog_subject;
+    $blogEntry->summary = $sl_blog_summary;
     $blogEntry->module = 'blog';
-    $blogEntry->userid = $lsl->user->get_moodle_user_id();
+    $blogEntry->userid = $USER->id;
     $blogEntry->format = 1;
     $blogEntry->publishstate = 'site'; // 'draft' or 'site' or 'public'
     $blogEntry->lastmodified = time();
     $blogEntry->created = time();
-    
     // Insert the new blog entry, making sure it is successful
-    sloodle_debug_output('Attempting to add post to database...<br/>');
     if ($entryID = insert_record('post',$blogEntry)) {
-        sloodle_debug_output('-&gt; Success.<br/>');
-        $lsl->response->set_status_code(1);
-        $lsl->response->set_status_descriptor('OK');
+       print 'success';
     } else {
-        sloodle_debug_output('-&gt; Failed.<br/>');
-        $lsl->response->set_status_code(-1);
-        $lsl->response->set_status_descriptor('ERROR');
-        $lsl->response->add_data_line('Failed to insert blog entry into database.');
+       print 'error';
     }
-    
-    // Output the response
-    sloodle_debug_output('Outputting response...<br/>');
-    $lsl->response->render_to_output();
-    
-    exit();
+}
 ?>

@@ -1,0 +1,127 @@
+
+string sloodleserverroot = "";
+string pwd = "";
+
+integer lastping = -1;
+integer pingtimeout = 60;
+integer timebetweenpings = 60;
+key ch = NULL_KEY;
+
+// configure by receiving a linked message from another script in the object
+sloodle_handle_command(string str) 
+{
+    llWhisper(0,"handling command "+str);    
+    list bits = llParseString2List(str,["|"],[]);
+    string name = llList2String(bits,0);
+    string value = llList2String(bits,1);
+    if (name == "set:sloodleserverroot") {
+        sloodleserverroot = value;
+    } else if (name == "set:pwd") {
+        pwd = value;
+        if (llGetListLength(bits) == 3) {
+            pwd = pwd + "|" + llList2String(bits,2);
+        }
+    } 
+
+    //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
+
+    if ( (sloodleserverroot != "") && (pwd != "") ) {
+        state default;
+    }
+}
+
+integer sloodle_init()
+{
+    llWhisper(0,"initializing");    
+    if ( (sloodleserverroot == "") || (pwd == "") ) {
+        llSay(0,"missing sloodleserverroot or pwd, ging to wait");
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+default
+{
+    on_rez(integer param)
+    {
+        integer ready = sloodle_init();
+        if (ready == 0) {
+            state sloodle_wait_for_configuration;
+        }
+    }    
+    state_entry()
+    {     
+        integer ready = sloodle_init();
+        if (ready == 0) {
+            state sloodle_wait_for_configuration;
+        } else {
+            state connecting;
+        }
+    }
+}
+
+state connecting
+{
+    state_entry() {
+        // open an xmlrpc channel
+        llOpenRemoteDataChannel();
+    }
+    remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval) {
+        if (type == REMOTE_DATA_CHANNEL) { // channel created
+            ch = channel;
+            llSay(0, "Ready to receive requests on channel "+(string)ch+ " with server root "+sloodleserverroot);
+            llHTTPRequest( sloodleserverroot+"/mod/sloodle/sl_distrib/sl_handle_channel.php?pwd="+pwd+"&ch="+(string)ch, [], "");
+            
+        } 
+    }   
+    http_response(key request_id, integer status, list metadata, string body) {
+        if (body == "OK|"+(string)ch) {
+            llOwnerSay("connected");
+           state connected; 
+        }
+    }
+}
+
+state connected
+{
+    http_response(key request_id, integer status, list metadata, string body) {
+        if (body == "OK|"+(string)ch) {
+           state connected; 
+        }
+    }    
+    remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval) {
+        if (type == REMOTE_DATA_REQUEST) { // channel created    
+            list bits = llParseString2List(sval,["|"],[]);
+            string obj = llList2String(bits,2);
+            key avid = (key)llList2String(bits,1);
+            llOwnerSay("got msg" +sval);
+            string result = "OK";
+            if (llGetInventoryType(obj) == -1) {
+                result = "ERROR|Object not found";
+            } else {
+                if (llKey2Name(avid) == "") {
+                    result = "ERROR|Avatar not found";
+                } else {
+                    llGiveInventory(avid,obj);
+                }
+            }
+            llRemoteDataReply(channel,NULL_KEY,result,0);
+        } 
+        
+    }     
+}
+    
+state sloodle_wait_for_configuration
+{
+    state_entry() {
+        llWhisper(0,"waiting for command");
+    }
+    link_message(integer sender_num, integer num, string str, key id) {
+        //llWhisper(0,"got message "+(string)sender_num+str);
+       // if ( (sender_num == LINK_THIS) && (num == sloodle_command_channel) ){
+            sloodle_handle_command(str);
+        //}   
+    }
+}
+
