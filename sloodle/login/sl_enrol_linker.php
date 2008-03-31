@@ -1,20 +1,15 @@
 <?php
-    
-    // This file is part of the Sloodle project (www.sloodle.org) and is released under the GNU GPL v3.
-    
-    /**
-    * Sloodle enrolment linker.
-    *
-    * Allows SL objects in-world to query and initiate student enrolment in courses.
-    *
-    * @package sloodlelogin
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Edmund Edgar
-    * @contributor Peter R. Bloomfield
-    *
-    */
+    // Sloodle enrolment linker
+    // Allows SL objects in-world to check and initiate student enrolment in courses
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2007 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   Edmund Edgar - original design and implementation
+    //   Peter R. Bloomfield - updated to use new API and communications format
+    //
     
     // This script is expected to be called from an LSL script in-world
     // The following parameters (GET or POST) are required in all circumstances:
@@ -105,7 +100,7 @@
         sloodle_debug_output('Constructing response...<br/>');
         // Is the user already enrolled?
         sloodle_debug_output('Checking if user is enrolled in course #'.$lsl->request->get_course_id().'...<br/>');
-        if (isadmin() || $lsl->user->is_user_in_course($lsl->request->get_course_id()) === TRUE) {
+        if ($lsl->user->is_user_in_course($lsl->request->get_course_id()) === TRUE) {
             // Yes - nothing much to do
             $lsl->response->set_status_code(401);
             $lsl->response->set_status_descriptor('MISC_ENROL');
@@ -115,7 +110,7 @@
             $lsl->response->set_status_code(1);
             $lsl->response->set_status_descriptor('OK');
             sloodle_debug_output('-&gt; User is not enrolled in course.<br/>');
-            $lsl->response->add_data_line($CFG->wwwroot.'/mod/sloodle/login/sl_enrolment.php?sloodlecourseid='.$lsl->request->get_course_id());
+            $lsl->response->add_data_line($CFG->wwwroot.'/course/enrol.php?id='.$lsl->request->get_course_id());
         }        
         break;
         

@@ -11,20 +11,6 @@
     //   Peter R. Bloomfield - rewritten for Sloodle 0.2 (using new API/comms. format, and resolved outstanding issues)
     //
     
-    /**
-    * Sloodle WebIntercom linker script.
-    *
-    * Allows a Sloodle WebIntercom in-world to communicate with a web-based Moodle chatroom.
-    *
-    * @package sloodlechat
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor (various)
-    * @contributor Peter R. Bloomfield
-    *
-    */
-    
     // This script is expected to be requested by in-world objects.
     // The following parameters are required:
     //

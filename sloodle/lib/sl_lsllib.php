@@ -1,75 +1,45 @@
-<?php    
-    /**
-    * Sloodle LSL handling library.
-    *
-    * Provides the central API functionality, automatically combining several other API elements.
-    *
-    * @package sloodle
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    * @since Sloodle 0.2
-    *
-    * @contributor Peter R. Bloomfield
-    *
-    */
+<?php
+    // Sloodle LSL handling library
+    // Provides functionality for handling LSL requests etc.
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) Sloodle 2007
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //  Peter R. Bloomfield - original design and implementation
+    //
     
     // This library expects that the Sloodle config file has already been included
     //  (along with the Moodle libraries)
     
-    /** Include the general Sloodle functionality. */
+    // Make sure our other necessary libraries have been included
     require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
-    /** Include the Sloodle IO library. */
     require_once(SLOODLE_DIRROOT.'/lib/sl_iolib.php');
-    /** Include the Sloodle user management library. */
     require_once(SLOODLE_DIRROOT.'/lib/sl_userlib.php');
     
     
-    /** 
-    * A helper class to automate many API features.
-    * Most interaction with the object-oriented parts of the Sloodle API should occur via this class.
-    * It brings together the other classes, and automatically handles various features.
-    * @package sloodle
-    */
+    // This class simplifies the handling of LSL interactions
     class SloodleLSLHandler
     {
     ///// PUBLIC DATA /////
     
-        /**
-        * A Sloodle user object.
-        * Instantiated to the {@link: SloodleUser} type in the class constructor.
-        * No accessors - should be accessed directly.
-        * @var SloodleUser
-        * @access public
-        */
+        // A user object
+        // Instantiated to a SloodleUser object on construction
         var $user = NULL;
         
-        /**
-        * A Sloodle request handling object.
-        * Instantiated to the {@link: SloodleLSLRequest} type in the class constructor.
-        * No accessors - should be accessed directly.
-        * @var SloodleLSLRequest
-        * @access public
-        */
+        // A request object
+        // Instantiated to a SloodleLSLRequest object on construction
         var $request = NULL;
         
-        /**
-        * A Sloodle response handling object.
-        * Instantiated to the {@link: SloodleLSLResponse} type in the class constructor.
-        * No accessors - should be accessed directly.
-        * @var SloodleLSLHandler
-        * @access public
-        */
+        // A response object
+        // Instantiated to a SloodleLSLResponse object on construction
         var $response = NULL;
         
         
     ///// FUNCTIONS /////
     
-        /**
-        * Class constructor.
-        * Instantiates member objects.
-        * @return void
-        * @access public
-        */
+        // Constructor
         function SloodleLSLHandler()
         {
             // Instantiate and link our components
@@ -78,15 +48,11 @@
             $this->request = new SloodleLSLRequest($this->response, $this->user);
         }
         
-        /**
-        * Performs an internal 'login' based on user identified in request.
-        * Checks for avatar UUID and/or name request parameters, and checks for an associated Moodle account.
-        * If found, the user is logged-in (details stored in Moodle's global $USER variable).
-        * @param bool $require If true (default), the function will terminate the script with an error message if login fails. (Error message will be LSL-friendly).
-        * @param bool $suppress_autoreg If true (not default), the function will always suppress auto-registration of new users. Note: this parameter will be ignored if auto-registration is disabled.
-        * @return bool True if login was successful. False if login failed, but parameter $require was false.
-        * @access public
-        */
+        // Login a user from the request parameters
+        // If $require is TRUE (default) then the script will terminate with an LSL error message if login fails
+        // Otherwise, the function will return TRUE if successful, or FALSE if not
+        // If $suppress_autoreg is TRUE, then auto registration will be explicitly suppressed
+        //  (note: this will be ignored if auto registration is not enabled by the site anyway)
         function login_by_request($require = TRUE, $suppress_autoreg = FALSE)
         {
             // Make sure the request is processed and authenticated
@@ -245,14 +211,12 @@
             return $this->user->login_moodle_user();
         }
         
-        /**
-        * Authenticates the avatar identified in the request by the login security token.
-        * Uses the avatar UUID and/or name, and the security token request to parameters to
-        *  check against the details in the database.
-        * @param bool $use_cache If true (not default) then the function will use the user data stored in Sloodle user cache of the {@link: $user} member object (instead of querying the database for new data).
-        * @return bool True if authentication was successful, or false if not.
-        * @access public
-        */
+        // Can the current Sloodle user in the request be confirmed by a login security token?
+        // (This checks if a token was specified in the request, and compares it against the
+        //  Sloodle user specified in the request).
+        // If $use_cache is TRUE then the user data from the current Sloodle user cache is used for the query
+        // If $use_cache is FALSE (default) then the Sloodle user cache is updated from the database prior to the query
+        // Returns TRUE if so, or FALSE if not
         function confirm_by_login_security_token($use_cache = FALSE)
         {
             // Was a login security token specified in the request? Do nothing if not
@@ -269,14 +233,11 @@
             return ($this->request->get_login_security_token() === $this->user->sloodle_user_cache->loginsecuritytoken);
         }
         
-        /**
-        * Checks that a user is enrolled in a course, based on request data.
-        * Fetches user and course identification from the standard request parameters.
-        * @param bool $require If true (default) then the function will terminate with an LSL-friendly error message if user is not enrolled, or not all data was present.
-        * @param bool $use_cache If true (not default) then the courses cache in the {@link: $user} member will be used, instead of querying the database for fresh data.
-        * @return bool True if the user is enrolled, or false otherwise.
-        * @access public
-        */
+        // Check that the specified user is enrolled in the course identified in the request
+        //  If $use_cache is FALSE (default) then the system will update its cache of user course data before performing the check (this is the recommended setting)
+        // If you KNOW that the course cache is valid, then you can set $use_cache to TRUE. Best to ignore this value unless you really know what you are doing! :-)
+        // Returns TRUE if the user is enrolled, or FALSE if not (or if the course is not available)
+        // Note: if $require is TRUE (default) then the script will be terminated with an LSL error message instead of returning FALSE
         function is_user_enrolled_by_request( $require = TRUE, $use_cache = FALSE )
         {
             // Make sure the course exists

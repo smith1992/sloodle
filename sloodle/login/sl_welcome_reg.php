@@ -1,18 +1,17 @@
 <?php
-    /**
-    * Sloodle avatar registration page.
-    *
-    * Allows users who have clicked an in-world registration booth to complete their
-    *  avatar registration by logging-in to their Moodle account (or creating one).
-    *
-    * @package sloodlelogin
-    * @copyright Copyright (c) 2007 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Edmund Edgar
-    * @contributor Peter R. Bloomfield
-    *
-    */
+    // Sloodle avatar registration page
+    // Allows users who have clicked an in-world registration booth to complete
+    //  their avatar registration by logging-in to their Moodle account (or
+    //  creating one).
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) Sloodle 2007
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //  Edmund Edgar - original design and implementation
+    //  Peter R. Bloomfield - updated to use new API
+    //
     
     // This script is expected to be visited by a user with a web browser.
     // The following request parameters (GET or POST) are required for an initial page view:
@@ -33,9 +32,6 @@
     //
     //  sloodleconfirm - 'true' if the change/overwrite of existing details is confirmed
     //
-    // A new optional is the following:
-    //
-    //  sloodlecourseid - the integer ID of the course which the user should be enrolled in after registration
     
     // At some stage, we may implement the use of an XMLRPC channel to send a
     //  confirmation back to the in-world object which initiated the registration.
@@ -72,10 +68,8 @@
     sloodle_debug_output('Processing request data...<br/>');
     $lsl->request->process_request_data();
     
-    // Get additional parameters
-    sloodle_debug_output('Fetching additional request parameters...<br/>');
+    // Get an additional channel paramter if it was specified
     $channel = optional_param('sloodlechannel', NULL, PARAM_RAW);
-    $sloodlecourseid = optional_param('sloodlecourseid', NULL, PARAM_INT);
     
     // Make sure a Sloodle user has been identified
     sloodle_debug_output('Checking if a Sloodle user has been identified...<br/>');
@@ -168,14 +162,6 @@
     }
     
     sloodle_debug_output('Finished.<br/>');
-    
-    
-    // We we asked to enrol the user as well?
-    if ($sloodlecourseid != NULL) {
-        echo "<br/><br/><br/>";
-        redirect("{$CFG->wwwroot}/course/enrol.php?id=$sloodlecourseid", get_string('nowenrol','sloodle'), 3);
-    }
-    
     
     print_footer();
     exit();

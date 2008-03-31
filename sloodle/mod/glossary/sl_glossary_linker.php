@@ -1,17 +1,16 @@
-<?php    
-    /**
-    * Sloodle glossary linker.
-    *
-    * Allows in-world 'MetaGloss' tools to query Moodle glossaries.
-    *
-    * @package sloodleglossary
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Jeremy Kemp
-    * @contributor Peter R. Bloomfield
-    *
-    */
+<?php
+    // Sloodle glossary linker
+    // Allows in-world 'MetaGloss' tools to link with Moodle glossaries
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2007 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   Jeremy Kemp - prototype
+    //   Peter R. Bloomfield - updated and expanded
+    //   Peter R. Bloomfield - updated to use new API and communications format (Sloodle 0.2) 
+    //
 
     // This script is expected to be accessed from in-world.
     // The following parameters are required:

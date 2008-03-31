@@ -1,18 +1,17 @@
 <?php
-    /**
-    * Sloodle object distribution interface page.
-    *
-    * Can be accessed by Moodle users in a web-browser to request the distribution of in-world objects.
-    *
-    * @package sloodledistrib
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Edmund Edgar
-    * @contributor Peter R. Bloomfield
-    *
-    */
-    
+    // Sloodle object distribution request script
+    // Can be called by browsers to request the distribution of an object to in-world avatars
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2006-7 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   Edmund Edgar - original design and implementation
+    //   Peter R. Bloomfield - updated to use new communications format (Sloodle 0.2)
+    //   Peter R. Bloomfield - added permissions limitation, and ability to select specific objects for distribution
+    //
+        
     // This script should only be accessed by a browser (a script linker version can be found at "sl_send_object_linker.php")
     // The following parameters are optional, but are typically provided by this script submitting a form to itself:
     //

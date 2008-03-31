@@ -1,12 +1,4 @@
-<?php
-
-/**
-* Sloodle module version information.
-*
-* Code fragment required by Moodle for module management.
-*
-* @package sloodle
-*/
+<?php // 
 
 /////////////////////////////////////////////////////////////////////////////////
 ///  Code fragment to define the version of sloodle
@@ -14,8 +6,8 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 // Internal module version number
-$module->version  = 2008032500;  // YYYYMMDD##
-$module->requires = 2006050512;  // The version of Moodle that is required
-$module->cron     = 0;           // How often should cron check this module (seconds)?
+$module->version  = 2008022800;  // YYYYMMDD##
+$module->requires = 2006050512;   // The version of Moodle that is required
+$module->cron     = 0;            // How often should cron check this module (seconds)?
 
 ?>

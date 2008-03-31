@@ -20,8 +20,6 @@ string pwd = ""; //"";
 string sloodleenrolbase = "/mod/sloodle/login/sl_enrol_linker.php";
 
 integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
-// Channel used for requesting URL loading
-integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 
 integer object_dialog_channel = -3857343;
 integer avatar_dialog_channel = 3857343;
@@ -75,14 +73,11 @@ integer handle_course_membership_confirmation_response(string body)
         // Looks like we've been successful
         string msg = "";
         // Check if auto-registration occurred
-        if (llListFindList(sideeffects, ["322"]) >= 0) {
+        if (llListFindList(sideeffects, ["322"])) {
             msg += "A new Moodle account was automatically created for you. ";
         }
         msg += "Please follow this link to enrol in this course.";
-        //llLoadURL(uuid, msg, dataline);
-        llWhisper(0, llKey2Name(uuid) + ", " + msg);
-        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
-        
+        llLoadURL(uuid, msg, dataline);
         return 1;
     } else if (statuscode == -321) {
         // User is not registered

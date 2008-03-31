@@ -460,7 +460,7 @@ default
                     integer ok = handle_new_profile_reponse(body);
                     if (ok == 1) {
                         sloodle_debug("sending save message");       
-                        string baseurl = sloodleserverroot+sloodleprofilebase+"?sloodlepwd="+pwd+"&sloodlecmd=saveentries&sloodleprofilename="+llEscapeURL(objectprofilename)+"&sloodleavname="+toucheravname+"&sloodleuuid="+(string)toucheruuid+"&sloodlecourseid="+(string)sloodle_courseid;
+                        string baseurl = sloodleserverroot+sloodleprofilebase+"?sloodlepwd="+pwd+"&sloodlecmd=saveentries&sloodleprofilename="+(string)objectprofilename+"&sloodleavname="+toucheravname+"&sloodleuuid="+(string)toucheruuid+"&sloodlecourseid="+(string)sloodle_courseid;
                         llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_PROFILE_SAVER_DO_SAVE, baseurl, NULL_KEY); 
                     } else {
                         llWhisper(0,"Failed, please try again");

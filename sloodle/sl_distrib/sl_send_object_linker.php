@@ -1,17 +1,16 @@
 <?php
-    /**
-    * Sloodle object distribution linker script.
-    *
-    * Can be called by scripts to request in-world distribution of objects.
-    *
-    * @package sloodledistrib
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Edmund Edgar
-    * @contributor Peter R. Bloomfield
-    *
-    */
+    // Sloodle object distribution linker script
+    // Can be called by scripts to request the distribution of an object to an in-world avatar
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2006-7 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   Edmund Edgar - original design and implementation
+    //   Peter R. Bloomfield - updated to use new communications format (Sloodle 0.2)
+    //   Peter R. Bloomfield - added permissions limitation, and ability to select specific objects for distribution
+    //
         
     // This script should only be accessed by a browser (a script linker version can be found at "sl_send_object_linker.php")
     // There are two modes: query and sendobject.

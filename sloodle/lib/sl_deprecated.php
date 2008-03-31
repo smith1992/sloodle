@@ -1,16 +1,14 @@
 <?php
-    /**
-    * Deprecated Sloodle code file. PLEASE DO NOT USE THIS!
-    *
-    * @package sloodle
-    * @copyright Copyright (c) 2006-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    * @deprecated
-    * @ignore
-    *
-    * @contributor (various - old code!)
-    *
-    */
+// Contains the deprecated functions for the Sloodle module
+// Part of the Sloodle project
+// See www.sloodle.org for more information
+//
+// Copyright (c) 2007 Sloodle
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  various (old code!)
+//
 
 
 // NOTE: please do not add code here

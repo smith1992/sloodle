@@ -1,17 +1,14 @@
 <?php
-
-    /**
-    * Sloodle debug script.
-    *
-    * Activates or deactivates debug mode, depending on a request parameter.
-    *
-    * @package sloodle
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Peter R. Bloomfield
-    *
-    */
+// Sloodle debug mode script
+// Activates or deactivates debug mode, depending on a request parameter
+// Part of the Sloodle project (www.sloodle.org)
+//
+// Copyright (c) Sloodle 2007
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  Peter R. Bloomfield - created original file
+//
 
     // Define the name of the debug mode parameter
     define('SLOODLE_DEBUG_MODE_PARAM_NAME', 'sloodledebug');

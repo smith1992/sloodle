@@ -1,30 +1,23 @@
 <?php
-    /**
-    * Sloodle glossary local library functions.
-    *
-    * Allows easier access to the Moodle glossary data.
-    *
-    * @package sloodleglossary
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Peter R. Bloomfield
-    *
-    */
+    // Sloodle glossary local library functions
+    // Allows access to the Moodle glossary data
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2007 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //  Peter R. Bloomfield - original design and implementation
+    //
     
     // This script expects that the Sloodle configuration script has already been included
 
 
-    /**
-    * Gets an array of available glossaries in the specified course.
-    * Glossaries which are hidden, or which are in a hidden section of the course, are ignored.
-    *
-    * @param int $course_id Integer ID of a Moodle course
-    * @return mixed If successful, a numeric array, associating module instance ID's with database record objects of the activity modules. Returns boolean false if an error occurs.
-    * @see sloodle_get_visible_chatrooms_in_course()
-    * @see sloodle_get_visible_choices_in_course()
-    * @todo: Generalise this function to support any module type
-    */
+    // Get an array of glossaries appearing in the specified course
+    // $course_id is the ID number of a particular course
+    // Returns a numeric array, associating module instance ID's with database record objects of the activity modules
+    // Returns FALSE if an error occurs
+    // TODO: generalise this function to support any module type
     function sloodle_get_visible_glossaries_in_course( $course_id )
     {
         // THIS IS HIDEOUSLY COMPLICATED! My brain is officially fried... :-|.... PRB
@@ -72,12 +65,9 @@
         return $visible_glossary_records;
     }
     
-    /**
-    * Gets a glossary activity module instance.
-    *
-    * @param object $cmi A course module instance object (database record)
-    * @return mixed A database record object if successful, or false if not.
-    */
+    // Get a glossary activity module instance
+    // $cmi is a course module instance object (database record)
+    // Returns an object if successful, or FALSE if not
     function sloodle_get_glossary_activity_module( $cmi )
     {
         // Make sure we were given a valid object
@@ -86,13 +76,10 @@
         return get_record('glossary', 'id', $cmi->instance);
     }
     
-    /**
-    * Searches glossary terms for a word or phrase.
-    *
-    * @param object $glossary An activity module instance (e.g. returned from {@link sloodle_get_glossary_activity_module()}.
-    * @param string $concept A string to search for.
-    * @return mixed A numeric array of entries (as records from the database) if successful, or boolean false if not.
-    */
+    // Search a glossary for entries
+    // $glossary should be a glossary activity module instance
+    // $concept should be a concept to search for
+    // Returns an array of terms (records from the database), or FALSE if unsuccessful
     function sloodle_lookup_glossary( $glossary, $concept )
     {
         return glossary_search_entries(array($concept), $glossary, 0);

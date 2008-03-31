@@ -1,20 +1,15 @@
 <?php
-
-    /**
-    * Sloodle registration booth linker script
-    *
-    * Allows a registration booth in Second Life to setup an SL-Moodle user registration process
-    *
-    * @package sloodlelogin
-    * @copyright Copyright (c) 2007 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Edmund Edgar
-    * @contributor Peter R. Bloomfield
-    *
-    */
-
-
+// Sloodle registration booth linker script
+// Allows a registration booth in Second Life to setup an SL-Moodle user registration process
+// Part of the Sloodle Project (www.sloodle.org)
+//
+// Copyright (c) Sloodle 2007
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  Edmund Edgar - original version
+//  Peter R. Bloomfield - updated to use new communications API
+//
 //
 // This script requires to be able to authenticate the object making the request, so the "sloodlepwd" parameter should be set.
 // In order to register the avatar, the name and UUID are required, in parameters "sloodleavname" and "sloodleuuid".

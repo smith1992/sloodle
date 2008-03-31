@@ -1,16 +1,9 @@
 <?php
-// This file is part of the Sloodle project (www.sloodle.org)
+// Version linker script, to allow in-world tools to check the Sloodle version information
+// Part of the Sloodle project (www.sloodle.org)
 
-/**
-* Version linker script, to allow in-world tools to check the Sloodle version information
-*
-* @package sloodle
-* @copyright Copyright (c) 2007-8 Sloodle (various contributors)
-* @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-*
-* @contributor Peter R. Bloomfield
-*
-*/
+// Copyright (c) 2008 Sloodle (various contributors)
+// Released under the GNU GPL
 
 // If called without any parameters, this script will return version info.
 // If successful in checking version information, this script will return
@@ -30,11 +23,9 @@
 //  parameter, and will likely return "true" or "false" on the data line.
 
 
-/** Sloodle/Moodle configuration information. */
+// Include our Sloodle stuff
 require_once('config.php');
-/** Sloodle debugging. */
 require_once(SLOODLE_DIRROOT.'/sl_debug.php');
-/** Sloodle LSL handling library. */
 require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
 
 // Process the request
