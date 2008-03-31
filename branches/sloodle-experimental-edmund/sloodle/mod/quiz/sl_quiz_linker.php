@@ -51,8 +51,15 @@
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
-    require_once("locallib.php");
 
+    // We're using a copy of the locallib.php file from the quiz module itself.
+    // Linking directly to it seems to break - it would be better to find out why and see if there's a way we can reference it directly.
+    //2007101509 is the 1.9 release, which has a new locallib file
+    if ( $CFG->version >= 2007101509 ) {
+       require_once("locallib.1.9.php");
+    } else {
+       require_once("locallib.php");
+    }
     
     // Authenticate the request and login the user
     $lsl = new SloodleLSLHandler();
