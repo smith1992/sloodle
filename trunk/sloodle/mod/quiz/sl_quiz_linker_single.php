@@ -1,22 +1,18 @@
 <?php
-    // This file is part of the Sloodle project (www.sloodle.org).
+//sleep(rand(0,20)); // sleep to test what happens to the script if the response doesn't come
+    // Sloodle quiz linker
+    // Allows in-world objects to interact with Moodle quizzes
+    // Part of the Sloodle project (www.sloodle.org)
+    //
+    // Copyright (c) 2006-7 Sloodle
+    // Released under the GNU GPL
+    //
+    // Contributors:
+    //   (various Moodle authors) - original quiz functionality
+    //   Edmund Edgar - specialized for Sloodle
+    //   Peter R. Bloomfield - updated (partially) to use new API and communications format
+    //
 
-    /**
-    * Sloodle quiz linker.
-    * 
-    * Allows in-world objects to interact with Moodle quizzes.
-    * <b>Note:</b> this script was copied and changed from the Moodle quiz script.
-    * 
-    * @package sloodlequiz
-    * @copyright Original copyright (c) Moodle (various contributors)
-    * @copyright Sloodle changes copyright (c) 2007-8 Sloodle (various contributors)
-    * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
-    *
-    * @contributor (various Moodle developers - original quiz functionality)
-    * @contributor Edmund Edgar - altered script for use in Sloodle
-    * @contributor Peter R. Bloomfield - updated to use new communications format
-    */
-    
     // This script is expected to be requested by an in-world object.
     // The following parameters are required:
     //
@@ -34,8 +30,25 @@
     //   timeup = true if submission was by timer
     //    forcenew = teacher has requested a new preview
     //    action = ??
-
     
+
+
+/**
+* This page prints a particular instance of quiz
+*
+* @version $Id: attempt.php,v 1.87.2.5 2006/08/10 15:31:00 skodak Exp $
+* @author Martin Dougiamas and many others. This has recently been completely
+*         rewritten by Alex Smith, Julian Sedding and Gustav Delius as part of
+*         the Serving Mathematics project
+*         {@link http://maths.york.ac.uk/serving_maths}
+* @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+* @package quiz
+*
+* Sloodlized by Edmund Edgar, 2006-11
+* Changed to give responses to an lsl script
+*
+*/
+
     require_once('../../config.php');
     require_once(SLOODLE_DIRROOT.'/sl_debug.php');
     require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
@@ -48,13 +61,14 @@
     } else {
        require_once("locallib.php");
     }
-    
+
     // Authenticate the request and login the user
     $lsl = new SloodleLSLHandler();
     $lsl->request->process_request_data();
     $lsl->request->authenticate_request();
     $lsl->login_by_request();
     
+    $limittoquestion = optional_param('ltq',0,PARAM_INT);
 
 	$output = array();
 
@@ -440,50 +454,59 @@
 /// Print the quiz page ////////////////////////////////////////////////////////
 
 	if (!$isnotify) {
-		$output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id);
+
+		$pagequestions = explode(',', $pagelist);
+		$lastquestion = count($pagequestions);
+
+		$output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id,$lastquestion);
 		$output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
 
 		/// Print all the questions
 
-		$pagequestions = explode(',', $pagelist);
 		$number = quiz_first_questionnumber($attempt->layout, $pagelist);
 		foreach ($pagequestions as $i) {
 			$options = quiz_get_renderoptions($quiz->review, $states[$i]);
 			// Print the question
 			// var_dump($questions[$i]);
 			$q = $questions[$i];
-			$output[] = array(
-				'question',
-				$i,
-				$q->id,
-				$q->parent,
-				$q->questiontext,
-				$q->defaultgrade,
-				$q->penalty,
-				$q->qtype,
-				$q->hidden,
-				$q->maxgrade,
-				$q->single,
-				$q->shuffleanswers
-			);
-			$ops = $q->options;
-			foreach($ops as $opkey=>$op) {
-			//print "<h1>$opkey is $op</h1>";
-			   foreach($op as $ok=>$ov) {
-				  //print '<h1>   '."$ok=>$ov</h1>";
-				  //var_dump($ov);
-				  $output[] = array(
-					'questionoption',
-					$i,
-					$ov->id,
-					$ov->question,
-					$ov->answer,
-					$ov->fraction,
-					$ov->feedback
-				  );
-			   }
-			}
 
+			if ( ($limittoquestion == 0) || ($limittoquestion == $q->id) ) {
+			
+				$output[] = array(
+					'question',
+					$i,
+					$q->id,
+					$q->parent,
+					$q->questiontext,
+					$q->defaultgrade,
+					$q->penalty,
+					$q->qtype,
+					$q->hidden,
+					$q->maxgrade,
+					$q->single,
+					$q->shuffleanswers,
+					$deferred	
+				);
+
+				$ops = $q->options;
+				foreach($ops as $opkey=>$op) {
+				//print "<h1>$opkey is $op</h1>";
+				   foreach($op as $ok=>$ov) {
+					  //print '<h1>   '."$ok=>$ov</h1>";
+					  //var_dump($ov);
+					  $output[] = array(
+						'questionoption',
+						$i,
+						$ov->id,
+						$ov->question,
+						$ov->answer,
+						$ov->fraction,
+						$ov->feedback
+					  );
+				   }
+				}
+
+			}
 			//print_question($questions[$i], $states[$i], $number, $quiz, $options);
 			save_question_session($questions[$i], $states[$i]);
 			$number += $questions[$i]->length;
