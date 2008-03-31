@@ -14,6 +14,9 @@
 *         {@link http://maths.york.ac.uk/serving_maths}
 * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
 * @package quiz
+*
+* @ignore
+*
 */
 
 /**

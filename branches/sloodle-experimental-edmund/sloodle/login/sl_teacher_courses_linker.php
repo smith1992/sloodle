@@ -1,15 +1,17 @@
-<?php
-    // Sloodle teacher courses linker
-    // Allows an LSL script to retrieve a list of courses for which the specified user is a teacher
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Edmund Edgar - original design and implementation
-    //   Peter R. Bloomfield - updated to use new API and communications format
-    //
+<?php    
+    /**
+    * Sloodle teacher courses linker.
+    *
+    * Allows an LSL script to retrieve a list of courses for which the specified user is a teacher.
+    *
+    * @package sloodlelogin
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script is expected to be requested from with Second Life.
     // The following parameters (GET or POST) are required:

@@ -41,6 +41,9 @@ integer SLOODLE_ERROR_OBJECT_AUTH = -201;
 integer SLOODLE_ERROR_OBJECT_AUTH_NEED_MORE_INFO = -212;
 integer SLOODLE_ERROR_OBJECT_AUTH_FAILED = -213;
 
+// Channel used for requesting URL loading
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
+
 
  
 sloodle_debug(string msg)
@@ -88,7 +91,9 @@ integer handle_authentication_response(string body)
     } else if (statuscode == SLOODLE_STATUS_OK) {
         // Success - inform the user of the authentication URL
         sloodle_debug("Showing URL to user " + llKey2Name(uuid) + "(" + (string)uuid + ")");
-        llLoadURL(uuid, "Please use this URL to login into Moodle", dataline);
+        //llLoadURL(uuid, "Please use this URL to login into Moodle", dataline);
+        llWhisper(0, llKey2Name(uuid) + ", please use this URL to login to Moodle.");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
         return 1;
     }
     

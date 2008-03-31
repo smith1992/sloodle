@@ -24,12 +24,19 @@ integer object_dialog_channel = -3857343;
 integer avatar_dialog_channel = 3857343;
 integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
 integer SLOODLE_CHANNEL_OBJECT_ACCESS_CHECKER_PERMIT = -1639270032;
+// Channel used for requesting URL loading
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 
 integer sloodle_courseid = 0; //3;
 
 list avstates; // each avatar gets their own state saying where in the validation process they are.
 list avuuids;
 list avhttpids;
+
+// These values indicate responses from handler functions
+integer RESPONSE_FAIL = 0; // e.g. failed to authenticate user
+integer RESPONSE_SUCCESS = 1; // e.g. successfully authenticated user
+integer RESPONSE_ALREADY_DONE = 2; // e.g. user already authenticated
 
 
 sloodle_debug(string msg)
@@ -73,22 +80,27 @@ integer handle_authentication_response(string body)
         uuid = llList2Key(statusfields, 6);
     }
     
+    // Add the course id to the registration URL, to enable auto-forwarding to course enrolment
+    dataline += "&sloodlecourseid=" + (string)sloodle_courseid;
+    
     // Check the status code
     if (statuscode == 301) {
         // User is already fully registered - nothing to do
         //llDialog(uuid, "Your avatar is already registered with the Moodle site.", [], SLOODLE_CHANNEL_AVATAR_IGNORE);
-        return 1;
+        return RESPONSE_ALREADY_DONE;
         
     } else if (statuscode > 0) {
         // Looks like we've been successful
-        llLoadURL(uuid, "Follow this link to finish registering your avatar.", dataline);
-        return 1;
+        //llLoadURL(uuid, "Follow this link to finish registering your avatar.", dataline);
+        llWhisper(0, llKey2Name(uuid) + ", please use this URL to finished registering your avatar.");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
+        return RESPONSE_SUCCESS;
     }
     
     // Something went wrong
     llWhisper(0, "(" + (string)statuscode + ") General error. " + dataline);
     llDialog(uuid, "Sorry " + llKey2Name(uuid) + ". An error occurred while trying to register your avatar.", [], SLOODLE_CHANNEL_AVATAR_IGNORE);
-    return 0;
+    return RESPONSE_FAIL;
 }
 
 integer handle_course_membership_confirmation_response(integer avindex, string body) 
@@ -112,20 +124,22 @@ integer handle_course_membership_confirmation_response(integer avindex, string b
         // User is already enrolled - nothing to do
         llDialog(uuid, "Your registration and enrollment have been confirmed. Please touch again to enter.", [], SLOODLE_CHANNEL_AVATAR_IGNORE);
         avstates = llListReplaceList(avstates,["enrolled"],avindex,avindex);
-        return 1;
+        return RESPONSE_ALREADY_DONE;
         
     } else if (statuscode > 0) {
         // Looks like we've been successful
         key uuid = llList2Key(statusfields, 6);
-        llLoadURL(uuid, "Please follow this link to enrol in this course.", dataline);
-        return 1;
+        //llLoadURL(uuid, "Please follow this link to enrol in this course.", dataline);
+        llWhisper(0, llKey2Name(uuid) + ", please use this URL to enrol in this Moodle course.");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, dataline, uuid);
+        return RESPONSE_SUCCESS;
     }
     
     // Something went wrong
     llWhisper(0, "(" + (string)statuscode + ") General error. " + dataline);
     llDialog(uuid, "Sorry " + llKey2Name(uuid) + ". You are not allowed to enrol in this course.", [], SLOODLE_CHANNEL_AVATAR_IGNORE);
     
-    return 0;
+    return RESPONSE_FAIL;
 }
 
 integer send_permit_message(key avuuid)
@@ -213,8 +227,9 @@ default
                 string avstate = llList2String(avstates, avindex);
                 sloodle_debug("avstate is "+avstate+" for uuid index "+(string)avindex);
                 if (avstate == "authentication") {
-                    integer ok = handle_authentication_response(body);
-                    if (ok == 1) {
+                    integer resp = handle_authentication_response(body);
+                    // Only need to enrol if user was already authenticated
+                    if (resp == RESPONSE_ALREADY_DONE) {
                         avstates = llListReplaceList(avstates,["course_confirmation"],avindex,avindex);
                         confirm_course_membership(avindex);
                     }

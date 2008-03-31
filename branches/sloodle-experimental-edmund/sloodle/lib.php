@@ -1,5 +1,18 @@
 <?php
 
+    /**
+    * Sloodle module core library functionality.
+    *
+    * This script is required by Moodle to contain certain key functionality for the module.
+    *
+    * @package sloodle
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
+
 // Process the configuration options for the Sloodle module
 // $config is a reference to the submitted configuration settings
 // We can perform validation and other processing here as necessary
@@ -30,6 +43,12 @@ function sloodle_process_options(&$config)
     if ($len >= 1 && substr($sloodle_pwd, 0, 1) == "0") {
         $error_codes .= "&sloodlepwdleadzero=yes";
     }
+    
+    // Is the flag for allowing teachers to edit user data valid?
+    if (isset($config->allow_user_edit_by_teachers) == FALSE || ($config->allow_user_edit_by_teachers != 'true' && $config->allow_user_edit_by_teachers != 'false')) {
+        // Force it to a default value
+        $config->allow_user_edit_by_teachers = 'false';
+    }
 
     // Is the auth method recognised?
     if (!($config->auth_method == "web" || $config->auth_method == "autoregister")) {
@@ -47,10 +66,9 @@ function sloodle_process_options(&$config)
             exit();
         }
         redirect($redirect . $error_codes . "&header_redirect=false", "There was an error in the configuration. Please try again.");
-	exit();
+        exit();
     }
 }
-
 
 
 // Placeholder functions
@@ -60,6 +78,7 @@ function sloodle_process_options(&$config)
  * (defined by the form in mod.html) this function 
  * will create a new instance and return the id number 
  * of the new instance.
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return int The id of the newly inserted sloodle record
@@ -73,6 +92,7 @@ function sloodle_add_instance($sloodle) {
  * Given an object containing all the necessary data, 
  * (defined by the form in mod.html) this function 
  * will update an existing instance with new data.
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param object $instance An object from the form in mod.html
  * @return boolean Success/Fail
@@ -86,6 +106,7 @@ function sloodle_update_instance($sloodle) {
  * Given an ID of an instance of this module, 
  * this function will permanently delete the instance 
  * and any data that depends on it. 
+ * <b>Note:</b> this function is not yet used by Sloodle. Will hopefully be used in version 0.3!
  *
  * @param int $id Id of the module instance
  * @return boolean Success/Failure

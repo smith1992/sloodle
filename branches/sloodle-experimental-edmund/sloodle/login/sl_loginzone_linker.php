@@ -1,14 +1,17 @@
 <?php
-    // Loginzone linker script
-    // Allows an in-world LoginZone to communicate with the main server
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Edmund Edgar - original design and implementation
-    //  Peter R. Bloomfield - updated to use new communications format and API
+    /**
+    * LoginZone linker script.
+    *
+    * Allows an in-world LoginZone to communicate with the main server
+    *
+    * @package sloodlelogin
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     
     // This script is expected to be accessed by objects from in-world.

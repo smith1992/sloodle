@@ -1,4 +1,11 @@
-<?php  //$Id: upgrade.php,v 1.2 2007/08/08 22:36:54 stronk7 Exp $
+<?php
+
+/**
+* Database upgrade script for Moodle's db-independent XMLDB.
+* @ignore
+* @package sloodledb
+*/
+
 
 // This file keeps track of upgrades to
 // the sloodle module

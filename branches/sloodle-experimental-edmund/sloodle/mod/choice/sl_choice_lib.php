@@ -1,15 +1,16 @@
 <?php
-    // Sloodle choice local library functions
-    // Allows access to the Moodle choice data
-    // See www.sloodle.org for more information
-    //
-    // Part of the Sloodle project (www.sloodle.org)
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Peter R. Bloomfield - original design and implementation
-    //
+    /**
+    * Sloodle choice local library functions.
+    *
+    * Allows easier access to the Moodle choice data.
+    *
+    * @package sloodlechoice
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script expects that the Sloodle configuration script has already been included
     
@@ -17,11 +18,17 @@
     require_once($CFG->dirroot.'/mod/choice/lib.php');
     
     
-    // Get an array of choice modules appearing in the specified course
-    // $course_id is the ID number of a particular course
-    // Returns a numeric array, associating module instance ID's with database record objects
-    // Returns FALSE if an error occurs
-    // TODO: generalise this function to support any module type
+    /**
+    * Gets an array of available choices in the specified course.
+    * Choices which are hidden, or which are in a hidden section of the course, are ignored.
+    *
+    * @param int $course_id Integer ID of a Moodle course
+    * @return mixed If successful, a numeric array, associating module instance ID's with database record objects of the activity modules. Returns boolean false if an error occurs.
+    * @see sloodle_get_visible_glossaries_in_course()
+    * @see sloodle_get_visible_chatrooms_in_course()
+    * @see sloodle_get_choice()
+    * @todo: Generalise this function to support any module type
+    */
     function sloodle_get_visible_choices_in_course( $course_id )
     {
         // Make sure the course ID is valid
@@ -68,13 +75,17 @@
     }
     
     
-    // Get a complete record of a particular choice
-    // $course_module_instance should be a course module instance database record
-    // Returns a database record, the following items added:
-    //  option[] - associates option IDs with option texts
-    //  maxanswers[] - associates option IDs with the maximum allowable number answers for each one
-    //  selections[] - associates option IDs with the number of times each one has already been selected
-    // Returns FALSE if the choice is not found
+    /**
+    * Gets a complete record of a particular choice instance.
+    * If successful, returns a database record of the choice, with the following items added:
+    * - option[] - associates option IDs with option texts
+    * - maxanswers[] - associates option IDs with the maximum allowable number of answers for each one
+    * - selections[] - associates option IDs with the number of times each one has already been selected
+    *
+    * @param object $course_module_instance A course module instance database record
+    * @return mixed If successful, a customized database object. Otherwise, boolean false.
+    * @see sloodle_get_visible_choices_in_course()
+    */
     function sloodle_get_choice($course_module_instance)
     {
         // Get the choice ID
@@ -104,9 +115,13 @@
         return $choice;
     }
 
-    // Get the number of users on the course who have not yet answered the specified choice (includes students AND teachers!)
-    // $choice MUST be a choice object from the "sloodle_get_choice" function above
-    // Returns a positive integer if successful, or a string if an error occured
+    /**
+    * Gets the number of users on the course who have not yet answered the specified choice.
+    * <b>Note:</b> the count includes students and teachers.
+    *
+    * @param object $choice A choice object from the {@link:sloodle_get_choice()} function
+    * @return mixed If successful, a positive integer. Otherwise, a string error message.
+    */
     function sloodle_get_num_users_not_answered_choice( $choice )
     {
         // Make sure we were give a valid choice record
@@ -133,20 +148,25 @@
         return $num_left;
     }
     
-    // Add a choice selection on behalf of a specific user
-    // $choice MUST be a choice object from the "sloodle_get_choice" function above
-    // $optionid should be an integer ID of an option (unique for an entire site)
-    // $moodle_user_id should be the ID of a Moodle user
-    // Returns either an integer or a string
-    // The integers tie-in with the Sloodle status codes, so +ve means success, and -ve means error
-    // Codes:
-    //   10011 = added new choice selection
-    //   10012 = updated existing choice selection
-    //  -10011 = User already made a selection, and re-selection is not allowed
-    //  -10012 = max number of selections for this choice already made
-    //  -10013 = choice is not yet open
-    //  -10014 = choice is already closed
-    // A string means a general error occurred, typically a system or programming error
+    /**
+    * Select an option from a choice.
+    *
+    * The return will either be an integer or a string.
+    * If an integer, then it is a {@link http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes status code}.
+    * The following status codes are typical responses:
+    *  - 10011 = added new choice selection
+    *  - 10012 = updated existing choice selection
+    *  - -10011 = User already made a selection, and re-selection is not allowed
+    *  - -10012 = max number of selections for this choice already made
+    *  - -10013 = choice is not yet open
+    *  - -10014 = choice is already closed
+    * If a string, then it is an error message reporting that something went wrong.
+    *
+    * @param object $choice A choice object from the {@link:sloodle_get_choice()} function
+    * @param int $optionid The integer ID of an option (note: these are unique across an entire site)
+    * @param int $moodle_user_id The integer ID of the Moodle user making the selection
+    * @return mixed If successful, a positive integer. Otherwise, a string error message.
+    */
     function sloodle_select_choice_option( $choice, $optionid, $moodle_user_id )
     {
         // Make sure we were give a valid choice record

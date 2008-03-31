@@ -1,15 +1,18 @@
 <?php
-    // Sloodle classroom profile linker
-    // Allows in-world objects to interact with classroom profiles in the Moodle database
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2006-7 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //   Edmund Edgar - original design and implementation
-    //   Peter R. Bloomfield - updated to use new API and communications format (Sloodle 0.2)
-    //
+    
+    /**
+    * Sloodle classroom profile linker.
+    *
+    * Allows in-world objects (typically Sloodle Sets) to interact with Sloodle classroom setup profiles in the Moodle database.
+    *
+    * @package sloodleclassroom
+    * @copyright Copyright (c) 2006-7 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // Classroom profiles consist of a series of object entries.
     // Each object entry consists of the object name, and relative position to the Sloodle Set.

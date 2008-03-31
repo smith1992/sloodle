@@ -1,15 +1,18 @@
-<?php
-    // Sloodle loginzone entry-point
-    // Provides an entry-point for Moodle users who want to create a new Sloodle loginzone to authenticate their avatar
-    // Part of the Sloodle project (www.sloodle.org)
-    //
-    // Copyright (c) 2007 Sloodle
-    // Released under the GNU GPL
-    //
-    // Contributors:
-    //  Edmund Edgar - original design and implementation
-    //  Peter R. Bloomfield - updated to use new communications format and Sloodle API
-    //
+<?php    
+    
+    /**
+    * Sloodle LoginZone entry-point interface script.
+    *
+    * Provides an entry-point for Moodle users who want to create a new Sloodle loginzone to authenticate their avatar
+    *
+    * @package sloodlelogin
+    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+    *
+    * @contributor Edmund Edgar
+    * @contributor Peter R. Bloomfield
+    *
+    */
     
     // This script is expected to be accessed manually via a web-browser.
     // The user will be required to login before using it.
@@ -23,9 +26,13 @@
     // Make sure the user is logged-in to Moodle
     require_login();
     
+    // Construct breadcrumb navigation links
+    $navigation = "";
+    if ($COURSE && $COURSE->id > 1) $navigation .= "<a href=\"{$CFG->wwwroot}/course/view.php?id={$COURSE->id}\">{$COURSE->shortname}</a> -> ";
+    $navigation .= get_string('loginzone:entry', 'sloodle');
+    
     // Display the Moodle page headers
-    print_header('Teleport to Second Life', '', '', '', false, '', '', false, '');
-	print_heading('Sloodle entrance to login zone');
+    print_header(get_string('loginzone:entry', 'sloodle'), get_string('loginzone:entry','sloodle'), $navigation, "", "", false);
     
     // Make sure it's not a guest who is logged in
     if (isguest()) {
