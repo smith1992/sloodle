@@ -28,547 +28,300 @@
     */
     class SloodleUser
     {
-    ///// PRIVATE DATA /////
-    // Note: maintaining compatibility with PHP4 - treat this data as private
+    // DATA //
     
         /**
-        * Integer ID of a Sloodle user entry in the database.
-        * Value 0 represents no user.
-        * @var int
-        * @access private
-        * @see $sloodle_user_cache
-        * @see $moodle_user_id
+        * Internal only - reference to the containing {@link SloodleSession} object.
+        * Note: always check that it is not null before use!
+        * @var object
+        * @access protected
         */
-        var $sloodle_user_id = 0;
-        
-        /**
-        * Integer ID of a Moodle user entry in the database.
-        * Value 0 represents no user.
-        * @var int
-        * @access private
-        * @see $moodle_user_cache
-        * @see $sloodle_user_id
-        */
-        var $moodle_user_id = 0;
-        
-        
-    ///// PUBLIC DATA /////
+        var $_session = null;
     
         /**
-        * Sloodle user data cache.
-        * Used by various functions fetching database data about a Sloodle user.
-        * Contents can also be used in subsequent function calls to prevent the need for an additional database query (typically by specifying a $use_cache parameter).
-        * Update is *not* automatic.
-        * It can be updated manually by calling {@link: update_sloodle_user_cache_from_db()}.
-        * Data placed here can also be used to edit the database using {@link: insert_sloodle_user_cache_to_db()} or {@link: update_sloodle_user_cache_to_db()}.
-        * After construction, it will always be an object.
+        * Internal only - avatar data.
+        * In Moodle, corresponds to a record from the 'sloodle_users' table.
         * @var object
-        * @access public
-        * @see $sloodle_user_id
-        * @see $moodle_user_cache
+        * @access private
         */
-        var $sloodle_user_cache = NULL;
+        var $avatar_data = null;
         
         /**
-        * Moodle user data cache.
-        * Used by various functions fetching database data about a Moodle user.
-        * Contents can also be used in subsequent function calls to prevent the need for an additional database query (typically by specifying a $use_cache parameter).
-        * Update is *not* automatic.
-        * It can be updated manually by calling {@link: update_moodle_user_cache_from_db()}.
-        * Unlike the Sloodle equivalent, this cannot be used to update the database
-        * After construction, it will always be an object.
-        * @var object
-        * @access public
-        * @see $moodle_user_id
-        * @see $sloodle_user_cache
-        * @see $enrolled_courses_cache
+        * Internal only - user data. (i.e. VLE user)
+        * In Moodle, corresponds to a record from the 'user' table.
+        * @var obejct
+        * @access private
         */
-        var $moodle_user_cache = NULL;
-        
-        /**
-        * Cache of courses which the Moodle user is enrolled in
-        * Used by some functions fetching database data about a Moodle user's courses.
-        * It is an array which caches the list of courses the Moodle user is enrolled in
-        * Note that update is *not* automatic, but you can manually call {@link: update_enrolled_courses_cache_from_db()}.
-        * After construction, it will always be a numeric array of integers (but may be empty)
-        * Each element will be a course ID (integer).
-        * @var array
-        * @access public
-        * @see $moodle_user_cache
-        */
-        var $enrolled_courses_cache = NULL;
+        var $user_data = null;
         
         
-    ///// CONSTRUCTOR /////
+    // CONSTRUCTOR //
     
         /**
         * Class constructor.
-        * @return void
+        * @param object &$_session Reference to the containing {@link SloodleSession} object, if available.
         * @access public
         */
-        function SloodleUser()
+        function SloodleUser(&$_session = null)
         {
-            // Make the caches empty objects
-            $this->sloodle_user_cache = new stdClass();
-            $this->moodle_user_cache = new stdClass();
-            $enrolled_courses_cache = array();
+            if (!is_null($_session)) $this->_session = &$_session;
         }
         
         
-    ///// ACCESSORS /////
+    // ACCESSORS //
     
         /**
-        * Accessor: gets the Sloodle user ID member, {@link: $sloodle_user_id}.
-        * @return int
+        * Gets the unique ID of the avatar.
+        * @return mixed Type depends on VLE. (Integer on Moodle).
         * @access public
         */
-        function get_sloodle_user_id()
+        function get_avatar_id()
         {
-            return $this->sloodle_user_id;
+            return $this->avatar_data->id;
         }
         
         /**
-        * Accessor: sets the Sloodle user ID member, {@link: $sloodle_user_id}.
-        * @param int $id The integer ID of a Sloodle user entry (or 0 for no entry).
-        * @return void
+        * Gets the unique ID of the VLE user.
+        * @return mixed Type depends on VLE. (Integer on Moodle).
         * @access public
         */
-        function set_sloodle_user_id( $id )
+        function get_user_id()
         {
-            $this->sloodle_user_id = $id;
-        }
-        
-        /**
-        * Accessor: gets the Moodle user ID member, {@link: $moodle_user_id}.
-        * @return int
-        * @access public
-        */
-        function get_moodle_user_id()
-        {
-            return $this->moodle_user_id;
-        }
-        
-        /**
-        * Accessor: sets the Moodle user ID member, {@link: $moodle_user_id}.
-        * @param int $id The integer ID of a Moodle user entry (or 0 for no entry).
-        * @return void
-        * @access public
-        */
-        function set_moodle_user_id( $id )
-        {
-            $this->moodle_user_id = $id;
+            return $this->user_data->id;
         }
         
         
-    ///// USER LINK FUNCTIONS /////
+    // USER LINK FUNCTIONS //
         
         /**
-        * Determines whether or not the current Sloodle and Moodle users are linked.
-        * @param bool $use_cache If true (not default) then the Sloodle and Moodle user caches ({@link:$sloodle_user_cache} and {@link:$moodle_user_cache})will be used instead of querying the database.
-        * @return mixed Ture if users are linked, false if not, or a string error message if something goes wrong.
-        * @access public
+        * Determines whether or not the current user and avatar are linked.
+        * @return bool True if they are linked, or false if not.
         */
-        function users_linked($use_cache = FALSE)
+        function is_avatar_linked()
         {
-            // If we are missing either the Sloodle or Moodle account ID's, then they cannot be linked
-            if ($this->sloodle_user_id <= 0 || $this->moodle_user_id <= 0) return FALSE;
-        
-            // Are we to check the cache?
-            if ($use_cache) {
-                // Do we have a cache available?
-                if (!(is_object($this->sloodle_user_cache) && isset($this->sloodle_user_cache->userid))) {
-                    // No - not available - report the errorexit();
-                    return 'Sloodle user data not cached.';
-                }
-                
-                // Check the cached userid value
-                return ((int)$this->sloodle_user_cache->userid == $this->moodle_user_id);
-                
-            }
-            
-            // We're checking the database instead
-            $sloodle_user_data = get_record('sloodle_users', 'id', $this->sloodle_user_id);
-            return ((int)$sloodle_user_data->userid == $this->moodle_user_id);
+            // Make sure there is data in both caches
+            if (empty($this->avatar_data) || empty($this->user_data)) return false;
+            // Check for the link (ignore the number 0, as that is not a valid ID)
+            if ($this->avatar_data->userid != 0 && $this->avatar_data->userid == $this->user_data->id) return true;
+            return false;
         }
     
         /**
-        * Links the current Sloodle and Moodle accounts together.
-        * <b>NOTE:</b> does not remove any other links to the Moodle account.
-        * @return mixed True if successful, false on failure, or a string error message if something goes wrong
+        * Links the current avatar to the current user.
+        * <b>NOTE:</b> does not remove any other avatar links to the VLE user.
+        * @return bool True if successful or false otherwise.
         * @access public
         */
-        function link_users()
+        function link_avatar()
         {
-            // We cannot link an empty Sloodle user
-            if ($this->sloodle_user_id <= 0) return "Failed to link users - invalid Sloodle user ID";
-            // We cannot link to an invalid Moodle user
-            if ($this->moodle_user_id <= 0) return "Failed to link users - invalid Moodle user ID";
+            // Make sure there is data in both caches
+            if (empty($this->avatar_data) || empty($this->user_data)) return false;
             
-            // Prepare an update object
-            $sloodle_user_data = new stdClass();
-            $sloodle_user_data->id = $this->sloodle_user_id;
-            $sloodle_user_data->userid = $this->moodle_user_id;
-            
-            // Attempt the update
-            return update_record('sloodle_users', $sloodle_user_data);
-        }
-        
-        /**
-        * Completely unlinks the Sloodle user from any Moodle account.
-        * @return mixed True if successful, false on failure, or a string error message if something goes wrong
-        * @access public
-        */
-        function unlink_sloodle_user()
-        {
-            // We cannot link an empty Sloodle user
-            if ($this->sloodle_user_id <= 0) return "Failed to unlink Sloodle user - invalid Sloodle user ID";
-            
-            // Prepare an update object
-            $sloodle_user_data = new stdClass();
-            $sloodle_user_data->id = $this->sloodle_user_id;
-            $sloodle_user_data->userid = 0;
-            
-            // Attempt the update
-            return update_record('sloodle_users', $sloodle_user_data);
+            // Set the linked user ID and update the database record
+            $olduserid = $this->avatar_data->userid;
+            $this->avatar_data->userid = $this->user_data->id;
+            if (update_record('sloodle_users', $this->avatar_data)) return true;
+            // The operation failed, so change the user ID back
+            $this->avatar_data->userid = $olduserid;
+            return false;
         }
         
         
-    ///// DATABASE FUNCTIONS /////
+    // DATABASE FUNCTIONS //
     
         /**
-        * Deletes the Sloodle user identified by {@link:$sloodle_user_id}.
-        * @return mixed True if successful, false on failure, or a string error message if something goes wrong
+        * Deletes the current avatar from the database.
+        * @return bool True if successful, or false on failure
         * @access public
         */
-        function delete_sloodle_user()
+        function delete_avatar()
         {
-            // We cannot delete an empty Sloodle user
-            if ($this->sloodle_user_id <= 0) return "Failed to delete user - invalid Sloodle user ID";
+            // Make sure we have avatar data
+            if (empty($this->avatar_data)) return false;
             
             // Attempt to delete the record from the database
-            return delete_records('sloodle_users', 'id', $this->sloodle_user_id);
+            return delete_records('sloodle_users', 'id', $this->avatar_data->id);
         }
         
         /**
-        * Updates the Sloodle user cache ({@link:$sloodle_user_cache}) from the database
-        * @return mixed True if successful, false on failure, or a string error message if something goes wrong
+        * Loads the specified avatar from the database.
+        * @param mixed $id The ID of the avatar (type depends on VLE; integer for Moodle)
+        * @return bool True if successful, or false otherwise.
         * @access public
         */
-        function update_sloodle_user_cache_from_db()
+        function load_avatar_by_id($id)
         {
-            // We need a valid Sloodle user ID
-            if ($this->sloodle_user_id <= 0) return "Failed to update Sloodle user cache - invalid Sloodle user ID";
-            // Make and store the query
-            $data = get_record('sloodle_users', 'id', $this->sloodle_user_id);
-            if ($data === FALSE) return FALSE;
-            $this->sloodle_user_cache = $data;
-            return TRUE;
-        }
-        
-        /**
-        * Update the Moodle user cache ({@link:$moodle_user_cache}) from the database
-        * @return mixed True if successful, false on failure, or a string error message if something goes wrong
-        * @access public
-        */
-        function update_moodle_user_cache_from_db()
-        {
-            // We need a valid Moodle user ID
-            if ($this->moodle_user_id <= 0) return "Failed to update Moodle user cache - invalid Moodle user ID";
-            // Make and store the query
-            $data = get_record('user', 'id', $this->moodle_user_id);
-            if ($data === FALSE) return FALSE;
-            $this->moodle_user_cache = $data;
-            return TRUE;
-        }
-        
-        /**
-        * Use the Sloodle user cache to update an entry in the Sloodle users database table.
-        * Uses the object-entirely as-is, so the 'id' field must be accurate.
-        * Ignores anu unset fields.
-        * @return mixed True if successful, false if the query fails, or a string error message if something goes wrong
-        * @access public
-        */
-        function update_sloodle_user_cache_to_db()
-        {
-            // Make sure we have a cache object
-            if (!is_object($this->sloodle_user_cache)) {
-                return "Could not update Sloodle user details in database - cache does not contain an object.";
+            // Make sure the ID is valid
+            if (!is_int($id) || $id <= 0) return false;
+            // Fetch the avatar data
+            $this->avatar_data = get_record('sloodle_users', 'id', $id);
+            if (!$this->avatar_data) {
+                $this->avatar_data = null;
+                return false;
             }
-            // Make sure the ID field is set and is valid
-            if (!isset($this->sloodle_user_cache) || (int)$this->sloodle_user_cache->id <= 0) {
-                return "Could not update Sloodle user details in database - cache does not contain valid ID field (should be a positive non-zero integer).";
+            return true;
+        }
+        
+        /**
+        * Finds an avatar with the given UUID and/or name, and loads its data.
+        * The UUID is searched for first. If that is not found, then the name is used.
+        * @param string $uuid The UUID of the avatar, or blank to search only by name.
+        * @param string $avname The name of the avatar, or blank to search only by UUID.
+        * @return bool True if successful, or false otherwise
+        * @access public
+        */
+        function load_avatar($uuid, $avname)
+        {
+            // Both parameters can't be empty
+            if (empty($uuid) && empty($avname)) return false;
+            
+            // Attempt to search by UUID first
+            if (!empty($uuid)) {
+                $this->avatar_data = get_record('sloodle_users', 'uuid', $uuid);
+                if ($this->avatar_data) return true;
             }
             
+            // Attempt to search by name
+            if (!empty($avname)) {
+                $this->avatar_data = get_record('sloodle_users', 'avname', $avname);
+                if ($this->avatar_data) return true;
+            }
+            
+            // The search failed
+            $this->avatar_data = null;
+            return false;
+        }
+        
+        /**
+        * Load the specified user from the database
+        * @param mixed $id The unique identifier for the VLE user. (Type depends on VLE; integer for Moodle)
+        * @return bool True if successful, or false on failure
+        * @access public
+        */
+        function load_user($id)
+        {
+            // Make sure the ID is valid
+            if (!is_int($id) || $id <= 0) return false;
+            
+            // Attempt to load the data
+            $this->user_data = get_complete_user_data('id', $id);
+            if (!$this->user_data) {
+                $this->user_data = null;
+                return false;
+            }
+            
+            return true;
+        }
+        
+        /**
+        * Uses the current avatar data to update the database.
+        * @return bool True if successful, or false if the update fails
+        * @access public
+        */
+        function write_avatar()
+        {
+            // Make sure we have avatar data
+            if (empty($this->avatar_data) || $this->avatar_data->id <= 0) return false;
             // Make the update
-            return update_record('sloodle_users', $this->sloodle_user_cache);
-        }
-        
-        // Use the Sloodle user cache to insert a new entry in the Sloodle user database table
-        // Uses the object entirely as-is, except that the 'id' field is ignored
-        // Stores the id of the new entry in $this->sloodle_user_id
-        // Returns TRUE if successful, FALSE if the query fails
-        /**
-        * Use the Sloodle user cache to insert a new entry in the Sloodle user database table.
-        * Uses the object entirely as-is, except that the 'id' field is ignored.
-        * The ID of the new entry is stored in {@link:$sloodle_user_id}.
-        * @return bool True if successful, or false on failure.
-        * @access public
-        */
-        function insert_sloodle_user_cache_to_db()
-        {
-            // Make sure we have a cache object
-            if (!is_object($this->sloodle_user_cache)) {
-                return "Could not update Sloodle user details in database - cache does not contain an object.";
-            }
-            
-            // Attempt the record insertion
-            $id = insert_record('sloodle_users', $this->sloodle_user_cache);
-            // Check if it was successful, and store the ID if so
-            if ($id == FALSE) return FALSE;
-            $this->sloodle_user_id = $id;
-            return TRUE;
+            return update_record('sloodle_users', $this->avatar_data);
         }
         
         /**
-        * Create a new Sloodle user.
-        * All parameters are optional. To enable loginzone authentication, you *must* specify position and expiry time.
-        * Note that, if no login security token is specified, it is generated automatically.
-        * If successful, the new ID is stored and the user data is cached.
-        * @param string $uuid avatar UUID
-        * @param string $avname avatar name
-        * @param int $userid ID of Moodle user to be linked with this Sloodle user
-        * @param string $loginposition a position vector of format <x,y,z>, representing the allocated loginzone position
-        * @param string $loginpositionexpires an indication of when the allocated loginposition expires (format unknown)
-        * @param string $loginpositionregion the name of the region in which the loginzone is (NOT IN USE YET!)
-        * @param string $loginsecuritytoken a security token (random letters/numbers) used to allow secure authentication
+        * Adds a new avatar to the database.
+        * @param mixed $userid Site-wide unique ID of a user (type depends on VLE; integer for Moodle)
+        * @param string $uuid UUID of the avatar
+        * @param string $avname Name of the avatar
         * @return bool True if successful, or false if not.
         * @access public
         */
-        function create_sloodle_user( $uuid = '', $avname = '', $userid = 0, $loginposition = '', $loginpositionexpires = '', $loginpositionregion = '', $loginsecuritytoken = '')
+        function add_avatar($userid, $uuid, $avname)
         {
-            // If necessary, generate a login security token
-            if (empty($loginsecuritytoken)) $loginsecuritytoken = sloodle_random_security_token();
-            
-            // Construct the user data object
-            $sloodle_user_data = new stdClass();
-            $sloodle_user_data->uuid = $uuid;
-            $sloodle_user_data->avname = $avname;
-            $sloodle_user_data->userid = $userid;
-            $sloodle_user_data->loginposition = $loginposition;
-            $sloodle_user_data->loginpositionexpires = $loginpositionexpires;
-            $sloodle_user_data->loginpositionregion = $loginpositionregion;
-            $sloodle_user_data->loginsecuritytoken = $loginsecuritytoken;
+            // Setup our object
+            $this->avatar_data = new stdClass();
+            $this->avatar_data->id = 0;
+            $this->avatar_data->userid = $userid;
+            $this->avatar_data->uuid = $uuid;
+            $this->avatar_data->avname = $avname;
             
             // Add the data to the database
-            $id = insert_record('sloodle_users', $sloodle_user_data);
-            if ($id === FALSE) return FALSE;
-            // Store the data
-            $this->sloodle_user_id = $id;
-            $this->sloodle_user_cache = $sloodle_user_data;
-            
-            return TRUE;
-        }
-        
-        /**
-        * Clears the login position from the currently selected Sloodle user.
-        * This function will user the user identified by {@link:$sloodle_user_id},
-        *  retrieve all the user data, remove the login position values, and update the database.
-        * @return mixed True if successful, false if the database query fails, or a string if an error occurs.
-        * @access public
-        */
-        function delete_login_position()
-        {
-            // We need a valid Sloodle user ID
-            if ($this->sloodle_user_id <= 0) return "Failed to update Sloodle user cache - invalid Sloodle user ID";
-            
-            // Get the user data
-            $sloodle_user_data = get_record('sloodle_users', 'id', $this->sloodle_user_id);
-            if ($sloodle_user_data === FALSE) return FALSE;
-            // Remove the login position values
-            $sloodle_user_data->loginposition = '';
-            $sloodle_user_data->loginpositionexpires = '';
-            $sloodle_user_data->loginpositionregion = '';
-            // Update the database
-            return update_record('sloodler_users', $sloodle_user_data);
-        }
-        
-        /**
-        * Generates a new login position for the current Sloodle user.
-        * Stores the new login position in the database, and refreshes the user cache
-        * @param int $expires A timestamp indicating when the position should expire.
-        * @return mixed A numerical array containing the new position if successful, FALSE on failure, or a string if an error occurs
-        * @access public
-        */
-        function generate_login_position( $expires )
-        {
-            // Make sure the expiry time is not already passed
-            if ((int)$expires < time()) return "Failed to generate login position - specified expiry time is already passed.";
-            // We need a valid Sloodle user ID
-            if ($this->sloodle_user_id <= 0) return "Failed to generate login position - invalid Sloodle user ID.";
-            
-            // Get the bounds of the loginzone
-            list($max,$min) = sloodle_login_zone_coordinates();
-            $newpos_str = NULL;
-            $newpos_arr = NULL;
-            // We will try up to 10 times to find a new available position
-            $maxtries = 10;
-            for ($i = 0; $i < $maxtries && $newpos_str == NULL; $i++) {
-                // Generate a new random position
-                $rndpos_arr = sloodle_random_position_in_zone($max, $min);
-                $rndpos_str = sloodle_array_to_vector($rndpos_arr);
-                // Is the position already taken? (Or was it previously taken by the same user?)
-                $taker = get_record('sloodle_users', 'loginposition', $rndpos_str);
-                if ($taker == FALSE || $taker->userid == $this->moodle_user_id) {
-                    // Nobody has the position
-                    $newpos_arr = $rndpos_arr;
-                    $newpos_str = $rndpos_str;
-                }
+            $this->avatar_data->id = insert_record('sloodle_users', $this->avatar_data);
+            if (!$this->avatar_data->id) {
+                $this->avatar_data = null;
+                return false;
             }
             
-            // Were we successful?
-            if ($newpos_str != NULL) {
-                // Yes - use the Sloodle user cache to update the database
-                if ($this->update_sloodle_user_cache_from_db() !== TRUE) {
-                    return "Failed to updated Sloodle user cache.";
-                }
-                $this->sloodle_user_cache->loginposition = $newpos_str;
-                $this->sloodle_user_cache->loginpositionexpires = $expires;
-                $this->sloodle_user_cache->loginpositionregion = '';
-                if ($this->update_sloodle_user_cache_to_db() !== TRUE) {
-                    return "Failed to update database from Sloodle user cache.";
-                }
-                
-                return $newpos_arr;
-            }
-            
-            return FALSE;
+            return true;
         }
         
-        
         /**
-        * Create a Moodle user account with the specified first name, last name and email address.
-        * @return mixed True if successful, or a string error message if something goes wrong.
+        * Auto-register a new user account for the current avatar.
+        * NOTE: this does NOT respect ANYTHING but the most basic Moodle accounts.
+        * Use at your own risk!
+        * @return bool True if successful, or false otherwise.
         * @access public
         */
-        function create_moodle_user( $firstname, $lastname, $email )
+        function autoregister_avatar_user()
         {
-            global $CFG;
-            // Include the Moodle authentication library
-            include_once("{$CFG->dirroot}/auth/{$CFG->auth}/lib.php");
-            include_once("{$CFG->dirroot}/auth/{$CFG->auth}/auth.php");
-
-            // Make sure we have all necessary parameters
-            if (!isset($firstname) || empty($firstname)) return "Cannot register Moodle user - first name not specified.";
-            if (!isset($lastname) || empty($lastname)) return "Cannot register Moodle user - last name not specified.";
-            if (!isset($email) || empty($email)) return "Cannot register Moodle user - email address not specified.";
+            // Make sure we have avatar data, and reset the user data
+            if (empty($this->avatar_data)) return false;
+            $this->user_data = null;
             
-            // Construct a base username - we will try to use this, but adapt it in the event of a conflict
-            // It will start out as just the first and last names concatenated
-            $moodlebaseusername = trim(moodle_strtolower($firstname.$lastname));
-            
-            // Construct a new Moodle user object
-            $moodleuser = new stdClass();
-            // Generate and store the required items of user-data
-            $moodleuser->firstname = strip_tags($firstname);
-            $moodleuser->lastname = strip_tags($lastname);
-            $moodleuser->email = strip_tags($email);
-            $moodleuser->username = $moodlebaseusername;
-            $moodleuser->password = sloodle_random_web_password();
-            $plainpass = $moodleuser->password;
-            $moodleuser->password = hash_internal_user_password($plainpass);
-            $moodleuser->confirmed = 0;            
-            $moodleuser->lang = current_language();
-            $moodleuser->firstaccess = time();
-            $moodleuser->secret = random_string(15);
-            $moodleuser->auth = $CFG->auth;
-            $moodleuser->mnethostid = 1;
-            
-            // Do we need to check for username conflicts in the authentication module?
-            $check_auth = empty($CFG->auth_user_create) == FALSE && function_exists('auth_user_exists') && function_exists('auth_user_create');
-            // We want to find a username that does conflict with either the authentication module, or with the Moodle database        
-            // Try the basic username
-            $try_username = $moodlebaseusername;
-            $conflict_auth = FALSE;
-            if ($check_auth) $conflict_auth = auth_user_exists($try_username);
-            $conflict_moodle = record_exists('user', 'username', $try_username);
+            // Construct a basic username
+            $nameparts = strtok($this->avatar_data->avname, " \n\t\v");
+            $baseusername = striptags(stripslashes(implode('', $nameparts)));
+            $username = $baseusername;
+            $conflict_moodle = record_exists('user', 'username', $username);
             
             // If that didn't work, then try a few random variants (just a number added to the end of the name)
             $MAX_RANDOM_TRIES = 3;
             $rnd_try = 0;
-            while ($rnd_try < $MAX_RANDOM_TRIES && $conflict_moodle && (($check_auth && $conflict_auth) || !$check_auth)) {
+            while ($rnd_try < $MAX_RANDOM_TRIES && $conflict_moodle) {
                 // Pick a random 3 digit number
-                $rnd_num = mt_rand(100, 999);
-                if ($rnd_num == 666) $rnd_num++; // Some users may object to this number
+                $rnd_num = mt_rand(100, 998);
+                if ($rnd_num >= 666) $rnd_num++; // Some users may object to this number
+                
                 // Construct a new username to try
-                $try_username = $moodlebaseusername . (string)$rnd_num;
+                $username = $baseusername . (string)$rnd_num;
                 // Check for conflicts
-                if ($check_auth) $conflict_auth = auth_user_exists($try_username);
-                $conflict_moodle = record_exists('user', 'username', $try_username);
+                $conflict_moodle = record_exists('user', 'username', $username);
                 
                 // Next attempt
                 $rnd_try++;
             }
             
             // Stop if we haven't found a unique name
-            if ($conflict_moodle || $conflict_auth) return "Cannot register Moodle user - failed to find unique username.";
-            // Store the username
-            $moodleuser->username = $try_username;
+            if ($conflict_moodle) return false;
             
-            // Attempt to add the user to the authentication module
-            if ($check_auth) {
-                // Attempt to add the user to the authentication module
-                if (!auth_user_create($moodleuser, $plainpass)) return "Cannot register Moodle user - failed to add user to Moodle authentication module";
+            // Looks we got an OK username
+            // Generate a random password
+            $plain_password = sloodle_random_web_password();
+            $password = hash_internal_user_password($plain_password);
+            
+            // Create the new user
+            $this->user_data = create_user_record($username, $password);
+            if (!$this->user_data) {
+                $this->user_data = null;
+                return false;
             }
-    
-            // Attempt to add the user data to the Moodle database
-            $moodleuser->id = insert_record('user', $moodleuser, TRUE);
-            // User did not exist - create a new one
-            if ($moodleuser->id === FALSE) return "Cannot register Moodle user - failed to add user to Moodle database";
             
-            // Store the Moodle user details
-            $this->moodle_user_id = $moodleuser->id;
-            $this->moodle_user_cache = get_record('user', 'id', $moodleuser->id);
+            // Attempt to the first and last names of the avatar
+            $this->user_data->firstname = $nameparts[0];
+            if (isset($nameparts[1])) $this->user_data->lastname = $nameparts[1];
+            else $this->user_data->lastname = $nameparts[0];
             
-            return TRUE;
+            // Attempt to update the database (we don't really care if this fails, since everything else will have worked)
+            update_record('user', $this->user_data);
+            
+            return true;
         }
         
-    
-    ///// FIND USER FUNCTIONS /////
-    
-        /**
-        * Attempts to find a Sloodle user by their UUID and/or avatar nam.
-        * Note: the UUID takes precedence, but the name can be used as a fall-back.
-        * The ID of the user is stored in {@link:$sloodle_user_id}.
-        * @param string $uuid The UUID of the avatar
-        * @param string $name The name of the avatar
-        * @param bool $cache_data If true (default) then the user data is stored in the cache variable, {@link:$sloodle_user_cache}.
-        * @return mixed True if successful, false if user was not found, or a string is some other error occurred.
-        * @access public
-        */
-        function find_sloodle_user( $uuid, $name, $cache_data = TRUE )
-        {
-            // Make sure we at least have a UUID or a name
-            if (empty($uuid) && empty($name)) {
-                return "Failed to find Sloodle user - neither a UUID nor a name was provided.";
-            }
-            
-            // If we have a UUID, then search by it
-            $sloodle_user = NULL;
-            if (!empty($uuid)) $sloodle_user = get_record('sloodle_users', 'uuid', $uuid);
-            // If that search failed, and we have a name, then search by it
-            if (is_null($sloodle_user) && !empty($name)) $sloodle_user = get_record('sloodle_users', 'avname', $name);
-            
-            // Did we find a user?
-            if (is_object($sloodle_user)) {
-                // Yes - store the ID/data and finish
-                $this->sloodle_user_id = $sloodle_user->id;
-                if ($cache_data) $this->sloodle_user_cache = $sloodle_user;
-                return TRUE;
-            }
-            
-            return FALSE;
-        }
         
+//-------------------------------- TODO ----------------------------//
+// The update of this file has only reached this point! More to do! -PRB
+//-------------------------------- **** ----------------------------//
+    
+    // FIND USER FUNCTIONS //
+    
         /**
         * Find the Sloodle user linked to the current Moodle user.
         * Stores the Sloodle user ID in {@link:$sloodle_user_id}.
@@ -578,26 +331,7 @@
         */
         function find_linked_sloodle_user( $cache_data = TRUE )
         {
-            // Make sure a valid Moodle user ID has been specified
-            if ($this->moodle_user_id <= 0) return 'No Moodle user ID specified.';
             
-            // Get all Sloodle user records linking to the Moodle id
-            $recs = get_records('sloodle_users', 'userid', $this->moodle_user_id);
-            
-            // Was nothing found?
-            if (!is_array($recs) || count($recs) == 0) return FALSE;
-            // There is a problem if more than one Sloodle user was found linked to the same Moodle user
-            if (count($recs) > 1) return "More than one Sloodle user linked to Moodle user #{$this->moodle_user_id}.";
-            
-            // Store any necessary data
-            $rec = NULL;
-            foreach ($recs as $currec) {
-                $rec = $currec;
-            }
-            $this->sloodle_user_id = $rec->id;
-            if ($cache_data) $this->sloodle_user_cache = $rec;
-            
-            return TRUE;
         }
         
         /**
