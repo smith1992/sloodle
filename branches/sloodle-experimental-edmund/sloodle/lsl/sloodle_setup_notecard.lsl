@@ -47,8 +47,8 @@ sloodle_handle_notecard_line(string str)
     } else if (name == "set:sloodle_courseid") {
         sloodle_courseid = (integer)value;
     } else {
-        sloodle_debug("ignoring notecard line "+str);
-    } 
+        sloodle_tell_other_scripts(str);
+    }
     
     //llWhisper(0,"DEBUG: "+sloodleserverroot+"/"+pwd+"/"+(string)sloodle_courseid);
 
