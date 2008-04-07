@@ -14,7 +14,7 @@
 integer doRepeat = 1; // whether we should run through the questions again when we're done
 integer doDialog = 1; // whether we should ask the questions using dialog rather than chat
 integer doPlaySound = 1; // whether we should play sound
-integer doRandomize = 1; // whether we should ask the questions in random order
+integer doRandomize = 0; // whether we should ask the questions in random order
 
 string sloodleserverroot = ""; // this represents the top directory of the moodle installation
 string pwd = ""; // This is the string the object needs to use when talking to the server to prove that it's authorized. It will be either a single, pre-defined string (with the old prim_password method) or a uuid of a master object combined with an arbitrary numerical code (with the master object authorization method)
@@ -113,7 +113,6 @@ populate_qa_list(string response)
         string thisqtype = "";
 
         if ( rowtype == "quiz" ) {
-            
             quizid = llList2Integer( thisline, 4 );        
             number_of_questions = llList2Integer( thisline, 5 );  
             
@@ -202,8 +201,8 @@ request_question( integer activeq )
 {
     integer limittoquestion = llList2Integer(item_ids, activeq-1);
    // llWhisper(0,"Using sloodle server root "+sloodleserverroot);
-    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&courseid=" + (string)sloodle_courseid + "&ltq=" + (string)limittoquestion;
-    llWhisper(0,"Reqesting url "+url);
+    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + (string)quizid + "&courseid=" + (string)sloodle_courseid + "&ltq=" + (string)limittoquestion;
+   // llWhisper(0,"Reqesting url "+url);
     populate_request_http_id = llHTTPRequest(url,[],"");
     llSetTimerEvent(request_timeout);
 
@@ -213,9 +212,9 @@ request_question( integer activeq )
 notify_server(string qtype, integer questioncode, integer responsecode)
 {
     
-    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + (string)quizid+"&resp"+(string)questioncode+"_="+(string)responsecode+"&questionids="+questionids+"&resp"+(string)questioncode+"_submit=Submit&timeup="+(string)timeup+"&action=notify";
-    //llWhisper(0,"Reqesting url "+url);
-    llHTTPRequest(url,[],"");    
+    string url = sloodleserverroot + sloodle_quiz_url + "?sloodlepwd=" + pwd + "&sloodleavname="+llEscapeURL(llKey2Name(sitter)) + "&q=" + (string)quizid+"&resp"+(string)questioncode+"_="+(string)responsecode+"&questionids="+(string)questioncode+"&resp"+(string)questioncode+"_submit=Submit&timeup="+(string)timeup+"&action=notify";
+    llWhisper(0,"Notifying server with url "+url);
+    llHTTPRequest(url,[],"");
     
 }
 
@@ -242,8 +241,9 @@ ask_or_fetch_question()
         qid_current = qid_next;
         qtext_current = qtext_next;
         qoptiontexts_current = qoptiontexts_next; 
-        qoptionfeedbacks_current = qoptionfeedbacks_next; 
+        qoptionfeedbacks_current = qoptionfeedbacks_next;         
         qoptionscores_current = qoptionscores_next;
+        qoptionids_current = qoptionids_next;        
 
         qitem_next = -1;
         qid_next = -1;
@@ -263,7 +263,7 @@ ask_or_fetch_question()
         // Don't have a question to ask. 
         // If we haven't requested it from the server, or we've requested it but it's timed out, request it  now.
         // When the question arrives, the function handling the response will call ask_question again.
-        
+         
         is_waiting_for_active_question = 1;
         
         request_question(active_question);
@@ -331,9 +331,12 @@ handle_answer(string message) {
                         
             feedback = llList2String(qoptionfeedbacks_current, x-1);
             scorechange = llList2Integer(qoptionscores_current, x-1);
+            
+            integer question_code = qid_current;
+            integer response_code = llList2Integer(qoptionids_current, x);
 
             //llSay(0,"TODO: notify server");
-            notify_server( qtype_current, llList2Integer(qoptionids_current,llList2Integer(item_ids,active_question-1)) , llList2Integer(qoptionids_current, x) );
+            notify_server( qtype_current, question_code , response_code );
 
         } else {
         
@@ -355,7 +358,7 @@ handle_answer(string message) {
 
     }
     
-    llSay(0,feedback);
+    llInstantMessage(sitter,feedback);
     //llDialog(sitter, feedback, ["Next"],SLOODLE_CHANNEL_AVATAR_IGNORE);
     move_vertical(scorechange); 
     play_sound(scorechange);
