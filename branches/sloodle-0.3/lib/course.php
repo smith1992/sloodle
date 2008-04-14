@@ -13,7 +13,9 @@
     
     
     /** Include the general Sloodle library. */
-    require_once(SLOODLE_DIRROOT.'/general.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
+    /** Include the Sloodle controller structure. */
+    require_once(SLOODLE_LIBROOT.'/controller.php');
     
     
     /**
@@ -29,27 +31,24 @@
         * Corresponds to the "course" table.
         * Is null if not yet set
         * @var object
-        * @access public
+        * @access private
         */
         var $course_object = null;
     
         /**
-        * Stores the ID of the entry in the Sloodle course table.
-        * @var int
-        * @access public
+        * The Sloodle course data object, if it exists.
+        * Is null if not yet set.
+        * @var object
+        * @var private
         */
-        var $id = 0;
-    
+        var $sloodle_course_data = null;
+        
         /**
-        * Indicates if auto-registration/enrolment is permitted on this course.
-        * Note: this does not take the site-wide setting into account.
-        * @var bool
-        * @access public
+        * The {@link SloodleController} object being used to access this course, if available.
+        * @var SloodleController
+        * @var public
         */
-        var $autoreg = false;
-        
-        
-        // More stuff?
+        var $controller = null;
         
         
     // FUNCTIONS //
@@ -62,45 +61,158 @@
         }
         
         /**
-        * Is auto registration permitted on this course?
+        * Gets the identifier of the course in the VLE.
+        * @return mixed Course identifier. Type depends on VLE. (In Moodle, it will be an integer).
+        */
+        function get_course_id()
+        {
+            return (int)$this->course_object->id;
+        }
+        
+        /**
+        * Gets the VLE course object.
+        * WARNING: this should only be used when ABSOLUTELY necessary.
+        * The contents are specific to the VLE.
+        * @return mixed Type and content depends upon VLE. In Moodle, it is an object representing a record from the 'course' table.
+        */
+        function get_course_object()
+        {
+            return $this->course_object;
+        }
+        
+        
+        /**
+        * Gets the short name of this course in the VLE.
+        * @return string Shortname of this course.
+        */
+        function get_short_name()
+        {
+            return $this->course_object->shortname;
+        }
+        
+        /**
+        * Gets the full name of this course in the VLE.
+        * @return string Fullname of this course.
+        */
+        function get_full_name()
+        {
+            return $this->course_object->fullname;
+        }
+        
+        /**
+        * Is auto registration permitted on this site AND course?
         * Takes into account the site-wide setting as well.
         * @return bool
         */
         function check_autoreg()
         {
             // Check the site *and* the course value
-            return (sloodle_autoreg_enabled_site() && $this->autoreg);
+            return (sloodle_autoreg_enabled_site() && $this->sloodle_course_data->autoreg);
+        }
+        
+        /**
+        * Gets the autoregistration value for this course only.
+        * (Ignores the site setting).
+        * @return bool
+        */
+        function get_autoreg()
+        {
+            return (bool)$this->sloodle_course_data->autoreg;
+        }
+        
+        /**
+        * Enables auto-registration for this course.
+        * NOTE: it may still be disabled at site-level.
+        * @return void
+        */
+        function enable_autoreg()
+        {
+            $this->sloodle_course_data->autoreg = 1;
+        }
+        
+        /**
+        * Disables auto-registration for this course.
+        * NOTE: does not affect the site setting.
+        * @return void
+        */
+        function disable_autoreg()
+        {
+            $this->sloodle_course_data->autoreg = 0;
         }
 
     
         /**
         * Reads fresh data into the structure from the database.
         * Fetches Moodle and Sloodle data about the course specified.
+        * If necessary, it creates a new Sloodle entry with default settings.
         * Returns true if successful, or false on failure.
-        * @param int $courseid Integer ID of the Moodle course to read data from
+        * @param mixed $course Either a unique course ID, or a course data object. If the former, then VLE course data is read from the database. Otherwise, the data object is used as-is.
         * @return bool
         */
-        function read_database($courseid)
+        function load($course)
         {
-            // Make sure the course ID is valid
-            if (!is_int($courseid) || $courseid <= 0) return false;
+            // Reset everything
+            $this->course_object = null;
+            $this->sloodle_course_data = null;
+        
+            // Check what we are dealing with
+            if (is_int($course)) {
+                // It is a course ID - make sure it's valid
+                if ($course <= 0) return false;
+                // Load the course data
+                $this->course_object = get_record('course', 'id', $course);
+                if (!$this->course_object) {
+                    $this->course_object = null;
+                    return false;
+                }
+            } else if (is_object($course)) {
+                // It is an object - make sure it has an ID
+                if (!isset($course->id)) return false;
+                $this->course_object = $course;
+            } else {
+                // Don't know what it is - do nothing
+                return false;
+            }
             
-            // Reset our member data
-            $this->id = 0;
-            $this->autoreg = false;
-            //.. add other members here
+            // Fetch the Sloodle course data
+            $this->sloodle_course_data = get_record('sloodle_course', 'course', $this->course_object->id);
+            // Did it fail?
+            if (!$this->sloodle_course_data) {
+                // Create the new entry
+                $this->sloodle_course_data = new stdClass();
+                $this->sloodle_course_data->course = $this->course_object->id;
+                $this->sloodle_course_data->autoreg = 0;
+                $this->sloodle_course_data->id = insert_record('sloodle_course', $this->sloodle_course_data);
+                // Did something go wrong?
+                if (!$this->sloodle_course_data->id) {
+                    $this->course_object = null;
+                    $this->sloodle_course_data = null;
+                    return false;
+                }
+            }
             
-            // Fetch the Moodle course data
-            $this->course_object = get_record('course', 'id', $courseid);
-            if (!$this->course_object) return false;
+            return true;
+        }
+        
+        /**
+        * Loads course and controller data by the unqiue site-wide identifier of a Sloodle controller.
+        * @param mixed $controllerid The unique site-wide identifier for a Sloodle Controller. (For Moodle, an integer cmi)
+        * @return bool True if successful, or false on failure.        
+        */
+        function load_by_controller($controllerid)
+        {
+            // Clear out all our data
+            $this->course_object = null;
+            $this->sloodle_course_data = null;
             
-            // Fetch the Sloodle data (but this is optional)
-            $sloodle_data = get_record('sloodle_course_data', 'course', $courseid);
-            if ($sloodle_data) {
-                // Store the Sloodle data
-                $this->id = $sloodle_data->id;
-                $this->autoreg = (bool)$sloodle_data->autoreg;
-                //.. add other items here
+            // Construct a new controller object, and attempt to load its data
+            $this->controller = new SloodleController();
+            if (!$this->controller->load($controllerid)) return false;
+            
+            // Now attempt to load all the course data
+            if (!$this->load($this->controller->get_course_id())) {
+                $this->controller = null;
+                return false;
             }
             
             return true;
@@ -108,37 +220,16 @@
         
         /**
         * Writes current Sloodle course data back to the database.
-        * Updates the existing entry, or creates a new one, as necessary.
         * Requires that a course structure has already been retrieved.
         * @return bool True if successful, or false on failure
         */
-        function write_database()
+        function write()
         {
-            // Make sure the course ID is valid
+            // Make sure the course data is valid
             if (empty($this->course_object) || $this->course_object->id <= 0) return false;
-            // Construct the database object
-            $data = new stdClass();
-            $data->autoreg = $this->autoreg;
-            //.. other data here
-            
-            $result = false;
-            
-            // Was there already a record present?
-            if ($this->id > 0) {
-                // Yes - just update it
-                $data->id = $this->id;
-                $result = (bool)update_record('sloodle_course_data', $data);
-                
-            } else {
-                // No - insert a new record
-                $result = insert_record('sloodle_course_data', $data);
-                if ($result) {
-                    $this->id = $result;
-                    $result = true;
-                }
-            }
-            
-            return $result;
+            if (empty($this->sloodle_course_data) || $this->sloodle_course_data->id <= 0) return false;
+            // Update the Sloodle data
+            return update_record('sloodle_course', $this->sloodle_course_data);
         }
     
     }

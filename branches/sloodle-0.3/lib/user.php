@@ -20,6 +20,8 @@
     require_once(SLOODLE_DIRROOT.'/lib/io.php');
     /** Include the general Sloodle functionality. */
     require_once(SLOODLE_DIRROOT.'/lib/general.php');
+    /** Include the Sloodle course data structure. */
+    require_once(SLOODLE_DIRROOT.'/lib/course.php');
     
     
     /**
@@ -314,271 +316,224 @@
             
             return true;
         }
-        
-        
-//-------------------------------- TODO ----------------------------//
-// The update of this file has only reached this point! More to do! -PRB
-//-------------------------------- **** ----------------------------//
-    
-    // FIND USER FUNCTIONS //
-    
+       
         /**
-        * Find the Sloodle user linked to the current Moodle user.
-        * Stores the Sloodle user ID in {@link:$sloodle_user_id}.
-        * @param bool $cache_data If true (default) then the Sloodle user data is automatically cached by this function.
-        * @return mixed True if successful, false if no link was found, or a string if an error occurs
+        * Load the avatar linked to the current user.
+        * @return bool,string True if a link was loaded, false if there was no link, or string 'multi' if multiple avatars are linked
         * @access public
         */
-        function find_linked_sloodle_user( $cache_data = TRUE )
+        function load_linked_avatar()
         {
+            // Make sure we have some user data
+            if (empty($this->user_data)) return false;
+            $this->avatar_data = null;
             
+            // Fetch all avatar records which are linked to the user
+            $recs = get_records('sloodle_users', 'userid', $this->user_data->id);
+            if (!is_array($recs)) return false;
+            if (count($recs) > 1) return 'multi';
+            
+            // Store the avatar data
+            $this->avatar_data = $recs[0];
+            return true;
         }
-        
+
         /**
-        * Find the Moodle user linked to the current Sloodle user.
-        * Stores the Moodle user ID in {@link:$moodle_user_id}.
-        * @param bool $use_cache If true (not default) this function will use the local Sloodle user cache instead of querying the database again.
-        * @param bool $cache_data If true (default) then the Moodle user data is automatically cached by this function
-        * @return mixed True if successful, false if no link was found, or a string if an error occurs
+        * Find the VLE user linked to the current avatar.
+        * @return bool True if successful, or false if no link was found
         * @access public
         */
-        function find_linked_moodle_user( $use_cache = FALSE, $cache_data = TRUE )
+        function load_linked_user()
         {
-            // This value will store the Moodle ID locally
-            $moodle_id = 0;
+            // Make sure we have some avatar data
+            if (empty($this->avatar_data)) return false;
             
-            // Are we to check the cache?
-            if ($use_cache) {
-                // Do we have a cache available?
-                if (!(is_object($this->sloodle_user_cache) && isset($this->sloodle_user_cache->userid))) {
-                    // No - not available - report the error
-                    return 'Sloodle user data not cached.';
-                }
-                
-                // Check that the user has a link, and store it if so
-                if ($this->sloodle_user_cache->userid <= 0) return FALSE;
-                $moodle_id = $this->sloodle_user_cache->userid;
-                
-            } else {
-                // We need a valid Sloodle user
-                if ($this->sloodle_user_id <= 0) return "Cannot find linked Moodle user - Sloodle user ID is not valid";
-                // Fetch the data from the database
-                $sloodle_user_data = get_record('sloodle_users', 'id', $this->sloodle_user_id);
-                // Check that the user has a link, and store it
-                if ($sloodle_user_data->userid <= 0) return FALSE;
-                $moodle_id = $sloodle_user_data->userid;
-            }
-            
-            // Now retrieve the Moodle user record
-            $moodle_user = get_record('user', 'id', $moodle_id);
-            if ($moodle_user === FALSE) return "Failed to find linked Moodle user - Moodle user entry does not exist in database.";
-            // Make sure the user has not been deleted
-            if ((int)$moodle_user->deleted != 0) return "Failed to find linked Moodle user - Moodle user account has been deleted.";
-            
-            // User looks OK - store it
-            $this->moodle_user_id = $moodle_id;
-            if ($cache_data) $this->moodle_user_cache = $moodle_user;
-            
-            return TRUE;            
-        }
-        
-        /**
-        * Attempt to find a Sloodle user by their loginzone position
-        * If successful, the user ID is stored in {@link:$sloodle_user_id} and the function returns true.
-        * If no user was found for the given position, false is returned (this may occur if the LoginZone position has expired).
-        * If an error occurs, then a string containing an error message is returned.
-        * @param mixed $position A vector, either as a string ("<x,y,z>") or an associative array.
-        * @param bool $cache_data If true (default) then the user data is cached. Otherwise it is discarded.
-        * @access public
-        */
-        function find_sloodle_user_by_login_position( $position, $cache_data = TRUE )
-        {
-            // Make sure we have a string or array for the login position
-            if (!((is_string($position) && !empty($position)) || (is_array($position) && count($position) == 3)) ) {
-                return "Invalid login position - expected to be a string vector '&lt;x,y,z&gt;' or a vector array {x,y,z}";
-            }
-            
-            // If it's an array, then convert it to a string
-            if (is_array($position)) $position = sloodle_array_to_vector($position);
-            
-            // Keep searching until we find the right user
-            $sloodle_user_data = FALSE;
-            $stop = FALSE;
-            $error = '';
-            while ($stop == FALSE) {
-                // Query for the user
-                $sloodle_user_data = get_record('sloodle_users', 'loginposition', $position);
-                // Did the search fail?
-                if ($sloodle_user_data === FALSE) {
-                    // Yes - stop searching
-                    $stop = TRUE;
-                } else {
-                    // We found something - is the login position expired?
-                    if (!empty($sloodle_user_data->loginpositionexpires) && (int)$sloodle_user_data->loginpositionexpires < time()) {
-                        // Yes - remove the login position and move on with the search
-                        $sloodle_user_data->loginposition = '';
-                        $sloodle_user_data->loginpositionexpires = '';
-                        $sloodle_user_data->loginpositionregion = '';
-                        // Make sure the update works... otherwise we'll find the same record again!
-                        if (!update_record('sloodle_users', $sloodle_user_data)) {
-                            $sloodle_user_data = FALSE;
-                            $stop = TRUE;
-                            $error = 'Tried to remove an expired login position from database, but failed.';
-                        }
-                    } else {
-                        // Login position is valid - stop searching
-                        $stop = TRUE;
-                    }
-                }                
-            } // End of while loop
-            
-            // Did we find a user? Stop if not
-            if ($sloodle_user_data === FALSE) {
-                // Return the error message if an error occurred
-                if (is_string($error) && !empty($error)) return $error;
-                else return FALSE;
-            }
-            
-            // Note: it is tempting to remove the login position here,
-            //  but we cannot be guaranteed at this point that the rest of the registration process will work.
-            
-            // Store the ID of the Sloodle user, and cache the data if necessary
-            $this->sloodle_user_id = $sloodle_user_data->id;
-            if ($cache_data) $this->sloodle_user_cache = $sloodle_user_data;
-            return TRUE;
+            // Fetch the user data
+            $this->user_data = get_complete_user_data('id', $this->avatar_data->userid);
+            if ($this->user_data) return true;
+            return false;
         }
         
         
     ///// LOGIN FUNCTIONS /////
     
         /**
-        * Performs an internal login of the current Moodle user.
-        * Stores all the user data in the global $USER variable.
-        * Note: if login fails, $USER is unchanged.
-        * Additionally, note that this function will not perform automatic registration.
+        * Internally 'log-in' the current user.
+        * In Moodle, this just stores all the user data in the global $USER variable.
+        * This function will not perform automatic registration.
         * @return bool True if successful, or false otherwise.
         * @access public
         */
-        function login_moodle_user()
+        function login()
         {
-            // Make sure we have a Moodle user selected
-            if ($this->moodle_user_id <= 0) return FALSE;
-            // Attempt to retrieve all the user data, and stop if it failed
-            $newuser = get_complete_user_data('id', $this->moodle_user_id);
-            if ($newuser === FALSE) return FALSE;
-            // Store the user data
             global $USER;
-            $USER = $newuser;
-            return TRUE;
+            // Make sure we have some user data
+            if (empty($this->user_data)) return false;
+            $USER = get_complete_user_data('id', $this->user_data->id);
+            return true;
         }
         
-        /**
-        * Generates a new login security token for the current Sloodle user
-        * @param bool $cache_data If true (default) then the new login security token will be stored in the Sloodle user cache (as well as the database).
-        * @return bool True if successful, or false if an error occurs (such as there being no current Sloodle user)
-        * @access public
-        */
-        function regenerate_login_security_token( $cache_data = TRUE )
-        {
-            // Do nothing if we don't have a Sloodle user
-            if ($this->sloodle_user_id <= 0) return FALSE;
-            // Construct a new user object to alter the existing one
-            $sloodle_user_data = new stdClass();
-            $sloodle_user_data->id = $this->sloodle_user_id;
-            $sloodle_user_data->loginsecuritytoken = sloodle_random_security_token();
-            // Attempt to update the record
-            if (update_record('sloodle_users', $sloodle_user_data) === FALSE) return FALSE;
-            // Store the new token
-            if ($cache_data) {
-                $this->sloodle_user_cache->loginsecuritytoken = $sloodle_user_data->loginsecuritytoken;
-            }
-            return TRUE;
-        }
         
-        /**
-        * Checks if the current Sloodle user has a login security token
-        * @param bool $use_cache If true then the cached user data will be used instead of querying the database.
-        * @return bool True if the user has a login security token, or false otherwise.
-        * @access public
-        */
-        function has_login_security_token($use_cache = FALSE)
-        {
-            // Are we to use the cache?
-            if ($use_cache) {
-                // Make sure we have a cache
-                if (!is_object($this->sloodle_user_cache)) return FALSE;
-                // Check if the login security token is set and non-empty
-                return (isset($this->sloodle_user_cache) && !empty($this->sloodle_user_cache));
-            }
-            
-            // Checking the database instead            
-            // Do nothing if we don't have a Sloodle user ID
-            if ($this->sloodle_user_id <= 0) return FALSE;
-            
-            // Attempt to obtain the user data and make sure we found it OK
-            $sloodle_user_data = get_record('sloodle_users', 'id', $this->sloodle_user_id);
-            if ($sloodle_user_data === FALSE) return FALSE;
-                        
-            // Check that the login security token member is set and not empty
-            return (isset($sloodle_user_data->loginsecuritytoken) && !empty($sloodle_user_data->loginsecuritytoken));
-        }
-        
-       
     ///// COURSE FUNCTIONS /////
     
         /**
-        * Use the database to update the cache of courses which the current Moodle user is enrolled in.
-        * Note that admins are considered by this function to be enrolled in all courses.
-        * @return True if successul, or false otherwise.
+        * Gets a numeric array of {@link SloodleCourse} objects for courses the user is enrolled in.
+        * WARNING: this function is not very efficient, and will likely be very slow on large sites.
+        * @param mixed $category Unique identifier of a category to limit the query to. Ignored if null. (Type depends on VLE; integer for Moodle)
+        * @return array A numeric array of {@link SloodleCourse} objects
         * @access public
         */
-        function update_enrolled_courses_cache_from_db()
+        function get_enrolled_courses($category = null)
         {
-            // Make sure we have a Moodle user
-            if ($this->moodle_user_id <= 0) return FALSE;
-            // Obtain the array of courses and make sure the query succeeded
-            if (isadmin($this->moodle_user_id)) {
-                // Admins technically have all courses
-                $course_list = get_courses('all', 'c.sortorder ASC', 'c.id');
-            } else {
-                // Just get the enrolled courses
-                $course_list = get_my_courses($this->moodle_user_id);
-            }
-            if ($course_list === FALSE) return FALSE;
+            // Make sure we have user data
+            if (empty($this->user_data)) return array();
             
-            // Extract just the course ID's
-            $this->enrolled_courses_cache = array();
-            foreach ($course_list as $course) {
-                $this->enrolled_courses_cache[] = (int)$course->id;
-            }
+            // Convert the category ID as appropriate
+            if ($category == null || $category < 0 || !is_int($category)) $category = 0;
             
-            return TRUE;
+            // Modified from "get_user_capability_course()" in Moodle's "lib/accesslib.php"
+            
+            // Get a list of all courses on the system
+            $usercourses = array();
+            $courses = get_courses($category);
+            // Go through each course
+            foreach ($courses as $course) {
+                // Check if the user can view this course
+                if (has_capability('moodle/course:view', get_context_instance(CONTEXT_COURSE, $course->id), $this->user_data->id)) {
+                    $sc = new SloodleCourse();
+                    $sc->load($course);
+                    $usercourses[] = $sc;
+                }
+            }
+            return $usercourses;
         }
         
         /**
-        * Checks if the current Moodle user is already enrolled in the specified course.
-        * @param int $course_id ID number of a course to check.
-        * @param bool $use_cache If true (not default) then the function uses the enrolled courses cache, instead of querying the database for new data.
-        * @param bool True if the user is enrolled, or false if not.
+        * Gets a numeric array of {@link SloodleCourse} objects for courses the user is Sloodle staff.
+        * This relates to the "mod/sloodle:staff" capability.
+        * WARNING: this function is not very efficient, and will likely be very slow on large sites.
+        * @param mixed $category Unique identifier of a category to limit the query to. Ignored if null. (Type depends on VLE; integer for Moodle)
+        * @return array A numeric array of {@link SloodleCourse} objects
         * @access public
         */
-        function is_user_in_course($course_id, $use_cache = FALSE)
+        function get_staff_courses($category = null)
         {
-            // Make sure we have a Moodle user
-            if ($this->moodle_user_id <= 0) return FALSE;
+            // Make sure we have user data
+            if (empty($this->user_data)) return array();
             
-            // If the user is an admin, then we needn't bother checking
-            if (isadmin($this->moodle_user_id)) return TRUE;
+            // Convert the category ID as appropriate
+            if ($category == null || $category < 0 || !is_int($category)) $category = 0;
             
-            // Do we need to refresh the cache?
-            if (!$use_cache) {
-                if (!$this->update_enrolled_courses_cache_from_db()) return FALSE;
+            // Modified from "get_user_capability_course()" in Moodle's "lib/accesslib.php"
+            
+            // Get a list of all courses on the system
+            $usercourses = array();
+            $courses = get_courses($category);
+            // Go through each course
+            foreach ($courses as $course) {
+                // Check if the user can teach using Sloodle on this course
+                if (has_capability('mod/sloodle:staff', get_context_instance(CONTEXT_COURSE, $course->id), $this->userdata->id)) {
+                    $sc = new SloodleCourse();
+                    $sc->load($course);
+                    $usercourses[] = $sc;
+                }
+            }
+            return $usercourses;
+        }
+        
+        /**
+        * Is the current user enrolled in the specified course?
+        * NOTE: a side effect of this is that it logs-in the user
+        * @param mixed $course Unique identifier of the course -- type depends on VLE (integer for Moodle)
+        * @param bool True if the user is enrolled, or false if not.
+        * @access public
+        * @todo Update to match parameter format and handling of {@link enrol()} function.
+        */
+        function user_enrolled($courseid)
+        {
+            global $USER;
+            // Attempt to log-in the user
+            if (!$this->login()) return false;
+            
+            // NOTE: this stuff was lifted from the Moodle 1.8 "course/enrol.php" script
+            
+            // Create a context for this course
+            if (!$context = get_context_instance(CONTEXT_COURSE, $courseid)) return false;
+            // Ensure we have up-to-date capabilities for the current user
+            load_all_capabilities();
+            
+            // Check if the user can view the course, and does not simply have guest access to it
+            //return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false));
+            return has_capability('moodle/course:view', $context);
+        }
+        
+        /**
+        * Enrols the current user in the specified course
+        * NOTE: a side effect of this is that it logs-in the user
+        * @param object $sloodle_course A {@link SloodleCourse} object setup for the necessary course. If null, then the {@link $_session} member is queried instead.
+        * @param bool True if successful (or the user was already enrolled), or false otherwise
+        * @access public
+        */
+        function enrol($sloodle_course = null)
+        {
+            global $USER, $CFG;
+            // Attempt to log-in the user
+            if (!$this->login()) return false;
+            
+            // Was course data provided?
+            if (empty($sloodle_course)) {
+                // No - attempt to get some from the Sloodle session
+                if (empty($this->_session)) return false;
+                if (empty($this->_session->course)) return false;
+                $sloodle_course = $this->_session->course;
             }
             
-            // Make sure we have a non-empty array of course ID's
-            if (!is_array($this->enrolled_courses_cache) || count($this->enrolled_courses_cache) == 0) return FALSE;
-            // Check if the course ID appears in the array
-            return in_array((int)$course_id, $this->enrolled_courses_cache);
+            // Make sure auto-registration is enabled for this site/course, and that the controller (if applicable) is enabled
+            //if (!$sloodle_course->check_autoreg()) return false;
+            //if (!empty($sloodle_course->controller) && !$sloodle_course->controller->is_enabled()) return false;
+            
+            // NOTE: much of this stuff was lifted from the Moodle 1.8 "course/enrol.php" script
+            
+            // Fetch the Moodle course data, and a course context
+            $course = $sloodle_course->get_course_object();
+            if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) return false;
+            
+            // Ensure we have up-to-date capabilities for the current user
+            load_all_capabilities();
+            
+            // Check if the user can view the course, and does not simply have guest access to it
+            // (No point trying to enrol somebody if they are already enrolled!)
+            if (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)) return true;
+            // Can't enrol users on meta courses or the site course
+            if ($course->metacourse || $course->id == SITEID) return false;
+            
+            // Is there an enrolment period in effect?
+            if ($course->enrolperiod) {
+                if ($roles = get_user_roles($context, $USER->id)) {
+                    foreach ($roles as $role) {
+                        if ($role->timestart && ($role->timestart >= time())) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            // Make sure the course is enrollable
+            if (!$course->enrollable ||
+                    ($course->enrollable == 2 && $course->enrolstartdate > 0 && $course->enrolstartdate > time()) ||
+                    ($course->enrollable == 2 && $course->enrolenddate > 0 && $course->enrolenddate <= time())
+            ) {
+                return false;
+            }
+            
+            
+            // Finally, after all that, enrol the user
+            if (!enrol_into_course($course, $USER, 'manual')) return false;
+        
+            // Everything seems fine
+            // Log the auto-enrolment
+            add_to_log($course->id, 'sloodle', 'update', '', 'auto-enrolment');
+            return true;
         }
     
     }

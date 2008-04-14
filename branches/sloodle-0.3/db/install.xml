@@ -65,7 +65,7 @@
         </INDEXES>
     </TABLE>
     
-    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_distributor_entry">
+    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_distributor_entry" NEXT="sloodle_course">
 
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid" COMMENT="Primary index field"/>
@@ -80,6 +80,22 @@
       <INDEXES>
         <INDEX NAME="uuid" UNIQUE="false" FIELDS="uuid" NEXT="userid"/>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid" PREVIOUS="uuid"/>
+      </INDEXES>
+    </TABLE>
+    
+    
+    <TABLE NAME="sloodle_course" COMMENT="Stores Sloodle data about each course" PREVIOUS="sloodle_users">
+
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course" COMMENT="Primary index field"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="id" NEXT="autoreg" COMMENT="Index of the Moodle course this record relates to"/>
+        <FIELD NAME="autoreg" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="course" COMMENT="Indicates whether or not auto-registration is enabled for this course"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for sloodle_users"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
 

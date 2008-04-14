@@ -172,6 +172,14 @@ $string['sloodlenotinstalled'] = 'Sloodle does not appear to be installed yet. P
 $string['sloodlesetup'] = 'Sloodle Setup';
 $string['sloodleversion'] = 'Sloodle Version';
 
+$string['sloodle:staff'] = 'Sloodle Staff member';
+$string['sloodle:objectauth'] = 'Authorise objects for Sloodle access';
+$string['sloodle:uselayouts'] = 'Use classroom layout profiles';
+$string['sloodle:editlayouts'] = 'Edit/delete classroom layout profiles';
+$string['sloodle:registeravatar'] = 'Register own avatar';
+$string['sloodle:distributeself'] = 'Distribute objects to own avatar';
+$string['sloodle:distributeothers'] = 'Distribute objects to other avatars';
+
 $string['sloodleobjectdistributor'] = 'Sloodle Object Distributor';
 $string['sloodleobjectdistributor:nochannel'] = 'Distribution channel not available - Object not rezzed in-world?';
 $string['sloodleobjectdistributor:reset'] = 'Check this to clear the cached Distributor data, including channel UUID and object names.';

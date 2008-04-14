@@ -61,7 +61,7 @@
         * @param mixed $id The site-wide unique identifier for all modules. Type depends on VLE. On Moodle, it is an integer course module identifier ('id' field of 'course_modules' table)
         * @return bool True if successful, or false otherwise
         */
-        function load_from_db($id)
+        function load($id)
         {
             // Make sure the ID is valid
             if (!is_int($id) || $id <= 0) return false;
@@ -85,7 +85,7 @@
         * This function cannot be used to create new entries.
         * @return bool True if successful, or false otherwise
         */
-        function write_to_db()
+        function write()
         {
             // Make sure we have all the necessary data
             if (empty($this->sloodle_module_instance) || empty($this->sloodle_controller_instance)) return false;
@@ -224,6 +224,31 @@
             // Store it
             $this->password = $password;
             return true;
+        }
+        
+        /**
+        * Checks a password against this controller.
+        * @param string $password Can either be a plain prim password, or an object-specific session key
+        * @return bool True if the password matches, or false otherwise
+        * @todo Implement me!
+        */
+        function check_password($password)
+        {
+            //...
+            return false;
+        }
+        
+        /**
+        * Register a new active object (or renew an existing one) with this controller.
+        * @param string $uuid The UUID of the object to be registered
+        * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
+        * @return string,bool If successful, a string containig the object-specific session key. Otherwise boolean false.
+        * @todo Implement me
+        */
+        function register_object($uuid)
+        {
+            //...
+            return false;
         }
     }
 
