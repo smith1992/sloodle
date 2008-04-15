@@ -47,8 +47,10 @@
         /**
         * Constructor
         */
-        function SloodleModuleChat()
+        function SloodleModuleChat(&$_session)
         {
+            $constructor = get_parent_class($this);
+            parent::$constructor(&$_session);
         }
         
         /**
@@ -64,6 +66,9 @@
             
             // Fetch the course module data
             if (!($this->cm = get_record('course_modules', 'id', $id))) return false;
+            // Make sure the module is visible
+            if (empty($cm->visible)) return false;
+            
             // Load from the primary table: chat instance
             if (!($this->moodle_chat_instance = get_record('chat', 'id', $this->cm->instance))) return false;
             

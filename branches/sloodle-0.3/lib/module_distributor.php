@@ -54,8 +54,10 @@
         /**
         * Constructor
         */
-        function SloodleModuleDistributor()
+        function SloodleModuleDistributor(&$_session)
         {
+            $constructor = get_parent_class($this);
+            parent::$constructor(&$_session);
         }
         
         /**

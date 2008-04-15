@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/sloodle/db" VERSION="20071113" COMMENT="XMLDB file for Sloodle"
+<XMLDB PATH="mod/sloodle/db" VERSION="20080414" COMMENT="XMLDB file for Sloodle"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
   <TABLES>
@@ -84,7 +84,7 @@
     </TABLE>
     
     
-    <TABLE NAME="sloodle_course" COMMENT="Stores Sloodle data about each course" PREVIOUS="sloodle_users">
+    <TABLE NAME="sloodle_course" COMMENT="Stores Sloodle data about each course" PREVIOUS="sloodle_users" NEXT="sloodle_pending_avatars">
 
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course" COMMENT="Primary index field"/>
@@ -98,6 +98,41 @@
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
       </INDEXES>
     </TABLE>
+    
+    
+    <TABLE NAME="sloodle_pending_avatars" COMMENT="Lists avatars which are awaiting a link to a Moodle account" PREVIOUS="sloodle_course" NEXT="sloodle_active_object">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="uuid" COMMENT="Primary index field"/>
+        <FIELD NAME="uuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avname" COMMENT="UUID of the user agent"/>
+        <FIELD NAME="avname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="timeupdated" COMMENT="Name of the avatar"/>
+        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="avname" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="uuid" UNIQUE="false" FIELDS="uuid"/>
+      </INDEXES>
+    </TABLE>
+    
+    
+    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="controllerid" COMMENT="Primary index field"/>
+        <FIELD NAME="controllerid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="userid" COMMENT="The controller which this object is authorised for."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="controllerid" NEXT="uuid" COMMENT="ID of the user who authorised this object."/>
+        <FIELD NAME="uuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="password" COMMENT="UUID of the object"/>
+        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="timeupdated" COMMENT="Object-specific password"/>
+        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="password" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="controllerid-uuid" UNIQUE="true" FIELDS="controllerid,uuid" COMMENT="Objects cannot be authorised more than once to the same controller"/>
+      </INDEXES>
+    </TABLE>
+    
 
   </TABLES>
 </XMLDB>

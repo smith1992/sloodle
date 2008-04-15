@@ -258,6 +258,15 @@
     }
     
     /**
+    * Generates a random prim password (7 to 9 digit number).
+    * @return string The password as a string
+    */
+    function sloodle_random_prim_password()
+    {
+        return (string)mt_rand(1000000, 999999999);
+    }
+    
+    /**
     * Converts a string vector to an array vector.
     * String vector should be of format "<x,y,z>".
     * Converts to associative array with members 'x', 'y', and 'z'.
@@ -574,50 +583,8 @@
     }
     
     
-    /**
-    * Gets a Sloodle Module object of the best type.
-    * Returns a base class object if it doesn't have an appropriate type.
-    *
-    * @param int $sloodleid The Sloodle instance ID (corresponding to the 'id' field of the 'sloodle' table)
-    * @return object, bool A populated SloodleModule class, or one of its derivatives, appropriate to the module type, or false if it could not be found
-    */
-    function sloodle_get_module($sloodleid)
-    {
-        // Fetch the database record
-        $sloodle = get_record('sloodle', 'id', $sloodleid);
-        if (!$sloodle) return false;
-        
-        // We will create an appropriate module object
-        $module = null;
-        // Check the type of the module we found
-        switch ($sloodle->type) {
-        case SLOODLE_TYPE_CTRL:
-            // Controller
-            $module = new SloodleModuleController();
-            // Add the controller data
-            //..
-            break;
-            
-        case SLOODLE_TYPE_DISTRIB:
-            // Distributor
-            $module = new SloodleModuleDistributor();
-            // Add the distributor data
-            //..
-            break;
-            
-        default:
-            // Unknown type - just use the base class
-            $module = SloodleModule();
-            // No specific data to add
-            break;
-        }
-        
-        // Add all the standard data
-        $module->id = $sloodle->id;
-        $module->name = $sloodle->name;
-        $module->intro = $sloodle->intro;
-        $module->type = $sloodle->type;
-        
-    }
+    
+    
+    
 
 ?>

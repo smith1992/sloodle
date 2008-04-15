@@ -71,7 +71,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // The type is not changeable with this form
         // However, well present it as a frozen selection box, so it appears to the user with the full name,
         //  but has the short-name underlying value
-        $typeelem = $mform->addElement('select', 'type', get_string('moduletype','sloodle'), array($sloodletype => $sloodletypefull));
+        $typeelem = &$mform->addElement('select', 'type', get_string('moduletype','sloodle'), array($sloodletype => $sloodletypefull));
         $mform->setDefault('type', $sloodletype);
         $typeelem->freeze();
         $typeelem->setPersistantFreeze(true);
@@ -137,14 +137,12 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->addElement('header', 'typeheader', $sloodletypefull);
             
             // Add a note of the current distributor channel (read-only)
-            $mform->addElement('text', 'distributor_channel', get_string('xmlrpc:channel', 'sloodle').': ', array('size'=>'40', 'readonly'=>'true'));
+            $mform->addElement('text', 'distributor_channel', get_string('xmlrpc:channel', 'sloodle').': ', array('size'=>'40', 'readonly'=>'true', 'disabled'=>'true'));
             $mform->setDefault('distributor_channel', '');
-            $mform->disabledIf('distributor_channel', 'distributor_reset', 'checked');
             
             // Add a note of the number of objects associated with this Distributor
-            $mform->addElement('text', 'distributor_numobjects', get_string('numobjects', 'sloodle').': ', array('size'=>'4', 'readonly'=>'true'));
+            $mform->addElement('text', 'distributor_numobjects', get_string('numobjects', 'sloodle').': ', array('size'=>'4', 'readonly'=>'true', 'disabled'=>'true'));
             $mform->setDefault('distributor_numobjects', '0');
-            $mform->disabledIf('distributor_numobjects', 'distributor_reset', 'checked');
             
             // Add a checkbox option to reset the Distributor, but only if this is an existing entry being updated
             if (!empty($this->_instance)) {

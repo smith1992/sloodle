@@ -21,26 +21,45 @@
     /** Include our general library. */
     require_once(SLOODLE_DIRROOT . '/lib/general.php');
     
-    /** Defines what character(s) will be used to separate lines in the Sloodle communications specification. */
-    define("SLOODLE_LINE_SEPARATOR", "\n");
-    /** Defines what character(s) will be used to separate individual fields in the Sloodle communications specification. */
-    define("SLOODLE_FIELD_SEPARATOR", "|");
+          
+    /** Defines the HTTP parameter name for a Sloodle password. */
+    define('SLOODLE_PARAM_PASSWORD', 'sloodlepwd');
+    /** Defines the HTTP parameter name for a course ID. */
+    define('SLOODLE_PARAM_COURSE_ID', 'sloodlecourseid');
+    /** Defines the HTTP parameter name for a Sloodle controller ID. */
+    define('SLOODLE_PARAM_CONTROLLER_ID', 'sloodlecontrollerid');
+    /** Defines the HTTP parameter name for a module ID. */
+    define('SLOODLE_PARAM_MODULE_ID', 'sloodlemoduleid');
+    /** Defines the HTTP parameter name for an avatar UUID. */
+    define('SLOODLE_PARAM_AVATAR_UUID', 'sloodleuuid');
+    /** Defines the HTTP parameter name for an avatar name. */
+    define('SLOODLE_PARAM_AVATAR_NAME', 'sloodleavname');
     
-    /** Used to indicate that authentication has been successful. */
-    define("SLOODLE_AUTH_OK", 1);
-    /** Used to indicate that authentication has not yet been attempted. */
-    define("SLOODLE_AUTH_UNKNOWN", 0);
-    /** Used to indicate that authentication has failed. */
-    define("SLOODLE_AUTH_FAILED", -1);
+    /** Defines the HTTP parameter name for a request descriptor. */
+    define('SLOODLE_PARAM_REQUEST_DESC', 'sloodlerequestdesc');
 
     
     /**
     * A helper class to validate and structure data for output according to the {@link http://slisweb.sjsu.edu/sl/index.php/Sloodle_communications_specification Sloodle communications specification}.
     * @package sloodle
     */
-    class SloodleLSLResponse
+    class SloodleResponse
     {
-      ///// DATA /////
+      // DATA //
+      
+        /**
+        * The separation string between lines of the response (typically just a newline).
+        * @var string
+        * @access private
+        */
+        var $line_separator = "\n";
+        
+        /**
+        * The separation string between fields of a response line (by default, a pipe character |).
+        * @var string
+        * @access private
+        */
+        var $field_separator = "|";
       
         /**
         * Integer status code of the response.
@@ -49,93 +68,90 @@
         * @var int
         * @access private
         */
-        var $status_code = NULL;
+        var $status_code = null;
         
         /**
         * Status descriptor string.
         * Should contain a generalised description/category of the status code.
-        * <b>Optional but recommended. Ignored if NULL.</b>
+        * <b>Optional but recommended. Ignored if null.</b>
         * @var string
         * @access private
         */
-        var $status_descriptor = NULL;
+        var $status_descriptor = null;
         
         /**
         * Integer side effect(s) codes.
         * Status code(s) of side effect(s) incurred during the operation.
         * Can be a single integer, or an array of integers.
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var mixed
         * @access private
         */
-        var $side_effects = NULL;
+        var $side_effects = null;
         
         /**
         * Request descriptor.
         * A brief string passed into the request by an LSL script (via HTTP parameter 'sloodlerequestdesc'),
         * which is returned so that it can correctly distinguish one request from anotehr.
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var string
         * @access private
         */
-        var $request_descriptor = NULL;
+        var $request_descriptor = null;
         
         /**
         * Timestamp when the request was originally made by the LSL script.
         * This is <i>not</i> filled-in automatically. You must do it manually if you need it.
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var integer
         * @access private
         */
-        var $request_timestamp = NULL;
+        var $request_timestamp = null;
         
         /**
         * Timestamp when the response was generated on the Moodle site.
         * This is <i>not</i> filled-in automatically. You must do it manually if you need it.
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var integer
         * @access private
         */
-        var $response_timestamp = NULL;
+        var $response_timestamp = null;
         
-        // User key
-        // Should be a string specifying the UUID key of the avatar/agent in-world being handled
-        // Optional
         /**
-        * SL agent key.
+        * Avatar UUID.
         * Should be a string specifying the UUID key of the agent in-world being handled. (Typically of the user who initiated the request).
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var string
         * @access private
         */
-        var $user_key = NULL;
+        var $avatar_uuid = null;
         
         /**
         * Tracking code of the request.
         * Use of this value is undefined. Please do not use it.
-        * <b>Optional. Ignored if NULL.</b>
+        * <b>Optional. Ignored if null.</b>
         * @var mixed
         * @access private
         */
-        var $tracking_code = NULL;
+        var $tracking_code = null;
         
         /**
         * Total number of pages.
         * If a response requires multiple pages, this value indicates how many pages there are.
-        * <b>Optional, unless $page_number is specified. Ignored if NULL.</b> <i>Not yet supported.</i>
+        * <b>Optional, unless $page_number is specified. Ignored if null.</b> <i>Not yet supported.</i>
         * @var integer
         * @access private
         */
-        var $page_total = NULL;
+        var $page_total = null;
         
         /**
         * Current page number.
         * If a response requires multiple pages, this value indicates which page is being returned in this response.
-        * <b>Optional, unless $page_total is specified. Ignored if NULL.</b> <i>Not yet supported.</i>
+        * <b>Optional, unless $page_total is specified. Ignored if null.</b> <i>Not yet supported.</i>
         * @var integer
         * @access private
         */
-        var $page_number = NULL;
+        var $page_number = null;
         
         /**
         * Data to render following the status line in the response.
@@ -144,21 +160,58 @@
         * If it is an array, then each element becomes one line.
         * If an element is a scalar, then it is directly output onto the line.
         * If an element is an array, then each child element is output as a separate field on the same line.
-        * <b>Optional. Ignored if NULL.</b>
-        * @see SLOODLE_LINE_SEPARATOR
-        * @see SLOODLE_FIELD_SEPARATOR
-        * @see SloodleLSLResponse::set_data()
-        * @see SloodleLSLResponse::add_data_line()
-        * @see SloodleLSLResponse::clear_data()
+        * <b>Optional. Ignored if null.</b>
+        * @see SloodleResponse::set_data()
+        * @see SloodleResponse::add_data_line()
+        * @see SloodleResponse::clear_data()
         * @var mixed
         * @access private
         */
-        var $data = NULL;
+        var $data = null;
         
     
-      ///// ACCESSORS /////
+      // ACCESSORS //
     
-        // If invalid data is submitted to the functions, then the script is terminated with an LSL-friendly error message
+    
+        /**
+        * Sets the line separator.
+        * @param string $sep A string to separate lines
+        * @return void
+        */
+        function set_line_separator($sep)
+        {
+            $this->line_separator = $sep;
+        }
+        
+        /**
+        * Gets the line separator.
+        * @return string The current line separator string
+        */
+        function get_line_separator()
+        {
+            return $this->line_separator;
+        }
+        
+        
+        /**
+        * Sets the field separator.
+        * @param string $sep A string to separate fields
+        * @return void
+        */
+        function set_field_separator($sep)
+        {
+            $this->field_separator = $sep;
+        }
+        
+        /**
+        * Gets the field separator.
+        * @return string The current field separator string
+        */
+        function get_field_separator()
+        {
+            return $this->field_separator;
+        }
+        
     
         /**
         * Accessor function to set member value {@link $status_code}
@@ -168,7 +221,7 @@
         function set_status_code($par)
         {
             // Validate
-            if (is_int($par) == FALSE || $par == 0) {
+            if (is_int($par) == false || $par == 0) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid status code specified; should be non-zero integer", 0);
             }
             // Store
@@ -177,13 +230,13 @@
     
         /**
         * Accessor function to set member value {@link $status_descriptor}
-        * @param mixed $par A status descriptor string, or NULL to clear it
+        * @param mixed $par A status descriptor string, or null to clear it
         * @return void
         */
         function set_status_descriptor($par)
         {
             // Validate
-            if (is_string($par) == FALSE && is_null($par) == FALSE) {
+            if (is_string($par) == false && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid status descriptor specified; should be a string or null", 0);
             } else {
                 $this->status_descriptor = $par;
@@ -198,20 +251,20 @@
         function set_side_effects($par)
         {
             // We'll use a variable to store the validity
-            $valid = TRUE;
+            $valid = true;
             if (is_array($par)) {
                 // Array types are acceptable
                 // Make sure each array element is valid
                 foreach ($par as $elem) {
-                    if (!is_int($elem)) $valid = FALSE;
+                    if (!is_int($elem)) $valid = false;
                 }
                 // Were all elements valid?
-                if ($valid == FALSE) {
+                if ($valid == false) {
                     $this->_internal_validation_error("Sloodle - LSL response: invalid element in array of side effect codes; all elements should be integers", 0);
                 }
-            } else if (is_int($par) == FALSE && is_null($par) == FALSE) {
+            } else if (is_int($par) == false && is_null($par) == false) {
                 // It's not an array, an integer or null
-                $valid = FALSE;
+                $valid = false;
                 $this->_internal_validation_error("Sloodle - LSL response: invalid side effect type; should be an integer, an array of integers, or null", 0);
             }
             // Was it valid?
@@ -228,20 +281,20 @@
         function add_side_effects($par)
         {
             // We'll use a variable to store the validity
-            $valid = TRUE;
+            $valid = true;
             if (is_array($par)) {
                 // Array types are acceptable
                 // Make sure each array element is valid
                 foreach ($par as $elem) {
-                    if (!is_int($elem)) $valid = FALSE;
+                    if (!is_int($elem)) $valid = false;
                 }
                 // Were all elements valid?
-                if ($valid == FALSE) {
+                if ($valid == false) {
                     $this->_internal_validation_error("Sloodle - LSL response: cannot add side effects. Invalid element in array of side effect codes. All elements should be integers", 0);
                 }
-            } else if (is_int($par) == FALSE) {
+            } else if (is_int($par) == false) {
                 // It's not an array or an integer
-                $valid = FALSE;
+                $valid = false;
                 $this->_internal_validation_error("Sloodle - LSL response: cannot add side effect. Invalid side effect type. should be an integer or an array of integers", 0);
             }
             // Was it valid?
@@ -276,13 +329,13 @@
         
         /**
         * Accessor function to set member value {@link $request_descriptor}
-        * @param mixed $par A string request descriptor, or NULL to clear it
+        * @param mixed $par A string request descriptor, or null to clear it
         * @return void
         */
         function set_request_descriptor($par)
         {
             // Validate
-            if (is_string($par) == FALSE && is_null($par) == FALSE) {
+            if (is_string($par) == false && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid request descriptor specified; should be a string or null", 0);
             } else {
                 $this->request_descriptor = $par;
@@ -291,13 +344,13 @@
         
         /**
         * Accessor function to set member value {@link $request_timestamp}
-        * @param mixed $par An integer timestamp, or NULL to clear it
+        * @param mixed $par An integer timestamp, or null to clear it
         * @return void
         */
         function set_request_timestamp($par)
         {
             // Validate
-            if (is_int($par) == FALSE && is_null($par) == FALSE) {
+            if (is_int($par) == false && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid request timestamp; should be an integer, or null", 0);
             } else {
                 $this->request_timestamp = $par;
@@ -306,13 +359,13 @@
         
         /**
         * Accessor function to set member value {@link $response_timestamp}
-        * @param mixed $par An integer timestamp, or NULL to clear it
+        * @param mixed $par An integer timestamp, or null to clear it
         * @return void
         */
         function set_response_timestamp($par)
         {
             // Validate
-            if (is_int($par) == FALSE && is_null($par) == FALSE) {
+            if (is_int($par) == false && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid response timestamp; should be an integer, or null", 0);
             } else {
                 $this->response_timestamp = $par;
@@ -320,17 +373,17 @@
         }
         
         /**
-        * Accessor function to set member value {@link $user_key}
-        * @param mixed $par A string containing a UUID, or NULL to clear it
+        * Accessor function to set member value {@link $avatar_uuid}
+        * @param mixed $par A string containing a UUID, or null to clear it
         * @return void
         */
-        function set_user_key($par)
+        function set_avatar_uuid($par)
         {
             // Validate
-            if (is_string($par) == FALSE && is_null($par) == FALSE) {
-                $this->_internal_validation_error("Sloodle - LSL response: invalid user key specified; should be a string or null", 0);
+            if (is_string($par) == false && is_null($par) == false) {
+                $this->_internal_validation_error("Sloodle - LSL response: invalid avatar UUID specified; should be a string or null", 0);
             } else {
-                $this->user_key = $par;
+                $this->avatar_uuid = $par;
             }
         }
         
@@ -346,13 +399,13 @@
         
         /**
         * Accessor function to set member value {@link $page_total}
-        * @param mixed $par A positive page total count, or NULL to clear it
+        * @param mixed $par A positive page total count, or null to clear it
         * @return void
         */
         function set_page_total($par)
         {
             // Validate
-            if ((is_int($par) == FALSE || $par < 0) && is_null($par) == FALSE) {
+            if ((is_int($par) == false || $par < 0) && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid page total; should be a positive integer, or null", 0);
             } else {
                 $this->page_total = $par;
@@ -361,13 +414,13 @@
         
         /**
         * Accessor function to set member value {@link $page_number}
-        * @param mixed $par A positive page number, or NULL to clear it
+        * @param mixed $par A positive page number, or null to clear it
         * @return void
         */
         function set_page_number($par)
         {
             // Validate
-            if ((is_int($par) == FALSE || $par < 0) && is_null($par) == FALSE) {
+            if ((is_int($par) == false || $par < 0) && is_null($par) == false) {
                 $this->_internal_validation_error("Sloodle - LSL response: invalid page number; should be a positive integer, or null", 0);
             } else {
                 $this->page_number = $par;
@@ -376,13 +429,13 @@
         
         /**
         * Accessor function to set member value {@link $data}. <b>Note: it is recommended that you use the {@link add_data_line()} and {@link clear_data()} functions instead of this.</b>
-        * @param mixed $par Any scalar value, or a mixed array of scalars or scalar arrays, or NULL to clear it
+        * @param mixed $par Any scalar value, or a mixed array of scalars or scalar arrays, or null to clear it
         * @return void
         */
         function set_data($par)
         {
             // We'll use a variable to store validity
-            $valid = TRUE;
+            $valid = true;
             if (is_array($par)) {
                 // Check each element
                 foreach ($par as $elem) {
@@ -391,20 +444,20 @@
                         // Check each inner element for validity
                         foreach ($elem as $innerelem) {
                             // Is this element scalar or null? If not, it is invalid
-                            if (is_scalar($innerelem) == FALSE && is_null($innerelem) == FALSE) {
-                                $valid = FALSE;
+                            if (is_scalar($innerelem) == false && is_null($innerelem) == false) {
+                                $valid = false;
                             }
                         }
-                    } else if (is_scalar($elem) == FALSE && is_null($elem) == FALSE) {
+                    } else if (is_scalar($elem) == false && is_null($elem) == false) {
                         // Not an array, nor a scalar/null value - it is invalid
-                        $valid = FALSE;
+                        $valid = false;
                     }
                 }
-                if ($valid == FALSE) {
+                if ($valid == false) {
                     $this->_internal_validation_error("Sloodle - LSL response: non-scalar element in array of items for a data line");
                 }
-            } else if (is_scalar($par) == FALSE && is_null($par) == FALSE) {
-                $valid = FALSE;
+            } else if (is_scalar($par) == false && is_null($par) == false) {
+                $valid = false;
                 $this->_internal_validation_error("Sloodle - LSL response: each line of data must be a scalar type, or an array of scalars");
             }
             // Store it if it is valid
@@ -421,17 +474,17 @@
         function add_data_line($par)
         {
             // We'll use a variable to store validity
-            $valid = TRUE;
+            $valid = true;
             if (is_array($par)) {
                 // Check each element
                 foreach ($par as $elem) {
-                    if (is_scalar($elem) == FALSE && is_null($elem) == FALSE) $valid = FALSE;
+                    if (is_scalar($elem) == false && is_null($elem) == false) $valid = false;
                 }
-                if ($valid == FALSE) {
+                if ($valid == false) {
                     $this->_internal_validation_error("Sloodle - LSL response: non-scalar element in array of items for a data line");
                 }
-            } else if (is_scalar($par) == FALSE && is_null($par) == FALSE) {
-                $valid = FALSE;
+            } else if (is_scalar($par) == false && is_null($par) == false) {
+                $valid = false;
                 $this->_internal_validation_error("Sloodle - LSL response: each line of data must be a scalar type, or an array of scalars");
             }
             // Store it if it is valid
@@ -446,21 +499,21 @@
         */
         function clear_data()
         {
-            $this->data = NULL;
+            $this->data = null;
         }
         
         
-      ///// OTHER FUNCTIONS /////
+      // OTHER FUNCTIONS //
       
         /**
         * <i>Constructor</i> - can intialise some variables
-        * @param int $status_code The initial status code for the response (optional - ignore if NULL)
-        * @param string $status_descriptor The initial status descriptor for the response (optional - ignore if NULL)
-        * @param mixed $data The initial data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleLSLResponse::$data}) (optional - ignore if NULL)
+        * @param int $status_code The initial status code for the response (optional - ignore if null)
+        * @param string $status_descriptor The initial status descriptor for the response (optional - ignore if null)
+        * @param mixed $data The initial data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleResponse::$data}) (optional - ignore if null)
         * @return void
         * @access public
         */
-        function SloodleLSLResponse($status_code = NULL, $status_descriptor = NULL, $data = NULL)
+        function SloodleResponse($status_code = null, $status_descriptor = null, $data = null)
         {
             // Store the data
             if (!is_null($status_code)) $this->status_code = (int)$status_code;
@@ -488,71 +541,71 @@
             // (where the pipe-character | is the field separator)
             
             // We will step backwards through out list of fields, and as soon as one item is specified, all of them should be
-            $showall = FALSE;
+            $showall = false;
             // Make sure that if the page number is specified, that the total is as well
             if (is_null($this->page_number) xor is_null($this->page_total)) {
                 $this->_internal_validation_error("Sloodle - LSL response: script must specify both \"page_total\" *and* \"page_number\", or specify neither");
-            } else if ($showall || is_null($this->page_number) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . (string)$this->page_total . SLOODLE_FIELD_SEPARATOR . (string)$this->page_number . $str;
+            } else if ($showall || is_null($this->page_number) == false) {
+                $showall = true;
+                $str = $this->field_separator . (string)$this->page_total . $this->field_separator . (string)$this->page_number . $str;
             }
             
             // Do we have a tracking code?
-            if ($showall || is_null($this->tracking_code) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . (string)$this->tracking_code . $str;
+            if ($showall || is_null($this->tracking_code) == false) {
+                $showall = true;
+                $str = $this->field_separator . (string)$this->tracking_code . $str;
             }
             
             // User key?
-            if ($showall || is_null($this->user_key) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . $this->user_key . $str;
+            if ($showall || is_null($this->avatar_uuid) == false) {
+                $showall = true;
+                $str = $this->field_separator . $this->avatar_uuid . $str;
             }
             
             // Response timestamp?
-            if ($showall || is_null($this->response_timestamp) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . (string)$this->response_timestamp . $str;
+            if ($showall || is_null($this->response_timestamp) == false) {
+                $showall = true;
+                $str = $this->field_separator . (string)$this->response_timestamp . $str;
             }
             
             // Request timestamp?
-            if ($showall || is_null($this->request_timestamp) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . (string)$this->request_timestamp . $str;
+            if ($showall || is_null($this->request_timestamp) == false) {
+                $showall = true;
+                $str = $this->field_separator . (string)$this->request_timestamp . $str;
             }
             
             // Request descriptor?
-            if ($showall || is_null($this->request_descriptor) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . $this->request_descriptor . $str;
+            if ($showall || is_null($this->request_descriptor) == false) {
+                $showall = true;
+                $str = $this->field_separator . $this->request_descriptor . $str;
             }
             
             // Side-effects?
-            if ($showall || is_null($this->side_effects) == FALSE) {
-                $showall = TRUE;
+            if ($showall || is_null($this->side_effects) == false) {
+                $showall = true;
                 // Is this an array?
                 if (is_array($this->side_effects)) {
                     // Yes - output each side effect code in a comma-separated list
                     $selist = "";
-                    $isfirst = TRUE;
+                    $isfirst = true;
                     foreach ($this->side_effects as $cur_side_effect) {
                         if (!$isfirst)  $selist .= ",";
-                        else $isfirst = FALSE;
+                        else $isfirst = false;
                         $selist .= (string)$cur_side_effect;
                     }
                     // Add that list to the output
-                    $str = SLOODLE_FIELD_SEPARATOR . $selist . $str;
+                    $str = $this->field_separator . $selist . $str;
                     
                 } else {
                     // Not at an array - output the single item
-                    $str = SLOODLE_FIELD_SEPARATOR . (string)$this->side_effects . $str;
+                    $str = $this->field_separator . (string)$this->side_effects . $str;
                 }
             }
             
             // Status descriptor?
-            if ($showall || is_null($this->status_descriptor) == FALSE) {
-                $showall = TRUE;
-                $str = SLOODLE_FIELD_SEPARATOR . $this->status_descriptor . $str;
+            if ($showall || is_null($this->status_descriptor) == false) {
+                $showall = true;
+                $str = $this->field_separator . $this->status_descriptor . $str;
             }
             
             // Ensure that a status code has been specified
@@ -566,7 +619,7 @@
             
             
             // Has any data been specified?
-            if (is_null($this->data) == FALSE) {
+            if (is_null($this->data) == false) {
                 
                 // Do we have an outer array?
                 if (is_array($this->data)) {
@@ -579,25 +632,25 @@
                         
                             // Construct the line, piece-at-a-time
                             $line = "";
-                            $isfirst = TRUE;
+                            $isfirst = true;
                             foreach ($outer_elem as $inner_elem) {
                                 // Use the standard field separator
-                                if (!$isfirst) $line .= SLOODLE_FIELD_SEPARATOR;
-                                else $isfirst = FALSE;
+                                if (!$isfirst) $line .= $this->field_separator;
+                                else $isfirst = false;
                                 $line .= (string)$inner_elem;
                             }
                             // Append the new line of data
-                            $str .= SLOODLE_LINE_SEPARATOR . (string)$line;
+                            $str .= $this->line_separator . (string)$line;
                         
                         } else {
                             // Output the single item
-                            $str .= SLOODLE_LINE_SEPARATOR . (string)$outer_elem;
+                            $str .= $this->line_separator . (string)$outer_elem;
                         }
                     }
                 
                 } else {
                     // Output the single item
-                    $str .= SLOODLE_LINE_SEPARATOR . (string)$this->data;
+                    $str .= $this->line_separator . (string)$this->data;
                 }
             }
         }
@@ -607,7 +660,7 @@
         *
         * @access public
         * @return void
-        * @uses SloodleLSLResponse::render_to_string() Outputs the result from this function directly to the HTTP response stream.
+        * @uses SloodleResponse::render_to_string() Outputs the result from this function directly to the HTTP response stream.
         */
         function render_to_output()
         {
@@ -622,8 +675,8 @@
         // Can be called statically to allow simple output of basic data
         // The status code is required, but the other parameters are optional
         // If an error occurs, the LSL-friendly error message is output to the HTTP response, and the script terminated
-        // If $static is TRUE (default) then this will be treated as a static call, and a new response object will be used
-        // If $static is FALSE then this is treated as adding data to an existing response object
+        // If $static is true (default) then this will be treated as a static call, and a new response object will be used
+        // If $static is false then this is treated as adding data to an existing response object
         /**
         * Quick output of data to avoid several accessor calls if the response is very basic.
         * Can be called statically to allow simple output of basic data.
@@ -631,24 +684,24 @@
         * If an error occurs, the LSL-friendly error message is output to the HTTP response, and the script terminated
         *
         * @param int $status_code The status code for the response (required)
-        * @param string $status_descriptor The status descriptor for the response (optional - ignored if NULL)
-        * @param mixed $data The data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleLSLResponse::$data}) (optional - ignored if NULL)
-        * @param bool $static If TRUE (default), then this function will assume it is being call statically, and construct its own response object. Otherwise, it will all the existing member data to render the output.
+        * @param string $status_descriptor The status descriptor for the response (optional - ignored if null)
+        * @param mixed $data The data for the response, which can be a scalar, or a mixed array of scalars/scalar-arrays (see {@link SloodleResponse::$data}) (optional - ignored if null)
+        * @param bool $static If true (default), then this function will assume it is being call statically, and construct its own response object. Otherwise, it will all the existing member data to render the output.
         * @return void
         * @access public
         */
-        function quick_output($status_code, $status_descriptor = NULL, $data = NULL, $static = TRUE)
+        function quick_output($status_code, $status_descriptor = null, $data = null, $static = true)
         {
             // Is this s static call?
             if ($static) {
                 // Construct and render the output of a response object
-                $response = new SloodleLSLResponse($status_code, $status_descriptor, $data);
+                $response = new SloodleResponse($status_code, $status_descriptor, $data);
                 $response->render_to_output();
             } else {
                 // Set all our data
                 $this->status_code = $status_code;
-                if ($status_descriptor != NULL) $this->status_descriptor = $status_descriptor;
-                if ($data != NULL) $this->add_data_line($data);
+                if ($status_descriptor != null) $this->status_descriptor = $status_descriptor;
+                if ($data != null) $this->add_data_line($data);
                 // Output it
                 $this->render_to_output();
             }
@@ -665,7 +718,7 @@
         */
         function _internal_validation_error($msg)
         {
-            exit("-104".SLOODLE_FIELD_SEPARATOR."SYSTEM".SLOODLE_LINE_SEPARATOR.$msg);
+            exit("-104".$this->field_separator."SYSTEM".$this->line_separator.$msg);
         }
     }
     
@@ -680,15 +733,17 @@
     * @param string $parname Name of the HTTP request parameter to fetch.
     * @param int $type Type of parameter expected, such as "PARAM_RAW". See Moodle documentation for a complete list.
     * @return mixed The appropriately parsed and/or cleaned parameter value, if it was found.
+    * @deprecated
     */
     function sloodle_required_param($parname, $type)
     {
+        exit('ERROR: deprecated function \'sloodle_required_param()\' called.');
         // Attempt to get the parameter
-        $par = optional_param($parname, NULL, $type);
+        $par = optional_param($parname, null, $type);
         // Was it provided?
         if (is_null($par)) {
             // No - report the error
-            SloodleLSLResponse::quick_output(-811, "SYSTEM", "Expected request parameter '$parname'.");
+            SloodleResponse::quick_output(-811, "SYSTEM", "Expected request parameter '$parname'.");
             exit();
         }
         
@@ -696,434 +751,183 @@
     }
     
     
-    // This class handles a request from an LSL script
+    // This class handles an HTTP request
     /**
-    * Handles incoming HTTP requests, typically from LSL scripts.
+    * Handles incoming HTTP requests, typically from LSL if dealing with Second Life.
     * This class will perform much of the complex and repetitive processing required for handling HTTP requests.
     *
-    * @uses SloodleLSLResponse Outputs error messages in appropriate format if an error occurs.
+    * @uses SloodleResponse Outputs error messages in appropriate format if an error occurs.
     * @uses SloodleUser Stores and processes user data incoming from an HTTP request
+    * 
     * @package sloodle
     */
-    class SloodleLSLRequest
+    class SloodleRequest
     {
-      ///// DATA /////
-      // WARNING: all data should be treated as PRIVATE (even though PHP4 does not recognise this concept)
-      
+      // DATA //
+        
         /**
-        * Indicates whether or not the request data has been processed by the {@link process_request_data()} function.
+        * Reference to the containing {@link SloodleSession} object.
+        * If null, then this module is being used outwith the framework.
+        * <b>Always check the status of the variable before using it!</b>
+        * Note: if not provided, then this object will not render any response information.
+        * @var object
+        * @access protected
+        */
+        var $_session = null;
+
+        /**
+        * Indicates whether or not the basic request data has already been processed.
+        * This is used to ensure data is processed.
         * @var bool
-        * @see SloodleLSLRequest::process_request_data()
         * @access private
         */
-        var $request_data_processed = FALSE;
-        
-        /**
-        * Contains the password specified in HTTP request parameters (or NULL if not specified).
-        * @see SloodleLSLRequest::authenticate_request()
-        * @access private
-        */
-        var $password = NULL;
-        
-        /**
-        * Indicates the status of request authentication.
-        * @see SloodleLSLRequest::authenticate_request()
-        * @see SLOODLE_AUTH_OK
-        * @see SLOODLE_AUTH_UNKNOWN
-        * @see SLOODLE_AUTH_FAILED
-        * @var int
-        * @access private
-        */
-        var $auth_status = SLOODLE_AUTH_UNKNOWN;
-        
-        /**
-        * A 3-element array containing the LoginZone position vector specified in HTTP request parameters (or NULL if not specified).
-        * @access private
-        */
-        var $login_zone_pos = NULL;
-        
-        /**
-        * Integer ID of the course specified in the request (or NULL if not specified).
-        * @access private
-        */
-        var $course_id = NULL;
-        
-        /**
-        * Integer ID of the course module instance specified in the request (or NULL if not specified).
-        * @access private
-        */
-        var $module_id = NULL;
-
-        /**
-        * String UUID of the SL user agent specified in the request (or NULL if not specified).
-        * @access private
-        */
-        var $avatar_uuid = NULL;
-        
-        /**
-        * String name of the SL agent specified in the request (or NULL if not specified).
-        * @access private
-        */
-        var $avatar_name = NULL;
-        
-        /**
-        * String containing the login security token specified in the request (or NULL if not specified).
-        * @access private
-        */
-        var $login_security_token = NULL;
+        var $request_data_processed = false;
         
         
-    /// References to potentially external objects ///
-        
-        /**
-        * The object used to output response data.
-        * The object reference may be provided externally in the parameters of the constructor ({@link SloodleLSLRequest()}) or via the ({@link set_response()}) accessor.
-        * Otherwise, it will have been instantiated by this object itself.
-        * @var SloodleLSLResponse
-        * @see SloodleLSLRequest::set_response()
-        * @see SloodleLSLRequest::get_response()
-        * @access private
-        */
-        var $response = NULL;
-
-        /**
-        * The object used to store and process incoming user data.
-        * The object reference may be provided externally in the parameters of the constructor ({@link SloodleLSLRequest()}) or via the ({@link set_user()}) accessor.
-        * Otherwise, it will have been instantiated by this object itself.
-        * @var SloodleUser
-        * @see SloodleLSLRequest::set_user()
-        * @see SloodleLSLRequest::get_user()
-        * @access private
-        */
-        var $user = NULL;
-                
-        
-      ///// ACCESSORS /////
+    // ACCESSORS //
     
         /**
-        * Returns member variable {@link $request_data_processed}.
-        * @return bool TRUE if the request data has been processed, or FALSE if not
-        * @see SloodleLSLRequest::process_request_data()
+        * Checks whether or not the request data has already been processed.
+        * @return bool
         */
         function is_request_data_processed()
         {
             return $this->request_data_processed;
         }
-        
-        /**
-        * Returns member variable {@link $auth_status}.
-        * @return int One of: {@link SLOODLE_AUTH_OK}, {@link SLOODLE_AUTH_UNKNOWN}, or {@link SLOODLE_AUTH_FAILED}.
-        * @see SloodleLSLRequest::authenticate_request()
-        */
-        function get_auth_status()
-        {
-            return $this->auth_status;
-        }
 
         /**
-        * Indicates whether or not request authentication has succeeded.
-        * @return bool TRUE if the request data has been authenticated, or FALSE if it failed or has not been attempted yet
-        * @see SloodleLSLRequest::authenticate_request()
-        * @see SloodleLSLRequest::$auth_status
+        * Fetches the password request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return string|null The password provided in the request parameters, or null if there wasn't one
         */
-        function is_authenticated()
+        function get_password($required = true)
         {
-            return ($this->auth_status == SLOODLE_AUTH_OK);
+            return $this->get_param(SLOODLE_PARAM_PASSWORD, $required);
         }
         
         /**
-        * Indicates whether or not request authentication has failed.
-        * @return bool TRUE if the request data has failed authentication, or FALSE if it passed or has not been attempted yet
-        * @see SloodleLSLRequest::authenticate_request()
-        * @see SloodleLSLRequest::$auth_status
+        * Fetches the course ID request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return int|null The course ID provided in the request parameters, or null if there wasn't one
         */
-        function is_auth_failed()
+        function get_course_id($required = true)
         {
-            return ($this->auth_status == SLOODLE_AUTH_FAILED);
+            return (int)$this->get_param(SLOODLE_PARAM_COURSE_ID, $required);
         }
         
         /**
-        * Sets the {@link SloodleLSLRequest::$response} member.
-        * @param SloodleLSLResponse $response Reference to a {@link SloodleLSLResponse} object
+        * Fetches the controller ID request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return int|null The controller ID provided in the request parameters, or null if there wasn't one
         */
-        function set_response(&$response)
+        function get_controller_id($required = true)
         {
-            $this->response = &$response;
-        }
-
-        /**
-        * Sets the {@link SloodleLSLRequest::$user} member.
-        * @param SloodleUser $user Reference to a {@link SloodleUser} object
-        */
-        function set_user(&$user)
-        {
-            $this->user = &$user;
-        }
-    
-        
-      // NOTE: These accessors will force the request data to be processed if it hasn't already been processed
-
-        /**
-        * Returns member value {@link $password}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return string|null The password provided in the request parameters, or NULL if there wasn't one
-        */
-        function get_password()
-        {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->password;
+            return (int)$this->get_param(SLOODLE_PARAM_CONTROLLER_ID, $required);
         }
         
         /**
-        * Returns member value {@link $course_id}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return integer|null The course ID provided in the request parameters, or NULL if there wasn't one
+        * Fetches the module ID request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return int|null The module ID provided in the request parameters, or null if there wasn't one
         */
-        function get_course_id()
+        function get_module_id($required = true)
         {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->course_id;
+            return (int)$this->get_param(SLOODLE_PARAM_MODULE_ID, $required);
         }
         
         /**
-        * Returns member value {@link $module_id}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return integer|null The course module instance ID provided in the request parameters, or NULL if there wasn't one
+        * Fetches the avatar UUID request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return string|null The avatar UUID provided in the request parameters, or null if there wasn't one
         */
-        function get_module_id()
+        function get_avatar_uuid($required = true)
         {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->module_id;
+            return $this->get_param(SLOODLE_PARAM_AVATAR_UUID, $required);
         }
         
         /**
-        * Returns member value {@link $avatar_uuid}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return string|null The avatar UUID provided in the request parameters, or NULL if there wasn't one
+        * Fetches the avatar name request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return string|null The avatar name provided in the request parameters, or null if there wasn't one
         */
-        function get_avatar_uuid()
+        function get_avatar_name($required = true)
         {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->avatar_uuid;
+            return $this->get_param(SLOODLE_PARAM_AVATAR_NAME, $required);
         }
         
         /**
-        * Returns member value {@link $avatar_name}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return string|null The avatar name provided in the request parameters, or NULL if there wasn't one
+        * Fetches the request descriptor request parameter.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return string|null The request descriptor provided in the request parameters, or null if there wasn't one
         */
-        function get_avatar_name()
+        function get_request_descriptor($required = true)
         {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->avatar_name;
-        }
-        
-        /**
-        * Returns member value {@link $login_security_token}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return string|null The login security token provided in the request parameters, or NULL if there wasn't one
-        */
-        function get_login_security_token()
-        {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->login_security_token;
-        }
-        
-        /**
-        * Returns member value {@link $response}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return &SloodleLSLResponse A reference to the response object used by this object
-        */
-        function get_response()
-        {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->response;
-        }
-        
-        /**
-        * Returns member value {@link $user}.
-        * Note: this function will ensure that {@link process_request_data()} has already been called prior to execution.
-        * @return &SloodleUser A reference to the user object used by this object
-        */
-        function get_user()
-        {
-            // Ensure the request data has been processed
-            $this->process_request_data();
-            return $this->user;
+            return $this->get_param(SLOODLE_PARAM_REQUEST_DESC, $required);
         }
         
         
-      ///// FUNCTIONS /////
+      // FUNCTIONS //
       
         /**
-        * <i>Constructor</i> - initialises the user and response objects.
-        * If the parameters provide references to appropriate objects, then the constructor will store them.
-        * However, if the parameters are NULL, then the constructor will create its own instances.
+        * <i>Constructor</i> - initialises the {@link SloodleSession} object.
+        * If the session parameter is null, then this object simply does not render response information.
         *
-        * @param SloodleLSLResponse $response Reference to the response object which this object should use, or NULL
-        * @param SloodleUser $user Refernce to the user object which this object should use, or NULL
+        * @param SloodleUser $_session A reference to the {@link SloodleSession} object which this request should use, or null
         */
-        function SloodleLSLRequest(&$response, &$user)
+        function SloodleRequest(&$_session)
         {
-            // Store or instantiate our response object
-            if (is_object($response)) $this->response = &$response;
-            else $this->response = new SloodleLSLResponse();
-            
-            // Store or instantiate our user object
-            if (is_object($user)) $this->user = &$user;
-            else $this->user = new SloodleUser();
+            // Store our session object
+            $this->_session = &$_session;
         }
         
-        // Process all of the data provided by the request
-        // This function will usually be called automatically when needed
-        // Normally, it will not process the request data if it already has done
-        // However, if parameter $force is TRUE then it will force re-processing
-        // Note that, if avatar_uuid and/or avatar_name are specified in the request,
-        //  then this function will attempt to retreive data for them.
-        //  However, it will *not* login the user or auto-register them - that should be done manually on the $user object.
-        // This will also attempt to fetch a course record if a course ID is requested
-        // No return value
         /**
-        * Process all of the standard data provided by the HTTP request.
-        *
-        * This function should normally be called very shortly after the start of a script, as it will
-        *  check all the expected HTTP request parameters, perform basic processing, and store the data.
-        * It will also send data to the appropriate {@link SloodleLSLResposne} and {@link SloodleUser} objects.
-        * When called, it will check the {@link $request_data_processed} member to see if it has already been called.
-        * If so, it will not execute again, unless the $force parameter is TRUE.
-        * <b>Note:</b> most functions in this class will automatically call this function if needed to ensure data is available.
-        *
-        * @param bool $force If TRUE, then the function is forced to execute again, even if it has already been executed. (Default: FALSE).
+        * Process all of the standard data provided by the HTTP request, and write it into our {@link SloodleSession} object.
+        * Requires that a {@link SloodleSession} object was provided at construction, and is stored in the $_session member.
+        * NOTE: this does not load the module part of the session. That must be done separately, using the {@link SloodleSession::load_module()} member function.
+        * @return bool True if successful, or false otherwise.
         */
-        function process_request_data( $force = FALSE )
+        function process_request_data()
         {
-            // Process the request data if it has not yet been procesed, or if re-processing is being forced
-            if ($this->request_data_processed == FALSE || $force == TRUE) {
-                // Fetch the parameters from the request
-                $this->password = optional_param('sloodlepwd', NULL, PARAM_RAW);
-                $this->course_id = optional_param('sloodlecourseid', NULL, PARAM_INT);
-                $this->module_id = optional_param('sloodlemoduleid', NULL, PARAM_INT);
-                $this->avatar_uuid = optional_param('sloodleuuid', NULL, PARAM_RAW);
-                $this->avatar_name = optional_param('sloodleavname', NULL, PARAM_RAW);
-                $this->login_security_token = optional_param('sloodlelst', NULL, PARAM_RAW);
-                
-                $this->response->set_request_descriptor(optional_param('sloodlerequestdesc', NULL, PARAM_RAW));
-                
-                // Fetch the login zone position string
-                $temp_pos = optional_param('sloodleloginzonepos', NULL, PARAM_RAW);
-                // If it was specified then convert it to an array
-                if (!is_null($temp_pos) && !empty($temp_pos)) $this->login_zone_pos = vector_to_array($temp_pos);
-                else $this->login_zone_pos = NULL;
-                
-                // Some values ought to be NULL if they are empty
-                if (empty($this->avatar_uuid)) $this->avatar_uuid = NULL;
-                if (empty($this->avatar_name)) $this->avatar_name = NULL;
-                
-                // Attempt to find a Sloodle user by UUID/name
-                $found_sloodle_user = $this->user->find_sloodle_user($this->avatar_uuid, $this->avatar_name, TRUE);
-                if ($found_sloodle_user === TRUE) {
-                    // We found a user
-                    // If the UUID or name had been previously unspecified, then attempt to get them from the database data
-                    if (is_null($this->avatar_uuid)) $this->avatar_uuid = $this->user->sloodle_user_cache->uuid;
-                    if (is_null($this->avatar_name)) $this->avatar_name = $this->user->sloodle_user_cache->avname;
-                    
-                    // Attempt to find an associated Moodle user (from the data cached above), and cache the results
-                    $this->user->find_linked_moodle_user(TRUE, TRUE);                
+            // Do we have a session object?
+            if (!isset($this->_session)) return false;
+            
+            // Store the request descriptor
+            $this->_session->response->set_request_descriptor($this->get_request_descriptor(false));
+            // Attempt to load course and controller details
+            $this->_session->course->load_by_controller($this->get_controller_id(false));            
+            
+            // Get the avatar details
+            $uuid = $this->get_avatar_uuid(false);
+            $avname = $this->get_avatar_name(false);
+            
+            // Attempt to load an avatar
+            if ($this->_session->user->load_avatar($uuid, $avname)) {
+                // Success - now attempt to load the linked VLE user
+                $this->_session->user->load_linked_user();
+                // If we didn't already have a UUID then get it from the user data
+                if (empty($uuid)) {
+                    $uuid = $this->_session->user->get_avatar_uuid();
                 }
-                
-                // Store the avatar UUID in the response object
-                $this->response->user_key = $this->avatar_uuid;
             }
             
-            $this->request_data_processed = TRUE;
+            // If we now have a UUID, then add it to our response data
+            if (!empty($uuid)) $this->_session->response->set_avatar_uuid($uuid);
+            
+            // 
+            
+            $this->request_data_processed = true;
+            return true;
         }
       
-        /**
-        * Authenticates the request against the site using the password parameter.
-        * This function can use both site-wide or object-specific prim passwords (the latter of which
-        *  uses the 'sloodle_active_object' table in the database).
-        * It will also set the content of member {$link $auth_status} as appropriate.
-        *
-        * @param bool $require If TRUE, the function will NOT return on authentication failure. Rather, it will terminate the script with an error message.
-        * @return bool TRUE if successful in authenticating the request, or FALSE if not.
-        */
-        function authenticate_request( $require = TRUE )
-        {
-            // If the request is already authenticated, then there is nothing else to do
-            if ($this->auth_status == SLOODLE_AUTH_OK)
-                return TRUE;
-        
-            // Make sure the request data is processed
-            $this->process_request_data();
-            // We are not initially authenticated
-            $this->auth_status = SLOODLE_AUTH_UNKNOWN;
-            
-            // Ensure that a password was provided
-            if (is_null($this->password)) {
-                $this->auth_status = SLOODLE_AUTH_FAILED;
-                // Should we terminate the script with an error message?
-                if ($require) {
-                    $this->response->set_status_code(-212);
-                    $this->response->set_status_descriptor('OBJECT_AUTH');
-                    $this->response->add_data_line('Prim Password not passed in request');
-                    $this->response->render_to_output();
-                    exit();
-                } else {
-                    return FALSE;
-                }
-            }
-            
-            // Does the password contain an object UUID?
-            $objpwd = NULL;
-            if (preg_match('/^(.*?)\|(\d\d*)$/',$this->password, $matches)) {
-    			$objuuid = $matches[1]; // Object UUID
-    			$objpwd = $matches[2]; // Object-specific password
-                // Get an appropriate entry from the table of active objects
-    			$entry = get_record('sloodle_active_object','uuid',$objuuid);            
-    			if ($entry !== FALSE && $entry->pwd != NULL && $entry->pwd == $objpwd) {
-                    // Authentication was successful
-                    $this->auth_status = SLOODLE_AUTH_OK;
-    				return TRUE;
-    			}
-    		}
-           
-            // Check the password value as a whole, and check the object-password (if one was given)
-            $_prim_password = sloodle_get_prim_password();
-            if ($this->password !== $_prim_password && $objpwd !== $_prim_password) {
-                $this->auth_status = SLOODLE_AUTH_FAILED;
-                // Should we terminate the script with an error message?
-                if ($require) {
-                    $this->response->set_status_code(-213);
-                    $this->response->set_status_descriptor('OBJECT_AUTH');
-                    $this->response->add_data_line('Password provided was invalid');
-                    $this->response->render_to_output();
-                    exit();
-                } else {
-                    return FALSE;
-                }
-            }
-            unset($_prim_password); // For security
-            
-            // Authentication appears to be OK
-            $this->auth_status = SLOODLE_AUTH_OK;
-            return TRUE;
-        }
         
         /**
         * Gets a database record for the course identified in the request.
         * (Note: this function does not check whether or not the user is enrolled in the course)
         *
-        * @param bool $require If TRUE, the function will NOT return failure. Rather, it will terminate the script with an error message.
-        * @return object A record directly from the database, or NULL if the course is not found.
+        * @param bool $require If true, the function will NOT return failure. Rather, it will terminate the script with an error message.
+        * @return object A record directly from the database, or null if the course is not found.
         */
-        function get_course_record($require = TRUE)
+        function get_course_record($require = true)
         {
             // Make sure the request data is processed
             $this->process_request_data();
@@ -1136,11 +940,11 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return NULL;
+                return null;
             }
             // Attempt to get the course data
             $course_record = get_record('course', 'id', $this->course_id);
-            if ($course_record === FALSE) {
+            if ($course_record === false) {
                 // Course not found
                 if ($require) {
                     $this->response->set_status_code(-512);
@@ -1149,7 +953,7 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return NULL;
+                return null;
             }
             // Make sure the course is visible
             // TODO: any availability other checks here?
@@ -1162,7 +966,7 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return NULL;
+                return null;
             }
             // TODO: in future, we need to check that the course is Sloodle-enabled
             // TODO: in future, make sure we are authenticated for this particular course
@@ -1176,16 +980,16 @@
         * Uses the ID specified in {@link $module_id}.
         *
         * @param string $type specifies the name of the module type (e.g. 'forum', 'choice' etc.) - ignored if blank (default).
-        * @param bool $require If TRUE, the function will NOT return failure. Rather, it will terminate the script with an error message.
-        * @return object A database record if successful, or FALSE if not (e.g. if instance is not found, is not visible, or is not of the correct type)
+        * @param bool $require If true, the function will NOT return failure. Rather, it will terminate the script with an error message.
+        * @return object A database record if successful, or false if not (e.g. if instance is not found, is not visible, or is not of the correct type)
         */
-        function get_course_module_instance( $type = '', $require = TRUE )
+        function get_course_module_instance( $type = '', $require = true )
         {
             // Make sure the request data is processed
             $this->process_request_data();
             
             // Make sure the module ID was specified
-            if ($this->module_id == NULL) {
+            if ($this->module_id == null) {
                 if ($require) {
                     $this->response->set_status_code(-711);
                     $this->response->set_status_descriptor('MODULE_DESCRIPTOR');
@@ -1193,7 +997,7 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return FALSE;
+                return false;
             }
             
             // Attempt to get the instance
@@ -1205,7 +1009,7 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return FALSE;
+                return false;
             }
             
             // If the type was specified, then verify it
@@ -1218,7 +1022,7 @@
                         $this->response->render_to_output();
                         exit();
                     }
-                    return FALSE;
+                    return false;
                 }
             }
             
@@ -1231,7 +1035,7 @@
                     $this->response->render_to_output();
                     exit();
                 }
-                return FALSE;
+                return false;
             }
             
             // Everything looks fine
@@ -1239,33 +1043,59 @@
         }
         
         
-    ///// UTILITY FUNCTIONS /////
+    // UTILITY FUNCTIONS //
     
         /**
-        * Obtains a named HTTP request parameter, and terminate with an error message if it has not been provided.
-        * Note: for LSL linker scripts, this should *always* be used instead of the Moodle function, as this will
-        *  render appropraitely formatted error messages, which LSL scripts can understand.
+        * Obtains a named HTTP request parameter, or NULL if it has not been provided.
+        * Return values are always strings.
+        * @param string $parname The name of the parameter to fetch
+        * @param mixed $default The value to return if the parameter cannot be found
+        * @return string|mixed The raw parameter value (will be a string if the parameter was found, or the value of parameter $default otherwise)
+        */
+        function optional_param($parname, $default = null)
+        {
+            if (isset($_REQUEST[$parname])) return (string)$_REQUEST[$parname];
+            return $default;
+        }
+    
+        /**
+        * Obtains a named HTTP request parameter, or terminates with an error message if it has not been provided.
+        * Note: for linker scripts, this should *always* be used instead of the standard Moodle function, as this will
+        *  render appropriately formatted error messages, which scripts can understand.
+        * Also note that this function always returned values in the string type. They must be cast.
         *
         * @param string $parname The name of the HTTP request parameter to get.
-        * @param int $type Specifies the expected type of parameter, as according to the Moodle documentation.
-        * @return mixed The converted and cleaned parameter if it is found
+        * @return string The raw parameter value
         */
-        function required_param($parname, $type=PARAM_RAW)
+        function required_param($parname)
         {
-            // Attempt to get the parameter
-            $par = optional_param($parname, NULL, $type);
-            // Was it provided?
-            if (is_null($par)) {
+            // Is the parameter provided?
+            if (!isset($_REQUEST[$parname])) {
                 // No - report the error
-                $this->response->set_status_code(-811);
-                $this->response->set_status_descriptor('SYSTEM');
-                $this->response->add_data_line("Required parameter not provided: '$parname'.");
-                $this->response->render_to_output();
+                if (isset($this->_session)) {
+                    $this->_session->response->set_status_code(-811);
+                    $this->_session->response->set_status_descriptor('SYSTEM');
+                    $this->_session->response->add_data_line("Required parameter not provided: '$parname'.");
+                    $this->_session->response->render_to_output();
+                }
                 exit();
             }
             
-            return $par;
+            return $_REQUEST[$parname];
         }
         
+        /**
+        * Obtains a named HTTP request parameter, optionally requiring it or not
+        * @param string $parname The name of the parameter to get
+        * @param bool $required Indicates whether or not to 'require' the parameter (if it is required, but cannot be found, then the script is terminated with an error message)
+        * @param mixed $default If the $require parameter is false, and the HTTP parameter cannot be found, then this value will be returned instead
+        * @return string|mixed The raw value of the HTTP parameter if found, or the value of parameter $default if it was not found and parameter $require was false
+        */
+        function get_param($parname, $required, $default = null)
+        {
+            // Use the existing functions to fetch the parameter
+            if ($required) return $this->required_param($parname);
+            return $this->optional_param($parname, $default);
+        }
     }
 ?>

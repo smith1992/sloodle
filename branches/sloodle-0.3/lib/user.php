@@ -64,7 +64,7 @@
         * @param object &$_session Reference to the containing {@link SloodleSession} object, if available.
         * @access public
         */
-        function SloodleUser(&$_session = null)
+        function SloodleUser(&$_session)
         {
             if (!is_null($_session)) $this->_session = &$_session;
         }
@@ -74,22 +74,110 @@
     
         /**
         * Gets the unique ID of the avatar.
-        * @return mixed Type depends on VLE. (Integer on Moodle).
+        * @return mixed Type depends on VLE. (Integer on Moodle). Returns null if there is no avatar.
         * @access public
         */
         function get_avatar_id()
         {
+            if (!isset($this->avatar_data->id)) return null;
             return $this->avatar_data->id;
         }
         
         /**
         * Gets the unique ID of the VLE user.
-        * @return mixed Type depends on VLE. (Integer on Moodle).
+        * @return mixed Type depends on VLE. (Integer on Moodle). Returns null if there is no user
         * @access public
         */
         function get_user_id()
         {
+            if (!isset($this->user_data->id)) return null;
             return $this->user_data->id;
+        }
+        
+        
+        /**
+        * Gets the UUID of the avatar
+        * @return string
+        */
+        function get_avatar_uuid()
+        {
+            return $this->avatar_data->uuid;
+        }
+        
+        /**
+        * Sets the UUID of the avatar
+        * @param string $uuid The new UUID
+        * @return void
+        */
+        function set_avatar_uuid($uuid)
+        {
+            $this->avatar_data->uuid = $uuid;
+        }
+        
+        /**
+        * Gets the name of the avatar
+        * @return string
+        */
+        function get_avatar_name()
+        {
+            return $this->avatar_data->avname;
+        }
+        
+        /**
+        * Sets the name of the avatar
+        * @param string $avname The new avatar name
+        * @return void
+        */
+        function set_avatar_name($avname)
+        {
+            $this->avatar_data->avname = $avname;
+        }
+        
+        /**
+        * Gets the user's username
+        * @return string
+        */
+        function get_username()
+        {
+            return $this->user_data->username;
+        }
+        
+        /**
+        * Gets the first name of the user
+        * @return string
+        */
+        function get_user_firstname()
+        {
+            return $this->user_data->firstname;
+        }
+        
+        /**
+        * Gets the last name of the user
+        * @return string
+        */
+        function get_user_lastname()
+        {
+            return $this->user_data->lastname;
+        }
+        
+        /**
+        * Gets the timestamp of whenever the avatar was last seen online.
+        * @return int
+        */
+        function get_avatar_last_online()
+        {
+            return (int)$this->avatar_data->lastonline;
+        }
+        
+        /**
+        * Sets the timestamp of when the user was last seen online
+        * @param int $timestamp A UNIX timestamp, or null to use the current time
+        * @return void
+        */
+        function set_avatar_last_online($timestamp = null)
+        {
+            if ($timestamp == null) $timestamp = time();
+            $this->avatar_data->lastonline = $timestamp;
         }
         
         
@@ -229,14 +317,14 @@
         }
         
         /**
-        * Adds a new avatar to the database.
+        * Adds a new avatar to the database, and link it to the specified user.
         * @param mixed $userid Site-wide unique ID of a user (type depends on VLE; integer for Moodle)
         * @param string $uuid UUID of the avatar
         * @param string $avname Name of the avatar
         * @return bool True if successful, or false if not.
         * @access public
         */
-        function add_avatar($userid, $uuid, $avname)
+        function add_linked_avatar($userid, $uuid, $avname)
         {
             // Setup our object
             $this->avatar_data = new stdClass();
@@ -254,6 +342,36 @@
             
             return true;
         }
+        
+        /**
+        * Adds a new unlinked avatar to the database (the entry is pending linking)
+        * @param string $uuid UUID of the avatar
+        * @param string $avname Name of the avatar
+        * @param int $timestamp The timestamp at which to mark the update (or null to use the current timestamp). Entries expire after a certain period.
+        * @return bool True if successful, or false if not.
+        * @access public
+        */
+        function add_unlinked_avatar($uuid, $avname, $timestamp = null)
+        {
+            // Setup the timestamp
+            if ($timestamp == null) $timestamp = time();
+            
+            // Setup our object
+            $pending_avatar = new stdClass();
+            $pending_avatar->id = 0;
+            $pending_avatar->uuid = $uuid;
+            $pending_avatar->avname = $avname;
+            $pending_avatar->timeupdated = $timestamp;
+            
+            // Add the data to the database
+            $this->avatar_data->id = insert_record('sloodle_pending_avatars', $pending_avatar);
+            if (!$pending_avatar->id) {
+                return false;
+            }
+            
+            return true;
+        }
+        
         
         /**
         * Auto-register a new user account for the current avatar.
@@ -334,7 +452,8 @@
             if (count($recs) > 1) return 'multi';
             
             // Store the avatar data
-            $this->avatar_data = $recs[0];
+            reset($recs);
+            $this->avatar_data = current($recs);
             return true;
         }
 
@@ -432,7 +551,7 @@
             // Go through each course
             foreach ($courses as $course) {
                 // Check if the user can teach using Sloodle on this course
-                if (has_capability('mod/sloodle:staff', get_context_instance(CONTEXT_COURSE, $course->id), $this->userdata->id)) {
+                if (has_capability('mod/sloodle:staff', get_context_instance(CONTEXT_COURSE, $course->id), $this->user_data->id)) {
                     $sc = new SloodleCourse();
                     $sc->load($course);
                     $usercourses[] = $sc;

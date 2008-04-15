@@ -138,15 +138,6 @@ $string['objectuuid'] = 'Object UUID';
 $string['or'] = 'or';
 
 $string['primpass'] = 'Prim Password';
-$string['primpass:set'] = 'Set Prim Password Number';
-$string['primpass:setdesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the configuration of all your Second Life objects which use it.';
-$string['primpass:save'] = 'Save Prim Password';
-$string['primpass:change'] = 'Change Prim Password';
-$string['primpass:changedesc'] = 'The password should be a number which is between 5 and 9 digits long, and which does not start with a 0. Please note that if you change this password, you will need to update the scripts in all your Second Life objects that use it.';
-$string['primpass:isset'] = 'Prim Password is set.';
-$string['primpass:issetdesc'] = 'Your prim password will be automatically included in your LSL scripts.';
-$string['primpass:errornotset'] = 'Error: Prim password isn\'t set, and I couldn\'t create one';
-
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long.';
 $string['primpass:toolong'] = 'Prim Password should be at most 9 digits long.';
@@ -154,7 +145,6 @@ $string['primpass:numonly'] = 'Prim Password should only contain numeric digits 
 $string['primpass:error'] = 'Prim Password Error';
 $string['primpass:updated'] = 'Prim Password updated';
 $string['primpass:leadingzero'] = 'Prim Password should not start with a 0.';
-$string['primpass:random'] = 'A random prim password has been automatically generated for you.';
 
 $string['releasenum'] = 'Module release number';
 

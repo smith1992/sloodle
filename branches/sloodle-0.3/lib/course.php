@@ -28,7 +28,7 @@
     
         /**
         * The database object of the course to which this object relates.
-        * Corresponds to the "course" table.
+        * Corresponds to the "course" table in Moodle.
         * Is null if not yet set
         * @var object
         * @access private
@@ -58,6 +58,17 @@
         */
         function SloodleCourse()
         {
+            $this->controller = new SloodleController();
+        }
+        
+        /**
+        * Determines whether or not course data has been loaded.
+        * @return bool
+        */
+        function is_loaded()
+        {
+            if (empty($this->course_object) || empty($this->sloodle_course_data)) return false;
+            return true;
         }
         
         /**
@@ -138,6 +149,19 @@
         function disable_autoreg()
         {
             $this->sloodle_course_data->autoreg = 0;
+        }
+        
+        /**
+        * Determines whether or not the course is available.
+        * Checks that the course has not been disabled or hidden etc..
+        * @return bool True if the course is available
+        */
+        function is_available()
+        {
+            // Check visbility
+            if (empty($this->course_object->visible)) return false;
+            
+            return true;
         }
 
     

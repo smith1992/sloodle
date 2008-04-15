@@ -71,7 +71,8 @@
         
 
         // If there are no items in the distributor, then simply display an error message
-        if ($numitems < 1) error(get_string('sloodleobjectdistributor:noobjects','sloodle'));
+        if ($numitems < 1) print_box('<span style="font-weight:bold; color:red;">'.get_string('sloodleobjectdistributor:noobjects','sloodle').'</span>', 'generalbox boxaligncenter boxwidthnormal centerpara');
+        //error(get_string('sloodleobjectdistributor:noobjects','sloodle'));
         // If there is no XMLRPC channel specified, then display a warning message
         $disabledattr = '';
         if (empty($distributor->channel)) {
@@ -165,7 +166,6 @@ XXXEODXXX;
                 // Output the hidden form data
                 echo <<<XXXEODXXX
      <input type="hidden" name="s" value="{$sloodle->id}">
-     <input type="hidden" name="user" value="{$sloodleuser->uuid}">
 XXXEODXXX;
                 // Avatar selection box
                 $table->data[] = array(get_string('selectuser','sloodle').': '.$selection_avatars);
@@ -197,7 +197,7 @@ XXXEODXXX;
 XXXEODXXX;
         
             // UUID box
-            $table->data[] = array(get_string('uuid','sloodle').': '.'<input type="text" name="user" size="40" maxlength="36" />');
+            $table->data[] = array(get_string('uuid','sloodle').': '.'<input type="text" name="user" size="46" maxlength="36" />');
             // Object selection box
             $table->data[] = array(get_string('selectobject','sloodle').': '.$selection_items);
             // Submit button

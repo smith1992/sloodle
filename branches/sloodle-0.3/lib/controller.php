@@ -12,6 +12,10 @@
     */
     
     
+    /** General Sloodle functionality. */
+    require_once(SLOODLE_LIBROOT.'/general.php');
+    
+    
     /**
     * Represents a Sloodle Controller, including data such as prim password.
     * @package sloodle
@@ -68,6 +72,7 @@
             
             // Fetch the course module data
             if (!($this->cm = get_record('course_modules', 'id', $id))) return false;
+            
             // Load from the primary table: Sloodle instance
             if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
             // Check that it is the correct type
@@ -90,6 +95,7 @@
             // Make sure we have all the necessary data
             if (empty($this->sloodle_module_instance) || empty($this->sloodle_controller_instance)) return false;
             // Attempt to update the primary table
+            $this->sloodle_module_instance->timemodified = time();
             if (!update_record('sloodle', $this->sloodle_module_instance)) return false;
             // Attempt to update the secondary table
             if (!update_record('sloodle_controller', $this->sloodle_controller_instance)) return false;
@@ -102,12 +108,31 @@
     // ACCESSORS //
     
         /**
+        * Determines whether or not this controller is loaded.
+        * @return bool
+        */
+        function is_loaded()
+        {
+            if (empty($this->cm) || empty($this->sloodle_module_instance) || empty($this->sloodle_controller_instance)) return false;
+            return true;
+        }
+    
+        /**
         * Gets the site-wide unique identifier for this module.
         * @return mixed Identifier. Type is dependent on VLE. On Moodle, it is an integer course module identifier.
         */
         function get_id()
         {
             return $this->cm->id;
+        }
+        
+        /**
+        * Gets the identifier for controller (unique among all Sloodle controlers - may be the same as {@link get_id()} in some environments
+        * @return mixed Identifier. Type is dependent on VLE. On Moodle, it is an integer relating to the 'id' field of the 'sloodle_controller' table
+        */
+        function get_controller_id()
+        {
+            return $this->sloodle_controller_instance->id;
         }
     
         /**
@@ -176,6 +201,16 @@
         }
         
         /**
+        * Determines whether or not this controller is available (i.e. not hidden).
+        * Note: this is separate from being enabled or disabled.
+        * @return bool True if the controller is available.
+        */
+        function is_available()
+        {
+            return (bool)($this->cm->visible);
+        }
+        
+        /**
         * Determines if this controller is enabled or not.
         * @return bool True if the controller is enabled, or false otherwise.
         */
@@ -206,11 +241,11 @@
         * Gets the prim password of this controller.
         * @return string The current prim password.
         */
-        function get_password($password)
+        function get_password()
         {
             return $this->sloodle_controller_instance->password;
         }
-                
+        
         /**
         * Sets the prim password of this controller.
         * Also checks for validity before storing.
@@ -222,33 +257,45 @@
             // Check validity
             if (!sloodle_validate_prim_password($password)) return false;
             // Store it
-            $this->password = $password;
+            $this->sloodle_controller_instance->password = $password;
             return true;
         }
-        
-        /**
-        * Checks a password against this controller.
-        * @param string $password Can either be a plain prim password, or an object-specific session key
-        * @return bool True if the password matches, or false otherwise
-        * @todo Implement me!
-        */
-        function check_password($password)
-        {
-            //...
-            return false;
-        }
+
         
         /**
         * Register a new active object (or renew an existing one) with this controller.
         * @param string $uuid The UUID of the object to be registered
+        * @param mixed $userid The ID of the user who is authorising the object
         * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
-        * @return string,bool If successful, a string containig the object-specific session key. Otherwise boolean false.
-        * @todo Implement me
+        * @return string|bool If successful, a string containig the object-specific session key. Otherwise boolean false.
         */
-        function register_object($uuid)
+        function register_object($uuid, $userid, $timestamp = null)
         {
-            //...
-            return false;
+            // Use the current timestamp if necessary
+            if ($timestamp == null) $timestamp = time();
+            
+            // Check to see if an entry already exists for this object
+            $entry = get_record('sloodle_active_object', 'controllerid', $this->sloodle_controller_instance->id, 'uuid', $uuid);
+            if (!$entry) {
+                // Create a new entry
+                $entry = new stdClass();
+                $entry->controllerid = $this->sloodle_controller_instance->id;
+                $entry->userid = $userid;
+                $entry->uuid = $uuid;
+                $entry->password = $sloodle_random_prim_password();
+                $entry->timeupdated = $timestamp;
+                // Attempt to insert the entry
+                if (!insert_record('sloodle_active_object', $entry)) return false;
+                
+            } else {
+                // Update the existing entry
+                $entry->userid = $userid;
+                $entry->timeupdated = $timestamp;
+                // Attempt to update the database
+                if (!update_record('sloodle_active_object', $entry)) return false;
+            }
+            
+            return $entry->password;
         }
     }
 
