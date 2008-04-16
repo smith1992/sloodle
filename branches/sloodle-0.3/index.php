@@ -72,9 +72,11 @@
     }
     
     // Add header information to each table
-    foreach ($sloodle_tables as $st) {
-        $st->head = array($strid, $strname, $strdescription);
-        $st->align = array('center', 'left', 'left');
+    // (cannot use "foreach" on the $sloodle_tables array as PHP4 doesn't support alteration of the original array that way)
+    $table_types = array_keys($sloodle_tables);
+    foreach ($table_types as $k) {
+        $sloodle_tables[$k]->head = array($strid, $strname, $strdescription);
+        $sloodle_tables[$k]->align = array('center', 'left', 'left');
     }
 
     // Page header
@@ -86,6 +88,37 @@
         print_header("$course->shortname: $strsloodles", $course->fullname, "$strsloodles",
                     "", "", true, "", navmenu($course));
     }
+    
+    
+//-----------------------------------------------------
+    // Quick links (top right of page)
+    
+    // Open the section
+    echo "<div style=\"text-align:right; font-size:80%;\">\n";
+    
+    // Link to own avatar profile
+    echo "<a href=\"\" title=\"\">View my avatar details</a><br>\n";
+    
+    // Course information
+    if (empty($sloodlecourse->autoreg)) {
+        echo "This course does not allow auto-registration<br>";
+    } else {
+        echo "This course allows auto-registration<br>";
+    }
+    
+    // Display the link for editing course settings
+    $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
+    if (has_capability('moodle/course:update', $course_context)) {
+        echo "<a href=\"\" title=\"\">Edit Sloodle course settings</a><br>\n";
+    }
+    
+    
+    echo "</div>\n";
+    
+    
+    
+//-----------------------------------------------------
+    
 
     // Make sure we got some results
     if (is_array($sloodle_tables) && count($sloodle_tables) > 0) {

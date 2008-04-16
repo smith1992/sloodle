@@ -52,6 +52,8 @@ $string['deletecancelled'] = 'Deletion cancelled.';
 $string['deletionfailed'] = 'Deletion failed';
 $string['deletionsuccessful'] = 'Deletion successful';
 $string['disabled'] = 'Disabled';
+$string['day'] = 'day';
+$string['days'] = 'days';
 
 $string['enabled'] = 'Enabled';
 $string['enteravatarname'] = 'Enter avatar name';
@@ -73,6 +75,8 @@ $string['help:userediting'] = 'What is the risk?';
 $string['help:autoreg'] = 'What is auto-registration?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
 $string['help:multipleentries'] = 'Why are there multiple entries? What does it mean?';
+$string['hour'] = 'hour';
+$string['hours'] = 'hours';
 
 $string['ID'] = 'ID';
 $string['invalidid'] = 'Invalid ID';
@@ -80,6 +84,7 @@ $string['invalidcourseid'] = 'Invalid course ID';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
 $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
 
+$string['lastonlinesl'] = 'Last Online in SL';
 $string['linkedtomoodleusernum'] = 'Moodle User #';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
@@ -114,6 +119,7 @@ $string['multipleentries'] = 'Warning: there are multiple Sloodle entries associ
 $string['name'] = 'Name';
 $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
+$string['now'] = 'now';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
@@ -191,6 +197,7 @@ $string['specialpages'] = 'Special Pages';
 $string['status'] = 'Status';
 $string['submit'] = 'Submit';
 
+$string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
 $string['unlinkedsloodleentries'] = 'Unlinked Sloodle User Entries';
 $string['unlinkedsloodleentries:desc'] = 'These are entries in the Sloodle users table which are not linked to a particular Moodle account. When in-world registration tools are used, temporary entries like this are created until the user logs into Moodle to authenticate themselves. Only delete entries if they have been lingering for a long time, or you suspect them of causing problems.';
@@ -205,6 +212,8 @@ $string['viewunlinked'] = 'View unlinked Sloodle entries';
 $string['viewall'] = 'View all Sloodle entries';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
+$string['week'] = 'week';
+$string['weeks'] = 'weeks';
 
 $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response. Is Second Life broken again?';
 $string['xmlrpc:error'] = 'XMLRPC Error';

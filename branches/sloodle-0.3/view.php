@@ -19,11 +19,14 @@
     require_once(SLOODLE_DIRROOT.'/lib.php');
     /** General Sloodle functions. */
     require_once(SLOODLE_LIBROOT.'/general.php');
+    /** Sloodle course data. */
+    require_once(SLOODLE_LIBROOT.'/course.php');
     
     /** Viewing functionality for the Sloodle Controller. */
     require_once(SLOODLE_DIRROOT.'/view/view_controller.php');
     /** Viewing functionality for the Distributor. */
-    require_once(SLOODLE_DIRROOT.'/view/view_distributor.php');
+    require_once(SLOODLE_DIRROOT.'/view/view_distributor.php');    
+    
     
 
     // Fetch our request parameters
@@ -62,36 +65,34 @@
         error('Failed to find Sloodle module instance.');
     }
     
+    // Get the Sloodle course data
+    $sloodlecourse = new SloodleCourse();
+    $sloodlecourse->load($cm->course);
+    
     // Ensure that the user is logged-in for this course
     require_course_login($course, true, $cm);
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $module_context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
     
     // Is the user allowed to edit the module?
     $canedit = false;
-    if (has_capability('moodle/course:manageactivities', get_context_instance(CONTEXT_MODULE, $cm->id))) {
+    if (has_capability('moodle/course:manageactivities', $module_context)) {
         $canedit = true;
     } else {
         $editing = false;
     }
     
-    // Only show the editing buttons if the user is allowed to edit this stuff
+    // Only show the editing button if the user is allowed to edit this stuff
     $editbuttons = '';
     if ($canedit) $editbuttons = $buttontext = update_module_button($cm->id, $course->id, $strsloodle);
 
     // Display the page header
     $navigation = "<a href=\"index.php?id=$course->id\">$strsloodles</a> ->";
     print_header_simple(format_string($sloodle->name), "", "$navigation ".format_string($sloodle->name), "", "", true, $editbuttons, navmenu($course, $cm));
-
-
-    // If the module is hidden, then can the user still view it?
-    if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $context)) {
-        // No - issue a notice
-        notice(get_string("activityiscurrentlyhidden"));
-    }
     
     // Find out current groups mode
-    $groupmode = groupmode($course, $cm);
-    $currentgroup = setup_and_print_groups($course, $groupmode, 'view.php?id=' . $cm->id);
+    //$groupmode = groupmode($course, $cm);
+    //$currentgroup = setup_and_print_groups($course, $groupmode, 'view.php?id=' . $cm->id);
 
     // We can display the Sloodle module info... log the view
     add_to_log($course->id, 'sloodle', 'view sloodle module', "view.php?id=$cm->id", "$sloodle->id", $cm->id);
@@ -99,6 +100,47 @@
     // Get the full Sloodle module type name
     $fulltypename = get_string("moduletype:{$sloodle->type}", 'sloodle');
     
+    
+    
+//-----------------------------------------------------
+    // Quick links (top right of page)
+    
+    // Open the section
+    echo "<div style=\"text-align:right; font-size:80%;\">\n";
+    
+    // Link to own avatar profile
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">View my avatar details</a><br>\n";
+    
+    // Course information
+    if (empty($sloodlecourse->autoreg)) {
+        echo "This course does not allow auto-registration<br>";
+    } else {
+        echo "This course allows auto-registration<br>";
+    }
+    
+    // Display the link for editing course settings
+    if (has_capability('moodle/course:update', $course_context)) {
+        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?course={$course->id}\">Edit Sloodle course settings</a><br>\n";
+    }
+    
+    
+    echo "</div>\n";
+    
+    
+    
+//-----------------------------------------------------
+    // Check access
+
+    // If the module is hidden, then can the user still view it?
+    if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $context)) {
+        // No - issue a notice
+        notice(get_string("activityiscurrentlyhidden"));
+    }
+    
+    
+//-----------------------------------------------------
+    // Module info
+
     // Display the module name
     $img = '<img src="icon.gif" width="16" height="16" alt=""/> ';
     print_heading($img.$sloodle->name, 'center');
@@ -107,11 +149,15 @@
     echo '<h4 style="text-align:center;">'.get_string('moduletype', 'sloodle').': '.$fulltypename;
     echo helpbutton("moduletype_{$sloodle->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
     
-    print_box_start('generalbox boxaligncenter boxwidthnormal', '');
-    echo '<p style="text-align:center;">'.$sloodle->intro.'</p>';
-    print_box_end();
+    //print_box_start('generalbox boxaligncenter boxwidthnormal', '');
+    //echo '<p style="text-align:center;">'.$sloodle->intro.'</p>';
+    //print_box_end();
+    print_box($sloodle->intro, 'generalbox', 'intro'); // Let's be consistent with other modules!
     
     
+//-----------------------------------------------------
+    // Main view
+
     print_box_start('generalbox boxaligncenter boxwidthwide');
 
     // We need to kow the result of the display attempt

@@ -518,6 +518,7 @@
             // Go through each course
             foreach ($courses as $course) {
                 // Check if the user can view this course
+                //!has_capability('moodle/legacy:guest', $context, NULL, false)
                 if (has_capability('moodle/course:view', get_context_instance(CONTEXT_COURSE, $course->id), $this->user_data->id)) {
                     $sc = new SloodleCourse();
                     $sc->load($course);

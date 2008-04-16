@@ -11,7 +11,18 @@
 	// Pull in the main moodle config
 	// NB the following is necessary for when we pull in this config.php from a module under sloodle/mod
 	require_once (realpath(dirname(__FILE__) . "/" . "../../config.php"));
-
+    
+    // Is this a linker script?
+    if (defined('SLOODLE_LINKER_SCRIPT')) {
+        // If the site is in maintenance mode, then stop the script
+        if (file_exists($CFG->dataroot.'/'.SITEID.'/maintenance.html')) {
+            exit("-111|SYSTEM\nThe Moodle site is in maintenance mode. Please try again later.");
+        }
+    }
+    
+    
+//---------------------------------------------------------------------    
+    
     /** The path for browsing to the root of the Sloodle folder. */
 	define('SLOODLE_WWWROOT', $CFG->wwwroot.'/mod/sloodle');
     /** The data path for the root of the Sloodle folder. */

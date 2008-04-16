@@ -35,14 +35,14 @@
 
 
     /** Sloodle/Moodle configuration. */
-    require_once('config.php');
+    require_once('../sl_config.php');
     /** General Sloodle functionality. */
-    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Enforce login
     require_login();
     // Refuse guest access
-    if (isguest()) {
+    if (isguestuser()) {
         error(get_string('noguestaccess', 'sloodle'));
         exit;
     }
@@ -55,17 +55,15 @@
     
     // Are we showing all entries?
     $allentries = false;
-    if ($moodleuserid == 'all') {
+    if (strcasecmp($moodleuserid, 'all') == 0) {
         $allentries = true;
         $moodleuserid = -1;
     } else {
         // Make sure the Moodle user ID is an integer
         $moodleuserid = (integer)$moodleuserid;
-        if ($moodleuserid < 0) $moodleuserid = 0;
+        if ($moodleuserid <= 0) exit(ucwords(get_string('unknownuser', 'sloodle')));
     }
     
-    // Force the course ID to the site course if we are dealing with unlinked users
-    if ($moodleuserid <= 0) $courseid = 1;
     
     // Get the name of the course
     $courserecord = get_record('course', 'id', $courseid);
@@ -74,21 +72,30 @@
     $courseshortname = $courserecord->shortname;
     $coursefullname = $courserecord->fullname;
     
-    // Reject the user's attempt to view this page if they are not a teacher or admin, but are trying to view someone else's details
-    if ($moodleuserid != $USER->id && isadmin() == false && isteacherinanycourse() == false) {
-        error(get_string('insufficientpermissiontoviewpage','sloodle'));
-        exit();
+    // We need to establish some permissions here
+    $course_context = get_context_instance(CONTEXT_COURSE, $courseid);
+    $system_context = get_context_instance(CONTEXT_SYSTEM);
+    $viewingself = false;
+    $canedit = false;
+    // Is the user trying to view their own profile?
+    if ($moodleuserid == $USER->id) {
+        $viewingself = true;
+        $canedit = true;
+    } else {
+        // Does the user have permission to edit other peoples' profiles in the system and/or course?
+        // If not, can they at least view others' profiles?
+        if (has_capability('moodle/user:editprofile', $system_context) || has_capability('moodle/user:editprofile', $course_context)) {
+            // User can edit profiles
+            $canedit = true;
+        } else if (!(has_capability('moodle/user:viewdetails', $system_context) || has_capability('moodle/user:viewdetails', $course_context))) {
+            // Cannot view profiles
+            error(get_string('insufficientpermissiontoviewpage','sloodle'));
+            exit();
+        }
     }
     
     // This value will indicate if we are currently confirming a deletion
     $confirmingdeletion = false;
-    
-    // Is the user permitted to edit the details?
-    // Users can edit their own details, but admins can edit anybody's. Teachers can edit anybody's if the setting is enabled.
-    $canedit = false;
-    if (($USER->id == $moodleuserid) || isadmin()) $canedit = true;
-    else if (isteacherinanycourse() && isset($CFG->sloodle_allow_user_edit_by_teachers) && $CFG->sloodle_allow_user_edit_by_teachers == 'true') $canedit = true;
-    
     
     // These are localization strings used by the deletion confirmation form
     $form_yes = get_string('Yes', 'sloodle');
@@ -99,16 +106,7 @@
     $deletemsg = '';    
     if ($deletesloodleentry != NULL) {
         // Determine if the user is allowed to delete this entry
-        $allowdelete = FALSE;
-        // Admins are always allowed to delete
-        if (isadmin()) $allowdelete = TRUE;
-        else {
-            // A Moodle user can delete their own entry
-            $deleterecord = get_record('sloodle_users', 'id', $deletesloodleentry);
-            if ($deleterecord !== FALSE) {
-                $allowdelete = ($deleterecord->userid == $USER->id);
-            }
-        }
+        $allowdelete = $canedit; // Just go with the editing ability for now... will maybe change this later. -PRB
         
         // Has the deletion been confirmed?
         if ($userconfirmed == $form_yes) {
@@ -135,7 +133,7 @@
             // User needs to confirm deletion
             $confirmingdeletion = true;
             
-            $form_url = SLOODLE_WWWROOT."/view_user.php";
+            $form_url = SLOODLE_WWWROOT."/view/view_user.php";
             
             $deletemsg .= '<h3>'.get_string('delete','sloodle').' '.get_string('ID','sloodle').': '.$deletesloodleentry.'<br/>'.get_string('confirmdelete','sloodle').'</h3>';
             $deletemsg .= '<form action="'.$form_url.'" method="get">';
@@ -174,16 +172,24 @@
     // Get the localization strings
     $strsloodle = get_string('modulename', 'sloodle');
     $strsloodles = get_string('modulenameplural', 'sloodle');
+    $strunknown = get_string('unknown', 'sloodle');
+    $strminute = get_string('minute', 'sloodle');
+    $strminutes = get_string('minutes', 'sloodle');
+    $strhour = get_string('hour', 'sloodle');
+    $strhours = get_string('hours', 'sloodle');
+    $strday = get_string('day', 'sloodle');
+    $strdays = get_string('days', 'sloodle');
+    $strweek = get_string('week', 'sloodle');
+    $strweeks = get_string('weeks', 'sloodle');
+
     
     // Construct the breadcrumb links
     $navigation = "";
     if ($courseid != 1) $navigation .= "<a href=\"$courseurl\">$courseshortname</a> -> ";
-    $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view_users.php?course=$courseid\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
+    $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view/view_users.php?course=$courseid\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
     if ($moodleuserid > 0) {
         if ($moodleuserdata) $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
         else $navigation .= get_string('unknownuser','sloodle');
-    } else if ($moodleuserid == 0) {
-        $navigation.= get_string('unlinkedsloodleentries', 'sloodle');
     } else {
         $navigation.= get_string('allentries', 'sloodle');
     }
@@ -233,17 +239,6 @@
         }
         echo '</p>';
         
-    } else if ($moodleuserid == 0) {
-        // Unlinked users - describe what this means
-        echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('unlinkedsloodleentries','sloodle').'</span><br/>';
-        echo '<center><p style="width:550px; text-align:left;">'.get_string('unlinkedsloodleentries:desc', 'sloodle').'</p></center>';
-        
-        // Check to see if there are no entries
-        if ($numsloodleentries == 0) {
-            echo '<span style="color:red; font-weight:bold;">';
-            print_string('noentries', 'sloodle');
-            echo '</span>';
-        }
     } else {
         // Assume we're getting all entries - explain what this means
         echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('allentries','sloodle').'</span><br/>';
@@ -264,7 +259,7 @@
                                         get_string('linkedtomoodleusernum', 'sloodle'),
                                         get_string('avatarname', 'sloodle'),
                                         get_string('avataruuid', 'sloodle'),
-                                        get_string('loginzoneposition', 'sloodle'),
+                                        get_string('lastonlinesl', 'sloodle'),
                                         ''
                                     );
         $sloodletable->align = array('center', 'center', 'left', 'left', 'left', 'left');
@@ -295,51 +290,51 @@
             
             // If we are in 'all entries' mode, add a link to the Sloodle user profile
             if ($allentries) {
-                $curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id={$su->userid}&amp;course=$courseid\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
+                $curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$su->userid}&amp;course=$courseid\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
             }
             
             // Add them to the table
             $line[] = $curavname;
             $line[] = $curuuid; 
             
-            // Display the LoginZone status
-            // Is there LoginZone position information in this entry?
-            if (!empty($su->loginposition)) {
-                // Has the LoginZone position expired?
-                if ((int)($su->loginpositionexpires) < time()) {
-                    // Expired
-                    $line[] = '<span style="color:#dd0000;">'.get_string('expired', 'sloodle').'</span>';
+            // Do we know when the avatar was last online in SL?
+            if (!empty($su->lastonline)) {
+                // Calculate the time difference
+                $difference = time() - (int)$su->lastonline;
+                
+                // Assume first that the user is online now
+                // (Updates can easily take a minute or so... ignore anything less than 1 minute)
+                $duration = '';
+                if ($difference < 60) {
+                    $duration = ucwords(get_string('now', 'sloodle'));
+                } else if ($difference < 119) { // < 2 minutes
+                    $duration = "1 $strminute";
+                } else if ($difference < 3600) { // < 1 hour
+                    $duration = (string)(int)($difference / 60)." $strminutes";
+                } else if ($difference < 7200) { // < 2 hours
+                    $duration = "1 $strhour";
+                } else if ($difference < 86400) { // < 1 day
+                    $duration = (string)(int)($difference / 3600)." $strhours";
+                } else if ($difference < 172800) { // < 2 days
+                    $duration = "1 $strday";
+                } else if ($difference < 604800) { // < 1 week
+                    $duration = (string)(int)($difference / 86400)." $strdays";
+                } else if ($difference < 1209600) { // < 2 weeks
+                    $duration = "1 $strweek";
                 } else {
-                    // Still active - calculate how long until expiry
-                    $timeleft = (int)$su->loginpositionexpires - time();
-                    $secondsleft = $timeleft % 60;
-                    $minutesleft = (int)(($timeleft - $secondsleft) / 60);
-                    $expiretext = "(".get_string('expiresin','sloodle').' ';
-                    if ($minutesleft > 1) $expiretext .= $minutesleft.' '.get_string('minutes','sloodle');
-                    else if ($minutesleft == 1) $expiretext .= '1 '.get_string('minute','sloodle');
-                    if ($secondsleft > 1) $expiretext .= ' '.$secondsleft.' '.get_string('seconds','sloodle');
-                    else $expiretext .= ' 1 '.get_string('second','sloodle');
-                    $expiretext .= ')';
-
-                    // If there has been a loginzone region stored explicitly for this user, then use it
-                    // Otherwise, get the configuration setting
-                    if (empty($su->loginpositionregion)) $lpregion = sloodle_get_config('sloodle_loginzone_region');
-                    else $lpregion = $su->loginpositionregion;
-                    // Construct the link
-                    $loginpos = sloodle_vector_to_array($su->loginposition);
-                    $loginurl = "secondlife://$lpregion/{$loginpos['x']}/{$loginpos['y']}/{$loginpos['z']}";
-                    $logincaption = get_string('loginzone:teleport','sloodle');
-                    $logintext = get_string('allocated','sloodle');
-                    $line[] = "<a href=\"$loginurl\" title=\"$logincaption\">$logintext</a> $expiretext";
-                }                
+                    $duration = (string)(int)($difference / 604800)." $strweeks";
+                }
+                
+                // Add it to the table
+                $line[] = $duration;
             } else {
-                $line[] = '-';
+                $line[] = '('.$strunknown.')';
             }
             
             // Display the "delete" action
             if ($canedit) {
-                if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=all&amp;course=$courseid&amp;delete={$su->id}";
-                else $deleteurl = $CFG->wwwroot."/mod/sloodle/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
+                if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view/view_user.php?id=all&amp;course=$courseid&amp;delete={$su->id}";
+                else $deleteurl = $CFG->wwwroot."/mod/sloodle/view/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
                 $deletecaption = get_string('clicktodeleteentry','sloodle');
                 $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
                 

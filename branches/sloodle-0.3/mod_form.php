@@ -154,14 +154,12 @@ class mod_sloodle_mod_form extends moodleform_mod {
         }
 
 //-------------------------------------------------------------------------------
-        // This adds the group options. We may or may not want to use this.
-        // E.g. it might be useful to restrict access to a Distributor to a single group.
-		$this->standard_coursemodule_elements();
+        // Add the standard course module elements, except the group stuff (as Sloodle doesn't support it)
+		$this->standard_coursemodule_elements(false);
         
 //-------------------------------------------------------------------------------
         // Form buttons
         $this->add_action_buttons();
-
 	}
 
     /**

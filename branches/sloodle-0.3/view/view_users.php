@@ -22,9 +22,9 @@
     // Note: this page is accessible only by teachers and administrators
        
     /** Sloodle/Moodle configuration. */
-    require_once('config.php');
+    require_once('../sl_config.php');
     /** General Sloodle functionality. */
-    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Enforce login
     require_login();
@@ -101,7 +101,7 @@
             $line = array();
             
             // Construct a URL to this user's Sloodle profile data
-            $url = SLOODLE_WWWROOT."/view_user.php?id={$u->id}&amp;course=$courseid";
+            $url = SLOODLE_WWWROOT."/view/view_user.php?id={$u->id}&amp;course=$courseid";
             
             // Add the ID and Moodle name to the line
             $line[] = $u->id;
@@ -163,7 +163,7 @@
     
     echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';
     
-    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
     echo '<span style="font-weight:bold;">'.get_string('changecourse','sloodle').'</span><br/>';
     
     echo '<select name="course" size="1">';
@@ -194,7 +194,7 @@
     // SEARCH FORM //
     echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';    
     
-    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view_users.php\" method=\"get\">";
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
     echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
     echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
     
@@ -214,11 +214,7 @@
     echo '<span style="font-weight:bold;">'.get_string('specialpages','sloodle').'</span><br/>';
     
     echo '<p>';
-    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=0\" title=\"".get_string('viewunlinked','sloodle')."\">";
-    print_string('viewunlinked','sloodle');
-    echo '</a><br/>';
-    
-    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_user.php?id=all\" title=\"".get_string('viewall','sloodle')."\">";
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id=all\" title=\"".get_string('viewall','sloodle')."\">";
     print_string('viewall','sloodle');
     echo '</a><br/>';
     echo '</p>';
