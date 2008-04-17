@@ -66,8 +66,8 @@
     }
     
     // Get the Sloodle course data
-    $sloodlecourse = new SloodleCourse();
-    $sloodlecourse->load($cm->course);
+    $sloodle_course = new SloodleCourse();
+    if (!$sloodle_course->load($course)) error(get_string('failedcourseload','sloodle'));
     
     // Ensure that the user is logged-in for this course
     require_course_login($course, true, $cm);
@@ -109,13 +109,19 @@
     echo "<div style=\"text-align:right; font-size:80%;\">\n";
     
     // Link to own avatar profile
-    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">View my avatar details</a><br>\n";
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">".get_string('viewmyavatar', 'sloodle')."</a><br>\n";
+    // Link to user management
+    if (has_capability('moodle/user:viewdetails', $course_context)) {
+        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$course->id}\">".get_string('sloodleuserprofiles', 'sloodle')."</a><br>\n";
+    }
     
     // Course information
-    if (empty($sloodlecourse->autoreg)) {
-        echo "This course does not allow auto-registration<br>";
+    if (!sloodle_autoreg_enabled_site()) {
+        echo '<span style="color:red;">'.get_string('autoreg:disabled','sloodle')."</span><br>\n";
+    } else if ($sloodle_course->get_autoreg()) {
+        echo '<span style="color:green;">'.get_string('autoreg:courseallows','sloodle')."</span><br>\n";
     } else {
-        echo "This course allows auto-registration<br>";
+        echo '<span style="color:red;">'.get_string('autoreg:coursedisallows','sloodle')."</span><br>\n";
     }
     
     // Display the link for editing course settings
@@ -132,7 +138,7 @@
     // Check access
 
     // If the module is hidden, then can the user still view it?
-    if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $context)) {
+    if (empty($cm->visible) and !has_capability('moodle/course:viewhiddenactivities', $module_context)) {
         // No - issue a notice
         notice(get_string("activityiscurrentlyhidden"));
     }

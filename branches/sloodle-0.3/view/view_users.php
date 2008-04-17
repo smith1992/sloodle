@@ -70,6 +70,95 @@
     // Open the main body section
     echo '<div style="text-align:center;padding-left:8px;padding-right:8px;">';
     
+    
+//------------------------------------------------------
+    
+    print_box_start('generalbox boxwidthwide boxaligncenter');
+    echo '<table style="text-align:left; vertical-align:top; margin-left:auto; margin-right:auto;">';
+// // SEARCH FORMS // //
+    echo '<tr>';
+
+    // COURSE SELECT FORM //
+    echo '<td style="width:350px; border:solid 1px #bbbbbb; padding:4px; vertical-align:top; width:33%;">';
+    
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
+    echo '<span style="font-weight:bold;">'.get_string('changecourse','sloodle').'</span><br/>';
+    
+    echo '<select name="course" size="1">';
+    
+    // Get a list of all courses
+    $allcourses = get_courses('all', 'c.shortname', 'c.id, c.shortname, c.fullname');
+    if (!$allcourses) $allcourses = array();
+    foreach ($allcourses as $as) {
+        // Get if the user is a teacher on this course
+        if (isteacher($as->id)) {
+            // Output this as an option
+            echo "<option value=\"{$as->id}\"";
+            if ($as->id == $courseid) echo "selected";
+            echo ">{$as->fullname}</option>";
+        }
+    }    
+    echo '</select><br/>';
+    
+    echo '<input type="checkbox" value="true" name="sloodleonly"';
+    if ($sloodleonly) echo "checked";
+    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
+    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
+    
+    echo '</form>';
+    
+    echo '</td>';
+    
+    // USER SEARCH FORM //
+    echo '<td style="width:350px; border:solid 1px #bbbbbb; padding:4px; vertical-align:top; width:33%;">';    
+    
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
+    echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
+    echo '<input type="hidden" value="'.$courseid.'" name="course"/>';
+    echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
+    
+    echo '<input type="checkbox" value="true" name="sloodleonly"';
+    if ($sloodleonly) echo "checked";
+    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
+    
+    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
+    echo '</form>';
+    
+    echo '</td>';
+    
+    
+    
+    // AVATAR SEARCH //
+    echo '<td style="width:350px; border:solid 1px #bbbbbb; padding:4px; vertical-align:top; width:33%;">';
+    //echo '<span style="font-weight:bold;">'.get_string('specialpages','sloodle').'</span><br/>';
+    echo '<span style="font-weight:bold;">'.get_string('avatarsearch','sloodle').'</span><br/>';
+    
+    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php\" method=\"get\">";
+    echo '<input type="hidden" value="search" name="id"/>';
+    echo '<input type="hidden" value="'.$courseid.'" name="course"/>';
+    echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
+    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
+    echo '</form>';
+    
+    echo '<p>';
+    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id=all\" title=\"".get_string('viewall','sloodle')."\">";
+    print_string('viewall','sloodle');
+    echo '</a><br/>';
+    echo '</p>';
+    
+    echo '</td>';
+    
+    
+    
+// // - END FORMS - // //
+    echo '</tr>';
+    echo '</table>';
+    print_box_end();
+
+    
+//------------------------------------------------------
+
+    
     // Are we searching for users?
     if ($searchstr != NULL)
     {
@@ -77,6 +166,8 @@
         echo '<br/><span style="font-size:16pt; font-weight:bold;">'.get_string('usersearch','sloodle').': '.$searchstr.'</span><br/><br/>';
         // Search the list of users
         $userlist = get_users(true, $searchstr);
+        
+        
     } else {
         // Getting all users in a course
         // Display the name of the course
@@ -153,79 +244,6 @@
     echo '</div>';
     
     
-
-    
-    echo '<br/><center><table style="text-align:left; vertical-align:top;">';
-// // SEARCH FORMS // //
-    echo '<tr>';
-
-    // COURSE SELECT FORM //
-    
-    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';
-    
-    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
-    echo '<span style="font-weight:bold;">'.get_string('changecourse','sloodle').'</span><br/>';
-    
-    echo '<select name="course" size="1">';
-    
-    // Get a list of all courses
-    $allcourses = get_courses('all', 'c.shortname', 'c.id, c.shortname, c.fullname');
-    if (!$allcourses) $allcourses = array();
-    foreach ($allcourses as $as) {
-        // Get if the user is a teacher on this course
-        if (isteacher($as->id)) {
-            // Output this as an option
-            echo "<option value=\"{$as->id}\"";
-            if ($as->id == $courseid) echo "selected";
-            echo ">{$as->fullname}</option>";
-        }
-    }    
-    echo '</select><br/>';
-    
-    echo '<input type="checkbox" value="true" name="sloodleonly"';
-    if ($sloodleonly) echo "checked";
-    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
-    
-    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
-    echo '</form>';
-    
-    echo '</td>';
-    
-    // SEARCH FORM //
-    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';    
-    
-    echo "<form action=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php\" method=\"get\">";
-    echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
-    echo '<input type="text" value="'.$searchstr.'" name="search" size="30" maxlength="30"/><br/>';
-    
-    echo '<input type="checkbox" value="true" name="sloodleonly"';
-    if ($sloodleonly) echo "checked";
-    echo '/>'.get_string('showavatarsonly','sloodle').'<br/>';
-    
-    echo '<input type="submit" value="'.get_string('submit','sloodle').'" />';
-    echo '</form>';
-    
-    echo '</td>';
-    
-    
-    
-    // SPECIAL PAGES //
-    echo '<td style="width:350px; border:solid 1px #888888; padding:4px; vertical-align:top;">';
-    echo '<span style="font-weight:bold;">'.get_string('specialpages','sloodle').'</span><br/>';
-    
-    echo '<p>';
-    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id=all\" title=\"".get_string('viewall','sloodle')."\">";
-    print_string('viewall','sloodle');
-    echo '</a><br/>';
-    echo '</p>';
-    
-    echo '</td>';
-    
-    
-    
-// // - END FORMS - // //
-    echo '</tr>';
-    echo '</table></center>';
     
     // Close the main body section
     echo '</div>';

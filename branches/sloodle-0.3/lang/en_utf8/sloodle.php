@@ -15,12 +15,16 @@ $string['allentries:info'] = 'This lists all Sloodle user entries for the entire
 $string['autoreg'] = 'User Auto-Registration';
 $string['autoreg:allowforsite'] = 'Allow auto-registration for this site';
 $string['autoreg:allowforcourse'] = 'Allow auto-registration for this course';
+$string['autoreg:courseallows'] = 'This course allows auto-registration';
+$string['autoreg:coursedisallows'] = 'This course does not allow auto-registration';
+$string['autoreg:disabled'] = 'Auto-registration is disabled on this site';
 
 
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
 $string['avatarname'] = 'Avatar name';
 $string['avataruuid'] = 'Avatar UUID';
+$string['avatarsearch'] = 'Avatar Search';
 
 $string['backtosloodlesetup'] = 'Back to the Sloodle Setup page';
 
@@ -67,6 +71,7 @@ $string['failedupdate'] = 'Update failed.';
 $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account for you. Please try again.';
 $string['failedaddinstance'] = 'Failed to add a new Sloodle module instance.';
 $string['failedaddsecondarytable'] = 'Failed to add the secondary table for the Sloodle module instance.';
+$string['failedcourseload'] = 'Failed to load Sloodle course data.';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
 
@@ -143,6 +148,9 @@ $string['objectuuid'] = 'Object UUID';
 
 $string['or'] = 'or';
 
+$string['pendingavatars'] = 'Pending Avatars';
+$string['pendingavatars:info'] = 'Thes';
+
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long.';
@@ -199,8 +207,6 @@ $string['submit'] = 'Submit';
 
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
-$string['unlinkedsloodleentries'] = 'Unlinked Sloodle User Entries';
-$string['unlinkedsloodleentries:desc'] = 'These are entries in the Sloodle users table which are not linked to a particular Moodle account. When in-world registration tools are used, temporary entries like this are created until the user logs into Moodle to authenticate themselves. Only delete entries if they have been lingering for a long time, or you suspect them of causing problems.';
 
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
@@ -208,8 +214,9 @@ $string['usersearch'] = 'User search';
 
 $string['uuid'] = 'UUID';
 
-$string['viewunlinked'] = 'View unlinked Sloodle entries';
+$string['viewpending'] = 'View pending avatars';
 $string['viewall'] = 'View all Sloodle entries';
+$string['viewmyavatar'] = 'View my avatar details';
 
 $string['welcometosloodle'] = 'Welcome to Sloodle';
 $string['week'] = 'week';

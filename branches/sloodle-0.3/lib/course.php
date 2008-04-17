@@ -118,7 +118,7 @@
         function check_autoreg()
         {
             // Check the site *and* the course value
-            return (sloodle_autoreg_enabled_site() && $this->sloodle_course_data->autoreg);
+            return ((bool)sloodle_autoreg_enabled_site() && (bool)$this->sloodle_course_data->autoreg);
         }
         
         /**

@@ -94,6 +94,24 @@
             return $this->user_data->id;
         }
         
+        /**
+        * Determines whether or not an avatar is loaded.
+        * @return bool
+        */
+        function is_avatar_loaded()
+        {
+            return isset($this->avatar_data);
+        }
+        
+        /**
+        * Determines whether or not a VLE user is loaded.
+        * @return bool
+        */
+        function is_user_loaded()
+        {
+            return isset($this->user_data);
+        }
+        
         
         /**
         * Gets the UUID of the avatar
@@ -318,6 +336,7 @@
         
         /**
         * Adds a new avatar to the database, and link it to the specified user.
+        * If successful, it deletes any matching avatar details from pending users list.
         * @param mixed $userid Site-wide unique ID of a user (type depends on VLE; integer for Moodle)
         * @param string $uuid UUID of the avatar
         * @param string $avname Name of the avatar
@@ -340,6 +359,9 @@
                 return false;
             }
             
+            // Delete any pending avatars with the same details
+            delete_records('sloodle_pending_users', 'uuid', $uuid, 'avname', $avname);
+            
             return true;
         }
         
@@ -351,7 +373,7 @@
         * @return bool True if successful, or false if not.
         * @access public
         */
-        function add_unlinked_avatar($uuid, $avname, $timestamp = null)
+        function add_pending_avatar($uuid, $avname, $timestamp = null)
         {
             // Setup the timestamp
             if ($timestamp == null) $timestamp = time();
@@ -364,7 +386,7 @@
             $pending_avatar->timeupdated = $timestamp;
             
             // Add the data to the database
-            $this->avatar_data->id = insert_record('sloodle_pending_avatars', $pending_avatar);
+            $pending_avatar->id = insert_record('sloodle_pending_avatars', $pending_avatar);
             if (!$pending_avatar->id) {
                 return false;
             }
@@ -377,7 +399,7 @@
         * Auto-register a new user account for the current avatar.
         * NOTE: this does NOT respect ANYTHING but the most basic Moodle accounts.
         * Use at your own risk!
-        * @return bool True if successful, or false otherwise.
+        * @return string|bool The new password (plaintext) if successful, or false if not
         * @access public
         */
         function autoregister_avatar_user()
@@ -387,8 +409,8 @@
             $this->user_data = null;
             
             // Construct a basic username
-            $nameparts = strtok($this->avatar_data->avname, " \n\t\v");
-            $baseusername = striptags(stripslashes(implode('', $nameparts)));
+            $nameparts = explode(' ', $this->avatar_data->avname);
+            $baseusername = strip_tags(stripslashes(implode('', $nameparts)));
             $username = $baseusername;
             $conflict_moodle = record_exists('user', 'username', $username);
             
@@ -412,19 +434,20 @@
             // Stop if we haven't found a unique name
             if ($conflict_moodle) return false;
             
-            // Looks we got an OK username
+            // Looks like we got an OK username
             // Generate a random password
             $plain_password = sloodle_random_web_password();
-            $password = hash_internal_user_password($plain_password);
             
             // Create the new user
-            $this->user_data = create_user_record($username, $password);
+            $this->user_data = create_user_record($username, $plain_password);
             if (!$this->user_data) {
                 $this->user_data = null;
                 return false;
             }
+            // Get the complete user data again, so that we have the password this time
+            $this->user_data = get_complete_user_data('id', $this->user_data->id);
             
-            // Attempt to the first and last names of the avatar
+            // Attempt to use the first and last names of the avatar
             $this->user_data->firstname = $nameparts[0];
             if (isset($nameparts[1])) $this->user_data->lastname = $nameparts[1];
             else $this->user_data->lastname = $nameparts[0];
@@ -432,7 +455,11 @@
             // Attempt to update the database (we don't really care if this fails, since everything else will have worked)
             update_record('user', $this->user_data);
             
-            return true;
+            // Now link the avatar to this account
+            $this->avatar_data->userid = $this->user_data->id;
+            update_record('sloodle_users', $this->avatar_data);
+            
+            return $plain_password;
         }
        
         /**
@@ -506,6 +533,8 @@
         {
             // Make sure we have user data
             if (empty($this->user_data)) return array();
+            // If it is the guess user, then they are not enrolled at all
+            if (isguestuser($this->user_data->id)) return array();            
             
             // Convert the category ID as appropriate
             if ($category == null || $category < 0 || !is_int($category)) $category = 0;
@@ -517,9 +546,10 @@
             $courses = get_courses($category);
             // Go through each course
             foreach ($courses as $course) {
-                // Check if the user can view this course
-                //!has_capability('moodle/legacy:guest', $context, NULL, false)
-                if (has_capability('moodle/course:view', get_context_instance(CONTEXT_COURSE, $course->id), $this->user_data->id)) {
+                // Check if the user can view this course and is not a guest in it.
+                // (Note: the site course is always available to all users.)
+                $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
+                if ($course->id == SITEID || (has_capability('moodle/course:view', $course_context, $this->user_data->id) && !has_capability('moodle/legacy:guest', $course_context, $this->user_data->id, false))) {
                     $sc = new SloodleCourse();
                     $sc->load($course);
                     $usercourses[] = $sc;
@@ -569,7 +599,7 @@
         * @access public
         * @todo Update to match parameter format and handling of {@link enrol()} function.
         */
-        function user_enrolled($courseid)
+        function is_enrolled($courseid)
         {
             global $USER;
             // Attempt to log-in the user
@@ -583,8 +613,9 @@
             load_all_capabilities();
             
             // Check if the user can view the course, and does not simply have guest access to it
-            //return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false));
-            return has_capability('moodle/course:view', $context);
+            // Allow the site course
+            return ($courseid == SITEID || (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)));
+            //return has_capability('moodle/course:view', $context);
         }
         
         /**
@@ -608,10 +639,6 @@
                 $sloodle_course = $this->_session->course;
             }
             
-            // Make sure auto-registration is enabled for this site/course, and that the controller (if applicable) is enabled
-            //if (!$sloodle_course->check_autoreg()) return false;
-            //if (!empty($sloodle_course->controller) && !$sloodle_course->controller->is_enabled()) return false;
-            
             // NOTE: much of this stuff was lifted from the Moodle 1.8 "course/enrol.php" script
             
             // Fetch the Moodle course data, and a course context
@@ -624,6 +651,10 @@
             // Check if the user can view the course, and does not simply have guest access to it
             // (No point trying to enrol somebody if they are already enrolled!)
             if (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)) return true;
+            
+            // Make sure auto-registration is enabled for this site/course, and that the controller (if applicable) is enabled
+            if (!$sloodle_course->check_autoreg()) return false;            
+            
             // Can't enrol users on meta courses or the site course
             if ($course->metacourse || $course->id == SITEID) return false;
             
@@ -637,7 +668,6 @@
                     }
                 }
             }
-            
             // Make sure the course is enrollable
             if (!$course->enrollable ||
                     ($course->enrollable == 2 && $course->enrolstartdate > 0 && $course->enrolstartdate > time()) ||
@@ -645,7 +675,6 @@
             ) {
                 return false;
             }
-            
             
             // Finally, after all that, enrol the user
             if (!enrol_into_course($course, $USER, 'manual')) return false;

@@ -23,7 +23,7 @@
     
     //
     // This script requires the following paramter:
-    //  id = the ID number of a Moodle user, or 0 for unlinked entries, or 'all' for all Sloodle entries
+    //  id = the ID number of a Moodle user, 'all' for all Sloodle entries, 'search' to search avatars by name/uuid, or 'pending' to list pending (unlinked) avatars
     //
     // The following parameter should be specified when a Sloodle entry is to be deleted:
     //  delete = ID number the Sloodle entry to be deleted
@@ -32,6 +32,9 @@
     //
     // Optionally, the following parameter can also be specified. It defaults to the site if unspecified:
     //  course = ID of a Moodle course
+    //
+    // In order to search for avatars, the following parameter is required:
+    //  search = a term to search for (avatar name/uuid)
 
 
     /** Sloodle/Moodle configuration. */
@@ -52,16 +55,21 @@
     $deletesloodleentry = optional_param('delete', NULL, PARAM_INT);
     $userconfirmed = optional_param('confirm', NULL, PARAM_RAW);
     $courseid = optional_param('course', 1, PARAM_INT);
+    $searchstr = addslashes(optional_param('search', '', PARAM_TEXT));
     
-    // Are we showing all entries?
+    // Check the mode: all, search, pending, or single
     $allentries = false;
+    $searchentries = false;
     if (strcasecmp($moodleuserid, 'all') == 0) {
         $allentries = true;
+        $moodleuserid = -1;
+    } else if (strcasecmp($moodleuserid, 'search') == 0) {
+        $searchentries = true;
         $moodleuserid = -1;
     } else {
         // Make sure the Moodle user ID is an integer
         $moodleuserid = (integer)$moodleuserid;
-        if ($moodleuserid <= 0) exit(ucwords(get_string('unknownuser', 'sloodle')));
+        if ($moodleuserid <= 0) error(ucwords(get_string('unknownuser', 'sloodle')));
     }
     
     
@@ -152,12 +160,17 @@
         }
     }
     
-    // Are we getting all entries?
+    // Are we getting all entries, searching, or just viewing one?
     if ($allentries) {
-        // Yes
+        // All entries
         $moodleuserdata = null;
         // Fetch a list of all Sloodle user entries
         $sloodleentries = get_records('sloodle_users');
+    } else if ($searchentries && !empty($searchstr)) {
+        // Search entries
+        $moodleuserdata = null;
+        $LIKE = sql_ilike();
+        $sloodleentries = get_records_select('sloodle_users', "`avname` $LIKE '%$searchstr%' OR `uuid` $LIKE '%$searchstr%'", '`avname`');
     } else {
         // Attempt to fetch the Moodle user data
         $moodleuserdata = get_record('user', 'id', $moodleuserid);
@@ -239,8 +252,18 @@
         }
         echo '</p>';
         
+    } else if ($searchentries) {
+        // Searching for users
+        echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('avatarsearch','sloodle').": \"$searchstr\"</span><br/><br/>";
+        // Check to see if there are no entries
+        if ($numsloodleentries == 0) {
+            echo '<span style="color:red; font-weight:bold;">';
+            print_string('noentries', 'sloodle');
+            echo '</span>';
+        }
+        
     } else {
-        // Assume we're getting all entries - explain what this means
+        // Assume we're listing all entries - explain what this means
         echo '<span style="font-size:18pt; font-weight:bold; ">'.get_string('allentries','sloodle').'</span><br/>';
         echo '<center><p style="width:550px; text-align:left;">'.get_string('allentries:info', 'sloodle').'</p></center>';
         
@@ -250,7 +273,7 @@
             print_string('noentries', 'sloodle');
             echo '</span>';
         }
-    }    
+    }
     
     // Construct and display a table of Sloodle entries
     if ($numsloodleentries > 0) {
@@ -288,8 +311,8 @@
             if (!empty($su->avname)) $curavname = $su->avname;
             if (!empty($su->uuid)) $curuuid = $su->uuid;
             
-            // If we are in 'all entries' mode, add a link to the Sloodle user profile
-            if ($allentries) {
+            // If we are in all or searching mode, add a link to the Sloodle user profile
+            if ($allentries || $searchentries) {
                 $curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$su->userid}&amp;course=$courseid\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
             }
             

@@ -235,10 +235,120 @@
             return true;
         }
         
-        /**
-        * Verify user access to the resources.
         
+        /**
+        * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
+        * Attempts auto-registration/enrolment if that is allowed.
+        * @param bool $require If true, the script will be terminated with an error message if validation fails
+        * @param bool $suppress_autoreg If true, autoregistration will be completely suppressed for this function call
+        * @return bool Returns true is validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
         */
+        function validate_user($require = true, $suppress_autoreg = false)
+        {
+        // REGISTRATION //
+        
+            // Make sure a the course is loaded
+            if (!$this->course->is_loaded()) {
+                if ($require) {
+                    $this->response->quick_output(-511, 'COURSE', 'Cannot validate user - no course data loaded.', false);
+                    exit();
+                }
+                return false;
+            }
+        
+            // Is the user already loaded?
+            if (!$this->user->is_avatar_linked())
+            {
+                // Ensure autoreg is not suppressed, and that it is permitted on that course and on the site
+                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
+                    if ($require) {
+                        $this->response->quick_output(-321, 'USER_AUTH', 'Auto-registration of users was not permitted', false);
+                        exit();
+                    }
+                    return false;
+                }
+                
+                // Make sure avatar details were provided
+                $uuid = $this->request->get_avatar_uuid(false);
+                $avname = $this->request->get_avatar_name(false);
+                // Is validation required?
+                if ($require) {
+                    // Check the UUID
+                    if (empty($uuid)) {
+                        $this->response->quick_output(-311, 'USER_AUTH', 'User UUID required', false);
+                        exit();
+                    }
+                    // Check the name
+                    if (empty($avname)) {
+                        $this->response->quick_output(-311, 'USER_AUTH', 'Avatar name required', false);
+                        exit();
+                    }
+                } else if (empty($uuid) || empty($avname)) {
+                    // If there was a problem, just stop
+                    return false;
+                }
+            
+                // Is there an avatar loaded?
+                if (!$this->user->is_avatar_loaded()) {
+                    // Add the avatar details, linked to imaginary user 0
+                    if (!$this->user->add_linked_avatar(0, $uuid, $avname)) {
+                        if ($require) {
+                            $this->response->quick_output(-322, 'USER_AUTH', 'Failed to add new avatar', false);
+                            exit();
+                        }
+                        return false;
+                    }
+                }
+                
+                // If we reached here then we definitely have an avatar
+                // Create a matching Moodle user
+                $password = $this->user->autoregister_avatar_user();
+                if ($password === FALSE) {
+                    if ($require) {
+                        $this->response->quick_output(-322, 'USER_AUTH', 'Failed to register new user account', false);
+                        exit();
+                    }
+                    return false;
+                }
+                
+                // Add a side effect code to our response data
+                $this->response->add_side_effect(322);
+                // The user needs to be notified of their new username/password
+                if (isset($_SERVER['HTTP_X_SecondLife_Object_Key'])) {
+                    sloodle_pending_login_notification($_SERVER['HTTP_X_SecondLife_Object_Key'], $this->user->user_data->get_username(), $password);
+                }
+            }
+            
+        // ENROLMENT //
+            
+            // Is the user already enrolled on the course?
+            if (!$this->user->is_enrolled($this->course->get_course_id())) {
+                // Ensure auto-enrolment is not suppressed, and that it is permitted on that course and on the site
+                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
+                    if ($require) {
+                        $this->response->quick_output(-421, 'USER_ENROL', 'Auto-enrolment of users was not permitted', false);
+                        exit();
+                    }
+                    return false;
+                }
+                
+                // Attempt to enrol the user
+                if (!$this->user->enrol()) {
+                    if ($require) {
+                        $this->response->quick_output(-422, 'USER_ENROL', 'Auto-enrolment failed', false);
+                        exit();
+                    }
+                    return false;
+                }
+                
+                // Add a side effect code to our response data
+                $this->response->add_side_effect(422);
+            }            
+            
+            return true;
+        }
+        
+        //... Add functions for verifying user access to resources
         
     }
 

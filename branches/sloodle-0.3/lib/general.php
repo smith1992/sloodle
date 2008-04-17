@@ -17,6 +17,8 @@
     // This library expects that the Sloodle config file has already been included
     //  (along with the Moodle libraries)
     
+    /** Include our email functionality. */
+    require_once(SLOODLE_LIBROOT.'/mail.php');
     
     
     /**
@@ -583,7 +585,41 @@
     }
     
     
+    /**
+    * Stores a pending login notification for an auto-registered user.
+    * A cron job will process the pending notification queue.
+    * @param string $destination Identifies the destination of the notification (for SL, this will be the object UUID. The send function will construct the email address)
+    * @param string $avatar Identifier for the avatar being notified
+    * @param string $username The username to notify the user of
+    * @param string $password The (plaintext) password to notify the user of
+    * @return bool True if successful, or false otherwise
+    */
+    function sloodle_pending_login_notification($destination, $avatar, $username, $password)
+    {
+        return false;
+        /*// If another pending notification already exists for the same username, then delete it
+        delete_records('pending_login_notifications', 'username', $username);
+        
+        // Add the new details
+        $notification = new stdClass();
+        $notification->destination = $destination;
+        $notification->username = $username;
+        $notification->password = $password;
+        return insert_record('pending_login_notifications', $notification);*/
+    }
     
+    /**
+    * Send a login notification.
+    * @param string $destination Identifies the destination of the notification (for SL, this will be the object UUID. The target email address will be constructed)
+    * @param string $avatar Identifier for the avatar being notified
+    * @param string $username The username to notify the user of
+    * @param string $password The (plaintext) password to notify the user of
+    * @return bool True if successful, or false otherwise
+    */
+    function sloodle_send_login_notification($destination, $avatar, $username, $password)
+    {
+        sloodle_text_email_sl($destination, 'SLOODLE_LOGIN', "$avatar|{$CFG->wwwroot}|$username|$password");
+    }
     
     
 

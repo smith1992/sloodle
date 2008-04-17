@@ -884,17 +884,27 @@
         * Process all of the standard data provided by the HTTP request, and write it into our {@link SloodleSession} object.
         * Requires that a {@link SloodleSession} object was provided at construction, and is stored in the $_session member.
         * NOTE: this does not load the module part of the session. That must be done separately, using the {@link SloodleSession::load_module()} member function.
+        * @param bool $require_auth If true, then the function will terminate the script with an error message if it cannot authenticate the request through a course, controller and password
+        * @param bool $require_user If true, then the function will terminate the script with an error message if a legitimate user was not identified or could not be auto-registered
         * @return bool True if successful, or false otherwise.
         */
-        function process_request_data()
+        function process_request_data($require_auth = true, $require_user = true)
         {
             // Do we have a session object?
             if (!isset($this->_session)) return false;
             
             // Store the request descriptor
             $this->_session->response->set_request_descriptor($this->get_request_descriptor(false));
-            // Attempt to load course and controller details
-            $this->_session->course->load_by_controller($this->get_controller_id(false));            
+            // Attempt to load the controller, then the course
+            // (there is a shortcut, using course->load_by_controller(), 
+            //  however, that makes it harder to locate problems)
+            if ($this->_session->course->controller->load( $this->get_controller_id(false) )) {
+                // Got the controller... now the course
+                $this->_session->course->load( $this->_session->course->controller->get_course_id() );
+            } else {
+                // Perhaps a course was specified in the request instead?
+                $this->_session->course->load( $this->get_course_id(false) );
+            }
             
             // Get the avatar details
             $uuid = $this->get_avatar_uuid(false);
@@ -912,8 +922,6 @@
             
             // If we now have a UUID, then add it to our response data
             if (!empty($uuid)) $this->_session->response->set_avatar_uuid($uuid);
-            
-            // 
             
             $this->request_data_processed = true;
             return true;
