@@ -238,12 +238,13 @@
         
         /**
         * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
-        * Attempts auto-registration/enrolment if that is allowed.
+        * Attempts auto-registration/enrolment if that is allowed. Also logs-in the user.
         * @param bool $require If true, the script will be terminated with an error message if validation fails
-        * @param bool $suppress_autoreg If true, autoregistration will be completely suppressed for this function call
+        * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
+        * @param bool $suppress_autoenrol If true, auto-enrolment will be completely suppressed for this function call
         * @return bool Returns true is validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
         */
-        function validate_user($require = true, $suppress_autoreg = false)
+        function validate_user($require = true, $suppress_autoreg = false, $suppress_autoenrol = false)
         {
         // REGISTRATION //
         
@@ -259,15 +260,6 @@
             // Is the user already loaded?
             if (!$this->user->is_avatar_linked())
             {
-                // Ensure autoreg is not suppressed, and that it is permitted on that course and on the site
-                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
-                    if ($require) {
-                        $this->response->quick_output(-321, 'USER_AUTH', 'Auto-registration of users was not permitted', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
                 // Make sure avatar details were provided
                 $uuid = $this->request->get_avatar_uuid(false);
                 $avname = $this->request->get_avatar_name(false);
@@ -285,6 +277,25 @@
                     }
                 } else if (empty($uuid) || empty($avname)) {
                     // If there was a problem, just stop
+                    return false;
+                }
+            
+                // Ensure autoreg is not suppressed, and that it is permitted on that course and on the site
+                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
+                    if ($require) {
+                        $this->response->quick_output(-321, 'USER_AUTH', 'Auto-registration of users was not permitted', false);
+                        exit();
+                    }
+                    return false;
+                }
+                
+                // It is important that we also check auto-enrolment here.
+                // If that is not enabled, but the call here requires it, then there is not point registering the user.
+                if ($suppress_autoenrol == true || $this->course->check_autoenrol() == false) {
+                    if ($require) {
+                        $this->response->quick_output(-421, 'USER_ENROL', 'Auto-enrolment of users was not permitted', false);
+                        exit();
+                    }
                     return false;
                 }
             
@@ -324,7 +335,7 @@
             // Is the user already enrolled on the course?
             if (!$this->user->is_enrolled($this->course->get_course_id())) {
                 // Ensure auto-enrolment is not suppressed, and that it is permitted on that course and on the site
-                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
+                if ($suppress_autoenrol == true || $this->course->check_autoenrol() == false) {
                     if ($require) {
                         $this->response->quick_output(-421, 'USER_ENROL', 'Auto-enrolment of users was not permitted', false);
                         exit();
@@ -343,9 +354,10 @@
                 
                 // Add a side effect code to our response data
                 $this->response->add_side_effect(422);
-            }            
+            }
             
-            return true;
+            // Make sure the user is logged-in
+            return ($this->user->login());
         }
         
         //... Add functions for verifying user access to resources

@@ -55,13 +55,17 @@
         global $SLOODLE_MODULE_CLASS;
         
         // Abort if the type is not recognised
-        if (!in_array($type, $SLOODLE_MODULE_CLASS)) return false;
+        if (!array_key_exists($type, $SLOODLE_MODULE_CLASS)) {
+            sloodle_debug("Module load failed - type \"$type\" not recognised.<br/>");
+            return false;
+        }
         // Construct the object, based on the class name in our array
         $module = new $SLOODLE_MODULE_CLASS[$type](&$_session);
         
         // Load the data from the database, if necessary
         if ($id != null) {
-            if ($module->load_from_db($id)) return $module;
+            if ($module->load($id)) return $module;
+            sloodle_debug("Failed to load module data from database with ID $id.<br/>");
             return false;
         }
         

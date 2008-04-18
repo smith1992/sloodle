@@ -12,6 +12,13 @@ $string['allocated'] = 'Allocated';
 $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 
+$string['autoenrol'] = 'User Auto-Enrolment';
+$string['autoenrol:allowforsite'] = 'Allow auto-enrolment for this site';
+$string['autoenrol:allowforcourse'] = 'Allow auto-enrolment for this course';
+$string['autoenrol:courseallows'] = 'This course allows auto-enrolment';
+$string['autoenrol:coursedisallows'] = 'This course does not allow auto-enrolment';
+$string['autoenrol:disabled'] = 'Auto-enrolment is disabled on this site';
+
 $string['autoreg'] = 'User Auto-Registration';
 $string['autoreg:allowforsite'] = 'Allow auto-registration for this site';
 $string['autoreg:allowforcourse'] = 'Allow auto-registration for this course';
@@ -48,6 +55,8 @@ $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
 $string['controlaccess'] = 'You can control access to your courses by enabling or disabling the Sloodle Controllers';
+$string['courseconfig'] = 'Sloodle Course Configuration';
+$string['courseconfig:info'] = 'On this page, you can configure the Sloodle settings which affect your entire course. However, some of the settings may be disabled on your Moodle site by an administrator.<br/><br/><b>Please note:</b> auto-registration and auto-enrolment are not suitable for all Moodle installations. Please read the documentation about each one before enabling them.';
 $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
@@ -78,6 +87,7 @@ $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone alloca
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userediting'] = 'What is the risk?';
 $string['help:autoreg'] = 'What is auto-registration?';
+$string['help:autoenrol'] = 'What is auto-enrolment?';
 $string['help:versionnumbers'] = 'What do these numbers mean?';
 $string['help:multipleentries'] = 'Why are there multiple entries? What does it mean?';
 $string['hour'] = 'hour';
@@ -169,6 +179,7 @@ $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. M
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['sendobject'] = 'Send Object';
+$string['setting'] = 'Settings';
 $string['showavatarsonly'] = 'Only show accounts with Sloodle entries';
 
 $string['sloodle'] = 'Sloodle';

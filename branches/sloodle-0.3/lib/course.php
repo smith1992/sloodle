@@ -118,7 +118,7 @@
         function check_autoreg()
         {
             // Check the site *and* the course value
-            return ((bool)sloodle_autoreg_enabled_site() && (bool)$this->sloodle_course_data->autoreg);
+            return ((bool)sloodle_autoreg_enabled_site() && (bool)$this->get_autoreg());
         }
         
         /**
@@ -128,7 +128,7 @@
         */
         function get_autoreg()
         {
-            return (bool)$this->sloodle_course_data->autoreg;
+            return (!empty($this->sloodle_course_data->autoreg));
         }
         
         /**
@@ -150,6 +150,51 @@
         {
             $this->sloodle_course_data->autoreg = 0;
         }
+        
+        
+        
+        /**
+        * Is auto enrolment permitted on this site AND course?
+        * Takes into account the site-wide setting as well.
+        * @return bool
+        */
+        function check_autoenrol()
+        {
+            // Check the site *and* the course value
+            return ((bool)sloodle_autoenrol_enabled_site() && $this->get_autoenrol());
+        }
+        
+        /**
+        * Gets the auto enrolment value for this course only.
+        * (Ignores the site setting).
+        * @return bool
+        */
+        function get_autoenrol()
+        {
+            return (!empty($this->sloodle_course_data->autoenrol));
+        }
+        
+        /**
+        * Enables auto-enrolment for this course.
+        * NOTE: it may still be disabled at site-level.
+        * @return void
+        */
+        function enable_autoenrol()
+        {
+            $this->sloodle_course_data->autoenrol = 1;
+        }
+        
+        /**
+        * Disables auto-enrolment for this course.
+        * NOTE: does not affect the site setting.
+        * @return void
+        */
+        function disable_autoenrol()
+        {
+            $this->sloodle_course_data->autoenrol = 0;
+        }
+        
+        
         
         /**
         * Determines whether or not the course is available.

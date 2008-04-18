@@ -69,17 +69,7 @@
 	}
     
     /**
-    * Determines whether or not the global module configuration allows teachers to edit Sloodle user data.
-    * @return bool
-    */
-    function sloodle_teachers_can_edit_user_data()
-    {
-        return (bool)sloodle_get_config('sloodle_allow_user_edit_by_teachers');
-    }
-    
-    /**
     * Determines whether or not auto-registration is allowed for the site.
-    * 
     * @return bool True if auto-reg is allowed on the site, or false otherwise.
     */
     function sloodle_autoreg_enabled_site()
@@ -88,33 +78,14 @@
     }
     
     /**
-    * Determines whether or not auto-registration is enabled on a particular course.
-    * If auto-reg is disallowed for the site, then it is not allowed on any course.
-    *
-    * @param int $courseid Integer ID of the course to check. If <= 0 then the current $COURSE global is used.
-    * @return bool True if auto-reg is allowed and enabled for the course, or false otherwise.
+    * Determines whether or not auto-enrolment is allowed for the site.
+    * @return bool True if auto-enrolment is allowed on the site, or false otherwise.
     */
-    function sloodle_autoreg_enabled_course($courseid = 0)
+    function sloodle_autoenrol_enabled_site()
     {
-        // If the site disallows it, then the answer is always no
-        if (!sloodle_autoreg_enabled_site()) return false;
-        
-        // Do we have a course ID specified?
-        if ($courseid <= 0) {
-            global $COURSE;
-            if (empty($COURSE) || empty($COURSE->id)) return false;
-            $courseid = $COURSE->id;
-        }
-        
-        // Get the course data from Sloodle
-        $sloodlecoursedata = get_record('sloodle_course_data', 'courseid', $courseid);
-        // If we have no Sloodle data for the course, then by default auto-registration is not enabled
-        if (!$sloodlecoursedata) return false;
-        
-        // Is autoreg enabled?
-        return ($sloodlecoursedata->autoreg != 0);
+        return (bool)sloodle_get_config('sloodle_allow_autoenrol');
     }
-    
+
     /**
     * Sends an XMLRPC message into Second Life.
     * @param string $channel A string containing a UUID identifying the XMLRPC channel in SL to be used

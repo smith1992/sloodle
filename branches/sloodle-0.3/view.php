@@ -103,7 +103,7 @@
     
     
 //-----------------------------------------------------
-    // Quick links (top right of page)
+    // Quick links and other info (top right of page)
     
     // Open the section
     echo "<div style=\"text-align:right; font-size:80%;\">\n";
@@ -115,18 +115,27 @@
         echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$course->id}\">".get_string('sloodleuserprofiles', 'sloodle')."</a><br>\n";
     }
     
-    // Course information
+    // Auto-registration status
     if (!sloodle_autoreg_enabled_site()) {
-        echo '<span style="color:red;">'.get_string('autoreg:disabled','sloodle')."</span><br>\n";
+        echo '<span style="color:#aa0000;">'.get_string('autoreg:disabled','sloodle')."</span><br>\n";
     } else if ($sloodle_course->get_autoreg()) {
-        echo '<span style="color:green;">'.get_string('autoreg:courseallows','sloodle')."</span><br>\n";
+        echo '<span style="color:#008800;">'.get_string('autoreg:courseallows','sloodle')."</span><br>\n";
     } else {
-        echo '<span style="color:red;">'.get_string('autoreg:coursedisallows','sloodle')."</span><br>\n";
+        echo '<span style="color:#aa0000;">'.get_string('autoreg:coursedisallows','sloodle')."</span><br>\n";
+    }
+    
+    // Auto-enrolment status
+    if (!sloodle_autoenrol_enabled_site()) {
+        echo '<span style="color:#aa0000;">'.get_string('autoenrol:disabled','sloodle')."</span><br>\n";
+    } else if ($sloodle_course->get_autoenrol()) {
+        echo '<span style="color:#008800;">'.get_string('autoenrol:courseallows','sloodle')."</span><br>\n";
+    } else {
+        echo '<span style="color:#aa0000;">'.get_string('autoenrol:coursedisallows','sloodle')."</span><br>\n";
     }
     
     // Display the link for editing course settings
     if (has_capability('moodle/course:update', $course_context)) {
-        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?course={$course->id}\">Edit Sloodle course settings</a><br>\n";
+        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$course->id}\">Edit Sloodle course settings</a><br>\n";
     }
     
     

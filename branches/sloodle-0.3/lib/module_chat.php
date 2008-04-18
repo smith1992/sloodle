@@ -59,18 +59,27 @@
         * @param mixed $id The site-wide unique identifier for all modules. Type depends on VLE. On Moodle, it is an integer course module identifier ('id' field of 'course_modules' table)
         * @return bool True if successful, or false otherwise
         */
-        function load_from_db($id)
+        function load($id)
         {
             // Make sure the ID is valid
             if (!is_int($id) || $id <= 0) return false;
             
             // Fetch the course module data
-            if (!($this->cm = get_record('course_modules', 'id', $id))) return false;
+            if (!($this->cm = get_record('course_modules', 'id', $id))) {
+                sloodle_debug("Failed to load course module instance #$id.<br/>");
+                return false;
+            }
             // Make sure the module is visible
-            if (empty($cm->visible)) return false;
+            if ($this->cm->visible == 0) {
+                sloodle_debug("Error: course module instance #$id not visible.<br/>");
+                return false;
+            }
             
             // Load from the primary table: chat instance
-            if (!($this->moodle_chat_instance = get_record('chat', 'id', $this->cm->instance))) return false;
+            if (!($this->moodle_chat_instance = get_record('chat', 'id', $this->cm->instance))) {
+                sloodle_debug("Failed to load chatroom with instance ID #{$cm->instance}.<br/>");
+                return false;
+            }
             
             return true;
         }
@@ -90,28 +99,26 @@
             if (!$recs) return array();
             
             // We'll need to lookup all the user data.
-            // Cache the user records so we don't need to duplicate searches
+            // Cache the user records so we don't need to duplicate searches.
+            // This will be an associative array of user ID's to SloodleUser objects.
             $usercache = array();
-            
             
             // Prepare an array of chat message objects
             $chatmessages = array();
             // Go through each result
             foreach ($recs as $r) {
-                // We need to get the author's name
-                $author_name = '';
-                if (isset($usercache[$r->userid])) {
-                    // We already have the data cached
-                    $author_name = $usercache[$r->userid];
-                } else {
-                    // We need to lookup for more data
-                    $curuser = get_record('user', 'id', $r->userid);
-                    if (!$curuser) $usercache[$r->userid] = '???';
-                    else $usercache[$r->userid] = $curuser->firstname.' '.$curuser->lastname;
+                // Do we already have the current user cached?
+                if (!isset($usercache[$r->userid])) {
+                    // No - query the database
+                    $usercache[$r->userid] = new SloodleUser($this->_session);
+                    if ($usercache[$r->userid]->load_user($r->userid)) {
+                        // Attempt to load any linked avatar data too
+                        $usercache[$r->userid]->load_linked_avatar();
+                    }
                 }
                 
                 // Construct and add a message object
-                $chatmessages[] = new SloodleChatMessage($r->message, $author_name, (int)$r->userid, $r->timestamp);
+                $chatmessages[] = new SloodleChatMessage($r->id, $r->message, $usercache[$r->userid], $r->timestamp);
             }
             
             return $chatmessages;
@@ -125,52 +132,52 @@
         * If that is unavailable, then it will try to use the user currently 'logged-in' to the VLE (i.e. the $USER variable in Moodle).
         * If all else fails, it will attempt to attribute the message to the guest user.
         * @param string $message The text of the message.
-        * @param mixed $author ID of the author. Type depends on VLE.
+        * @param mixed $user The user who wrote the message -- either a VLE user ID or (preferably) a {@link SloodleUser} object. If null, then the user in the current SloodleSession object will be used. At that fails, then the guest user is used if possible.
         * @param int $timestamp Timestamp of the message. If omitted or <= 0 then the current timestamp is used
         * @return bool True if successful, or false otherwise
         */
-        function add_message($message, $author = null, $timestamp = null)
+        function add_message($message, $user = null, $timestamp = null)
         {
-            global $USER;
-            
             // Ignore empty messages
             if (empty($message)) return false;
             // Make sure the message is safe
             $message = addslashes(clean_text(stripslashes($message)));
             
-            // Is the author ID invalid?
-            if (!is_int($author) || $author <= 0) {
-                // Yes
-                $author = null;
-                
-                // Do we have a session parameter?
-                if (!is_null($this->_session)) {
-                    // Attempt to get the current Sloodle user data
-                    if (!is_null($this->_session->user) && $this->_session->user->get_user_id() > 0) {
-                        // Store it
-                        $author = $this->_session->user->get_user_id();
-                    }
-                }
-                
-                // Did that fail?
-                if (is_null($author)) {
-                    // Yes - try use to currently logged-in user
-                    if (isset($USER) && $USER->id > 0) {
-                        $author = $USER->id;
-                    } else {
-                        // Just use the guest account
-                        $guest = guest_user();
-                        $author = $guest->id;
-                    }
+            // We need to get the user ID for the message
+            $userid = 0;
+            
+            // Has a user object been provided?
+            if (is_object($user)) {
+                // Yes - grab the user ID
+                $userid = $user->get_user_id();
+            } else if ($user != null) {
+                // May be an ID
+                $userid = (int)$user;
+            }
+            
+            // Did we end up with a valid user ID?
+            if ((int)$userid <= 0) {
+                // No - do we have a user in the session parameter?
+                if (isset($this->_session->user)) {
+                    // Store the user ID
+                    $userid = $this->_session->user->get_user_id();
                 }
             }
+            
+            // Are we still lacking a valid user?
+            if ((int)$userid <= 0) {
+                // Yes - user the guest user
+                $guest = guest_user();
+                if ($guest) $userid = $guest->id;
+            }            
+            
             // Prepare the timestamp variable if necessary
             if (is_null($timestamp)) $timestamp = time();
             
             // Create a chat message record object
             $rec = new stdClass();
             $rec->chatid = $this->moodle_chat_instance->id;
-            $rec->userid = $author;
+            $rec->userid = $userid;
             $rec->message = $message;
             $rec->timestamp = $timestamp;
             // Attempt to insert the chat message
@@ -179,15 +186,12 @@
             
             // We successfully added a chat message
             // If possible, add an appropriate side effect code to our response
-            if (!is_null($this->_session)) {
+            if (isset($this->_session->response)) {
                 $this->_session->response->add_side_effect(10101);
             }
             
             return true;
         }
-        
-        
-        
         
         
     // ACCESSORS //
@@ -268,33 +272,41 @@
     {
         /**
         * Constructor - initialises members.
+        * @param mixed $id The ID of this message - type depends on VLE, but is typically an integer
         * @param string $message The chat message
-        * @param string $author_name The name of the author
-        * @param mixed $author_id The ID of the author
+        * @param SloodleUser $user The user who wrote the message
         * @param int $timestamp The timestamp of the message
         */
-        function SloodleChatMessage($message, $author_name, $author_id, $timestamp)
+        function SloodleChatMessage($id, $message, $user, $timestamp)
         {
+            $this->id = $id;
             $this->message = $message;
-            $this->author_name = $author_name;
-            $this->author_id = $author_id;
+            $this->user = $user;
             $this->timestamp = $timestamp;
         }
         
         /**
         * Accessor - set all members in a single call.
+        * @param mixed $id The ID of this message - type depends on VLE, but is typically an integer
         * @param string $message The chat message
-        * @param string $author_name The name of the author
-        * @param mixed $author_id The ID of the author
+        * @param SloodleUser $user The user who wrote the message
         * @param int $timestamp The timestamp of the message
         */
-        function set($message, $author_name, $author_id, $timestamp)
+        function set($id, $message, $user, $timestamp)
         {
+            $this->id = $id;
             $this->message = $message;
-            $this->author_name = $author_name;
-            $this->author_id = $author_id;
+            $this->user = $user;
             $this->timestamp = $timestamp;
         }
+        
+        /**
+        * The ID of the message.
+        * The type depends on the VLE, but typically is an integer.
+        * @var mixed
+        * @access public
+        */
+        var $id = 0;
     
         /**
         * The text of the message.
@@ -304,19 +316,11 @@
         var $message = '';
         
         /**
-        * Name of the message author.
-        * @var string
+        * The user who wrote this message.
+        * @var SloodleUser
         * @access public
         */
-        var $author_name = '';
-        
-        /**
-        * Unique ID of the message author.
-        * Type depends on VLE. In Moodle, it is an integer corresponding to the 'id' field of the 'user' table.
-        * @var mixed
-        * @access public
-        */
-        var $author_id = 0;
+        var $user = null;
         
         /**
         * Timestamp of the message.

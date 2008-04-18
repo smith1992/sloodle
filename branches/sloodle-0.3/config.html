@@ -19,8 +19,8 @@
     require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Attempt to get the configuration settings
-    $allow_user_edit_by_teachers = (sloodle_teachers_can_edit_user_data()) ? 1 : 0;
     $allow_autoreg = (sloodle_autoreg_enabled_site()) ? 1 : 0;
+    $allow_autoenrol = (sloodle_autoenrol_enabled_site()) ? 1 : 0;
 ?>
 
 
@@ -63,22 +63,6 @@
     </td>
 </tr>-->
 
-
-<!-- Sloodle User Editing -->
-<tr>
-    <td colspan="3" align="left">
-
-        <h3><?php print_string("sloodleuserediting", "sloodle"); ?> <?php echo helpbutton('user_editing', get_string('help:userediting','sloodle'), 'sloodle', true, false, '', true); ?></h3>
-        <p>
-         <?php
-            print_string("sloodleuserediting:allowteachers", "sloodle");
-            echo ': ';
-            choose_from_menu_yesno('allow_user_edit_by_teachers', $allow_user_edit_by_teachers );            
-         ?>
-        </p>
-    </td>
-</tr>
-
 <!-- Auto-registration -->
 <tr>
     <td colspan="3" align="left">
@@ -89,6 +73,21 @@
             print_string("autoreg:allowforsite", "sloodle");
             echo ': ';
             choose_from_menu_yesno('allow_autoreg', $allow_autoreg);
+         ?>
+        </p>
+    </td>
+</tr>
+
+<!-- Auto-registration -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string('autoenrol', 'sloodle'); ?> <?php echo helpbutton('auto_enrolment', get_string('help:autoenrol','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p>
+         <?php
+            print_string("autoenrol:allowforsite", "sloodle");
+            echo ': ';
+            choose_from_menu_yesno('allow_autoenrol', $allow_autoenrol);
          ?>
         </p>
     </td>

@@ -60,6 +60,17 @@
         }
     }
     
+    /**
+    * Outputs messages if in debug mode.
+    * @uses SLOODLE_DEBUG
+    * @param string $msg The debug message to output
+    * @return void
+    */
+    function sloodle_debug($msg)
+    {
+         if (SLOODLE_DEBUG) echo $msg;
+    }
+    
 //---------------------------------------------------------------------
     // Types of Sloodle module
     // These correspond to the "type" field in the "Sloodle" DB table

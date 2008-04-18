@@ -309,7 +309,8 @@
         function load_user($id)
         {
             // Make sure the ID is valid
-            if (!is_int($id) || $id <= 0) return false;
+            $id = (int)$id;
+            if ($id <= 0) return false;
             
             // Attempt to load the data
             $this->user_data = get_complete_user_data('id', $id);
@@ -317,6 +318,7 @@
                 $this->user_data = null;
                 return false;
             }
+
             
             return true;
         }
