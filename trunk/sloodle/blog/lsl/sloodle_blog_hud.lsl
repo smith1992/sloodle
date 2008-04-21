@@ -13,7 +13,8 @@
 
 // Version history:
 //
-// 1.2.1 - resolved bug in multi-part blogging causing stack/heap collision is subject was too lon
+// 1.2.2 - resolved another bug in multi-part blogging causing stack/heap collision with long subject
+// 1.2.1 - resolved bug in multi-part blogging causing stack/heap collision is subject was too long
 // 1.2 - multi-part blogging
 // 1.1 - added channel menu and "ready" display
 // 1.0 - updated to use new communications and avatar registration methods for Sloodle 0.2
@@ -550,8 +551,9 @@ state get_subject
             }
             
             // Store and display the blog subject
-            blogsubject = msg;
-            llMessageLinked(LINK_ALL_CHILDREN, 1, msg, NULL_KEY);
+            if (llStringLength(msg) <= 128) blogsubject = msg;
+            else blogsubject = llGetSubString(msg, 0, 127);
+            llMessageLinked(LINK_ALL_CHILDREN, 1, blogsubject, NULL_KEY);
 
             // Are we in confirmation mode?
             if (confirmationmode) {
@@ -719,23 +721,27 @@ state send
         
         // Update display to say "sending"
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_SENDING, NULL_KEY);
+        // Construct the body of the request
+        string msg = "sloodlepwd="+sloodlepwd+"&sloodleuuid="+(string)llGetOwner() +"&sloodleblogsubject="+llEscapeURL(blogsubject) + "&sloodleblogbody=" + blogbody;
         
-        // Copy the blog body so we can escape one of them for transmission
-        string blogbody_copy = blogbody;
+        // NO NEED FOR ESCAPE URL - all content is going into body of post
+        // This was causing stack/heap collisions.
+        
         // llEscapeURL currently returns at most 254 char len string. This means we need to do a horrible work around
-        string msg = "sloodlepwd="+sloodlepwd+"&sloodleuuid="+(string)llGetOwner() +"&sloodleblogsubject="+llEscapeURL(blogsubject) + "&sloodleblogbody=";
-        integer len = llStringLength(blogbody_copy);
-        integer i;
-        integer STEP = 84; // see http://www.lslwiki.com/lslwiki/wakka.php?wakka=llEscapeURL and comments
-        for (i=0;i<len;i+=STEP)
-        {
-            integer end = i + 83;
-            if (end > len)
-            {
-                end = len;
-            }
-            msg = msg + llEscapeURL(llGetSubString(blogbody_copy,i,end));
-        }
+        // Copy the blog body so we can escape one of them for transmission
+        //string blogbody_copy = blogbody;
+        //integer len = llStringLength(blogbody_copy);
+        //integer i;
+        //integer STEP = 84; // see http://www.lslwiki.com/lslwiki/wakka.php?wakka=llEscapeURL and comments
+        //for (i=0;i<len;i+=STEP)
+        //{
+        //   integer end = i + 83;
+        //    if (end > len)
+        //    {
+        //        end = len;
+        //    }
+        //    msg = msg + llEscapeURL(llGetSubString(blogbody_copy,i,end));
+        //}
         sloodle_debug("Sending request to update blog.");
         httpblogrequest = llHTTPRequest(sloodleserverroot + BLOG_SCRIPT, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], msg);
         
