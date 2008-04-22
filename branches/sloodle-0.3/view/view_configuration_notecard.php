@@ -38,7 +38,7 @@
             error("Instance ID was incorrect");
         }
     } else {
-        error('Must specify a course module or a module instance');
+        error('Must specify a Sloodle module instance');
     }
     
     // Ensure the user is logged-in
@@ -73,9 +73,9 @@
   <h3>$strcfgheader</h3>
   <p>$strcfginstructions</p>
   <p>$strcfgsecurity</p>
-  <textarea cols=60 rows=4>set:sloodleserverroot|{$CFG->wwwroot}
+  <textarea cols="60" rows="4" readonly="true">set:sloodleserverroot|{$CFG->wwwroot}
 set:pwd|{$controller->password}
-set:sloodle_courseid|{$sloodle->course}</textarea>
+set:sloodlecontrollerid|{$cm->id}</textarea>
   <p>$strcfgsetnote</p>
  </div>
 XXXEODXXX;
