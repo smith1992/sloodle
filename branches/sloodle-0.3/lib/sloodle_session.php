@@ -136,7 +136,7 @@
             }
             
             // Make sure the controller ID parameter was specified
-            if ($this->request->get_controller_id($require) == null) return false;
+            if ($this->request->get_controller_id($require) === null) return false;
             
             // Make sure we've got a valid course and controller object
             if (!$this->course->controller->is_loaded()) {
@@ -242,7 +242,7 @@
         * @param bool $require If true, the script will be terminated with an error message if validation fails
         * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
         * @param bool $suppress_autoenrol If true, auto-enrolment will be completely suppressed for this function call
-        * @return bool Returns true is validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
+        * @return bool Returns true if validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
         */
         function validate_user($require = true, $suppress_autoreg = false, $suppress_autoenrol = false)
         {

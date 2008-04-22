@@ -72,7 +72,7 @@
             if (!is_int($id) || $id <= 0) return false;
             
             // Fetch the course module data
-            if (!($this->cm = get_record('course_modules', 'id', $id))) return false;
+            if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) return false;
             // Load from the primary table: Sloodle instance
             if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
             // Check that it is the correct type

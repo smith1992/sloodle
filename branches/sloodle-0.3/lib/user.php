@@ -198,6 +198,17 @@
             $this->avatar_data->lastonline = $timestamp;
         }
         
+        /**
+        * Gets the user's email address.
+        * @return string|null The user's email address, or null if none is specified of if email is disabled.
+        */
+        function get_user_email()
+        {
+            if (isset($this->user_data->email) && !empty($this->user_data->emailstop))
+                return $this->user_data->email;
+            return null;
+        }
+        
         
     // USER LINK FUNCTIONS //
         
@@ -362,7 +373,7 @@
             }
             
             // Delete any pending avatars with the same details
-            delete_records('sloodle_pending_users', 'uuid', $uuid, 'avname', $avname);
+            delete_records('sloodle_pending_avatars', 'uuid', $uuid, 'avname', $avname);
             
             return true;
         }
@@ -406,6 +417,8 @@
         */
         function autoregister_avatar_user()
         {
+            global $CFG;
+        
             // Make sure we have avatar data, and reset the user data
             if (empty($this->avatar_data)) return false;
             $this->user_data = null;
@@ -446,6 +459,7 @@
                 $this->user_data = null;
                 return false;
             }
+            
             // Get the complete user data again, so that we have the password this time
             $this->user_data = get_complete_user_data('id', $this->user_data->id);
             
@@ -453,6 +467,8 @@
             $this->user_data->firstname = $nameparts[0];
             if (isset($nameparts[1])) $this->user_data->lastname = $nameparts[1];
             else $this->user_data->lastname = $nameparts[0];
+            // Prevent emails from being sent to this user
+            $this->user_data->emailstop = 1;
             
             // Attempt to update the database (we don't really care if this fails, since everything else will have worked)
             update_record('user', $this->user_data);
@@ -462,6 +478,44 @@
             update_record('sloodle_users', $this->avatar_data);
             
             return $plain_password;
+        }
+        
+        /**
+        * Resets the user's password and notifies them of the new one.
+        * @param bool $require If true, then the script will be terminated if the operation fails
+        * @return string|bool The new password if successful, or false otherwise (if $require was false).
+        */
+        function reset_password($require = true)
+        {
+            // Check that the user is loaded
+            if (empty($this->user_data)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-301, 'USER_AUTH', 'User data not loaded', false);
+                    exit();
+                }
+                return false;
+            }
+            // If the user has an email address on file, then we can't reset the password
+            if (!empty($this->user_data->email)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-341, 'USER_AUTH', 'User has email address in database. Cannot use Sloodle password reset.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Generate a new random password
+            $password = sloodle_random_web_password();
+            // Update the user's password data
+            if (!update_internal_user_password($this->user_data, $password)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-103, 'SYSTEM', 'Failed to update user password', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            return $password;
         }
        
         /**

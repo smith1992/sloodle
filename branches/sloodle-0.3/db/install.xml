@@ -117,7 +117,7 @@
     </TABLE>
     
     
-    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars">
+    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars" NEXT="sloodle_pending_login_notifications">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="controllerid" COMMENT="Primary index field"/>
         <FIELD NAME="controllerid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="userid" COMMENT="The controller which this object is authorised for."/>
@@ -131,6 +131,22 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="controllerid-uuid" UNIQUE="true" FIELDS="controllerid,uuid" COMMENT="Objects cannot be authorised more than once to the same controller"/>
+      </INDEXES>
+    </TABLE>
+    
+    
+    <TABLE NAME="sloodle_pending_login_notifications" COMMENT="Contains the details of auto-registration login details which are to be sent" PREVIOUS="sloodle_active_object">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="destination" COMMENT="Primary index field"/>
+        <FIELD NAME="destination" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avatar" COMMENT="UUID of the object which will relay the notification"/>
+        <FIELD NAME="avatar" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="destination" NEXT="username" COMMENT="UUID of the user agent to whom the notification is being sent"/>
+        <FIELD NAME="username" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avatar" NEXT="password" COMMENT="Username of the new account"/>
+        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="username" COMMENT="Plaintext password of the new account"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
+      </KEYS>
+      <INDEXES>
       </INDEXES>
     </TABLE>
     

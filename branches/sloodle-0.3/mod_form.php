@@ -115,6 +115,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             
             // Add a checkbox for whether or not this module is enabled
             $mform->addElement('checkbox', 'controller_enabled', get_string('enabled', 'sloodle'), get_string('controlaccess', 'sloodle'));
+            $mform->setDefault('controller_enabled', 1);
             
             // Add a text-box for the prim password, with a help button describing it
             $mform->addElement('text', 'controller_password', get_string('primpass', 'sloodle'), array('size'=>'12','maxlength'=>'9'));

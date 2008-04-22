@@ -567,16 +567,16 @@
     */
     function sloodle_pending_login_notification($destination, $avatar, $username, $password)
     {
-        return false;
-        /*// If another pending notification already exists for the same username, then delete it
+        // If another pending notification already exists for the same username, then delete it
         delete_records('pending_login_notifications', 'username', $username);
         
         // Add the new details
         $notification = new stdClass();
         $notification->destination = $destination;
+        $notification->avatar = $avatar;
         $notification->username = $username;
         $notification->password = $password;
-        return insert_record('pending_login_notifications', $notification);*/
+        return insert_record('pending_login_notifications', $notification);
     }
     
     /**
@@ -590,6 +590,54 @@
     function sloodle_send_login_notification($destination, $avatar, $username, $password)
     {
         sloodle_text_email_sl($destination, 'SLOODLE_LOGIN', "$avatar|{$CFG->wwwroot}|$username|$password");
+    }
+    
+    /**
+    * Processes pending login notifications, up to a certain limit.
+    * Retrieves the requests one-at-a-time for processing.
+    * This is slower, but ensures minimal damage if the process is terminated, e.g. due to server timeout.
+    * @param int $limit The maximum number of pending requests to process.
+    * @return void
+    */
+    function sloodle_process_pending_login_notifications($limit = 25)
+    {
+        global $CFG;
+        
+        // Validate the limit
+        $limit = (int)$limit;
+        if ($limit < 1) return;
+        
+        // Go through each one
+        for ($i = 0; $i < $limit; $i++) {
+            // Obtain the first record
+            $recs = get_records('pending_login_notifications', '', '', 'id', '*', 0, $limit);
+            if (!$recs) return false;
+            reset($recs);
+            $rec = current($recs);
+            
+            // Determine the user ID of the person who requested this
+            $userid = 0;
+            if (!($sloodleuser = get_record('sloodle_users', 'uuid', $rec->avatar))) {
+                // Failed to the user - get the guest user instead
+                $guestdata = guest_user();
+                $userid = $guestdata->id;
+            } else {
+                // Got the data - store the user ID
+                $userid = $sloodleuser->userid;
+            }
+            
+            // Send the notification
+            if (sloodle_text_email_sl($rec->destination, 'SLOODLE_LOGIN', "{$rec->avatar}|{$CFG->wwwroot}|{$rec->username}|{$rec->password}")) {
+                // Log the notification
+                 add_to_log(SITEID, 'sloodle', 'view', '', 'Sent login details by email to avatar in-world', 0, $userid);
+            } else {
+                // Log the failed notification (but don't keep trying the same one)
+                add_to_log(SITEID, 'sloodle', 'view failed', '', 'Failed to send login details by email to avatar in-world', 0, $userid);
+            }
+            
+            // Delete the record from the data
+            delete_records('pending_login_notifications', 'id', $rec->id);
+        }
     }
     
     

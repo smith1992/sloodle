@@ -45,13 +45,20 @@
     $sloodle->validate_user(false);
     
     
+    // Log the view
+    add_to_log($sloodle->course->get_course_id(), 'sloodle', 'view chat', '', 'Viewed chatroom via Sloodle linker', $sloodle->request->get_module_id());
+    
+    
     // Has an incoming message been provided?
     $message = $sloodle->request->optional_param('message', null);
     if ($message != null) {
         // Add it to the chatroom - if it fails add a negative side effect code to our response.
-        // The positive side effect will be added by the functioning if successful.
+        // The positive side effect will be added by the function if successful.
         if (!$sloodle->module->add_message($message)) {
             $sloodle->response->add_side_effect(-10101);
+            add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());
+        } else {
+            add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
         }
     }
     

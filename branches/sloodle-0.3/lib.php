@@ -14,6 +14,7 @@
     */
     
     require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
 
     /**
@@ -280,6 +281,9 @@
         
         // More stuff?
         //...
+        
+        // Email login details to auto-registered avatars in-world
+        sloodle_process_pending_login_notifications();
 
         return true;
     }

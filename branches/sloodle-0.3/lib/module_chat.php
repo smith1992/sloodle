@@ -62,10 +62,11 @@
         function load($id)
         {
             // Make sure the ID is valid
-            if (!is_int($id) || $id <= 0) return false;
+            $id = (int)$id;
+            if ($id <= 0) return false;
             
             // Fetch the course module data
-            if (!($this->cm = get_record('course_modules', 'id', $id))) {
+            if (!($this->cm = get_coursemodule_from_id('chat', $id))) {
                 sloodle_debug("Failed to load course module instance #$id.<br/>");
                 return false;
             }
