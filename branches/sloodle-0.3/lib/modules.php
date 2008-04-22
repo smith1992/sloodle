@@ -60,7 +60,7 @@
             return false;
         }
         // Construct the object, based on the class name in our array
-        $module = new $SLOODLE_MODULE_CLASS[$type](&$_session);
+        $module = new $SLOODLE_MODULE_CLASS[$type]($_session);
         
         // Load the data from the database, if necessary
         if ($id != null) {

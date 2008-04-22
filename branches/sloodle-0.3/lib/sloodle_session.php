@@ -78,9 +78,9 @@
         function SloodleSession()
         {
             // Construct the different parts of the session, as far as possible
-            $this->user = new SloodleUser(&$this);
+            $this->user = new SloodleUser($this);
             $this->response = new SloodleResponse();
-            $this->request = new SloodleRequest(&$this);
+            $this->request = new SloodleRequest($this);
             $this->course = new SloodleCourse();
             
             // Process the basic request data
@@ -107,7 +107,7 @@
             }
             
             // Construct the module
-            $this->module = sloodle_load_module($type, &$this, $db_id);
+            $this->module = sloodle_load_module($type, $this, $db_id);
             if (!$this->module) {
                 if ($require) {
                     $this->response->quick_output(-601, 'MODULE', 'Failed to construct module object', false);
@@ -325,8 +325,8 @@
                 // Add a side effect code to our response data
                 $this->response->add_side_effect(322);
                 // The user needs to be notified of their new username/password
-                if (isset($_SERVER['HTTP_X_SecondLife_Object_Key'])) {
-                    sloodle_pending_login_notification($_SERVER['HTTP_X_SecondLife_Object_Key'], $this->user->user_data->get_username(), $password);
+                if (isset($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'])) {
+                    sloodle_pending_login_notification($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'], $uuid, $this->user->get_username(), $password);
                 }
             }
             

@@ -568,7 +568,7 @@
     function sloodle_pending_login_notification($destination, $avatar, $username, $password)
     {
         // If another pending notification already exists for the same username, then delete it
-        delete_records('pending_login_notifications', 'username', $username);
+        delete_records('sloodle_pending_login_notifications', 'username', $username);
         
         // Add the new details
         $notification = new stdClass();
@@ -576,7 +576,17 @@
         $notification->avatar = $avatar;
         $notification->username = $username;
         $notification->password = $password;
-        return insert_record('pending_login_notifications', $notification);
+
+	echo "\nAdding login notification\n";
+	echo "Destination: $destination\n";
+	echo "Avatar: $avatar\n";
+	echo "Username: $username\n";
+	echo "Password: $password\n";
+
+        if (!insert_record('sloodle_pending_login_notifications', $notification)) {
+		echo "failed\n";
+	}
+	echo "succeeded\n";
     }
     
     /**
@@ -589,7 +599,8 @@
     */
     function sloodle_send_login_notification($destination, $avatar, $username, $password)
     {
-        sloodle_text_email_sl($destination, 'SLOODLE_LOGIN', "$avatar|{$CFG->wwwroot}|$username|$password");
+        global $CFG;
+        return sloodle_text_email_sl($destination, 'SLOODLE_LOGIN', "$avatar|{$CFG->wwwroot}|$username|$password");
     }
     
     /**
@@ -610,7 +621,7 @@
         // Go through each one
         for ($i = 0; $i < $limit; $i++) {
             // Obtain the first record
-            $recs = get_records('pending_login_notifications', '', '', 'id', '*', 0, $limit);
+            $recs = get_records('sloodle_pending_login_notifications', '', '', 'id', '*', 0, $limit);
             if (!$recs) return false;
             reset($recs);
             $rec = current($recs);
@@ -627,7 +638,7 @@
             }
             
             // Send the notification
-            if (sloodle_text_email_sl($rec->destination, 'SLOODLE_LOGIN', "{$rec->avatar}|{$CFG->wwwroot}|{$rec->username}|{$rec->password}")) {
+            if (sloodle_send_login_notification($rec->destination, $rec->avatar, $rec->username, $rec->password)) {
                 // Log the notification
                  add_to_log(SITEID, 'sloodle', 'view', '', 'Sent login details by email to avatar in-world', 0, $userid);
             } else {
@@ -636,7 +647,7 @@
             }
             
             // Delete the record from the data
-            delete_records('pending_login_notifications', 'id', $rec->id);
+            delete_records('sloodle_pending_login_notifications', 'id', $rec->id);
         }
     }
     

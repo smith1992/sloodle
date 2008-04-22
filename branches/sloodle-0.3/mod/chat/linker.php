@@ -45,8 +45,8 @@
     $sloodle->validate_user(false);
     
     
-    // Log the view
-    add_to_log($sloodle->course->get_course_id(), 'sloodle', 'view chat', '', 'Viewed chatroom via Sloodle linker', $sloodle->request->get_module_id());
+    // Log the view - generates too much log data!
+    //add_to_log($sloodle->course->get_course_id(), 'sloodle', 'view chat', '', 'Viewed chatroom via Sloodle linker', $sloodle->request->get_module_id());
     
     
     // Has an incoming message been provided?
