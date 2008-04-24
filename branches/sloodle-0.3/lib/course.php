@@ -5,7 +5,7 @@
     * This file defines a structure for Sloodle data about a particular Moodle course.
     *
     * @package sloodle
-    * @copyright Copyright (c) 2007 Sloodle (various contributors)
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
@@ -16,6 +16,8 @@
     require_once(SLOODLE_LIBROOT.'/general.php');
     /** Include the Sloodle controller structure. */
     require_once(SLOODLE_LIBROOT.'/controller.php');
+    /** Include the layout profile management stuff. */
+    require_once(SLOODLE_LIBROOT.'/layout_profile.php');
     
     
     /**
@@ -299,6 +301,111 @@
             if (empty($this->sloodle_course_data) || $this->sloodle_course_data->id <= 0) return false;
             // Update the Sloodle data
             return update_record('sloodle_course', $this->sloodle_course_data);
+        }
+        
+        /**
+        * Gets an array associating layout ID's to names
+        * @return array
+        */
+        function get_layout_names()
+        {
+            // Fetch the layout records
+            $layouts = get_records('sloodle_layout', 'course', $this->course_object->id, 'name');
+            if (!$layouts) return array();
+            // Construct the array of names
+            $layout_names = array();
+            foreach ($layouts as $l) {
+                $layout_names[$l->id] = $l->name;
+            }
+            
+            return $layout_names;
+        }
+        
+        /**
+        * Gets all the entries in the named layout.
+        * @param string $name The name of the layout to query
+        * @return array|bool A numeric array of {@link SloodleLayoutEntry} objects if successful, or false if the layout does not exist
+        */
+        function get_layout_entries($id)
+        {
+            // Attempt to find the relevant layout
+            $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
+            if (!$layout) return false;
+            
+            // Fetch all entries
+            $recs = get_records('sloodle_layout_entry', 'layout', $layout->id);
+            if (!$recs) return array();
+            
+            // Construct the array of SloodleLayoutEntry objects
+            $entries = array();
+            foreach ($recs as $r) {
+                $entry = new SloodleLayoutEntry();
+                $entry->name = $r->name;
+                $entry->position = $r->position;
+                $entry->rotation = $r->rotation;
+                $entries[] = $entry;
+            }
+            
+            return $entries;
+        }
+        
+        /**
+        * Deletes the named layout.
+        * @param string $name The name of the layout to delete
+        * @return void
+        */
+        function delete_layout($name)
+        {
+            // Attempt to find the relevant layout
+            $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
+            if (!$layout) return;
+            
+            // Delete all related entries
+            delete_records('sloodle_layout_entry', 'layout', $layout->id);
+            // Delete the layout itself
+            delete_records('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
+        }
+        
+        /**
+        * Save the given entries in the named profile.
+        * @param string $name The name of the layout to query
+        * @param array $entries A numeric array of {@link SloodleLayoutEntry} objects to store
+        * @return bool True if successful, or false otherwise
+        */
+        function save_layout($name, $entries)
+        {
+            // Attempt to find the relevant layout
+            $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
+            if (!$layout) {
+                // Does not exist - create it
+                $layout = new stdClass();
+                $layout->name = $name;
+                $layout->course = $this->course_object->id;
+                $layout->timeupdated = time();
+                $layout->id = insert_record('sloodle_layout', $layout);
+                if (!$layout->id) return false;
+                
+            } else {
+                // Change the time updated
+                set_field('sloodle_layout', 'timeupdated', time(), 'course', $this->course_object->id, 'name', $name);
+            }
+            
+            // Delete all existing entries
+            delete_records('sloodle_layout_entry', 'layout', $layout->id);
+            
+            // Insert each new entry
+            $success = true;
+            foreach ($entries as $e) {
+                $rec = stdClass();
+                $rec->layout = $layout->id;
+                $rec->name = $e->name;
+                $rec->position = $e->position;
+                $rec->rotation = $e->rotation;
+                
+                if (insert_record('sloodle_layout_entry', $rec) === false) $success = false;
+            }
+            
+            return $success;
         }
     
     }
