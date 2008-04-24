@@ -135,7 +135,7 @@
     </TABLE>
     
     
-    <TABLE NAME="sloodle_pending_login_notifications" COMMENT="Contains the details of auto-registration login details which are to be sent" PREVIOUS="sloodle_active_object">
+    <TABLE NAME="sloodle_pending_login_notifications" COMMENT="Contains the details of auto-registration login details which are to be sent" PREVIOUS="sloodle_active_object" NEXT="sloodle_layout">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="destination" COMMENT="Primary index field"/>
         <FIELD NAME="destination" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avatar" COMMENT="UUID of the object which will relay the notification"/>
@@ -168,7 +168,7 @@
     
     <TABLE NAME="sloodle_layout_entry" PREVIOUS="sloodle_layout" COMMENT="Defines an object entry in a classroom layout">
         <FIELDS>
-            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course"/>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="layout"/>
             <FIELD NAME="layout" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="id" NEXT="name" COMMENT="Identifies which layout profile this entry belongs to"/>
             <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="layout" NEXT="position" COMMENT="The name of the object"/>
             <FIELD NAME="position" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="name" NEXT="rotation" COMMENT="The position of the object, as a 3d SL-style vector"/>

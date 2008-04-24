@@ -326,7 +326,7 @@
         * @param string $name The name of the layout to query
         * @return array|bool A numeric array of {@link SloodleLayoutEntry} objects if successful, or false if the layout does not exist
         */
-        function get_layout_entries($id)
+        function get_layout_entries($name)
         {
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
@@ -396,13 +396,13 @@
             // Insert each new entry
             $success = true;
             foreach ($entries as $e) {
-                $rec = stdClass();
+                $rec = new stdClass();
                 $rec->layout = $layout->id;
                 $rec->name = $e->name;
                 $rec->position = $e->position;
                 $rec->rotation = $e->rotation;
                 
-                if (insert_record('sloodle_layout_entry', $rec) === false) $success = false;
+                if (!insert_record('sloodle_layout_entry', $rec)) $success = false;
             }
             
             return $success;

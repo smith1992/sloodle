@@ -99,7 +99,7 @@
         // QUERY MODE //
         // Attempt to load the specified profile
         $layout_entries = $sloodle->course->get_layout_entries($sloodlelayoutname);
-        if (!$layout_entries) {
+        if ($layout_entries === false) {
             // Profile not found
             $sloodle->response->set_status_code(-902);
             $sloodle->response->set_status_descriptor('LAYOUT');
@@ -109,7 +109,7 @@
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             foreach ($layout_entries as $le) {
-                $sloodle->response->add_data_line(array($le->name, $le->position, $le->rotation)));
+                $sloodle->response->add_data_line(array($le->name, $le->position, $le->rotation));
             }
         }
         
@@ -125,9 +125,31 @@
             $sloodle->response->add_data_line('User does not have permission to edit layout profiles');
         }
         
-        // Split the incoming data into lines
-        //..
+        // This array will store the new entries for our layout
+        $entries = array();
+        // Go through each line of incoming data
+        $lines = explode("\n", $sloodlelayoutentries);
+        foreach ($lines as $l) {
+            // Split the data into separate fields, and check that we have enough in this entry
+            $fields = explode("|", $l);
+            if (count($fields) < 3) continue;
+            // Construct an entry object
+            $entryobj = new SloodleLayoutEntry();
+            $entryobj->name = $fields[0];
+            $entryobj->position = $fields[1];
+            $entryobj->rotation = $fields[2];
+            $entries[] = $entryobj;
+        }
         
+        // Udpate the layout
+        if ($sloodle->course->save_layout($sloodlelayoutname, $entries)) {
+            $sloodle->response->set_status_code(1);
+            $sloodle->response->set_status_descriptor('OK');
+        } else {
+            $sloodle->response->set_status_code(-901);
+            $sloodle->response->set_status_descriptor('LAYOUT_PROFILE');
+            $sloodle->response->add_data_line('Failed to save new layout');
+        }
         
         break;
         

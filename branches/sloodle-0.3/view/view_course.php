@@ -152,6 +152,25 @@
     print_box_end();
     
 //------------------------------------------------------
+
+    // Display a list of layouts in this course
+    print_box_start('generalbox boxaligncenter boxwidthnarrow');
+    
+    // TEMP STUFF HERE!
+    $layouts = $sloodle_course->get_layout_names();
+    if (!$layouts || count($layouts) == 0) echo "<p>No layouts defined in this course.</p>";
+    else {
+        echo '<div style="text-align:center;">';
+        echo "<h4>Layout Profiles</h4>\n";
+        foreach ($layouts as $l) {
+            echo "$l<br>\n";
+        }
+        echo '</div>';
+    }
+    
+    print_box_end();
+
+//------------------------------------------------------
     
     print_footer($course);
     
