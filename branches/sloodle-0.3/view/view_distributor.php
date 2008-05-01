@@ -17,11 +17,12 @@
     * Note: the user should already be logged-in, with information in the $USER global.
     *
     * @uses $USER
+    * @param object $cm A coursemodule object for the module being displayed
     * @param object $sloodle A database record object for a Sloodle instance
     * @param bool $showprotected True if protected data (such as prim password) should be made available
     * @return bool True if successful, or false otherwise (e.g. wrong type of module, or user not logged-in)
     */
-    function sloodle_view_distributor($sloodle, $showprotected = false)
+    function sloodle_view_distributor($cm, $sloodle, $showprotected = false)
     {
         global $USER;
     

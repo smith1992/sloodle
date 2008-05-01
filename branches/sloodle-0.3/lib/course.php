@@ -278,11 +278,14 @@
             
             // Construct a new controller object, and attempt to load its data
             $this->controller = new SloodleController();
-            if (!$this->controller->load($controllerid)) return false;
+            if (!$this->controller->load($controllerid)) {
+                sloodle_debug("Failed to load controller.<br>");
+                return false;
+            }
             
             // Now attempt to load all the course data
             if (!$this->load($this->controller->get_course_id())) {
-                $this->controller = null;
+                sloodle_debug("Failed to load course data.<br>");
                 return false;
             }
             

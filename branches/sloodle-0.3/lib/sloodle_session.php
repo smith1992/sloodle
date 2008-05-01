@@ -74,8 +74,9 @@
     
         /**
         * Constructor - initialises members
+        * @param bool $process If true (default) then basic request data will be processed immediately. Otherwise, it can be done manually by calling $request->process_request_data()
         */
-        function SloodleSession()
+        function SloodleSession($process = true)
         {
             // Construct the different parts of the session, as far as possible
             $this->user = new SloodleUser($this);
@@ -84,7 +85,7 @@
             $this->course = new SloodleCourse();
             
             // Process the basic request data
-            $this->request->process_request_data();
+            if ($process) $this->request->process_request_data();
         }
         
         
@@ -185,12 +186,17 @@
             if ($password == null) return false;
             
             // Does the password contain an object UUID?
+            /*
             $objpwd = null;
             $matches = null;
             if (preg_match('/^(.*?)\|(\d\d*)$/',$password, $matches)) {
     			$objuuid = $matches[1]; // Object UUID
     			$objpwd = $matches[2]; // Object-specific password
-                
+            */
+            $parts = explode('|', $password);
+            if (count($parts) >= 2) {
+                $objuuid = $parts[0];
+                $objpwd = $parts[1];
                 // Make sure the password was provided
                 if (empty($objpwd)) {
                     if ($require) {
@@ -200,27 +206,13 @@
                     return false;
                 }
                 
-                // Attempt to find this object in the active objects list
-                $entry = get_record('sloodle_active_object', 'controllerid', $this->course->controller->get_controller_id(), 'uuid', $objuuid);
-                if (!$entry) {
-                    if ($require) {
-                        $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object not authorised for this controller.', false);
-                        exit();
-                    }
-                    return false;
+                // Verify the object's authorisation
+                if ($this->course->controller->check_authorisation($objuuid, $objpwd)) return true;
+                if ($require) {
+                    $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
+                    exit();
                 }
-                
-                // Check that the password was valid
-                if ($objpwd != $entry->password) {
-                    if ($require) {
-                        $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // Everything looks OK
-                return true;
+                return false;
     		}
             
             // Check the password as a whole against the password in the controller

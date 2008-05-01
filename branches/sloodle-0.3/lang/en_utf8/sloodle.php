@@ -12,6 +12,9 @@ $string['allocated'] = 'Allocated';
 $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 
+$string['authorizingfor'] = 'Authorizing for: ';
+$string['authorizedobjects'] = 'Authorized Objects';
+
 $string['autoenrol'] = 'User Auto-Enrolment';
 $string['autoenrol:allowforsite'] = 'Allow auto-enrolment for this site';
 $string['autoenrol:allowforcourse'] = 'Allow auto-enrolment for this course';
@@ -62,6 +65,7 @@ $string['createnotecard'] = 'Create notecard';
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
 $string['deletecancelled'] = 'Deletion cancelled.';
+$string['deleteselected'] = 'Delete Selected';
 $string['deletionfailed'] = 'Deletion failed';
 $string['deletionsuccessful'] = 'Deletion successful';
 $string['disabled'] = 'Disabled';
@@ -81,6 +85,7 @@ $string['failedcreatesloodleuser'] = 'Failed to create a Sloodle user account fo
 $string['failedaddinstance'] = 'Failed to add a new Sloodle module instance.';
 $string['failedaddsecondarytable'] = 'Failed to add the secondary table for the Sloodle module instance.';
 $string['failedcourseload'] = 'Failed to load Sloodle course data.';
+$string['failedauth-trydifferent'] = 'Failed to authorise the object. Please try a different controller.';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
 
@@ -144,22 +149,29 @@ $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
 $string['numsloodleentries'] = '# Sloodle entries';
 $string['numobjects'] = 'Number of objects';
+$string['numdeleted'] = 'Number deleted';
 
 $string['Object'] = 'Object';
+$string['objectdetails'] = 'Object Details';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'Some Sloodle objects will require a configuration notecard before you can use them with your Moodle installation. Click the following link to get the text for a configuration notecard:';
 
 $string['objectauth'] = 'Sloodle Object Authorization';
+$string['objectauthalready'] = 'This object has already been authorized. If you want to re-authorize it, then please delete its authorization entry from your Sloodle Controller.';
 $string['objectauthcancelled'] = 'You have cancelled the object authorization.';
 $string['objectauthfailed'] = 'Object authorization has failed.';
-$string['objectauthsent'] = 'Object authorization has been sent successfully.';
+$string['objectauthnocontrollers'] = 'There are no Sloodle Controllers on the site. Please create one on a course in order to authorise objects.';
+$string['objectauthnopermission'] = 'You do not have the permission to authorise any objects. You may need to create a Sloodle Controller on your course(s).';
+$string['objectauthnotfound'] = 'Object not found for authorization.';
+$string['objectauthsuccessful'] = 'Object authorization has been successful.';
 $string['objectname'] = 'Object Name';
 $string['objectuuid'] = 'Object UUID';
+$string['objecttype'] = 'Object Type';
 
 $string['or'] = 'or';
 
 $string['pendingavatars'] = 'Pending Avatars';
-$string['pendingavatars:info'] = 'Thes';
+//$string['pendingavatars:info'] = '';
 
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
@@ -178,6 +190,7 @@ $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. M
 
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
+$string['selectcontroller'] = 'Select Controller';
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';
 $string['showavatarsonly'] = 'Only show accounts with Sloodle entries';

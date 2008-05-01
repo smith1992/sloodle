@@ -117,25 +117,43 @@
     </TABLE>
     
     
-    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars" NEXT="sloodle_pending_login_notifications">
+    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars" NEXT="sloodle_object_config">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="controllerid" COMMENT="Primary index field"/>
         <FIELD NAME="controllerid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="userid" COMMENT="The controller which this object is authorised for."/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="controllerid" NEXT="uuid" COMMENT="ID of the user who authorised this object."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="controllerid" NEXT="uuid" COMMENT="ID of the user who authorised this object, directly or indirectly. If 0, then it is not yet authorised."/>
         <FIELD NAME="uuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="password" COMMENT="UUID of the object"/>
-        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="timeupdated" COMMENT="Object-specific password"/>
-        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="password" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
+        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="name" COMMENT="Object-specific password"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="password" NEXT="type" COMMENT="Name of the object"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="name" NEXT="timeupdated" COMMENT="Type identifier of the object. Used to determine which configuration script to use."/>
+        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="type" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="controllerid-uuid" UNIQUE="true" FIELDS="controllerid,uuid" COMMENT="Objects cannot be authorised more than once to the same controller"/>
+        <INDEX NAME="uuid" UNIQUE="true" FIELDS="uuid" COMMENT="Objects cannot be authorised more than once, although their authorisation can change."/>
       </INDEXES>
     </TABLE>
     
     
-    <TABLE NAME="sloodle_pending_login_notifications" COMMENT="Contains the details of auto-registration login details which are to be sent" PREVIOUS="sloodle_active_object" NEXT="sloodle_layout">
+    <TABLE NAME="sloodle_object_config" COMMENT="Configuration settings for registered active objects" PREVIOUS="sloodle_active_object" NEXT="sloodle_pending_login_notifications">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="object" COMMENT="Primary index field"/>
+        <FIELD NAME="object" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="name" COMMENT="Identifies which object this setting refers to."/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="object" NEXT="value" COMMENT="Name of the setting"/>
+        <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="name" COMMENT="Value of the setting"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="object-name" UNIQUE="true" FIELDS="object,name" COMMENT="Setting names must be unique for a given object"/>
+      </INDEXES>
+    </TABLE>
+    
+    
+    <TABLE NAME="sloodle_pending_login_notifications" COMMENT="Contains the details of auto-registration login details which are to be sent" PREVIOUS="sloodle_object_config" NEXT="sloodle_layout">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="destination" COMMENT="Primary index field"/>
         <FIELD NAME="destination" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avatar" COMMENT="UUID of the object which will relay the notification"/>

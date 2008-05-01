@@ -14,6 +14,8 @@
     
     /** General Sloodle functionality. */
     require_once(SLOODLE_LIBROOT.'/general.php');
+    /** The active object structure. */
+    require_once(SLOODLE_LIBROOT.'/active_object.php');
     
     
     /**
@@ -68,18 +70,31 @@
         function load($id)
         {
             // Make sure the ID is valid
-            if (!is_int($id) || $id <= 0) return false;
+            $id = (int)$id;
+            if ($id <= 0) return false;
             
             // Fetch the course module data
-            if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) return false;
+            if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) {
+                sloodle_debug("Failed to load controler course module.<br>");
+                return false;
+            }
             
             // Load from the primary table: Sloodle instance
-            if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
+            if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) {
+                sloodle_debug("Failed to load controller Sloodle module instance.<br>");
+                return false;
+            }
             // Check that it is the correct type
-            if ($this->sloodle_module_instance->type != SLOODLE_TYPE_CTRL) return false;
+            if ($this->sloodle_module_instance->type != SLOODLE_TYPE_CTRL) {
+                sloodle_debug("Loaded Sloodle module instance is not a controller.<br>");
+                return false;
+            }
             
             // Load from the secondary table: Controller instance
-            if (!($this->sloodle_controller_instance = get_record('sloodle_controller', 'sloodleid', $this->cm->instance))) return false;
+            if (!($this->sloodle_controller_instance = get_record('sloodle_controller', 'sloodleid', $this->cm->instance))) {
+                sloodle_debug("Failed to load controller secondary data table.<br>");
+                return false;
+            }
             
             return true;
         }
@@ -263,40 +278,210 @@
 
         
         /**
-        * Register a new active object (or renew an existing one) with this controller.
+        * Registers a new active object (or renew an existing authorisation) with this controller.
         * @param string $uuid The UUID of the object to be registered
-        * @param mixed $userid The ID of the user who is authorising the object
+        * @param string $name Name of the object to be registered
+        * @param SloodleUser $user The user who is authorising the object
+        * @param string $password The password for the object
+        * @param string $type Type identifier of the object to be registered
         * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
-        * @return string|bool If successful, a string containig the object-specific session key. Otherwise boolean false.
+        * @return bool True if successful, or false if not
         */
-        function register_object($uuid, $userid, $timestamp = null)
+        function register_object($uuid, $name, $user, $password, $type = '', $timestamp = null)
         {
             // Use the current timestamp if necessary
             if ($timestamp == null) $timestamp = time();
+            // Extract the user ID
+            $userid = $user->get_user_id();
             
             // Check to see if an entry already exists for this object
-            $entry = get_record('sloodle_active_object', 'controllerid', $this->sloodle_controller_instance->id, 'uuid', $uuid);
+            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
             if (!$entry) {
                 // Create a new entry
                 $entry = new stdClass();
                 $entry->controllerid = $this->sloodle_controller_instance->id;
-                $entry->userid = $userid;
                 $entry->uuid = $uuid;
-                $entry->password = $sloodle_random_prim_password();
+                $entry->name = $name;
+                $entry->userid = $userid;
+                $entry->password = $password;
+                $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to insert the entry
                 if (!insert_record('sloodle_active_object', $entry)) return false;
                 
             } else {
                 // Update the existing entry
+                $entry->controllerid = $this->sloodle_controller_instance->id;
+                $entry->name = $name;
                 $entry->userid = $userid;
+                $entry->password = $password;
+                $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to update the database
                 if (!update_record('sloodle_active_object', $entry)) return false;
             }
             
-            return $entry->password;
+            return true;
         }
+        
+        
+        /**
+        * Registers a new unauthorised object.
+        * (Can be called statically).
+        * Creates a new active object entry, not linked to any user or controller.
+        * @param string $uuid The UUID of the object to be registered
+        * @param string $name Name of the object to be registered
+        * @param string $password The password for the object
+        * @param string $type Type identifier of the object to be registered
+        * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
+        * @return int|bool The integer ID of the active object entry, or false if not
+        */
+        function register_unauth_object($uuid, $name, $password, $type = '', $timestamp = null)
+        {
+            // Use the current timestamp if necessary
+            if ($timestamp == null) $timestamp = time();
+            
+            // Check to see if an entry already exists for this object
+            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            if (!$entry) {
+                // Create a new entry
+                $entry = new stdClass();
+                $entry->controllerid = 0;
+                $entry->uuid = $uuid;
+                $entry->name = $name;
+                $entry->userid = 0;
+                $entry->password = $password;
+                $entry->type = $type;
+                $entry->timeupdated = $timestamp;
+                // Attempt to insert the entry
+                $entry->id = insert_record('sloodle_active_object', $entry);
+                if (!$entry->id) return false;
+                
+            } else {
+                // Update the existing entry
+                $entry->controllerid = 0;
+                $entry->name = $name;
+                $entry->password = $password;
+                $entry->type = $type;
+                $entry->userid = 0;
+                $entry->timeupdated = $timestamp;
+                // Attempt to update the database
+                if (!update_record('sloodle_active_object', $entry)) return false;
+            }
+            
+            return $entry->id;
+        }
+        
+        /**
+        * Updates the type of a given active object to the specified type.
+        * @param string $uuid The UUID of the object being updated
+        * @param string $type Name of the new type identifier
+        * @return bool True if successful, or false if not
+        */
+        function update_object_type($uuid, $type)
+        {
+            // Attempt to find an entry for the object
+            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            if (!$entry) return false;
+            // Update the type and time
+            $entry->type = $type;
+            $entry->timeupdated = time();
+            if (!update_record('sloodle_active_object', $entry)) return false;
+            return true;
+        }
+        
+        /**
+        * Authorises an otherwise unauthorised active object against the given user and the current controller.
+        * (NOTE: the object must previously have been registered using {@link register_object()}).
+        * <b>Must not be called statically.</b>
+        * @param string $uuid The UUID of the object being updated
+        * @param SloodleUser $user The user to authorise the object against
+        * @return bool True if successful, or false if not
+        */
+        function authorise_object($uuid, $user)
+        {
+            // Attempt to find an unauthorised entry for the object
+            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            if (!$entry) return false;
+            // Update the controller, user and time
+            $entry->controllerid = $this->get_id();
+            $entry->userid = $user->get_user_id();
+            $entry->timeupdated = time();
+            if (!update_record('sloodle_active_object', $entry)) return false;
+            return true;
+        }
+        
+        /**
+        * Checks if the specified object is authorised for this controller with the given password.
+        * @param string $uuid The UUID of the object to check
+        * @param string $password The password to check
+        * @return bool True if object is authorised, or false if not
+        */
+        function check_authorisation($uuid, $password)
+        {
+            // Attempt to find an entry for the object
+            $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
+            if (!$entry) return false;
+            // Make sure it has been authorised by a legitimate user
+            $userid = (int)$entry->userid;
+            if ($userid == 0) return false;
+            
+            // Verify the password
+            return ($password == $entry->password);
+        }
+        
+        
+        /**
+        * Removes an active object and all its related items.
+        * @param mixed $id If it is an integer, then it is treated as the active object ID. If a string, it is treated as the object UUID.
+        * @return void
+        */
+        function remove_object($id)
+        {
+            // Check what type the ID is
+            if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
+            else $entry = get_record('sloodle_active_object', 'id', (int)$id);
+            if (!$entry) return;
+            
+            // Delete all config entries and the object record itself
+            delete_records('sloodle_object_config', 'object', $entry->id);
+            delete_records('sloodle_active_object', 'id', $entry->id);
+        }
+        
+        /**
+        * Gets data about an active object.
+        * @param mixed $id If an integer, it is the ID of an active object. If it is a string it is the object's UUID.
+        * @return SloodleActiveObject|bool Returns false on failure
+        */
+        function get_object($id)
+        {
+            // Check what type the ID is
+            if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
+            else $entry = get_record('sloodle_active_object', 'id', (int)$id);
+            if (!$entry) return false;
+            
+            // Create a dummy SloodleSession
+            $sloodle = new SloodleSession(false);
+            
+            // Construct a structure
+            $obj = new SloodleActiveObject();
+            $obj->uuid = $entry->uuid;
+            $obj->name = $entry->name;
+            $obj->password = $entry->password;
+            $obj->type = $entry->type;
+            
+            $obj->course = $sloodle->course;
+            $obj->course->load_by_controller($entry->controllerid);
+            
+            $obj->user = $sloodle->user;
+            if ($entry->id > 0) {
+                $obj->user->load_user($entry->userid);
+                $obj->user->load_linked_avatar();
+            }
+            
+            return $obj;
+        }
+        
     }
 
 ?>

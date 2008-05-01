@@ -180,11 +180,11 @@
     // Check what type the module is
     switch ($sloodle->type) {
     case SLOODLE_TYPE_CTRL:
-        $result = sloodle_view_controller($sloodle, $canedit);
+        $result = sloodle_view_controller($cm, $sloodle, $canedit);
         break;
         
     case SLOODLE_TYPE_DISTRIB:
-        $result = sloodle_view_distributor($sloodle, $canedit);
+        $result = sloodle_view_distributor($cm, $sloodle, $canedit);
         break;
         
     default:
