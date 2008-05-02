@@ -57,7 +57,7 @@
             print_box_end();
             
             // Active (authorised) objects
-            print_box_start('generalbox boxaligncenter boxwidthnormal');
+            print_box_start('generalbox boxaligncenter boxwidthwide');
             echo '<h3>'.get_string('authorizedobjects','sloodle').'</h3>';
             
             // Has a delete objects action been requested

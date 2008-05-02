@@ -353,6 +353,7 @@
     * @param mixed $pos A string vector or an associated array vector
     * @return bool True if position is in LoginZone, or false if not
     * @see sloodle_login_zone_coordinates()
+    * @todo Update or remove... no longer valid
     */
     function sloodle_position_is_in_login_zone($pos)
     {
@@ -404,17 +405,20 @@
     }
     
     /**
-    * Generates a random position within the specified cubic zone.
-    * @param array $zonemax Associative array vector specifying the maximum boundary of the cubic zone
-    * @param array $zonemin Associative array vector specifying the minimum boundary of the cubic zone
+    * Generates a random position within a cuboid zone of the specified size.
+    * (Note: leaves a 2 metre margin round the outside)
+    * @param array $size Associative array giving the size of the zone
     * @return array An associative vector array
     */
-    function sloodle_random_position_in_zone($zonemax,$zonemin)
+    function sloodle_random_position_in_zone($size)
     {
+        // Construct the half-size array
+        $halfsize = array('x'=>($size['x'] / 2.0) - 2.0, 'y'=>($size['y'] / 2.0) - 2.0, 'z'=>($size['z'] / 2.0) - 2.0);
+    
         $pos = array();
-        $pos['x'] = rand($zonemin['x'],$zonemax['x']);	
-        $pos['y'] = rand($zonemin['y'],$zonemax['y']);	
-        $pos['z'] = rand($zonemin['z'],$zonemax['z']);
+        $pos['x'] = mt_rand(0.0, $size['x'] - 4.0) - $halfsize['x'];
+        $pos['y'] = mt_rand(0.0, $size['y'] - 4.0) - $halfsize['y'];
+        $pos['z'] = mt_rand(0.0, $size['z'] - 4.0) - $halfsize['z'];
         return $pos;
     }
 

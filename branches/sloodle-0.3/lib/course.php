@@ -210,8 +210,214 @@
             
             return true;
         }
+        
+        
+        /**
+        * Gets the position of the loginzone as a string vector <x,y,z>
+        * @return string
+        */
+        function get_loginzone_position()
+        {
+            if (isset($this->sloodle_course_data->loginzonepos)) return $this->sloodle_course_data->loginzonepos;
+            return '';
+        }
+        
+        /**
+        * Sets the position of the loginzone as a string vector <x,y,z>
+        * @param string $pos A string position vector <x,y,z>
+        * @return void
+        * @todo Update to handle arrays as well
+        */
+        function set_loginzone_position($pos)
+        {
+            $this->sloodle_course_data->loginzonepos = $pos;
+        }
+        
+        /**
+        * Sets the position of the loginzone as a set of components
+        * @param float $x
+        * @param float $y
+        * @param float $z
+        * @return void
+        */
+        function set_loginzone_position_xyz($x, $y, $z)
+        {
+            $this->sloodle_course_data->loginzonepos = "<$x,$y,$z>";
+        }
+        
+        
+        /**
+        * Gets the size of the loginzone as a string vector <x,y,z>
+        * @return string
+        */
+        function get_loginzone_size()
+        {
+            if (isset($this->sloodle_course_data->loginzonesize)) return $this->sloodle_course_data->loginzonesize;
+            return '';
+        }
+        
+        /**
+        * Sets the size of the loginzone as a string vector <x,y,z>
+        * @param string $size A string size vector <x,y,z>
+        * @return void
+        * @todo Update to handle arrays as well
+        */
+        function set_loginzone_size($size)
+        {
+            $this->sloodle_course_data->loginzonesize = $size;
+        }
+        
+        /**
+        * Sets the size of the loginzone as a set of components
+        * @param float $x
+        * @param float $y
+        * @param float $z
+        * @return void
+        */
+        function set_loginzone_size_xyz($x, $y, $z)
+        {
+            $this->sloodle_course_data->loginzonesize = "<$x,$y,$z>";
+        }
+        
+        
+        /**
+        * Gets the region of the loginzone
+        * @return string
+        */
+        function get_loginzone_region()
+        {
+            if (isset($this->sloodle_course_data->loginzoneregion)) return $this->sloodle_course_data->loginzoneregion;
+            return '';
+        }
+        
+        /**
+        * Sets the region of the loginzone
+        * @param string $region A string naming a region
+        * @return void
+        */
+        function set_loginzone_region($region)
+        {
+            $this->sloodle_course_data->loginzoneregion = $region;
+        }
+        
+        
+        /**
+        * Gets the timestamp of the last time the loginzone was updated
+        * @return int
+        */
+        function get_loginzone_time_updated()
+        {
+            if (isset($this->sloodle_course_data->loginzoneupdated)) return $this->sloodle_course_data->loginzoneupdated;
+            return 0;
+        }
+        
+        /**
+        * Sets the timestamp of the last time the loginzone was updated
+        * @param int $timestamp A unix timestamp. If null, the current timestamp is used
+        * @return void
+        */
+        function set_loginzone_time_updated($timestamp = null)
+        {
+            if ($timestamp == null) $timestamp = time();
+            $this->sloodle_course_data->loginzoneupdated = $timestamp;
+        }
 
-    
+
+        /**
+        * Generates a new LoginZone allocation for the specified user.
+        * @param SloodleUser $user The user for whom this allocation should be made
+        * @return string|false A SLurl for the allocation, or false if it was unsuccessful
+        */
+        function generate_loginzone_allocation($user)
+        {
+            // Make sure the necessary data is available
+            if (!(isset($this->sloodle_course_data->loginzonepos) && isset($this->sloodle_course_data->loginzonesize) && isset($this->sloodle_course_data->loginzoneregion))) return false;
+            // Delete any existing LoginZone allocation for this user
+            delete_records('sloodle_loginzone_allocation', 'userid', $user->get_user_id());
+            
+            // We will try up to 10 times to find a new available position
+            $loginzonesize = sloodle_vector_to_array($this->sloodle_course_data->loginzonesize);
+            $maxtries = 10;
+            $success = false;
+            for ($i = 0; $i < $maxtries && $success == false; $i++) {
+                // Generate a new random position
+                $rndpos_arr = sloodle_random_position_in_zone($loginzonesize);
+                $rndpos_str = sloodle_array_to_vector($rndpos_arr);
+                // Is the position already taken?
+                if (!get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $rndpos_str)) {
+                    // Nobody has the position
+                    $success = true;
+                }
+            }
+            // Did we succeed in generating it?
+            if (!$success) return false;
+            
+            // Create a new one
+            $alloc = new stdClass();
+            $alloc->course = $this->get_course_id();
+            $alloc->userid = $user->get_user_id();
+            $alloc->position = $rndpos_str;
+            $alloc->timecreated = time();
+            // Attempt to insert it into the database
+            if (!insert_record('sloodle_loginzone_allocation', $alloc)) return false;
+            return true;
+        }
+        
+        /**
+        * Gets the SLurl for the specified user's loginzone alloation
+        * @param SloodleUser $user The user whose allocation is to be retrieved
+        * @return string|bool The SLurl string if successful, or false if the user has no allocation or the loginzone does not exist
+        */
+        function get_loginzone_allocation($user)
+        {
+            // Make sure the necessary data is available
+            if (!(isset($this->sloodle_course_data->loginzonepos) && isset($this->sloodle_course_data->loginzonesize) && isset($this->sloodle_course_data->loginzoneregion))) return false;
+            // Attempt to fetch the data
+            $alloc = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'userid', $user->get_user_id());
+            if (!$alloc) return false;
+            $relpos = sloodle_vector_to_array($alloc->position);
+            // Calculate the absolute position of the allocation
+            $loginzonepos= sloodle_vector_to_array($this->sloodle_course_data->loginzonepos);
+            $abspos = array('x'=>$loginzonepos['x'] + $relpos['x'], 'y'=>$loginzonepos['y'] + $relpos['y'], 'z'=>$loginzonepos['z'] + $relpos['z']);
+            
+            // Construct and return the SLurl
+            return "secondlife://{$this->sloodle_course_data->loginzoneregion}/{$abspos['x']}/{$abspos['y']}/{$abspos['z']}";
+        }
+        
+        /**
+        * Finds the user identified by LoginZone allocation, and loads it into the given user object.
+        * Note: does not delete the allocation.
+        * @param string $pos Absolute position vector (relative to sim, not to LoginZone)
+        * @param SloodleUser &$user The user object which will be manipulated (by reference)
+        * @return bool True if successful, or false otherwise
+        */
+        function load_user_by_loginzone($pos, &$user)
+        {
+            // Calculate the relative position of the allocation
+            $abspos = sloodle_vector_to_array($pos);
+            $loginzonepos= sloodle_vector_to_array($this->sloodle_course_data->loginzonepos);
+            $relpos = array('x'=>$abspos['x'] - $loginzonepos['x'], 'y'=>$abspos['y'] - $loginzonepos['y'], 'z'=>$abspos['z'] - $loginzonepos['z']);
+            $relpos = sloodle_array_to_vector($relpos);
+        
+            // Attempt to find a matching LoginZone position in the database
+            $rec = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $relpos);
+            if (!$rec) return false;
+            // Load the user
+            return $user->load_user($rec->userid);
+        }
+        
+        /**
+        * Deletes any loginzone allocations for the given user
+        * If there are multiple for the same user (which there should never be) it will delete them all.
+        * @param SloodleUser $user The user whose allocation is to be deleted
+        * @return void
+        */
+        function delete_loginzone_allocation($user)
+        {
+            delete_records('sloodle_loginzone_allocation', 'userid', $user->get_user_id());
+        }
+        
+        
         /**
         * Reads fresh data into the structure from the database.
         * Fetches Moodle and Sloodle data about the course specified.
@@ -253,6 +459,9 @@
                 $this->sloodle_course_data = new stdClass();
                 $this->sloodle_course_data->course = $this->course_object->id;
                 $this->sloodle_course_data->autoreg = 0;
+                $this->sloodle_course_data->loginzonepos = '';
+                $this->sloodle_course_data->loginzonesize = '';
+                $this->sloodle_course_data->loginzoneregion = '';
                 $this->sloodle_course_data->id = insert_record('sloodle_course', $this->sloodle_course_data);
                 // Did something go wrong?
                 if (!$this->sloodle_course_data->id) {

@@ -60,6 +60,7 @@ $string['confirmdelete'] = 'Are you sure?';
 $string['controlaccess'] = 'You can control access to your courses by enabling or disabling the Sloodle Controllers';
 $string['courseconfig'] = 'Sloodle Course Configuration';
 $string['courseconfig:info'] = 'On this page, you can configure the Sloodle settings which affect your entire course. However, some of the settings may be disabled on your Moodle site by an administrator.<br/><br/><b>Please note:</b> auto-registration and auto-enrolment are not suitable for all Moodle installations. Please read the documentation about each one before enabling them.';
+$string['coursesettings'] = 'Course Settings';
 $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
@@ -104,19 +105,26 @@ $string['invalidcourseid'] = 'Invalid course ID';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
 $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
 
-$string['lastonlinesl'] = 'Last Online in SL';
+$string['lastactive'] = 'Last Sloodle Activity';
+$string['lastupdated'] = 'Last Updated';
 $string['linkedtomoodleusernum'] = 'Moodle User #';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
+
+$string['loginzone'] = 'Sloodle LoginZone';
+$string['loginzonedata'] = 'LoginZone Data';
 $string['loginzoneposition'] = 'LoginZone Position?';
-$string['loginzone:datamissing'] = 'Some of the Login Zone data could not be found.';
-$string['loginzone:entry'] = 'Sloodle LoginZone Entry';
-$string['loginzone:mayneedrerez'] = 'The Login Zone may need to be re-rezzed.';
-$string['loginzone:useteleportlink'] = 'A Login Position has been allocated for you. Please use the following link to teleport to it:';
-$string['loginzone:teleport'] = 'Click here to teleport to the Login Zone.';
-$string['loginzone:expirynote'] = 'Please note that your Login Position will expire in 15 minutes. If you do not manage to use it in this time, then you will need to return here to re-activate it.';
+$string['loginzone:datamissing'] = 'Error! Some of the Login Zone data could not be found.';
+$string['loginzone:mayneedrez'] = 'The LoginZone may need to be rezzed in-world.';
+$string['loginzone:olddata'] = 'Warning! This LoginZone data has not been updated recently, so it may no longer work.';
+$string['loginzone:alreadyregistered'] = 'There is already an avatar registered with your Moodle account. If you want to regiter another avatar, then please visit your Sloodle profile and delete your old avatar first.';
 $string['loginzone:allocationfailed'] = 'Failed to allocate a Login Position for you. Please wait a few minutes and try again.';
-$string['loginzone:allocationerror'] = 'An error occurred while allocating a Login Position.';
+$string['loginzone:allocationsucceeded'] = 'Successfully allocated a LoginZone.';
+$string['loginzone:expirynote'] = 'Please note that your Login Position will expire in 15 minutes. If you do not manage to use it in this time, then you will need to return here to re-activate it.';
+$string['loginzone:teleport'] = 'Click here to teleport to the Login Zone.';
+$string['loginzone:newallocation'] = 'Generate new LoginZone position';
+$string['loginzone:needallocation'] = 'You do not have a LoginZone allocation yet. Please click the button below to get one.';
+
 
 $string['minute'] = 'minute';
 $string['minutes'] = 'minutes';
@@ -170,8 +178,11 @@ $string['objecttype'] = 'Object Type';
 
 $string['or'] = 'or';
 
+$string['pendingallocations'] = 'Pending Allocations';
 $string['pendingavatars'] = 'Pending Avatars';
 //$string['pendingavatars:info'] = '';
+
+$string['position'] = 'Position';
 
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
@@ -183,6 +194,7 @@ $string['primpass:updated'] = 'Prim Password updated';
 $string['primpass:leadingzero'] = 'Prim Password should not start with a 0.';
 
 $string['releasenum'] = 'Module release number';
+$string['region'] = 'Region';
 
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';
@@ -194,6 +206,7 @@ $string['selectcontroller'] = 'Select Controller';
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';
 $string['showavatarsonly'] = 'Only show accounts with Sloodle entries';
+$string['size'] = 'Size';
 
 $string['sloodle'] = 'Sloodle';
 $string['sloodlenotinstalled'] = 'Sloodle does not appear to be installed yet. Please use visit the Moodle administration index to finish Sloodle installation:';
@@ -227,6 +240,7 @@ $string['sloodleuserprofiles'] = 'Sloodle User Profiles';
 $string['specialpages'] = 'Special Pages';
 
 $string['status'] = 'Status';
+$string['storedlayouts'] = 'Stored Layouts';
 $string['submit'] = 'Submit';
 
 $string['unknown'] = 'unknown';

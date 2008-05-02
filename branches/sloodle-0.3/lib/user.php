@@ -179,23 +179,23 @@
         }
         
         /**
-        * Gets the timestamp of whenever the avatar was last seen online.
+        * Gets the timestamp of whenever the avatar was last active
         * @return int
         */
-        function get_avatar_last_online()
+        function get_avatar_last_active()
         {
-            return (int)$this->avatar_data->lastonline;
+            return (int)$this->avatar_data->lastactive;
         }
         
         /**
-        * Sets the timestamp of when the user was last seen online
+        * Sets the timestamp of when the user was last active
         * @param int $timestamp A UNIX timestamp, or null to use the current time
         * @return void
         */
-        function set_avatar_last_online($timestamp = null)
+        function set_avatar_last_active($timestamp = null)
         {
             if ($timestamp == null) $timestamp = time();
-            $this->avatar_data->lastonline = $timestamp;
+            $this->avatar_data->lastactive = $timestamp;
         }
         
         /**

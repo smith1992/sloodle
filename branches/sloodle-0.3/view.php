@@ -89,10 +89,6 @@
     // Display the page header
     $navigation = "<a href=\"index.php?id=$course->id\">$strsloodles</a> ->";
     print_header_simple(format_string($sloodle->name), "", "$navigation ".format_string($sloodle->name), "", "", true, $editbuttons, navmenu($course, $cm));
-    
-    // Find out current groups mode
-    //$groupmode = groupmode($course, $cm);
-    //$currentgroup = setup_and_print_groups($course, $groupmode, 'view.php?id=' . $cm->id);
 
     // We can display the Sloodle module info... log the view
     add_to_log($course->id, 'sloodle', 'view sloodle module', "view.php?id=$cm->id", "$sloodle->id", $cm->id);

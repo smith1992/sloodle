@@ -239,7 +239,7 @@
             echo '</span>';
             // If it is the profile owner who is viewing this, then offer a link to the loginzone entry page
             if ($moodleuserid == $USER->id) {
-                echo "<br/><br/><p style=\"padding:8px; border:solid 1px #555555;\"><a href=\"{$CFG->wwwroot}/mod/sloodle/login/sl_loginzone_entry.php\">";
+                echo "<br/><br/><p style=\"padding:8px; border:solid 1px #555555;\"><a href=\"{$CFG->wwwroot}/mod/sloodle/classroom/loginzone.php?id=$courseid\">";
                 print_string('getnewloginzoneallocation', 'sloodle');
                 echo '</a></p>';
             }            
@@ -282,7 +282,7 @@
                                         get_string('linkedtomoodleusernum', 'sloodle'),
                                         get_string('avatarname', 'sloodle'),
                                         get_string('avataruuid', 'sloodle'),
-                                        get_string('lastonlinesl', 'sloodle'),
+                                        get_string('lastactive', 'sloodle'),
                                         ''
                                     );
         $sloodletable->align = array('center', 'center', 'left', 'left', 'left', 'left');
@@ -320,10 +320,10 @@
             $line[] = $curavname;
             $line[] = $curuuid; 
             
-            // Do we know when the avatar was last online in SL?
-            if (!empty($su->lastonline)) {
+            // Do we know when the avatar was last active
+            if (!empty($su->lastactive)) {
                 // Calculate the time difference
-                $difference = time() - (int)$su->lastonline;
+                $difference = time() - (int)$su->lastactive;
                 
                 // Assume first that the user is online now
                 // (Updates can easily take a minute or so... ignore anything less than 1 minute)

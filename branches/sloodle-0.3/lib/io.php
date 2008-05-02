@@ -918,6 +918,10 @@
                 if (empty($uuid)) {
                     $uuid = $this->_session->user->get_avatar_uuid();
                 }
+                
+                // Update the user's activity listing
+                $this->_session->user->set_avatar_last_active();
+                $this->_session->user->write_avatar();
             }
             
             // If we now have a UUID, then add it to our response data
