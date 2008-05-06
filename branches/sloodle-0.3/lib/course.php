@@ -417,6 +417,15 @@
             delete_records('sloodle_loginzone_allocation', 'userid', $user->get_user_id());
         }
         
+        /**
+        * Determines whether or not LoginZone data exists for this course.
+        * @return bool True if there is complete data, or false otherwise
+        */
+        function has_loginzone_data()
+        {
+            return (!(empty($this->sloodle_course_data->loginzonepos) || empty($this->sloodle_course_data->loginzonesize) || empty($this->sloodle_course_data->loginzoneregion)));
+        }
+        
         
         /**
         * Reads fresh data into the structure from the database.
