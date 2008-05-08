@@ -38,7 +38,7 @@
     //
     //  sloodleobjuuid = the UUID of the object being authorised
     //  sloodleobjname = the name of the object being authorised
-    //  sloodleobjpwd = a new password for the object
+    //  sloodleobjpwd = a new password for the object (NOT including its UUID)
     //
     // The following parameter is optional:
     //
