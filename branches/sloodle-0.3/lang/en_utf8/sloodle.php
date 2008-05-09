@@ -11,6 +11,8 @@ $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked 
 $string['allocated'] = 'Allocated';
 $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
+$string['allowguests'] = 'Allow guests to use the tool';
+$string['allowguests:note'] = 'Does not apply if auto-registration and auto-enrolment are enabled.';
 
 $string['authorizingfor'] = 'Authorizing for: ';
 $string['authorizedfor'] = 'Authorized for: ';
@@ -109,6 +111,7 @@ $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permis
 $string['lastactive'] = 'Last Sloodle Activity';
 $string['lastupdated'] = 'Last Updated';
 $string['linkedtomoodleusernum'] = 'Moodle User #';
+$string['listentoobjects'] = 'Listen to object chat';
 
 $string['loginsecuritytokenfailed'] = 'Your login security token is not valid. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 

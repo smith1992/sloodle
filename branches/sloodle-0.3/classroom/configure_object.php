@@ -284,7 +284,7 @@
             
             
             // Add this object's authorisation ID, and a submit button
-            echo '<br><br><input type="hidden" name="sloodleauthid" value="'.$sloodleauthid.'"/>';
+            echo '<br><input type="hidden" name="sloodleauthid" value="'.$sloodleauthid.'"/>';
             if (SLOODLE_DEBUG) echo '<input type="hidden" name="sloodledebug" value="true"/>';
             echo '<input type="submit" value="'.get_string('submit','sloodle').'"/>';
             echo '</form>';

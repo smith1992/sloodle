@@ -60,14 +60,40 @@
         // Sort the list by name
         natcasesort($chatrooms);
         
-        
-//--------------------------------------------------------
-// FORM
+    //--------------------------------------------------------
+    // FORM
+    
+        // Get the current configuration
+        $sloodlemoduleid = 0;
+        $sloodlelistentoobjects = 0;
+        $sloodleallowguests = 0;
+        $settings = get_records('sloodle_object_config', 'object', $sloodleauthid);
+        if (!$settings) $settings = array();
+        foreach ($settings as $s) {
+            // Grab the settings we recognised
+            switch ($s->name) {
+            case 'sloodlemoduleid': $sloodlemoduleid = $s->value; break;
+            case 'sloodlelistentoobjects': $sloodlelistentoobjects = $s->value; break;
+            case 'sloodleallowguests': $sloodleallowguests = $s->value; break;
+            }
+        }
+    
         
         // Ask the user to select a chatroom
         echo get_string('selectchatroom','sloodle').': ';
         choose_from_menu($chatrooms, 'sloodlemoduleid', '', '');
+        echo "<br><br>\n";
     
+        // Listening to object chat
+        echo get_string('listentoobjects','sloodle').': ';
+        choose_from_menu_yesno('sloodlelistentoobjects', $sloodlelistentoobjects);
+        echo "<br><br>\n";
+        
+        // Allow guest users
+        echo get_string('allowguests','sloodle').': ';
+        choose_from_menu_yesno('sloodleallowguests', $sloodleallowguests);
+        echo '<br><span style="font-style:italic; font-size:80%; color:#444444;">('.get_string('allowguests:note','sloodle').')</span><br><br>';
+        
     }
     
 ?>

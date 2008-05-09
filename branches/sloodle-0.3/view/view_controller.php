@@ -22,7 +22,9 @@
     * @return bool True if successful, or false otherwise (e.g. wrong type of module, or user not logged-in)
     */
     function sloodle_view_controller($cm, $sloodle, $showprotected = false)
-    {        
+    {
+        global $CFG;
+    
         // Check that there is valid Sloodle data
         if (empty($cm) || empty($sloodle) || $sloodle->type != SLOODLE_TYPE_CTRL) return false;
         
@@ -93,7 +95,9 @@
                 $objects_table->head = array(get_string('objectname','sloodle'),get_string('objectuuid','sloodle'),get_string('objecttype','sloodle'),'');
                 $objects_table->align = array('left', 'left', 'left', 'center');
                 foreach ($recs as $obj) {
-                    $objects_table->data[] = array($obj->name, $obj->uuid, $obj->type, "<input type=\"checkbox\" name=\"sloodledeleteobj_{$obj->id}\" value=\"true\" /");
+                    // Construct a link to this object's configuration page
+                    $config_link = "<a href=\"{$CFG->wwwroot}/mod/sloodle/classroom/configure_object.php?sloodleauthid={$obj->id}\">";
+                    $objects_table->data[] = array($config_link.$obj->name.'</a>', $obj->uuid, $obj->type, "<input type=\"checkbox\" name=\"sloodledeleteobj_{$obj->id}\" value=\"true\" /");
                 }
                 
                 // Display a form and the table
