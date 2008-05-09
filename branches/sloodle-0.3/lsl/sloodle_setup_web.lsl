@@ -13,19 +13,22 @@
 integer SLOODLE_OBJECT_DIALOG_CHANNEL = -3857343;
 string SLOODLE_CONFIG_NOTECARD = "sloodle_config";
 string SLOODLE_EOF = "sloodleeof";
+integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 
 string SLOODLE_VERSION_LINKER = "/mod/sloodle/version_linker.php";
 string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
-string SLOODLE_AUTH_INTERFACE = "/mod/sloodle/classroom/auth_object.php";
+string SLOODLE_CONFIG_INTERFACE = "/mod/sloodle/classroom/configure_object.php";
+string SLOODLE_CONFIG_LINKER = "/mod/sloodle/classroom/object_config_linker.php";
 
 float SLOODLE_VERSION_MIN = 0.3; // Minimum required version of Sloodle
 
 integer ownerlisten = 0; 
 integer do_web_config = TRUE; // If false, user touches are ignored
-string objauthid = ""; // The ID which is passed to Moodle in the URL for the user authorisation step
+string sloodleauthid = ""; // The ID which is passed to Moodle in the URL for the user authorisation step
 
 key httpcheckmoodle = NULL_KEY;
 key httpauthobject = NULL_KEY;
+key httpconfig = NULL_KEY;
 
 string sloodleserverroot = "";
 string sloodlepwd = ""; // stores the object-specific session key (UUID|pwd)
@@ -72,6 +75,20 @@ sloodle_has_config_notecard()
 sloodle_random_object_password()
 {
     return (string)(10000 + (integer)llFrand(999989999)); // Gets a random integer between 10000 and 999999999
+}
+
+// Show a menu letting the user choose between configuring the object, and downloading the configuration into SL
+sloodle_show_config_menu(key av)
+{
+    llDialog(av, "What would you like to do?\n\n0 = Configure object\n1 = Download configuration", ["0", "1"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "0");
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "1");
+}
+
+// Load the configuration URL
+sloodle_load_config_url(key av)
+{
+    llLoadURL(av, "Use this link to configure the object.", sloodleserverroot + SLOODLE_CONFIG_INTERFACE + "?sloodleauthid=" + sloodleauthid);
 }
 
 
@@ -258,7 +275,7 @@ state auth_object_initial
             llOwnerSay("ERROR: server response too short");
             return;
         }
-        objauthid = llList2String(lines, 1);
+        sloodleauthid = llList2String(lines, 1);
         
         // Start the configuration
         state configure_object;
@@ -280,7 +297,15 @@ state configure_object
 {
     state_entry()
     {
-        
+        llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
+        // Load the URL immediately 
+        sloodle_load_config_url();
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        httpconfig = NULL_KEY;
     }
 }
 
