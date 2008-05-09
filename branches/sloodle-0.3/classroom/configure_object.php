@@ -1,8 +1,9 @@
 <?php
     /**
-    * Sloodle object authorization page.
+    * Sloodle object configuration/authorization page.
     *
-    * Allows users in Moodle to authorize or deny in-world objects' access to Moodle.
+    * Allows users in Moodle to authorize or deny in-world objects' access to Moodle,
+    *  and to select the configuration settings.
     *
     * @package sloodleclassroom
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
@@ -21,7 +22,7 @@
     //  the following additional parameters will be added:
     //
     //  sloodlecontrollerid = the ID of the controller which is to be used
-    //  action = either 'confirm' or 'deny'
+    //  action = either 'auth' or 'cancel'
     //
     // If the action is 'confirm' then the object is authorised. Otherwise, its entry is deleted.
     //
@@ -38,10 +39,10 @@
     require_login();
     // Make sure the user is not a guest
     if (isguestuser()) {
-        exit(get_string('notguestaccess','sloodle'));
+        exit(get_string('noguestaccess','sloodle'));
     }
     
-    // We need to know which object is being authorised
+    // We need to know which object is being authorised and/or configured
     $sloodleauthid = required_param('sloodleauthid', PARAM_INT);
     $auth_obj = SloodleController::get_object($sloodleauthid);
     if (!$auth_obj) {
@@ -83,15 +84,21 @@
     // If the action was not recognised, then ignore it
     if ($action != 'auth' && $action != 'cancel') $action = '';
     
+    // Determine the page name - it should be authorisation or configuration
+    $pagename = get_string('objectauth','sloodle');
+    if ($object_authorised == true || $action == 'auth') $pagename = get_string('objectconfiguration','sloodle');
     
     // Construct a breadcrumb navigation menu
     $nav = get_string('modulename', 'sloodle').' -> ';
-    $nav .= get_string('objectauth','sloodle');
+    $nav .= $pagename;
     // Display the page header
-    print_header(get_string('objectauth','sloodle'), get_string('objectauth','sloodle'), $nav, '', '', false);
+    print_header($pagename, $pagename, $nav, '', '', false);
     
     
-    // Was an action specified? (Don't do this is the object was already authorised)
+//------------------------------------------------------------
+// AUTHORISATION STEP
+    
+    // Was an action specified? (Don't do this if the object was already authorised)
     $action_success = false;
     if (!empty($action) && $object_authorised == false) {
         // Check if we were instructed to authorise, and also that we have a controller to authorise on
@@ -102,12 +109,16 @@
         
             // Indicate that we are attempting authorisation
             echo '<div style="text-align:center;">';
-            echo get_string('authorizingfor').$sloodle->course->get_full_name().' &gt; '.$sloodle->course->controller->get_name().'<br><br>';
+            echo get_string('authorizingfor', 'sloodle').$sloodle->course->get_full_name().' &gt; '.$sloodle->course->controller->get_name().'<br><br>';
         
             // Attempt to authorise the entry
             if ($sloodle->course->controller->authorise_object($auth_obj->uuid, $sloodle->user)) {
                 echo '<span style="font-weight:bold; color:green;">'.get_string('objectauthsuccessful','sloodle').'</span><br>';
                 $action_success = true;
+                $object_authorised = true;
+                // Reload the object data
+                $auth_obj = SloodleController::get_object($sloodleauthid);
+                
             } else {
                 echo '<span style="font-weight:bold; color:red;">'.get_string('objectauthfailed','sloodle').'</span><br>';
             }
@@ -126,15 +137,15 @@
             print_box(get_string('objectauthcancelled', 'sloodle'), 'generalbox boxaligncenter boxwidthnarrow');
             $action_success = true;
         }
-    }
-    
-    // If the object has already been authorised, then display a message about
-    if ($object_authorised) {
+    } else if ($object_authorised) {
+        // If the object has already been authorised, then display a message about it
         print_box_start('generalbox boxwidthnarrow boxaligncenter');
         echo '<span style="color:red; font-weight:bold; text-align:center;">'.get_string('objectauthalready','sloodle').'</span>';
         print_box_end();
     }
     
+//------------------------------------------------------------
+// OBJECT INFO
     
     // Display the information about the object
     print_box_start('generalbox boxaligncenter boxwidthnarrow');
@@ -152,11 +163,14 @@
     print_box_end();
     echo '<br>';
     
+//------------------------------------------------------------
+// AUTHORISATION FORM
     
     // If the action was not performed or successful, then display the authorisation form
     if ($action_success == false && $object_authorised == false) {
         print_box_start('generalbox boxaligncenter boxwidthnormal');
         echo '<div style="text-align:center;">';
+        echo '<h3>'.get_string('objectauth','sloodle').'</h3>';
 
         // If an authorisation action was attempted but the controller failed to load, then display an error message
         if ($action == 'auth' && $loaded_controller = false) {
@@ -206,7 +220,7 @@
         }
         
         // Display an authorisation form
-        echo '<br><form action="" method="GET">';
+        echo '<form action="" method="GET">';
         if (SLOODLE_DEBUG) echo '<input type="hidden" name="sloodledebug" value="true"/>';
         if (!empty($sloodleauthid)) echo '<input type="hidden" name="sloodleauthid" value="'.$sloodleauthid.'"/>';
         if (!empty($sloodleobjtype)) echo '<input type="hidden" name="sloodleobjtype" value="'.$sloodleobjtype.'"/>';
@@ -242,6 +256,46 @@
         print_box_end();
     }
     
+    
+//------------------------------------------------------------
+// CONFIGURATION FORM
+
+    // If the object is now authorised, we can display its configuration form
+    if ($object_authorised && !empty($auth_obj->type)) {
+        // Make sure the user has permission to manage activities on this course
+        $course_context = get_context_instance(CONTEXT_COURSE, $auth_obj->course->get_course_id());
+        require_capability('moodle/course:manageactivities', $course_context);
+    
+        // Based on the object type, determine where our configuration form should be
+        $config_file = SLOODLE_DIRROOT."/mod/{$auth_obj->type}/object_config.php";
+        
+        // Display the configuration section
+        print_box_start('generalbox boxwidthnormal boxaligncenter');
+        echo '<div style="text-align:center;"><h3>'.get_string('objectconfiguration','sloodle').'</h3>';
+        
+        // Check to see if the file exists
+        if (file_exists($config_file)) {
+            // Display our configuration form
+            echo '<form action="'.SLOODLE_WWWROOT.'/classroom/store_object_config.php" method="POST">';
+            
+            
+            // Include the form elements
+            require($config_file);
+            
+            
+            // Add this object's authorisation ID, and a submit button
+            echo '<br><br><input type="hidden" name="sloodleauthid" value="'.$sloodleauthid.'"/>';
+            if (SLOODLE_DEBUG) echo '<input type="hidden" name="sloodledebug" value="true"/>';
+            echo '<input type="submit" value="'.get_string('submit','sloodle').'"/>';
+            echo '</form>';
+            
+        } else {
+            print_string('noobjectconfig','sloodle');
+        }
+        
+        echo '</div>';
+        print_box_end();
+    }
     
     
     // Finish

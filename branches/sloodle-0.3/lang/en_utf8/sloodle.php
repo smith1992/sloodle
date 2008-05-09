@@ -13,6 +13,7 @@ $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 
 $string['authorizingfor'] = 'Authorizing for: ';
+$string['authorizedfor'] = 'Authorized for: ';
 $string['authorizedobjects'] = 'Authorized Objects';
 
 $string['autoenrol'] = 'User Auto-Enrolment';
@@ -147,7 +148,9 @@ $string['multipleentries'] = 'Warning: there are multiple Sloodle entries associ
 $string['name'] = 'Name';
 $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
+$string['noobjectconfig'] = 'No configuration options for this object.';
 $string['now'] = 'now';
+$string['nochatrooms'] = 'There are no chatrooms available in this course.';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
@@ -156,6 +159,7 @@ $string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
 $string['numsloodleentries'] = '# Sloodle entries';
+$string['numsettingsstored'] = 'Number of settings stored:';
 $string['numobjects'] = 'Number of objects';
 $string['numdeleted'] = 'Number deleted';
 
@@ -172,6 +176,7 @@ $string['objectauthnocontrollers'] = 'There are no Sloodle Controllers on the si
 $string['objectauthnopermission'] = 'You do not have the permission to authorise any objects. You may need to create a Sloodle Controller on your course(s).';
 $string['objectauthnotfound'] = 'Object not found for authorization.';
 $string['objectauthsuccessful'] = 'Object authorization has been successful.';
+$string['objectconfiguration'] = 'Object Configuration';
 $string['objectname'] = 'Object Name';
 $string['objectuuid'] = 'Object UUID';
 $string['objecttype'] = 'Object Type';
@@ -200,6 +205,7 @@ $string['second'] = 'second';
 $string['seconds'] = 'seconds';
 $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. Module instance may need to be created again.';
 
+$string['selectchatroom'] = 'Select Chatroom';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
