@@ -112,7 +112,7 @@
             echo get_string('authorizingfor', 'sloodle').$sloodle->course->get_full_name().' &gt; '.$sloodle->course->controller->get_name().'<br><br>';
         
             // Attempt to authorise the entry
-            if ($sloodle->course->controller->authorise_object($auth_obj->uuid, $sloodle->user)) {
+            if ($sloodle->course->controller->authorise_object($auth_obj->uuid, $sloodle->user, $sloodleobjtype)) {
                 echo '<span style="font-weight:bold; color:green;">'.get_string('objectauthsuccessful','sloodle').'</span><br>';
                 $action_success = true;
                 $object_authorised = true;
@@ -121,11 +121,6 @@
                 
             } else {
                 echo '<span style="font-weight:bold; color:red;">'.get_string('objectauthfailed','sloodle').'</span><br>';
-            }
-            
-            // Store the object's type if necessary
-            if (!empty($sloodleobjtype)) {
-                $sloodle->course->controller->update_object_type($auth_obj->uuid, $sloodleobjtype);
             }
             
             echo "</div><br>\n";
@@ -260,14 +255,19 @@
 //------------------------------------------------------------
 // CONFIGURATION FORM
 
+    // Get the type
+    $usetype = "";
+    if (!empty($auth_obj->type)) $usetype = $auth_obj->type;
+    else $usetype = $sloodleobjtype;
+
     // If the object is now authorised, we can display its configuration form
-    if ($object_authorised && !empty($auth_obj->type)) {
+    if ($object_authorised && !empty($usetype)) {
         // Make sure the user has permission to manage activities on this course
         $course_context = get_context_instance(CONTEXT_COURSE, $auth_obj->course->get_course_id());
         require_capability('moodle/course:manageactivities', $course_context);
     
         // Based on the object type, determine where our configuration form should be
-        $config_file = SLOODLE_DIRROOT."/mod/{$auth_obj->type}/object_config.php";
+        $config_file = SLOODLE_DIRROOT."/mod/{$usetype}/object_config.php";
         
         // Display the configuration section
         print_box_start('generalbox boxwidthnormal boxaligncenter');

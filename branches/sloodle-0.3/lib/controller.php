@@ -396,9 +396,10 @@
         * <b>Must not be called statically.</b>
         * @param string $uuid The UUID of the object being updated
         * @param SloodleUser $user The user to authorise the object against
+        * @param string $type (Optional). Specifies the type to store for this object. Ignored if null.
         * @return bool True if successful, or false if not
         */
-        function authorise_object($uuid, $user)
+        function authorise_object($uuid, $user, $type = null)
         {
             // Attempt to find an unauthorised entry for the object
             $entry = get_record('sloodle_active_object', 'uuid', $uuid);
@@ -406,6 +407,7 @@
             // Update the controller, user and time
             $entry->controllerid = $this->get_id();
             $entry->userid = $user->get_user_id();
+            if (!empty($type)) $entry->type = $type;
             $entry->timeupdated = time();
             if (!update_record('sloodle_active_object', $entry)) return false;
             return true;
