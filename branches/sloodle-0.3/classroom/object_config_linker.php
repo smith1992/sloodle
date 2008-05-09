@@ -14,17 +14,15 @@
     
     // This script should be called with the following parameters:
     //
-    //  sloodlecontrollerid = the controller being accessed
     //  sloodlepwd = password for authentication
     //  sloodleauthid = the object whose configuration is being downloaded
     //
-    //
+    // The controller is identified by the object's authorisation.
     // If succesful, status code 1 is returned, and each data line contains a name/value pair, like so:
     //
-    //  1
+    //  1|OK
     //  name|value
     //
-    // (NOTE: may return no settings at all, but still status code 1)
     // Returns status code -103 if the object was not found.
     //
     
@@ -33,9 +31,8 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    // Authenticate the request
+    // Start a new Sloodle session
     $sloodle = new SloodleSession();
-    $sloodle->authenticate_request(true);
     
     // Get the object ID
     $sloodleauthid = (int)$sloodle->request->required_param('sloodleauthid');
@@ -44,6 +41,19 @@
         $sloodle->response->quick_output(-103, 'SYSTEM', 'Object not found', false);
         exit();
     }
+    // Is the object authorised?
+    if ($auth_obj->course->controller->is_loaded() == false || $auth_obj->user->is_user_loaded() == false) {
+        $sloodle->response->quick_output(-103, 'SYSTEM', 'Object not authorised', false);
+        exit();
+    }
+    
+    // Authenticate the request
+    $sloodle->course = $auth_obj->course; // The object doesn't know it's controller yet, but the database does.
+    $_REQUEST['sloodlecontrollerid'] = $auth_obj->course->controller->get_id(); // Dirty hack... MUST BE TESTED!
+    $sloodle->authenticate_request();
+    
+    // Add a note of the controller to the outgoing data
+    $sloodle->response->add_data_line(array('sloodlecontrollerid', $auth_obj->course->controller->get_id()));
     
     // Fetch all the configuration settings
     $settings = get_records('sloodle_object_config', 'object', $sloodleauthid);
