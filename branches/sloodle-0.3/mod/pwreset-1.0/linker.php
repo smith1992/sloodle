@@ -1,7 +1,7 @@
 <?php
     /**
     * Sloodle password reset linker.
-    * Allows an users in-world to request a password reset.
+    * Allows users in-world to request a password reset.
     * This is only intended for auto-registered users.
     *
     * @package sloodle

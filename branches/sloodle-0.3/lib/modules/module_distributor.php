@@ -12,7 +12,7 @@
     */
     
     /** The Sloodle module base. */
-    require_once(SLOODLE_LIBROOT.'/module_base.php');
+    require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
     /** General Sloodle functions. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     
@@ -66,7 +66,7 @@
         * @param mixed $id The site-wide unique identifier for all modules. Type depends on VLE. On Moodle, it is an integer course module identifier ('id' field of 'course_modules' table)
         * @return bool True if successful, or false otherwise
         */
-        function load_from_db($id)
+        function load($id)
         {
             // Make sure the ID is valid
             if (!is_int($id) || $id <= 0) return false;
@@ -126,6 +126,20 @@
             }
         
             return $result;
+        }
+        
+        /**
+        * Sets the UUID of the XMLRPC channel used for requests.
+        * @param string $uuid The UUID of an XMLRPC channel
+        * @return bool True if successful, or false if not
+        */
+        function set_channel($uuid)
+        {
+            // Update the values
+            $this->sloodle_distributor_instance->channel = $uuid;
+            $this->sloodle_distributor_instance->timeupdated = time();
+            // Update the database
+            return update_record('sloodle_distributor', $this->sloodle_distributor_instance);
         }
         
         

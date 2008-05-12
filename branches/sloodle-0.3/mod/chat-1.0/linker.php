@@ -4,7 +4,7 @@
     * Allows a Sloodle WebIntercom tool link into a Moodle chatroom.
     * Fetches a recent chat history, and optionally inserts a new message.
     *
-    * @package sloodle
+    * @package sloodlechat
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

@@ -1,13 +1,13 @@
 <?php
     /**
-    * Chat 1.0 configuration form.
+    * Distributor 1.0 configuration form.
     *
-    * This is a fragment of HTML which gives the form elements for configuration of a chat object, v1.0.
+    * This is a fragment of HTML which gives the form elements for configuration of a distribution object, v1.0.
     * ONLY the basic form elements should be included.
     * The "form" tags and submit button are already specified outside.
     * The $auth_obj and $sloodleauthid variables will identify the object being configured.
     *
-    * @package sloodlechat
+    * @package sloodledistributor
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
@@ -34,31 +34,27 @@
         // Determine which course is being accessed
         $courseid = $auth_obj->course->get_course_id();
         
-        // We need to fetch a list of visible chatrooms on the course
-        // Get the ID of the chat type
-        $rec = get_record('modules', 'name', 'chat');
+        // We need to fetch a list of visible distributors on the course
+        // Get the ID of the Sloodle type
+        $rec = get_record('modules', 'name', 'sloodle');
         if (!$rec) {
-            sloodle_debug("Failed to get chatroom module type.");
+            sloodle_debug("Failed to get Sloodle module type.");
             exit();
         }
-        $chatmoduleid = $rec->id;
         
-        // Get all visible chatrooms in the current course
-        $recs = get_records_select('course_modules', "`course` = $courseid AND `module` = $chatmoduleid AND `visible` = 1");
-        if (!$recs) {
-            error(get_string('nochatrooms','sloodle'));
-            exit();
-        }
-        $chatrooms = array();
+        // Get all visible Sloodle modules in the current course
+        $recs = get_records_select('course_modules', "`course` = $courseid AND `module` = {$rec->id} AND `visible` = 1");
+        if (!is_array($recs)) $recs = array();
+        $distributors = array();
         foreach ($recs as $cm) {
-            // Fetch the chatroom instance
-            $inst = get_record('chat', 'id', $cm->instance);
+            // Fetch the distributor instance
+            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_DISTRIB);
             if (!$inst) continue;
-            // Store the chatroom details
-            $chatrooms[$cm->id] = $inst->name;
+            // Store the distributor details
+            $distributors[$cm->id] = $inst->name;
         }
         // Sort the list by name
-        natcasesort($chatrooms);
+        natcasesort($distributors);
         
     //--------------------------------------------------------
     // FORM
@@ -75,21 +71,18 @@
         print_box_start('generalbox boxaligncenter');
         echo '<h3>'.get_string('generalconfiguration','sloodle').'</h3>';
         
-        // Ask the user to select a chatroom
-        echo get_string('selectchatroom','sloodle').': ';
-        choose_from_menu($chatrooms, 'sloodlemoduleid', $sloodlemoduleid, '');
+        // Ask the user to select a distributor
+        echo get_string('selectdistributor','sloodle').': ';
+        choose_from_menu($distributors, 'sloodlemoduleid', $sloodlemoduleid, '<i>('.get_string('nodistributorinterface','sloodle').')</i>', '', 0);
         echo "<br><br>\n";
-    
-        // Listening to object chat
-        echo get_string('listentoobjects','sloodle').': ';
-        choose_from_menu_yesno('sloodlelistentoobjects', $sloodlelistentoobjects);
-        echo "<br>\n";
         
         print_box_end();
         
         
     ///// ACCESS LEVELS /////
-        sloodle_print_access_level_options($settings);
+        // There is no need for server access controls, as users cannot access the server through the object
+        // (server access is entirely done through Moodle for this one)
+        sloodle_print_access_level_options($settings, true, true, false);
         
     }
     

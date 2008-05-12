@@ -674,14 +674,14 @@
     /**
     * Outputs the standard form elements for access levels in object configuration.
     * Each part can be optionally hidden, and default values can be provided.
+    * (Note: the server access level must be communicated from the object back to Moodle... rubbish implementation, but it works!)
     * @param array $current_config An associative array of setting names to values, containing defaults. (Ignored if null).
     * @param bool $show_use_object Determines whether or not the "Use Object" setting is shown
     * @param bool $show_control_object Determines whether or not the "Control Object" setting is shown
     * @param bool $show_server Determines whether or not the server access setting is shown
     * @return void
-    * @todo The server access level has not been implemented yet, even though the setting can be displayed with this function.
     */
-    function sloodle_print_access_level_options($current_config, $show_use_object = true, $show_control_object = true, $show_server = false)
+    function sloodle_print_access_level_options($current_config, $show_use_object = true, $show_control_object = true, $show_server = true)
     {
         // Quick-escape: if everything is being suppressed, then do nothing
         if (!($show_use_object || $show_control_object || $show_server)) return;

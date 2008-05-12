@@ -95,7 +95,7 @@
         * @param string $type The expected type of module - function fails if type is not correctly matched
         * @param bool $db If true then the system will also try to load appropriate data from the database, as specified in the module ID request parameter
         * @param bool $require If true, then if something goes wrong, the script will be terminated with an error message
-        * @param bool $override_access If true, then the user access permissions will be overriden to force access
+        * @param bool $override_access If true, then the user access permissions will be overriden to force access (not implemented yet)
         * @return bool True if successful, or false otherwise. (Note, if parameter $require was true, then the script will terminate before this function returns if something goes wrong)
         */
         function load_module($type, $db, $require = true, $override_access = false)
@@ -230,7 +230,8 @@
         
         /**
         * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
-        * Attempts auto-registration/enrolment if that is allowed. Also logs-in the user.
+        * Attempts auto-registration/enrolment if that is allowed and required, and logs-in the user.
+        * Server access level is checked if it is specified in the request parameters.
         * Note: if the request indicates that it relates to an object, then the validation fails.
         * @param bool $require If true, the script will be terminated with an error message if validation fails
         * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
@@ -246,6 +247,75 @@
                     exit();
                 }
                 return false;
+            }
+            
+            // Was a server access level specified in the request?
+            $sal = $this->request->get_server_access_level(false);
+            if ($sal != null) {
+                // Check what level was specified
+                $sal = (int)$sal;
+                $allowed = false;
+                $reason = 'Unknown.';
+                switch ($sal) {
+                case SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC:
+                    // Always allowed
+                    $allowed = true;
+                    break;
+                
+                case SLOODLE_SERVER_ACCESS_LEVEL_COURSE:
+                    // Is a course already loaded?
+                    if (!$this->course->is_loaded()) {
+                        $reason = 'No course loaded.';
+                        break;
+                    }
+                
+                    // Was a user account already fully loaded?
+                    if ($this->user->is_avatar_linked()) {
+                        // Is the user enrolled on the current course?
+                        if ($this->user->is_enrolled($this->course->get_id())) $allowed = true;
+                        else $reason = 'User not enrolled in course.';
+                    } else {
+                        $reason = 'User not registered on site.';
+                    }
+                    break;
+                    
+                case SLOODLE_SERVER_ACCESS_LEVEL_SITE:
+                    // Was a user account already fully loaded?
+                    if ($this->user->is_avatar_linked()) $allowed = true;
+                    else $reason = 'User not registered on site.';
+                    break;
+                    
+                case SLOODLE_SERVER_ACCESS_LEVEL_STAFF:
+                    // Is a course already loaded?
+                    if (!$this->course->is_loaded()) {
+                        $reason = 'No course loaded.';
+                        break;
+                    }
+                
+                    // Was a user account already fully loaded?
+                    if ($this->user->is_avatar_linked()) {
+                        // Is the user staff on the current course?
+                        if ($this->user->is_staff($this->course->get_id())) $allowed = true;
+                        else $reason = 'User not staff in course.';
+                    } else {
+                        $reason = 'User not registered on site.';
+                    }
+                    break;
+                    
+                default:
+                    // Unknown access level
+                    $reason = 'Access level not recognised';
+                    break;
+                }
+                
+                // Was the user blocked by access level?
+                if (!$allowed) {
+                    if ($require) {
+                        $this->response->quick_output(-331, 'USER_AUTH', $reason, false);
+                        exit();
+                    }
+                    return false;
+                }
             }
         
         // REGISTRATION //

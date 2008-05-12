@@ -49,9 +49,9 @@
         * @param mixed $id The site-wide unique identifier for all modules. Type depends on VLE. On Moodle, it is an integer course module identifier ('id' field of 'course_modules' table)
         * @return bool True if successful, or false otherwise
         */
-        function load_from_db($id)
+        function load($id)
         {
-            return false;
+            return true;
         }
         
         

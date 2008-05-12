@@ -39,6 +39,8 @@
     define('SLOODLE_PARAM_REQUEST_DESC', 'sloodlerequestdesc');
     /** Defines the HTTP parameter name for indicating a request which relates to an object instead of a user. */
     define('SLOODLE_PARAM_IS_OBJECT', 'sloodleisobject');
+    /** Defines the HTTP parameter name for specifying server access level. */
+    define('SLOODLE_PARAM_SERVER_ACCESS_LEVEL', 'sloodleserveraccesslevel');
 
     
     /**
@@ -876,6 +878,16 @@
             $par = $this->get_param(SLOODLE_PARAM_IS_OBJECT, false, false);
             if (strcasecmp($par, 'true') == 0 || strcasecmp($par, 'yes') == 0 || $par == '1') return true;
             return false;
+        }
+        
+        /**
+        * Fetches the server access level parameter, if specified.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
+        * @return string|null The server access level provided in the request parameters, or null if there wasn't one
+        */
+        function get_server_access_level($required = true)
+        {
+            return (int)$this->get_param(SLOODLE_PARAM_SERVER_ACCESS_LEVEL, $required);
         }
         
         

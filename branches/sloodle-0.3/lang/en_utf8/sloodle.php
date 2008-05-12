@@ -170,7 +170,7 @@ $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
 $string['noobjectconfig'] = 'No configuration options for this object.';
 $string['now'] = 'now';
-$string['nochatrooms'] = 'There are no chatrooms available in this course.';
+$string['nodistributorinterface'] = 'No Distributor Interface';
 $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with Sloodle';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
@@ -182,6 +182,9 @@ $string['numsloodleentries'] = '# Sloodle entries';
 $string['numsettingsstored'] = 'Number of settings stored:';
 $string['numobjects'] = 'Number of objects';
 $string['numdeleted'] = 'Number deleted';
+
+$string['nochatrooms'] = 'There are no chatrooms available in this course.';
+$string['nodistributors'] = 'There are no distributors available in this course.';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
@@ -226,6 +229,7 @@ $string['seconds'] = 'seconds';
 $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. Module instance may need to be created again.';
 
 $string['selectchatroom'] = 'Select Chatroom';
+$string['selectdistributor'] = 'Select Distributor';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';

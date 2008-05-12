@@ -31,6 +31,7 @@ integer sloodlemoduleid = 0;
 integer sloodlelistentoobjects = 0; // Should this object listen to other objects?
 integer sloodleobjectaccessleveluse = 0; // Who can use this object?
 integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
+integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 
 string SoundFile = ""; // Sound file used for the beep
 string MOODLE_NAME = "(SL)";
@@ -438,6 +439,7 @@ state logging
             body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
             body += "&sloodleuuid=" + (string)id;
             body += "&sloodleavname=" + llEscapeURL(name);
+            body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
             if (isavatar) body += "&message=" + MOODLE_NAME + " ";
             else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
             body += name + ": " + message;

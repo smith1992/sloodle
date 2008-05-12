@@ -671,7 +671,31 @@
             // Check if the user can view the course, and does not simply have guest access to it
             // Allow the site course
             return ($courseid == SITEID || (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)));
-            //return has_capability('moodle/course:view', $context);
+        }
+        
+        /**
+        * Is the current user Sloodle staff in the specified course?
+        * NOTE: a side effect of this is that it logs-in the user
+        * @param mixed $course Unique identifier of the course -- type depends on VLE (integer for Moodle)
+        * @param bool True if the user is staff, or false if not.
+        * @access public
+        * @todo Update to match parameter format and handling of {@link enrol()} function.
+        */
+        function is_staff($courseid)
+        {
+            global $USER;
+            // Attempt to log-in the user
+            if (!$this->login()) return false;
+            
+            // NOTE: this stuff was lifted from the Moodle 1.8 "course/enrol.php" script
+            
+            // Create a context for this course
+            if (!$context = get_context_instance(CONTEXT_COURSE, $courseid)) return false;
+            // Ensure we have up-to-date capabilities for the current user
+            load_all_capabilities();
+            
+            // Check if the user can view the course, does not simply have guest access to it, *and* is staff
+            return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false) && has_capability('mod/sloodle:staff', $context));
         }
         
         /**

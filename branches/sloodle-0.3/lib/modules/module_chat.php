@@ -12,7 +12,7 @@
     */
     
     /** The Sloodle module base. */
-    require_once(SLOODLE_LIBROOT.'/module_base.php');
+    require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
     /** General Sloodle functions. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     

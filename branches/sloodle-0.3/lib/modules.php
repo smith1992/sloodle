@@ -14,12 +14,12 @@
     
     
     /** Base module. */
-    require_once(SLOODLE_LIBROOT.'/module_base.php');
+    require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
     
     /** Distributor module. */
-    include_once(SLOODLE_LIBROOT.'/module_distributor.php');
+    include_once(SLOODLE_LIBROOT.'/modules/module_distributor.php');
     /** Chat module. */
-    include_once(SLOODLE_LIBROOT.'/module_chat.php');
+    include_once(SLOODLE_LIBROOT.'/modules/module_chat.php');
     
     //... include more module types here!
     
