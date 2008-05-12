@@ -37,6 +37,8 @@
     
     /** Defines the HTTP parameter name for a request descriptor. */
     define('SLOODLE_PARAM_REQUEST_DESC', 'sloodlerequestdesc');
+    /** Defines the HTTP parameter name for indicating a request which relates to an object instead of a user. */
+    define('SLOODLE_PARAM_IS_OBJECT', 'sloodleisobject');
 
     
     /**
@@ -872,7 +874,7 @@
         function is_object_request()
         {
             $par = $this->get_param(SLOODLE_PARAM_IS_OBJECT, false, false);
-            if (strcasecmp($par, 'true') || strcasecmp($par, 'yes') || $par == '1') return true;
+            if (strcasecmp($par, 'true') == 0 || strcasecmp($par, 'yes') == 0 || $par == '1') return true;
             return false;
         }
         

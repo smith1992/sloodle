@@ -385,22 +385,26 @@ state logging
             if (llListFindList(cmddialog, [id]) < 0) return;
             sloodle_remove_cmd_dialog(id);
             
+            // Find out what the user can do
+            integer canctrl = sloodle_check_access_ctrl(id);
+            integer canuse = sloodle_check_access_use(id);
+            
             // Check what the command is
             if (message == "0") {
                 // Make sure the user can use this
-                if (!sloodle_check_access_use(id)) return;
+                if (!(canctrl || canuse)) return;
                 // Stop recording the user
                 sloodle_stop_recording_agent(id);
                 
             } else if (message == "1") {
                 // Make sure the user can use this
-                if (!sloodle_check_access_use(id)) return;
+                if (!(canctrl || canuse)) return;
                 // Start recording the user
                 sloodle_start_recording_agent(id);
                 
             } else if (message == "2") {
                 // Make sure the user can control this 
-                if (!sloodle_check_access_ctrl(id)) return;
+                if (!canctrl) return;
                 // Deactivate the WebIntercom
                 state ready;
             }
@@ -435,7 +439,7 @@ state logging
             body += "&sloodleuuid=" + (string)id;
             body += "&sloodleavname=" + llEscapeURL(name);
             if (isavatar) body += "&message=" + MOODLE_NAME + " ";
-            else body += "&message=" + MOODLE_NAME_OBJECT + " ";
+            else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
             body += name + ": " + message;
             
             
