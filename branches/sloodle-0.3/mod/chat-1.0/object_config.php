@@ -63,21 +63,17 @@
     //--------------------------------------------------------
     // FORM
     
-        // Get the current configuration
-        $sloodlemoduleid = 0;
-        $sloodlelistentoobjects = 0;
-        $sloodleallowguests = 0;
-        $settings = get_records('sloodle_object_config', 'object', $sloodleauthid);
-        if (!$settings) $settings = array();
-        foreach ($settings as $s) {
-            // Grab the settings we recognised
-            switch ($s->name) {
-            case 'sloodlemoduleid': $sloodlemoduleid = $s->value; break;
-            case 'sloodlelistentoobjects': $sloodlelistentoobjects = $s->value; break;
-            case 'sloodleallowguests': $sloodleallowguests = $s->value; break;
-            }
-        }
+        // Get the current object configuration
+        $settings = SloodleController::get_object_configuration($sloodleauthid);
+        
+        // Setup our default values
+        $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
+        $sloodlelistentoobjects = (int)sloodle_get_value($settings, 'sloodlelistentoobjects', 0);
+
     
+    ///// GENERAL CONFIGURATION /////
+        print_box_start('generalbox boxaligncenter');
+        echo '<h3>'.get_string('generalconfiguration','sloodle').'</h3>';
         
         // Ask the user to select a chatroom
         echo get_string('selectchatroom','sloodle').': ';
@@ -87,12 +83,13 @@
         // Listening to object chat
         echo get_string('listentoobjects','sloodle').': ';
         choose_from_menu_yesno('sloodlelistentoobjects', $sloodlelistentoobjects);
-        echo "<br><br>\n";
+        echo "<br>\n";
         
-        // Allow guest users
-        echo get_string('allowguests','sloodle').': ';
-        choose_from_menu_yesno('sloodleallowguests', $sloodleallowguests);
-        echo '<br><span style="font-style:italic; font-size:80%; color:#444444;">('.get_string('allowguests:note','sloodle').')</span><br><br>';
+        print_box_end();
+        
+        
+    ///// ACCESS LEVELS /////
+        sloodle_print_access_level_options($settings);
         
     }
     

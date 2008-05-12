@@ -92,7 +92,24 @@
     
 //---------------------------------------------------------------------
 
-
+    // Access level constants
+    
+    /** Indicates that anybody may access an object in-world. */
+    define('SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC', 0);
+    /** Indicates that only the owner may access an object in-world. */
+    define('SLOODLE_OBJECT_ACCESS_LEVEL_OWNER', 1);
+    /** Indicates that only in-world group-members may access an object in-world. */
+    define('SLOODLE_OBJECT_ACCESS_LEVEL_GROUP', 2);
+    
+    /** Indicates that anybody may access a server resource (still requires an authenticated request). */
+    define('SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC', 0);
+    /** Indicates that only those registered and enrolled in a specific course may access a server resource. */
+    define('SLOODLE_SERVER_ACCESS_LEVEL_COURSE', 1);
+    /** Indicates that only those registered on the site may access a server resource. */
+    define('SLOODLE_SERVER_ACCESS_LEVEL_SITE', 2);
+    /** Indicates that only those with Sloodle staff status on a course may access a server resource. */
+    define('SLOODLE_SERVER_ACCESS_LEVEL_STAFF', 3);    
+    
 
 //---------------------------------------------------------------------
 ?>

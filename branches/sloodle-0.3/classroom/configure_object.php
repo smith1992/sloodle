@@ -271,7 +271,7 @@
         
         // Display the configuration section
         print_box_start('generalbox boxwidthnormal boxaligncenter');
-        echo '<div style="text-align:center;"><h3>'.get_string('objectconfiguration','sloodle').'</h3>';
+        echo '<div style="text-align:center;"><h2>'.get_string('objectconfiguration','sloodle').'</h2>';
         
         // Check to see if the file exists
         if (file_exists($config_file)) {

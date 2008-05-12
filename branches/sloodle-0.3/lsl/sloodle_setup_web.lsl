@@ -31,6 +31,8 @@ string sloodleauthid = ""; // The ID which is passed to Moodle in the URL for th
 
 string password = ""; // stores the self-generated part of the password
 
+integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
+
 
 sloodle_tell_other_scripts(string msg)
 {
@@ -78,6 +80,7 @@ default
         // Listen for anything on the object dialog channel
         llSetText("", <0.0,0.0,0.0>, 0.0);
         llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
+        request_config = FALSE;
     }
     
     state_exit()
@@ -321,9 +324,16 @@ state configure_object
 {
     state_entry()
     {
-        llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
-        // Load the URL immediately 
-        sloodle_load_config_url(llGetOwner());
+        // Has object configuration been requested?
+        if (request_config) {
+            request_config = FALSE;
+            llSetText("Requesting configuration...", <0.0,1.0,0.0>, 0.8);
+            httpconfig = llHTTPRequest(sloodleserverroot + SLOODLE_CONFIG_LINKER + "?sloodlepwd="+sloodlepwd+"&sloodleauthid="+sloodleauthid, [HTTP_METHOD, "GET"], "");
+        } else {
+            llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
+            // Load the URL immediately 
+            sloodle_load_config_url(llGetOwner());
+        }
     }
     
     state_exit()
@@ -461,9 +471,14 @@ state idle
     {
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // Is it a reset command?
+            // Check the command type
             if (sval == "do:reset") {
                 llResetScript();
+                return;
+            } else if (sval == "do:requestconfig") {
+                // Send the configuration data again
+                request_config = TRUE;
+                state configure_object;
                 return;
             }
         }

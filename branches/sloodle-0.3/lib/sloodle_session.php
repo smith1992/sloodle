@@ -231,6 +231,7 @@
         /**
         * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
         * Attempts auto-registration/enrolment if that is allowed. Also logs-in the user.
+        * Note: if the request indicates that it relates to an object, then the validation fails.
         * @param bool $require If true, the script will be terminated with an error message if validation fails
         * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
         * @param bool $suppress_autoenrol If true, auto-enrolment will be completely suppressed for this function call
@@ -238,6 +239,15 @@
         */
         function validate_user($require = true, $suppress_autoreg = false, $suppress_autoenrol = false)
         {
+            // Is it an object request?
+            if ($this->request->is_object_request()) {
+                if ($require) {
+                    $this->response->quick_output(-301, 'USER_AUTH', 'Cannot validate object as user.', false);
+                    exit();
+                }
+                return false;
+            }
+        
         // REGISTRATION //
         
             // Make sure a the course is loaded

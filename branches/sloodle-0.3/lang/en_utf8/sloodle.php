@@ -6,6 +6,22 @@
 * @package sloodlelang
 */
 
+$string['accesslevel'] = 'Access Level';
+$string['accesslevel:public'] = 'Public';
+$string['accesslevel:owner'] = 'Owner';
+$string['accesslevel:group'] = 'Group';
+$string['accesslevel:course'] = 'Course';
+$string['accesslevel:site'] = 'Site';
+$string['accesslevel:staff'] = 'Staff';
+
+$string['accesslevelobject'] = 'Object Access Level';
+$string['accesslevelobject:desc'] = 'This determines who may access the object in-world';
+$string['accesslevelobject:use'] = 'Use object';
+$string['accesslevelobject:control'] = 'Control object';
+
+$string['accesslevelserver'] = 'Server Access Level';
+$string['accesslevelserver:desc'] = 'This determines who may use the server resource';
+
 $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
 
 $string['allocated'] = 'Allocated';
@@ -92,6 +108,7 @@ $string['failedcourseload'] = 'Failed to load Sloodle course data.';
 $string['failedauth-trydifferent'] = 'Failed to authorise the object. Please try a different controller.';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
+$string['generalconfiguration'] = 'General Configuration';
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userediting'] = 'What is the risk?';

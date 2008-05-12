@@ -43,11 +43,7 @@
     // Attempt to validate the user... but it's not important if we can't
     // (this will auto-register/enrol users where necessary and allowed)
     $sloodle->validate_user(false);
-    
-    
-    // Log the view - generates too much log data!
-    //add_to_log($sloodle->course->get_course_id(), 'sloodle', 'view chat', '', 'Viewed chatroom via Sloodle linker', $sloodle->request->get_module_id());
-    
+
     
     // Has an incoming message been provided?
     $message = $sloodle->request->optional_param('message', null);

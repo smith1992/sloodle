@@ -18,20 +18,23 @@ integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
-integer SLOODLE_ACCESS_LEVEL_OWNER = 0;
-integer SLOODLE_ACCESS_LEVEL_GROUP = 1;
-integer SLOODLE_ACCESS_LEVEL_PUBLIC = 2;
+string SLOODLE_OBJECT_TYPE = "chat-1.0";
+
+integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
 string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 integer sloodlemoduleid = 0;
 integer sloodlelistentoobjects = 0; // Should this object listen to other objects?
-integer sloodleaccessleveluse = 2; // Who can use this object?
-integer sloodleaccesslevelctrl = 0; // Who can control this object?
+integer sloodleobjectaccessleveluse = 0; // Who can use this object?
+integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 
 string SoundFile = ""; // Sound file used for the beep
-string MOODLE_NAME="(SL)";
+string MOODLE_NAME = "(SL)";
+string MOODLE_NAME_OBJECT = "(SL-object)";
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
@@ -59,16 +62,25 @@ sloodle_debug(string msg)
 integer sloodle_handle_command(string str) 
 {
     list bits = llParseString2List(str,["|"],[]);
+    integer numbits = llGetListLength(bits);
     string name = llList2String(bits,0);
-    string value = llList2String(bits,1);
+    string value1 = "";
+    string value2 = "";
     
-    if (name == "set:sloodleserverroot") sloodleserverroot = value;
-    else if (name == "set:sloodlepwd") sloodlepwd = value;
-    else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value;
-    else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value;
-    else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value;
-    else if (name == "set:sloodleaccessleveluse") sloodleaccessleveluse = (integer)value;
-    else if (name == "set:sloodleaccesslevelctrl") sloodleaccesslevelctrl = (integer)value;
+    if (numbits > 1) value1 = llList2String(bits,1);
+    if (numbits > 2) value2 = llList2String(bits,2);
+    
+    if (name == "set:sloodleserverroot") sloodleserverroot = value1;
+    else if (name == "set:sloodlepwd") {
+        // The password may be a single prim password, or a UUID and a password
+        if (value2 != "") sloodlepwd = value1 + "|" + value2;
+        else sloodlepwd = value1;
+        
+    } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
+    else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
+    else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
+    else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
+    else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
@@ -79,9 +91,9 @@ integer sloodle_handle_command(string str)
 integer sloodle_check_access_ctrl(key id)
 {
     // Check the access mode
-    if (sloodleaccesslevelctrl == SLOODLE_ACCESS_LEVEL_GROUP) {
+    if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
         return llSameGroup(id);
-    } else if (sloodleaccesslevelctrl == SLOODLE_ACCESS_LEVEL_PUBLIC) {
+    } else if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
         return TRUE;
     }
     
@@ -94,9 +106,9 @@ integer sloodle_check_access_ctrl(key id)
 integer sloodle_check_access_use(key id)
 {
     // Check the access mode
-    if (sloodleaccessleveluse == SLOODLE_ACCESS_LEVEL_GROUP) {
+    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
         return llSameGroup(id);
-    } else if (sloodleaccessleveluse == SLOODLE_ACCESS_LEVEL_PUBLIC) {
+    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
         return TRUE;
     }
     
@@ -204,6 +216,8 @@ default
 {
     state_entry()
     {
+        // Set the texture on the sides to indicate we're deactivated
+        llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -214,8 +228,8 @@ default
         sloodlecontrollerid = 0;
         sloodlemoduleid = 0;
         sloodlelistentoobjects = 0;
-        sloodleaccessleveluse = 0;
-        sloodleaccesslevelctrl = 0;
+        sloodleobjectaccessleveluse = 0;
+        sloodleobjectaccesslevelctrl = 0;
     }
     
     link_message( integer sender_num, integer num, string str, key id)
@@ -232,6 +246,14 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) state ready;
+        }
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Attempt to request a reconfiguration
+        if (llDetectedKey(0) == llGetOwner()) {
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         }
     }
 }
@@ -282,7 +304,10 @@ state ready
         // Check the channel
         if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
             // Check access to this object
-            if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) return;
+            if (sloodle_check_access_ctrl(id) == FALSE) {
+                llWhisper(0, "Sorry " + llKey2Name(id) + ". You do not have permission to control this object.");
+                return;
+            }
     
             // Has chat logging been activated?
             if (message == "1") {
@@ -342,10 +367,10 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            llDialog(id, "What would you like to do!\n\n0 = Stop recording me\n1 = Record me\n2 = Deactivated WebIntercom", ["0","1","2"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+            llDialog(id, "What would you like to do?\n\n0 = Stop recording me\n1 = Record me\n2 = Deactivated WebIntercom", ["0","1","2"], SLOODLE_CHANNEL_AVATAR_DIALOG);
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
-            llDialog(id, "What would you like to do!\n\n0 = Stop recording me\n1 = Record me", ["0","1"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+            llDialog(id, "What would you like to do?\n\n0 = Stop recording me\n1 = Record me", ["0","1"], SLOODLE_CHANNEL_AVATAR_DIALOG);
             sloodle_add_cmd_dialog(id);
         } else {
             llSay(0, "Sorry " + llKey2Name(id) + ". You do not have permission to use this object.");
@@ -382,9 +407,11 @@ state logging
             
         } else if (channel == 0) {
             // Is this an avatar?
+            integer isavatar = FALSE;
             if (llGetOwnerKey(id) == id) {
                 // Yes - check that we are listening to them
                 if (!sloodle_is_recording_agent(id)) return;
+                isavatar = TRUE;
             } else {
                 // No - it is an object - ignore it if necessary
                 if (sloodlelistentoobjects == 0) return;
@@ -407,7 +434,10 @@ state logging
             body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
             body += "&sloodleuuid=" + (string)id;
             body += "&sloodleavname=" + llEscapeURL(name);
-            body += "&message=" + MOODLE_NAME + name + message;
+            if (isavatar) body += "&message=" + MOODLE_NAME + " ";
+            else body += "&message=" + MOODLE_NAME_OBJECT + " ";
+            body += name + ": " + message;
+            
             
             httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
@@ -460,6 +490,7 @@ state logging
                 msg += "\n" + llList2String(lines,1);
             }
             sloodle_debug(msg);
+            sloodle_debug("Using password " + sloodlepwd);
             return;
         }
         
@@ -485,7 +516,7 @@ state logging
                 if (msgnum > message_id) {
                     message_id = msgnum;
                     // Make sure this wasn't an SL message originally
-                    if (llSubStringIndex(text, MOODLE_NAME) != 0) {
+                    if (llSubStringIndex(text, MOODLE_NAME) != 0 && llSubStringIndex(text, MOODLE_NAME_OBJECT) != 0) {
                         // Is this a Moodle beep?
                         if (llSubStringIndex(text, "beep ") == 0) {
                             // Yes - play a beep sound

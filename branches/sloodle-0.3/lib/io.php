@@ -865,6 +865,17 @@
             return $this->get_param(SLOODLE_PARAM_REQUEST_DESC, $required);
         }
         
+        /**
+        * Checks the parameters to determine if the request relates to an object rather than a user
+        * @return bool True if the request seems to have come from an object, or false otherwise.
+        */
+        function is_object_request()
+        {
+            $par = $this->get_param(SLOODLE_PARAM_IS_OBJECT, false, false);
+            if (strcasecmp($par, 'true') || strcasecmp($par, 'yes') || $par == '1') return true;
+            return false;
+        }
+        
         
       // FUNCTIONS //
       
