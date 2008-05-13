@@ -64,7 +64,7 @@
         
         // Setup our default values
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
-        $sloodlelistentoobjects = (int)sloodle_get_value($settings, 'sloodlelistentoobjects', 0);
+        $sloodlerefreshtime = (int)sloodle_get_value($settings, 'sloodlerefreshtime', 3600);
 
     
     ///// GENERAL CONFIGURATION /////
@@ -74,6 +74,11 @@
         // Ask the user to select a distributor
         echo get_string('selectdistributor','sloodle').': ';
         choose_from_menu($distributors, 'sloodlemoduleid', $sloodlemoduleid, '<i>('.get_string('nodistributorinterface','sloodle').')</i>', '', 0);
+        echo "<br><br>\n";
+        
+        // Ask the user for a refresh period (# seconds between automatic updates)
+        echo get_string('refreshtimeseconds','sloodle').': ';
+        echo '<input type="text" name="sloodlerefreshtime" value="'.$sloodlerefreshtime.'" size="8" maxlength="8" />';
         echo "<br><br>\n";
         
         print_box_end();

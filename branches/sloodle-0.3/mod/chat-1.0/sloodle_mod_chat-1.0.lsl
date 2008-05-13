@@ -41,7 +41,7 @@ integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
 integer listenctrl = 0; // Listening for initial control... i.e. activation/deactivation
-list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a command dialog (during logging) an when
+list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a command dialog (during logging) and when
 
 list recordingkeys = []; // Keys of people we're recording
 list recordingnames = []; // Names of people we're recording

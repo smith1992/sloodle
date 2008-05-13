@@ -223,6 +223,7 @@ $string['primpass:leadingzero'] = 'Prim Password should not start with a 0.';
 
 $string['releasenum'] = 'Module release number';
 $string['region'] = 'Region';
+$string['refreshtimeseconds'] = 'Refresh time (seconds)';
 
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';
