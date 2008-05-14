@@ -332,6 +332,12 @@
             // Is the user already loaded?
             if (!$this->user->is_avatar_linked())
             {
+                // If an avatar is loaded, but the user isn't, then we probably have a deleted Moodle user
+                if ($this->user->is_avatar_loaded() == true && $this->user->is_user_loaded() == false) {
+                    $this->response->quick_output(-301, 'USER_AUTH', 'Avatar linked to deleted user account', false);
+                    exit();
+                }
+            
                 // Make sure avatar details were provided
                 $uuid = $this->request->get_avatar_uuid(false);
                 $avname = $this->request->get_avatar_name(false);
@@ -355,17 +361,17 @@
                 // Ensure autoreg is not suppressed, and that it is permitted on that course and on the site
                 if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
                     if ($require) {
-                        $this->response->quick_output(-321, 'USER_AUTH', 'Auto-registration of users was not permitted', false);
+                        $this->response->quick_output(-321, 'USER_AUTH', 'User not registered, and auto-registration of users was not permitted', false);
                         exit();
                     }
                     return false;
                 }
                 
                 // It is important that we also check auto-enrolment here.
-                // If that is not enabled, but the call here requires it, then there is not point registering the user.
+                // If that is not enabled, but the call here requires it, then there is no point registering the user.
                 if ($suppress_autoenrol == true || $this->course->check_autoenrol() == false) {
                     if ($require) {
-                        $this->response->quick_output(-421, 'USER_ENROL', 'Auto-enrolment of users was not permitted', false);
+                        $this->response->quick_output(-421, 'USER_ENROL', 'User not enrolled, and auto-enrolment of users was not permitted', false);
                         exit();
                     }
                     return false;

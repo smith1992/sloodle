@@ -479,44 +479,6 @@
             
             return $plain_password;
         }
-        
-        /**
-        * Resets the user's password and notifies them of the new one.
-        * @param bool $require If true, then the script will be terminated if the operation fails
-        * @return string|bool The new password if successful, or false otherwise (if $require was false).
-        */
-        function reset_password($require = true)
-        {
-            // Check that the user is loaded
-            if (empty($this->user_data)) {
-                if ($require) {
-                    $this->_session->response->quick_output(-301, 'USER_AUTH', 'User data not loaded', false);
-                    exit();
-                }
-                return false;
-            }
-            // If the user has an email address on file, then we can't reset the password
-            if (!empty($this->user_data->email)) {
-                if ($require) {
-                    $this->_session->response->quick_output(-341, 'USER_AUTH', 'User has email address in database. Cannot use Sloodle password reset.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Generate a new random password
-            $password = sloodle_random_web_password();
-            // Update the user's password data
-            if (!update_internal_user_password($this->user_data, $password)) {
-                if ($require) {
-                    $this->_session->response->quick_output(-103, 'SYSTEM', 'Failed to update user password', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            return $password;
-        }
        
         /**
         * Load the avatar linked to the current user.
@@ -765,6 +727,58 @@
             return true;
         }
     
+    
+    ///// PASSWORD /////
+    
+        /**
+        * Resets the user's password
+        * @param bool $require If true, then the script will be terminated if the operation fails
+        * @return string|bool The new password if successful, or false otherwise (if $require was false).
+        */
+        function reset_password($require = true)
+        {
+            // Check that the user is loaded
+            if (empty($this->user_data)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-301, 'USER_AUTH', 'User data not loaded', false);
+                    exit();
+                }
+                return false;
+            }
+            // If the user has an email address on file, then we can't reset the password
+            if (!empty($this->user_data->email)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-341, 'USER_AUTH', 'User has email address in database. Cannot use Sloodle password reset.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Generate a new random password
+            $password = sloodle_random_web_password();
+            // Update the user's password data
+            if (!update_internal_user_password($this->user_data, $password)) {
+                if ($require) {
+                    $this->_session->response->quick_output(-103, 'SYSTEM', 'Failed to update user password', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            return $password;
+        }
+        
+        /**
+        * If the system is waiting to send a password notification to this user, then remove it
+        * @return void
+        */
+        function purge_password_notifications()
+        {
+            // Check that the user is loaded
+            if (empty($this->user_data)) return;
+            // Delete the database entries
+            delete_records('sloodle_pending_login_notifications', 'username', $this->user_data->username);
+        }
     }
     
 

@@ -30,6 +30,14 @@ string mylangcode = "en_utf8";
 
 // List of string names - do not translate this
 list locstringnames = [
+    // Common terms
+    "yes",
+    "no",
+    "on",
+    "off",
+    "enabled",
+    "disabled",
+
     // Web-configuration
     "webconfigmenu",
     "configlink",
@@ -55,6 +63,7 @@ list locstringnames = [
     "objectauthfailed:code",
     "objectconfigfailed:code",
     "initobjectauth",
+    "autoreg:newaccount",
     
     // Sloodle installation/version
     "sloodlenotinstalled",
@@ -70,11 +79,36 @@ list locstringnames = [
     "establishingconnection",
     "dialog:distributorcommandmenu",
     "dialog:distributorobjectmenu",
-    "dialog:distributorobjectmenu:cmd"
+    "dialog:distributorobjectmenu:cmd",
+    
+    // Password reset
+    "pwresetready:site",
+    "pwresetready:course",
+    "pwresetready:staff",
+    "pwreseterror:hasemail",
+    "pwreseterror:failed:code",
+    "pwreset:success",
+    
+    // WebIntercom
+    "webintercom:startedrecording",
+    "webintercom:stoppedrecording",
+    "webintercom:alreadyrecording",
+    "webintercom:notrecording",
+    "webintercom:recording",
+    "webintercom:chatloggingon",
+    "webintercom:joinchat",
+    "webintercom:touchtorecord"
 ];
 
 // List of translations - translate these, but do not change their order
 list locstrings = [
+    // Common terms
+    "Yes",
+    "No",
+    "On",
+    "Off",
+    "Enabled",
+    "Disabled",
 
     // Web-configuration
     "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
@@ -101,6 +135,7 @@ list locstrings = [
     "ERROR: object authorisation failed with code {{0}}",
     "ERROR: object configuration failed with code {{0}}",
     "Initiating object authorisation...",
+    "A new Moodle account has been automatically generated for you.\nWebsite: {{0}}\nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
     
     // Sloodle installation/version
     "ERROR: Sloodle is not installed on specified site.",
@@ -116,7 +151,25 @@ list locstrings = [
     "Establishing connection with outside server...",
     "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
     "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-    "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu" // As above, but the second parameter gives the command menu button label
+    "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu", // As above, but the second parameter gives the command menu button label
+    
+    // Password reset
+    "Password Reset\nSite: {{0}}", // Parameter gives address of site
+    "Password Reset\nSite: {{0}}\nCourse: {{1}}", // Address of site and name of course
+    "Password Reset\nSite: {{0}}\nCourse: {{1}}\nSTAFF ONLY", // Address of site and name of course
+    "Sorry {{0}}. There is an email address associated with your Moodle account at {{1}}. Please use Moodle to reset your password.", // Parameter 0 should be an avatar name, and 1 should be a site address.
+    "Sorry {{0}}. Error {{1}} occured while trying to reset your password.", // Parameters: avatar name and error code
+    "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}}\nUsername: {{2}}\nPassword: {{3}}" // Parameters: avatar name, site address, username, password
+    
+    // WebIntercom
+    "Started recording {{0}}", // Parameter: name of an avatar
+    "Stopped recording {{0}}",
+    "Already recording {{0}}",
+    "Not recording {{0}}",
+    "Recording:\n{{0}}"
+    "Chat loggin is on!",
+    "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
+    "Touch logger to record your chat"
 ];
 
 ///// ----------- /////
@@ -136,6 +189,7 @@ string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 
 ///// FUNCTIONS /////
@@ -337,7 +391,16 @@ default
                 // We need 1 additional parameter, containing the URL to load
                 if (num_output_params >= 2) llSetText(trans, (vector)llList2String(output_params, 0), (float)llList2String(output_params, 1));
                 else sloodle_debug("ERROR: Insufficient output parameters to show hover text with string \"" + string_name + "\".");
-                
+            
+            } else if (output_method == SLOODLE_TRANSLATE_IM) {
+                // Send an IM - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to send IM with string \"" + string_name + "\".");
+                    return;
+                }                
+                // Send the IM
+                llInstantMessage(id, trans);
+
             } else {
                 // Don't know the output method
                 sloodle_debug("ERROR: unrecognised output method \"" + output_method + "\".");

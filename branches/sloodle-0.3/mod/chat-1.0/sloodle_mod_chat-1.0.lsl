@@ -51,6 +51,33 @@ key httpchat = NULL_KEY; // Request used to send/receive chat
 integer message_id = 0; // ID of the last message received from Moodle
 
 
+///// TRANSLATION /////
+
+// Link message channels
+integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
+integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
+
+// Translation output methods
+string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
+string SLOODLE_TRANSLATE_SAY = "say";               // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_WHISPER = "whisper";       // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_SHOUT = "shout";           // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";  // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
+string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
+string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
+
+// Send a translation request link message
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+{
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+}
+
+///// ----------- /////
+
+
 ///// FUNCTIONS /////
 
 sloodle_debug(string msg)
@@ -166,7 +193,7 @@ sloodle_start_recording_agent(key id)
 {
     // Do nothing if the person is already on the list
     if (llListFindList(recordingkeys, [id]) >= 0) {
-        llSay(0, "Already recording " + llKey2Name(id));
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:alreadyrecording", [llKey2Name(id)], NULL_KEY);
         return;
     }
     
@@ -175,7 +202,7 @@ sloodle_start_recording_agent(key id)
     recordingnames += [llKey2Name(id)];
     
     // Announce the update
-    llSay(0, "Started recording " + llKey2Name(id));
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY);
     sloodle_update_hover_text();
 }
 
@@ -185,7 +212,7 @@ sloodle_stop_recording_agent(key id)
     // Do nothing if the person is not already on the list
     integer pos = llListFindList(recordingkeys, [id]);
     if (pos < 0) {
-        llSay(0, "Not recording " + llKey2Name(id));
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:notrecording", [llKey2Name(id)], NULL_KEY);
         return;
     }
     
@@ -194,7 +221,7 @@ sloodle_stop_recording_agent(key id)
     recordingnames = llDeleteSubList(recordingnames, pos, pos);
     
     // Announce the update
-    llSay(0, "Stopped recording " + llKey2Name(id));
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY);
     sloodle_update_hover_text();
 }
 
@@ -208,7 +235,7 @@ integer sloodle_is_recording_agent(key id)
 // Update the hover text while logging
 sloodle_update_hover_text()
 {
-    llSetText("Recording:\n" + llDumpList2String(recordingnames, "\n"), <1.0, 0.2, 0.2>, 1.0);
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [llDumpList2String(recordingnames, "\n")], NULL_KEY);
 }
 
 
@@ -231,6 +258,7 @@ default
         sloodlelistentoobjects = 0;
         sloodleobjectaccessleveluse = 0;
         sloodleobjectaccesslevelctrl = 0;
+        sloodleserveraccesslevel = 0;
     }
     
     link_message( integer sender_num, integer num, string str, key id)
@@ -276,7 +304,7 @@ state ready
         recordingnames = [];
         cmddialog = [];
 
-        llSetText("off",<1.0,1.0,1.0>,1.0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY);
         // Determine our "beep" sound file name
         SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
     }
@@ -290,7 +318,7 @@ state ready
     {
         // Activating this requires access permission
         if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) {
-            llWhisper(0, "Sorry " + llDetectedName(0) + ". You do not have permission to control this object.");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY);
             return;
         }
     
@@ -305,17 +333,13 @@ state ready
         // Check the channel
         if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
             // Check access to this object
-            if (sloodle_check_access_ctrl(id) == FALSE) {
-                llWhisper(0, "Sorry " + llKey2Name(id) + ". You do not have permission to control this object.");
-                return;
-            }
+            if (sloodle_check_access_ctrl(id) == FALSE) return;
     
             // Has chat logging been activated?
             if (message == "1") {
-                llSay(0,"Chat logging is on!");
-                llSay(0,"Join this Moodle chat at "+sloodleserverroot+"/mod/chat/view.php?id="+(string)sloodlemoduleid);
-                llSay(0,"Touch logger to record your chat.");
-                llSetText("Chat logging is on!",<0,0,0>,1.0);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:chatloggingon", [llDetectedName(0)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:touchtorecord", [], NULL_KEY);
                 
                 // Initially record the one who activated us
                 recordingkeys = [id];
@@ -352,8 +376,7 @@ state logging
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
         
         // Update our caption indicating whom we're recording
-        string text = "Recording: " + llList2String(recordingnames,0);
-        llSetText(text, <1.0,0.2,0.2>, 1.0);
+        sloodle_update_hover_text();
         
         // Regularly update the chat history and purge our list of command dialogs
         llSetTimerEvent(12.0);
