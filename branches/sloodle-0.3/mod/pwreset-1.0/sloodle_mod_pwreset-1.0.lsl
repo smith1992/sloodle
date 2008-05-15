@@ -53,15 +53,11 @@ string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should b
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
-///// FUNCTIONS /////
-
-
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
 }
-
 
 ///// ----------- /////
 
@@ -281,6 +277,11 @@ state ready
             // User cannot have their password reset in-world
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:hasemail", [name, sloodleserverroot], av);
             sloodle_debug("ERROR reported in response: " + body);
+            return;
+            
+        } else if (statuscode == -331) {
+            // User cannot use this device
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "nopermission:use", [name], av);
             return;
             
         } else if (statuscode <= 0) {

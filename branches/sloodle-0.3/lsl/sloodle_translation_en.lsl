@@ -102,7 +102,11 @@ list locstringnames = [
     "webintercom:ctrlmenu",
     "webintercom:usemenu",
     "webintercom:usectrlmenu",
-    "webintercom:autodeactivate"
+    "webintercom:autodeactivate",
+    
+    // User registration
+    "userauthenticated",
+    "userauthenticationfailed:code"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -179,7 +183,11 @@ list locstrings = [
     "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
     "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
     "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivated WebIntercom", // Parameters: stop, start, and deactivate button labels
-    "Deactivating due to lack of nearby users"
+    "Deactivating due to lack of nearby users",
+    
+    // User registration
+    "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
+    "Sorry {{0}}. Authentication of your avatar failed with code {{1}}." // Parameters: avatar name, error code
 ];
 
 ///// ----------- /////
