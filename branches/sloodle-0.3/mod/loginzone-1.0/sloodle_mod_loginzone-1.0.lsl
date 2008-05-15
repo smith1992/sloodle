@@ -89,7 +89,7 @@ sloodle_detected_avatar(key id, vector pos)
     body += "&sloodlepwd=" + sloodlepwd;
     body += "&sloodlepos=" + (string)pos;
     body += "&sloodleuuid=" + (string)id;
-    body += "&sloodlavname=" + llEscapeURL(llKey2Name(id));
+    body += "&sloodleavname=" + llEscapeURL(llKey2Name(id));
     // Send the request to update the server (we don't care about the response)
     key newhttp = llHTTPRequest(sloodleserverroot + SLOODLE_LOGINZONE_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
     if (newhttp != NULL_KEY) httpreqs += [newhttp];
@@ -152,7 +152,10 @@ default
             }
             
             // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE && isconfigured == TRUE) state running;
+            if (eof == TRUE && isconfigured == TRUE) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                state running;
+            }
         }  
     }
     
@@ -214,6 +217,7 @@ state running
         // Was this our update response?
         if (id == httpupdate) {
             httpupdate = NULL_KEY;
+            sloodle_debug("HTTP response: " + body);
             // Check the HTTP response
             if (status != 200) {
                 sloodle_debug("Update failed with HTTP status " + (string)status);
@@ -233,6 +237,7 @@ state running
         integer listpos = llListFindList(httpreqs, [id]);
         if (listpos < 0) return;
         httpreqs = llDeleteSubList(httpreqs, listpos, listpos);
+        sloodle_debug("HTTP response: " + body);
         
         // Check that it was a successful response
         if (status != 200) {
@@ -254,11 +259,20 @@ state running
         if (numfields >= 7) av = (key)llList2String(statusfields, 6);
         
         // Check if it was successful
-        if (statuscode > 0) {
+        if (statuscode == 301) {
+            if (av != NULL_KEY) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "alreadyauthenticated", [llKey2Name(av)], av);
+                return;
+            }
+        } else if (statuscode > 0) {
             if (av != NULL_KEY) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticated", [llKey2Name(av)], av);
                 return;
             }
+        } else if (statuscode == -301) {
+            // No user found with the specified position allocated
+            // Nothing to do...
+            return;
         } else {
             if (av != NULL_KEY) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticationfailed:code", [llKey2Name(av), statuscode], av);

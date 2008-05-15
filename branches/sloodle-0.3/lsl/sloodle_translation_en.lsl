@@ -106,6 +106,7 @@ list locstringnames = [
     
     // User registration
     "userauthenticated",
+    "alreadyauthenticated",
     "userauthenticationfailed:code"
 ];
 
@@ -187,6 +188,7 @@ list locstrings = [
     
     // User registration
     "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
+    "Thank you {{0}}. Your avatar was already authenticated.", // Parameter: avatar name
     "Sorry {{0}}. Authentication of your avatar failed with code {{1}}." // Parameters: avatar name, error code
 ];
 

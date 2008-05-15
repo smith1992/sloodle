@@ -40,14 +40,13 @@
     // The avatar UUID (if specified) will be returned in the request for Mode 2, according to the communications specification.
 
     /** Get the Sloodle configuration. */
-	require_once('../sl_config.php');
+	require_once('../../sl_config.php');
     /** Get the Sloodle API. */
 	require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 	
     // Start handling the request
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
-    
     
     // Are we using Mode 1?
     if ($sloodle->request->get_avatar_name(false) == null && $sloodle->request->get_avatar_uuid(false) == null) {
@@ -66,6 +65,8 @@
         $sloodle->course->set_loginzone_position($sloodlepos);
         $sloodle->course->set_loginzone_size($sloodlesize);
         $sloodle->course->set_loginzone_region($sloodleregion);
+        $sloodle->course->set_loginzone_time_updated();
+        
         // Attempt to update the database
         if ($sloodle->course->write()) {
             $sloodle->response->set_status_code(1);
