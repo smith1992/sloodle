@@ -97,7 +97,11 @@ list locstringnames = [
     "webintercom:recording",
     "webintercom:chatloggingon",
     "webintercom:joinchat",
-    "webintercom:touchtorecord"
+    "webintercom:touchtorecord",
+    "webintercom:ctrlmenu",
+    "webintercom:usemenu",
+    "webintercom:usectrlmenu",
+    "webintercom:autodeactivate"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -169,7 +173,11 @@ list locstrings = [
     "Recording:\n{{0}}"
     "Chat loggin is on!",
     "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
-    "Touch logger to record your chat"
+    "Touch logger to record your chat",
+    "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
+    "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
+    "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivated WebIntercom", // Parameters: stop, start, and deactivate button labels
+    "Deactivating due to lack of nearby users"
 ];
 
 ///// ----------- /////

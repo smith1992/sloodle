@@ -29,6 +29,7 @@ $string['allentries'] = 'All Sloodle Entries';
 $string['allentries:info'] = 'This lists all Sloodle user entries for the entire site. These may be avatars or LoginZone allocations, and may or may not be linked to a Moodle account.';
 $string['allowguests'] = 'Allow guests to use the tool';
 $string['allowguests:note'] = 'Does not apply if auto-registration and auto-enrolment are enabled.';
+$string['allowautodeactivation'] = 'Allow auto-deactivation';
 
 $string['authorizingfor'] = 'Authorizing for: ';
 $string['authorizedfor'] = 'Authorized for: ';
@@ -47,7 +48,6 @@ $string['autoreg:allowforcourse'] = 'Allow auto-registration for this course';
 $string['autoreg:courseallows'] = 'This course allows auto-registration';
 $string['autoreg:coursedisallows'] = 'This course does not allow auto-registration';
 $string['autoreg:disabled'] = 'Auto-registration is disabled on this site';
-
 
 $string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';

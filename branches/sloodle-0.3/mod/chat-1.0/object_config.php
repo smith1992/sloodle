@@ -69,7 +69,7 @@
         // Setup our default values
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
         $sloodlelistentoobjects = (int)sloodle_get_value($settings, 'sloodlelistentoobjects', 0);
-
+        $sloodleautodeactivate = (int)sloodle_get_value($settings, 'sloodleautodeactivate', 0);
     
     ///// GENERAL CONFIGURATION /////
         print_box_start('generalbox boxaligncenter');
@@ -83,6 +83,11 @@
         // Listening to object chat
         echo get_string('listentoobjects','sloodle').': ';
         choose_from_menu_yesno('sloodlelistentoobjects', $sloodlelistentoobjects);
+        echo "<br><br>\n";
+        
+        // Allowing auto-deactivation
+        echo get_string('allowautodeactivation','sloodle').': ';
+        choose_from_menu_yesno('sloodleautodeactivate', $sloodleautodeactivate);
         echo "<br>\n";
         
         print_box_end();

@@ -1,8 +1,8 @@
-// Sloodle WebIntercom (version 0.9, for Sloodle 0.3)
+// Sloodle WebIntercom (for Sloodle 0.3)
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-7 Sloodle
+// Copyright (c) 2006-8 Sloodle
 // Released under the GNU GPL
 //
 // Contributors:
@@ -32,6 +32,7 @@ integer sloodlelistentoobjects = 0; // Should this object listen to other object
 integer sloodleobjectaccessleveluse = 0; // Who can use this object?
 integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
+integer sloodleautodeactivate = 1; // Should the WebIntercom auto-deactivate when not in use?
 
 string SoundFile = ""; // Sound file used for the beep
 string MOODLE_NAME = "(SL)";
@@ -47,8 +48,12 @@ list recordingkeys = []; // Keys of people we're recording
 list recordingnames = []; // Names of people we're recording
 
 key httpchat = NULL_KEY; // Request used to send/receive chat
-
 integer message_id = 0; // ID of the last message received from Moodle
+
+float sensorrange = 30.0; // Senses somewhat beyond chat range
+float sensorrate = 60.0; // Scan every minute
+integer nosensorcount = 0; // How many recent sensor sweeps (while logging) have detected no avatars?
+integer nosensormax = 2; // How many failed sensor sweeps should we allow before auto-deactivating?
 
 
 ///// TRANSLATION /////
@@ -109,6 +114,7 @@ integer sloodle_handle_command(string str)
     else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
+    else if (name == "set:sloodleautodeactivate") sloodleautodeactivate = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
@@ -324,7 +330,7 @@ state ready
     
         llListenRemove(listenctrl);
         listenctrl = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llDetectedKey(0), "");
-        llDialog(llDetectedKey(0), "Would you like to start recording?\n\n0 = no\n1 = yes",["0", "1"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+        sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0));
         llSetTimerEvent(10.0);
     }
     
@@ -377,9 +383,14 @@ state logging
         
         // Update our caption indicating whom we're recording
         sloodle_update_hover_text();
-        
         // Regularly update the chat history and purge our list of command dialogs
         llSetTimerEvent(12.0);
+        
+        // Perform a regular scan to see if the WebIntercom has been abandoned
+        if (sloodleautodeactivate != 0) {
+            llSensorRepeat("", NULL_KEY, AGENT, sensorrange, PI, sensorrate);
+        }
+        nosensorcount = 0;
     }
     
     touch_start( integer total_number)
@@ -391,13 +402,13 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            llDialog(id, "What would you like to do?\n\n0 = Stop recording me\n1 = Record me\n2 = Deactivated WebIntercom", ["0","1","2"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+            sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id);
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
-            llDialog(id, "What would you like to do?\n\n0 = Stop recording me\n1 = Record me", ["0","1"], SLOODLE_CHANNEL_AVATAR_DIALOG);
+            sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id);
             sloodle_add_cmd_dialog(id);
         } else {
-            llSay(0, "Sorry " + llKey2Name(id) + ". You do not have permission to use this object.");
+            sloodle_translate_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
         }
     }
     
@@ -519,7 +530,6 @@ state logging
                 msg += "\n" + llList2String(lines,1);
             }
             sloodle_debug(msg);
-            sloodle_debug("Using password " + sloodlepwd);
             return;
         }
         
@@ -561,6 +571,34 @@ state logging
                         llSay(0, name + ": " + text);
                     }
                 }
+            }
+        }
+    }
+    
+    sensor(integer num_detected)
+    {
+        // Nearby avatars have been detected
+        nosensorcount = 0;
+    }
+    
+    no_sensor()
+    {
+        // Ignore this if auto-deactivation has been disabled
+        if (sloodleautodeactivate == 0) return;
+    
+        // No nearby avatars detected.
+        // Is the object attached to an avatar? (Sensors won't detect the avatar the object is attached to)
+        if (llGetAttached() > 0) {
+            // Yes - treat it as though avatars have been detected
+            nosensorcount = 0;
+        } else {
+            // No  - increment our count of failed scans
+            nosensorcount++;
+            // Is it time to deactivate?
+            if (nosensorcount >= nosensormax) {
+                sloodle_translate_request(SLOODLE_TRANSLATE_SAY, [0], "", [], NULL_KEY);
+                state ready;
+                return;
             }
         }
     }
