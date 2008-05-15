@@ -272,7 +272,7 @@
                     // Was a user account already fully loaded?
                     if ($this->user->is_avatar_linked()) {
                         // Is the user enrolled on the current course?
-                        if ($this->user->is_enrolled($this->course->get_id())) $allowed = true;
+                        if ($this->user->is_enrolled($this->course->get_course_id())) $allowed = true;
                         else $reason = 'User not enrolled in course.';
                     } else {
                         $reason = 'User not registered on site.';
@@ -295,7 +295,7 @@
                     // Was a user account already fully loaded?
                     if ($this->user->is_avatar_linked()) {
                         // Is the user staff on the current course?
-                        if ($this->user->is_staff($this->course->get_id())) $allowed = true;
+                        if ($this->user->is_staff($this->course->get_course_id())) $allowed = true;
                         else $reason = 'User not staff in course.';
                     } else {
                         $reason = 'User not registered on site.';

@@ -96,6 +96,7 @@ integer sloodle_handle_command(string str)
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
+    else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0);
@@ -222,11 +223,11 @@ state ready
     {
         // Display status
         if (sloodleserveraccesslevel == 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.8,0.0>, 0.9], "pwreset:course", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:course", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
         } else if (sloodleserveraccesslevel == 3) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.6,0.0>, 0.9], "pwreset:staff", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:staff", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwreset:site", [sloodleserverroot], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:site", [sloodleserverroot], NULL_KEY);
         }
     }
     
@@ -250,7 +251,7 @@ state ready
     http_response(key id, integer status, list meta, string body)
     {
         // Ignore any unexpected responses
-        integer pos = llListFindList(httprequests, id);
+        integer pos = llListFindList(httprequests, [id]);
         if (pos < 0) return;
         // Extract the data
         key av = llList2Key(avatars, pos);
@@ -278,13 +279,15 @@ state ready
         // Check the status code
         if (statuscode == -341) {
             // User cannot have their password reset in-world
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreset:hasemail", [name, sloodleserverroot], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:hasemail", [name, sloodleserverroot], av);
             sloodle_debug("ERROR reported in response: " + body);
+            return;
             
         } else if (statuscode <= 0) {
             // Error occurred
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:failed:code", [name, statuscode], av);
             sloodle_debug("ERROR reported in response: " + body);
+            return;
         }
         
         // Check that there are enough lines
@@ -295,7 +298,7 @@ state ready
         }
         
         // Attempt to parse the data line
-        list datafields = llList2String(lines, 1);
+        list datafields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
         if (llGetListLength(datafields) < 2) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
             sloodle_debug("ERROR: not enough data fields in response: " + body);

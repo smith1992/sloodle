@@ -64,6 +64,7 @@ list locstringnames = [
     "objectconfigfailed:code",
     "initobjectauth",
     "autoreg:newaccount",
+    "configurationreceived",
     
     // Sloodle installation/version
     "sloodlenotinstalled",
@@ -140,6 +141,7 @@ list locstrings = [
     "ERROR: object configuration failed with code {{0}}",
     "Initiating object authorisation...",
     "A new Moodle account has been automatically generated for you.\nWebsite: {{0}}\nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
+    "Configuration received",
     
     // Sloodle installation/version
     "ERROR: Sloodle is not installed on specified site.",
@@ -163,15 +165,15 @@ list locstrings = [
     "Password Reset\nSite: {{0}}\nCourse: {{1}}\nSTAFF ONLY", // Address of site and name of course
     "Sorry {{0}}. There is an email address associated with your Moodle account at {{1}}. Please use Moodle to reset your password.", // Parameter 0 should be an avatar name, and 1 should be a site address.
     "Sorry {{0}}. Error {{1}} occured while trying to reset your password.", // Parameters: avatar name and error code
-    "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}}\nUsername: {{2}}\nPassword: {{3}}" // Parameters: avatar name, site address, username, password
+    "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}} \nUsername: {{2}} \nPassword: {{3}}", // Parameters: avatar name, site address, username, password
     
     // WebIntercom
     "Started recording {{0}}", // Parameter: name of an avatar
     "Stopped recording {{0}}",
     "Already recording {{0}}",
     "Not recording {{0}}",
-    "Recording:\n{{0}}"
-    "Chat loggin is on!",
+    "Recording:\n{{0}}",
+    "Chat logging is on!",
     "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
     "Touch logger to record your chat",
     "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
@@ -226,7 +228,7 @@ sloodle_translation_response(integer target, string name, string translation)
 string sloodle_get_string(string name)
 {
     integer pos = llListFindList(locstringnames, [name]);
-    if (pos >= 0 || pos < llGetListLength(locstrings)) return llList2String(locstrings, pos);
+    if (pos >= 0 && pos < llGetListLength(locstrings)) return llList2String(locstrings, pos);
     return "[[" + name + "]]";
 }
 

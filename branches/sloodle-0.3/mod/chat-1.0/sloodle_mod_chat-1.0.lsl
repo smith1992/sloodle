@@ -241,7 +241,9 @@ integer sloodle_is_recording_agent(key id)
 // Update the hover text while logging
 sloodle_update_hover_text()
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [llDumpList2String(recordingnames, "\n")], NULL_KEY);
+    string recordlist = llDumpList2String(recordingnames, "\n");
+    if (recordlist == "") recordlist = "-";
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [recordlist], NULL_KEY);
 }
 
 
@@ -280,7 +282,10 @@ default
             }
             
             // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE && isconfigured == TRUE) state ready;
+            if (eof == TRUE && isconfigured == TRUE) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                state ready;
+            }
         }
     }
     
@@ -330,7 +335,7 @@ state ready
     
         llListenRemove(listenctrl);
         listenctrl = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llDetectedKey(0), "");
-        sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0));
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0));
         llSetTimerEvent(10.0);
     }
     
@@ -402,13 +407,13 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id);
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id);
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
-            sloodle_translate_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id);
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id);
             sloodle_add_cmd_dialog(id);
         } else {
-            sloodle_translate_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
         }
     }
     
@@ -596,7 +601,7 @@ state logging
             nosensorcount++;
             // Is it time to deactivate?
             if (nosensorcount >= nosensormax) {
-                sloodle_translate_request(SLOODLE_TRANSLATE_SAY, [0], "", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:autodeactivate", [], NULL_KEY);
                 state ready;
                 return;
             }

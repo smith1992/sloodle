@@ -138,15 +138,16 @@ default
 {    
     state_entry() 
     {
-        // Attempt to get the object type
-        SLOODLE_OBJECT_TYPE = sloodle_check_type();
+        // Attempt to get the object type if we don't already have it
         if (SLOODLE_OBJECT_TYPE == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notype", [], NULL_KEY);
-            
-        } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
+            SLOODLE_OBJECT_TYPE = sloodle_check_type();
+            if (SLOODLE_OBJECT_TYPE == "") {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notype", [], NULL_KEY);
+                
+            } else {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
+            }
         }
-    
     
         // Listen for anything on the object dialog channel
         llSetText("", <0.0,0.0,0.0>, 0.0);
@@ -536,11 +537,6 @@ state idle
     {
     }
     
-    on_rez(integer par)
-    {
-        llResetScript();
-    }
-    
     link_message(integer sender_num, integer num, string sval, key kval)
     {
         // Check the channel
@@ -550,9 +546,13 @@ state idle
                 llResetScript();
                 return;
             } else if (sval == "do:requestconfig") {
-                // Send the configuration data again
-                request_config = TRUE;
-                state configure_object;
+                // Send the configuration data again, so long as there isn't a notecard
+                if (sloodle_has_config_notecard() == FALSE) {
+                    request_config = TRUE;
+                    state configure_object;
+                } else {
+                    state default;
+                }
                 return;
             }
         }
