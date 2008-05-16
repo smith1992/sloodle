@@ -215,7 +215,7 @@ default
                 sloodleserverroot = url;
                 sloodleauthid = auth;
                 myrezzer = id;
-                state configure_object;
+                state auth_object_initial;
             }
         }
     }
@@ -239,11 +239,6 @@ default
         
         // Start the configuration process
         state check_moodle;
-    }
-    
-    on_rez(integer start_param)
-    {
-        llResetScript();
     }
     
     link_message(integer sender_num, integer num, string sval, key kval)
@@ -367,7 +362,7 @@ state auth_object_initial
     {
         // We can skip this stage if a starting parameter was provided,
         //  as that will be our password
-        if (llGetStartParameter()) {
+        if (llGetStartParameter() != 0) {
             // Store the password
             password = (string)llGetStartParameter();
             sloodlepwd = (string)llGetKey() + "|" + password;

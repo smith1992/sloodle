@@ -87,7 +87,7 @@
         
                 // Authorise the object on the controller
                 $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
-                if (!$authid) {
+                if ($authid) {
                     $sloodle->response->set_status_code(1);
                     $sloodle->response->set_status_descriptor('OK');
                     $sloodle->response->add_data_line($authid);

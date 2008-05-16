@@ -299,7 +299,7 @@
             if (!$entry) {
                 // Create a new entry
                 $entry = new stdClass();
-                $entry->controllerid = $this->sloodle_controller_instance->id;
+                $entry->controllerid = $this->cm->id;
                 $entry->uuid = $uuid;
                 $entry->name = $name;
                 $entry->userid = $userid;
@@ -312,7 +312,7 @@
                 
             } else {
                 // Update the existing entry
-                $entry->controllerid = $this->sloodle_controller_instance->id;
+                $entry->controllerid = $this->cm->id;
                 $entry->name = $name;
                 $entry->userid = $userid;
                 $entry->password = $password;
