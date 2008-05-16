@@ -114,6 +114,7 @@ integer sloodle_handle_command(string str)
     else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
+    else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == "set:sloodleautodeactivate") sloodleautodeactivate = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     

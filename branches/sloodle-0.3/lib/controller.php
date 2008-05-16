@@ -432,6 +432,18 @@
             return ($password == $entry->password);
         }
         
+        /**
+        * Gets the ID of the user who authorised the specified object.
+        * @return mixed|bool Returns the user ID if successful, or FALSE if not
+        */
+        function get_authorizing_user($uuid)
+        {
+            // Attempt to find an entry for the object
+            $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
+            if (!$entry) return false;
+            return (int)$entry->userid;
+        }
+        
         
         /**
         * Removes an active object and all its related items.

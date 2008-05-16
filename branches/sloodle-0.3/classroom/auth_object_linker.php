@@ -77,20 +77,29 @@
     if ($request_auth) {
         // Make sure the user is authenticated too
         if ($user_auth) {
-            // Authorise the object on the controller
-            if ($sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype)) {
-                $sloodle->response->set_status_code(1);
-                $sloodle->response->set_status_descriptor('OK');
-                $sloodle->response->add_data_line($sloodleobjuuid);
-            } else {
-                $sloodle->response->set_status_code(-201);
+            // Does the user have permission to authorise objects on this course?
+            $sloodle->user->login();
+            if (!$sloodle->course->can_user_authorise_objects()) {
+                $sloodle->response->set_status_code(-331);
                 $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-                $sloodle->response->add_data_line('Failed to register new active object.');
+                $sloodle->response->add_data_line('User not permitted to authorise objects on this course.');
+            } else {
+        
+                // Authorise the object on the controller
+                if ($sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype)) {
+                    $sloodle->response->set_status_code(1);
+                    $sloodle->response->set_status_descriptor('OK');
+                    $sloodle->response->add_data_line($sloodleobjuuid);
+                } else {
+                    $sloodle->response->set_status_code(-201);
+                    $sloodle->response->set_status_descriptor('OBJECT_AUTH');
+                    $sloodle->response->add_data_line('Failed to register new active object.');
+                }
             }
         } else {
             $sloodle->response->set_status_code(-212);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-            $sloodle->response->add_data_line('Expected avatar data.');
+            $sloodle->response->add_data_line('User not recognised.');
         }
     } else {
         // Create a new unauthorised entry

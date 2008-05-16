@@ -628,6 +628,20 @@
             
             return $success;
         }
+        
+        /**
+        * Checks whether or not the CURRENTLY LOGGED-IN user can authorise objects on this course.
+        * @return bool True if the user has object authorisation permission, or false otherwise.
+        */
+        function can_user_authorise_objects()
+        {
+            global $USER;
+            // Make sure some user data
+            if (empty($USER) || $USER->id == 0) return FALSE;
+            
+            // Check the capability
+            return has_capability('mod/sloodle:objectauth', get_context_instance(CONTEXT_COURSE, $this->get_course_id()));
+        }
     
     }
 

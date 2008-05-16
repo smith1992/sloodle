@@ -36,6 +36,8 @@ string password = ""; // stores the self-generated part of the password
 integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
 string SLOODLE_OBJECT_TYPE = "";
 
+key myrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
+
 
 ///// TRANSLATION /////
 
@@ -138,21 +140,29 @@ default
 {    
     state_entry() 
     {
+        // Pause for a moment, in case all scripts were reset at the same time
+        llSleep(0.2);
+    
         // Attempt to get the object type if we don't already have it
         if (SLOODLE_OBJECT_TYPE == "") {
             SLOODLE_OBJECT_TYPE = sloodle_check_type();
             if (SLOODLE_OBJECT_TYPE == "") {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notype", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notype", [], NULL_KEY);
                 
             } else {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
             }
         }
     
         // Listen for anything on the object dialog channel
-        llSetText("", <0.0,0.0,0.0>, 0.0);
         llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
         request_config = FALSE;
+        
+        // Do we have a configuration notecard?
+        if (!sloodle_has_config_notecard()) {
+            // No - invite the user to use web-configuration
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY);
+        }
     }
     
     state_exit()
@@ -175,12 +185,33 @@ default
             }
             
         } else if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // Ignore anything not owned by the same person
-            if (llGetOwnerKey(id) != llGetOwner()) return;
-            // If the message starts with "http" then store it as the Moodle address
-            msg = llStringTrim(msg, STRING_TRIM);
-            if (llSubStringIndex(msg, "http") == 0) {
-                sloodleserverroot = msg;
+        
+            // Check for standard messages, then for anything else
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == myrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
+            } else {
+                // Ignore anything not owned by the same person
+                if (llGetOwnerKey(id) != llGetOwner()) return;
+                // The message should be the UUID of THIS object, followed by a pipe character, then the address
+                list parts = llParseStringKeepNulls(msg, ["|"], []);
+                if (llGetListLength(parts) < 2) return;
+                key uuid = (key)llList2String(parts, 0);
+                string url = llList2String(parts, 1);
+                // Ignore it if the UUID doesn't match
+                if (uuid != llGetKey()) return;
+                
+                // If the message starts with "http" then store it as the Moodle address
+                url = llStringTrim(url, STRING_TRIM);
+                if (llSubStringIndex(msg, "http") == 0) {
+                    sloodleserverroot = msg;
+                    myrezzer = id;
+                    state check_moodle;
+                }
             }
         }
     }
@@ -231,6 +262,8 @@ state check_moodle
     {
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY);
         httpcheckmoodle = llHTTPRequest(sloodleserverroot + SLOODLE_VERSION_LINKER, [HTTP_METHOD, "GET"], "");
+        // Listen for chat messages from the rezzer
+        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
     }
     
     state_exit()
@@ -305,6 +338,22 @@ state check_moodle
             }
         }
     }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // What is the message?
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == myrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
+            }
+        }
+    }
 }
 
 // Initial object authorisation (stores details in the database)
@@ -331,6 +380,9 @@ state auth_object_initial
         // Initiate the object authorisation
         string body = "sloodleobjuuid="+(string)llGetKey()+"&sloodleobjname="+llGetObjectName()+"&sloodleobjpwd="+password+"&sloodleobjtype="+SLOODLE_OBJECT_TYPE;
         httpauthobject = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        
+        // Listen for chat messages from the rezzer
+        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
     }
     
     state_exit()
@@ -389,6 +441,22 @@ state auth_object_initial
             }
         }
     }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // What is the message?
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == myrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
+            }
+        }
+    }
 }
 
 
@@ -409,6 +477,9 @@ state configure_object
             // Load the URL immediately 
             sloodle_load_config_url(llGetOwner());
         }
+        
+        // Listen for chat messages from the rezzer
+        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
     }
     
     state_exit()
@@ -439,6 +510,17 @@ state configure_object
             } else if (msg == "1") {
                 // Download the configuration from the site
                 httpconfig = llHTTPRequest(sloodleserverroot + SLOODLE_CONFIG_LINKER + "?sloodlepwd="+sloodlepwd+"&sloodleauthid="+sloodleauthid, [HTTP_METHOD, "GET"], "");
+            }
+            
+        } else if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // What is the message?
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == myrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
             }
         }
     }
@@ -535,6 +617,24 @@ state idle
 {
     state_entry()
     {
+        // Listen for chat messages from the rezzer
+        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // What is the message?
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == myrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
+            }
+        }
     }
     
     link_message(integer sender_num, integer num, string sval, key kval)
@@ -558,4 +658,3 @@ state idle
         }
     }
 }
-

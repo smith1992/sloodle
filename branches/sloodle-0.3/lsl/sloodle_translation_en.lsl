@@ -45,12 +45,14 @@ list locstringnames = [
     "waitingforserveraddress",
     "checkingserverat",
     "sendingconfig",
+    "touchforwebconfig",
     
     // General connection and authorisation
     "readynotconnected",
     "shutdown",
     "connected",
     "readyconnectedto",
+    "readyconnectedto:sitecourse",
     "connectionfailed",
     "httperror",
     "httperror:code",
@@ -65,6 +67,11 @@ list locstringnames = [
     "initobjectauth",
     "autoreg:newaccount",
     "configurationreceived",
+    "configdatamissing",
+    "readingconfignotecard",
+    "checkingcourse",
+    "errortouchtoreset",
+    "notconfiguredyet",
     
     // Sloodle installation/version
     "sloodlenotinstalled",
@@ -74,6 +81,7 @@ list locstringnames = [
     // Permissions
     "nopermission:use",
     "nopermission:ctrl",
+    "nopermission:authobjects",
     
     // Distributor
     "openingxmlrpc",
@@ -107,7 +115,13 @@ list locstringnames = [
     // User registration
     "userauthenticated",
     "alreadyauthenticated",
-    "userauthenticationfailed:code"
+    "userauthenticationfailed:code",
+    
+    // Sloodle Set
+    "sloodleset:cmddialog",
+    "sloodleset:objectmenu",
+    "rezzingobject",
+    "reztimeout"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -127,12 +141,14 @@ list locstrings = [
     "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
     "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
     "Sending configuration data...",
+    "Touch me to start web-configuration",
 
     // General connection and authorisation
     "Ready\n[Not connected]",
     "Shutdown",
     "Connected successfully",
     "Ready\n[Connected to: {{0}}]", // Parameter should identify what is connected to (e.g. URL of website)
+    "Ready\n[Site: {{0}}]\n[Course: {{1}}]", // Parameters: site address, course name
     "Connection failed",
     "ERROR: HTTP request failed",
     "ERROR: HTTP request failed with code {{0}}",
@@ -147,6 +163,11 @@ list locstrings = [
     "Initiating object authorisation...",
     "A new Moodle account has been automatically generated for you.\nWebsite: {{0}}\nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
     "Configuration received",
+    "ERROR: some required data was missing from the configuration",
+    "Reading configuration notecard...",
+    "Checking course...",
+    "ERROR\nTouch me to reset",
+    "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
     
     // Sloodle installation/version
     "ERROR: Sloodle is not installed on specified site.",
@@ -156,6 +177,7 @@ list locstrings = [
     // Permissions
     "Sorry {{0}}. You do not have permission to use this object.", // Parameter should be the name of an avatar
     "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
+    "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
     
     // Distributor
     "Opening XMLRPC channel...",
@@ -189,7 +211,13 @@ list locstrings = [
     // User registration
     "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
     "Thank you {{0}}. Your avatar was already authenticated.", // Parameter: avatar name
-    "Sorry {{0}}. Authentication of your avatar failed with code {{1}}." // Parameters: avatar name, error code
+    "Sorry {{0}}. Authentication of your avatar failed with code {{1}}.", // Parameters: avatar name, error code
+    
+    // Sloodle Set
+    "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
+    "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
+    "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
+    "Timeout while attempting to rez \"{{0}}\"," // Parameter should give the name of the object
 ];
 
 ///// ----------- /////

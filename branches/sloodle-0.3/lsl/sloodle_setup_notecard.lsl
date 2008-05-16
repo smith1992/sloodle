@@ -56,7 +56,10 @@ sloodle_handle_command(string str)
 
 sloodle_start_reading_notecard()
 {
+    // Do we have a configuratio notecard?
     if (llGetInventoryType(SLOODLE_CONFIG_NOTECARD) == INVENTORY_NOTECARD) {
+        // Start reading it
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readingconfignotecard", [], NULL_KEY);
         sloodle_debug("starting reading notecard");
         sloodle_notecard_line = 0;
         sloodle_notecard_key = llGetNotecardLine("sloodle_config", 0); // read the first line. The dataserver event will get the next one.
@@ -77,6 +80,9 @@ default
     
     state_entry() 
     {
+        // Pause for a moment, in case all scripts were reset at the same time
+        llSleep(0.2);
+        // Go!
         sloodle_start_reading_notecard();
     }
     
@@ -96,6 +102,7 @@ default
             } else {
                 // This is the end of the configuration data
                 sloodle_tell_other_scripts(SLOODLE_EOF);
+                llSetText("", <0.0,0.0,0.0>, 0.0);
             }
         }
     }

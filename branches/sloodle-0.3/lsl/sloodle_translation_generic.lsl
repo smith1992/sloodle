@@ -1,4 +1,6 @@
-// Sloodle translation script for the Distributor 1.0 tool.
+// Generic Sloodle translation script.
+// Should be customized for specific objects.
+//
 // The list of string names should be the same on all language translations of this script.
 // The names should correspond directly to translations in the "locstrings" list.
 //
@@ -28,20 +30,12 @@ string mylangcode = "en_utf8";
 
 // List of string names - do not translate this
 list locstringnames = [
-    "openingxmlrpc",
-    "establishingconnection",
-    "dialog:distributorcommandmenu",
-    "dialog:distributorobjectmenu",
-    "dialog:distributorobjectmenu:cmd"
+    "test"
 ];
 
 // List of translations - translate these, but do not change their order
 list locstrings = [
-    "Opening XMLRPC channel...",
-    "Establishing connection with outside server...",
-    "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
-    "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-    "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu" // As above, but the second parameter gives the command menu button label
+    "Parameter {{0}}. Parameter {{1}}."
 ];
 
 ///// ----------- /////
@@ -198,9 +192,6 @@ default
                     trans = sloodle_get_string_f(string_name, string_params);
                 }
             }
-            
-            // If the translation is empty, then do nothing
-            if (trans == "") return;
             
             // // OUTPUT STRING // //
             
