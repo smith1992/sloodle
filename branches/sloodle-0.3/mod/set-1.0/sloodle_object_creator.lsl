@@ -14,7 +14,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_AUTH_LINKER = "mod/sloodle/classroom/auth_object_linker.php";
+string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
 string sloodleserverroot = "";
@@ -457,6 +457,13 @@ state rezzing
         integer numlines = llGetListLength(lines);
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Make sure we have enough data
+        if (numlines < 2) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_debug("HTTP response: " + body);
+            return;
+        }
                 
         // Did an error occur?
         if (statuscode == -331) {
@@ -468,8 +475,12 @@ state rezzing
             return;
         }
         
-        // Everything must be OK... send the server address to the object
-        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, (string)rez_id + "|" + sloodleserverroot);
+        // Extract the authorisation ID
+        string authid = llList2String(lines, 1);
+        
+        // Everything must be OK... send the data to the object. Format:
+        //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
+        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
         state ready;
     }
 }

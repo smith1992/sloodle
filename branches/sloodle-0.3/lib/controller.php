@@ -285,7 +285,7 @@
         * @param string $password The password for the object
         * @param string $type Type identifier of the object to be registered
         * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
-        * @return bool True if successful, or false if not
+        * @return int|bool The new authorisation ID if successful, or false if not
         */
         function register_object($uuid, $name, $user, $password, $type = '', $timestamp = null)
         {
@@ -307,7 +307,8 @@
                 $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to insert the entry
-                if (!insert_record('sloodle_active_object', $entry)) return false;
+                $entry->id = insert_record('sloodle_active_object', $entry);
+                if (!$entry->id) return false;
                 
             } else {
                 // Update the existing entry
@@ -321,7 +322,7 @@
                 if (!update_record('sloodle_active_object', $entry)) return false;
             }
             
-            return true;
+            return $entry->id;
         }
         
         

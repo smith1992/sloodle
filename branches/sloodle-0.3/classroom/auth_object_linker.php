@@ -31,7 +31,7 @@
     //
     // With the above information, a new entry is made, indicating that the object is fully authorised.
     // The new object can ONLY be authorised against the controller the request is received on.
-    // If successful, the status code returned is 1, and the data line will contain the UUID of the object being authorised.
+    // If successful, the status code returned is 1, and the data line will contain the authorisation ID of the object which has been authorised.
     
     // If an object needs the user to perform web-authorisation, then it can create an unauthorised entry.
     // To do this, the following parameters are required:
@@ -86,10 +86,11 @@
             } else {
         
                 // Authorise the object on the controller
-                if ($sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype)) {
+                $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
+                if (!$authid) {
                     $sloodle->response->set_status_code(1);
                     $sloodle->response->set_status_descriptor('OK');
-                    $sloodle->response->add_data_line($sloodleobjuuid);
+                    $sloodle->response->add_data_line($authid);
                 } else {
                     $sloodle->response->set_status_code(-201);
                     $sloodle->response->set_status_descriptor('OBJECT_AUTH');

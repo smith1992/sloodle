@@ -56,10 +56,6 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should b
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter, containing the URL.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 
-
-///// FUNCTIONS /////
-
-
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
 {
@@ -142,6 +138,7 @@ default
     {
         // Pause for a moment, in case all scripts were reset at the same time
         llSleep(0.2);
+        sloodleserverroot = "";
     
         // Attempt to get the object type if we don't already have it
         if (SLOODLE_OBJECT_TYPE == "") {
@@ -160,8 +157,10 @@ default
         
         // Do we have a configuration notecard?
         if (!sloodle_has_config_notecard()) {
-            // No - invite the user to use web-configuration
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY);
+            // No - if we have no starting parameter, then invite the user to use web-configuration
+            if (llGetStartParameter() == 0) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY);
+            }
         }
     }
     
@@ -171,7 +170,7 @@ default
     }
     
     listen(integer channel, string name, key id, string msg)
-    {
+    {        
         // Check the channel
         if (channel == 0 || channel == 1) {
             // Ignore anybody but the owner
@@ -197,21 +196,26 @@ default
             } else {
                 // Ignore anything not owned by the same person
                 if (llGetOwnerKey(id) != llGetOwner()) return;
-                // The message should be the UUID of THIS object, followed by a pipe character, then the address
+                // This should be a Sloodle initialisation message. Format:
+                //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
                 list parts = llParseStringKeepNulls(msg, ["|"], []);
-                if (llGetListLength(parts) < 2) return;
-                key uuid = (key)llList2String(parts, 0);
-                string url = llList2String(parts, 1);
-                // Ignore it if the UUID doesn't match
-                if (uuid != llGetKey()) return;
+                if (llGetListLength(parts) < 4) return;
+                string cmd = llList2String(parts, 0);
+                key uuid = (key)llList2String(parts, 1);
+                string url = llList2String(parts, 2);
+                string auth = llList2String(parts, 3);
                 
-                // If the message starts with "http" then store it as the Moodle address
+                // Make sure the command is correct, the UUID matches, and that the URL looks valid
+                if (cmd != "sloodle_init") return;
+                if (uuid != llGetKey()) return;
                 url = llStringTrim(url, STRING_TRIM);
-                if (llSubStringIndex(msg, "http") == 0) {
-                    sloodleserverroot = msg;
-                    myrezzer = id;
-                    state check_moodle;
-                }
+                if (llSubStringIndex(url, "http") != 0) return;
+                
+                // Store the settings
+                sloodleserverroot = url;
+                sloodleauthid = auth;
+                myrezzer = id;
+                state configure_object;
             }
         }
     }

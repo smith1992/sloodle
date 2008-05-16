@@ -23,6 +23,36 @@ string COMMENT_PREFIX = "//";
 key latestnotecard = NULL_KEY; // The most recently read notecard
 
 
+
+///// TRANSLATION /////
+
+// Link message channels
+integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
+integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
+
+// Translation output methods
+string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
+string SLOODLE_TRANSLATE_SAY = "say";               // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_WHISPER = "whisper";       // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_SHOUT = "shout";           // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";  // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
+string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
+string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter, containing the URL.
+string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
+
+// Send a translation request link message
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+{
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+}
+
+///// ----------- /////
+
+
+///// FUNCTIONS /////
+
+
 sloodle_tell_other_scripts(string msg)
 {
     sloodle_debug("notecard sending message to other scripts: "+msg);
