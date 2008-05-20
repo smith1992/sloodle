@@ -89,7 +89,7 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
-                state ready;
+                state ping;
             }
         }  
     }
@@ -99,21 +99,55 @@ state ready
 {
     state_entry()
     {
+        llSetTimerEvent(0.0);
         llSetTimerEvent(PING_DELAY);
     }
     
     state_exit()
     {
-        llSetTimerEvent(0.0);
     }
     
     timer()
+    {
+        state ping;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            }
+        }
+    }
+}
+
+state ping
+{
+    state_entry()
     {
         // Send our ping request
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodleobjuuid=" + (string)llGetKey();
         llHTTPRequest(sloodleserverroot + SLOODLE_PING_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        
+        state ready;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            }
+        }
     }
 }
 

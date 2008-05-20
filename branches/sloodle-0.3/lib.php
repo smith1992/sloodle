@@ -269,7 +269,8 @@
      * Clears out expired pending user entries, session keys, etc.
      *
      * @return boolean
-     * @todo Implement me!
+     * @todo Delete expired user entries
+     * @todo Use a custom delay for expiries of users/objects
      **/
     function sloodle_cron () {
         
@@ -277,7 +278,12 @@
         //...
         
         // Delete any active objects and session keys which have expired
-        //...
+        // (will eventually use custom expiry times, chosen in the configuration)
+        // Deletes any authorised objects which have not checked-in for more than 1 day.
+        // Deletes any unauthorised objects which have not checked-in for more than 1 hour
+        $expirytime_auth = time() - 86400;
+        $expirytime_unauth = time() - 3600;
+        delete_records_select('sloodle_active_object', "((`controllerid` = 0 OR `userid` = 0) AND `timeupdated` < $expirytime_unauth) OR `timeupdated` < $expirytime_auth");
         
         // More stuff?
         //...

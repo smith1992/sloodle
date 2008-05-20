@@ -207,7 +207,11 @@
                 }
                 
                 // Verify the object's authorisation
-                if ($this->course->controller->check_authorisation($objuuid, $objpwd)) return true;
+                if ($this->course->controller->check_authorisation($objuuid, $objpwd)) {
+                    // Passed authorisation - make sure the object is registered as being still active
+                    $this->course->controller->ping_object($objuuid);
+                    return true;
+                }
                 if ($require) {
                     $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
                     exit();
