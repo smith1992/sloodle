@@ -328,6 +328,8 @@ state ready
     {
         // Check the channel
         if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure we are actually listening to this user
+            if (llListFindList(cmddialog, [id]) < 0) return;
             // Check the use access level here
             if (!sloodle_check_access_use(id)) return;
             // The user no longer needs the dialog

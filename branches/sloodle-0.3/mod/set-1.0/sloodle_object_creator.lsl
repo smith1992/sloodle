@@ -32,6 +32,10 @@ key httpcheckcourse = NULL_KEY;
 list cmddialog = []; // Alternating list of keys, timestamps and page numbers, indicating who activated a dialog, when, and which page they are on
 list inventory = []; // A list of names of inventory items available for rezzing (copyable objects)
 
+list autorez_names = []; // List of names of items to autorez
+list autorez_pos = []; // Autorez positions
+list autorez_rot = []; // Autorez rotations
+
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
@@ -197,6 +201,11 @@ sloodle_show_object_dialog(key id, integer page)
 
     // Check how many objects we have
     integer numobjects = llGetListLength(inventory);
+    if (numobjects == 0) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleset:noobjects", [llKey2Name(id)], NULL_KEY);
+        return;
+    }
+    
     // How many pages are there?
     integer numpages = (integer)((float)numobjects / 9.0) + 1;
     // If the requested page number is invalid, then cap it
@@ -341,6 +350,42 @@ state ready
         }
     }
     
+    link_message(integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is this a reset command?
+            if (str == "do:reset") {
+                llResetScript();
+                return;
+            }
+            
+            // Parse the command
+            list lines = llParseString2List(str, ["\n"], []);
+            integer numlines = llGetListLength(lines);
+            string cmd = llList2String(lines, 0);
+            
+            // Are we being asked to rez items?
+            // (ignore it if we have some auto-rezzing pending)
+            if (cmd == "do:rez" && autorez_names == []) {
+                autorez_pos = [];
+                autorez_rot = [];
+                // Go through each other line
+                integer i = 1;
+                list fields = [];
+                for (; i < numlines; i++) {
+                    // Extract the fields
+                    fields = llParseString2List(llList2String(lines, i), ["|"], []);
+                    if (llGetListLength(fields) >= 3) {
+                        autorez_names += [llList2String(fields, 0, 0)];
+                        autorez_pos += [(vector)llList2String(fields, 1, 1)];
+                        autorez_rot += [(vector)llList2String(fields, 2, 2)];
+                    }
+                }
+            }
+        }  
+    }
+    
     listen(integer channel, string name, key id, string msg)
     {
         // Check what channel it is
@@ -462,25 +507,31 @@ state rezzing
         if (numlines < 2) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
             sloodle_debug("HTTP response: " + body);
+            state ready;
             return;
         }
                 
         // Did an error occur?
         if (statuscode == -331) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:authobject", [llKey2Name(rez_user)], NULL_KEY);
+            state ready;
             return;
         } else if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
             sloodle_debug("HTTP response: " + body);
+            state ready;
             return;
         }
         
         // Extract the authorisation ID
         string authid = llList2String(lines, 1);
+        // Determine the root key of the object
+        key rootkey = llGetLinkKey(1); // Gets the root prim of a link set
+        if (rootkey == NULL_KEY) rootkey = llGetLinkKey(0); // Gets the only prim if there is only one
         
         // Everything must be OK... send the data to the object. Format:
         //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
-        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
+        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
         state ready;
     }
 }

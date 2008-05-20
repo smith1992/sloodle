@@ -591,9 +591,10 @@
         * Save the given entries in the named profile.
         * @param string $name The name of the layout to query
         * @param array $entries A numeric array of {@link SloodleLayoutEntry} objects to store
+        * @param bool $add (Default: false) If true, then the entries will be added to the layout instead of replacing existing entries
         * @return bool True if successful, or false otherwise
         */
-        function save_layout($name, $entries)
+        function save_layout($name, $entries, $add = false)
         {
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
@@ -611,8 +612,8 @@
                 set_field('sloodle_layout', 'timeupdated', time(), 'course', $this->course_object->id, 'name', $name);
             }
             
-            // Delete all existing entries
-            delete_records('sloodle_layout_entry', 'layout', $layout->id);
+            // Delete all existing entries if necessary
+            if (!$add) delete_records('sloodle_layout_entry', 'layout', $layout->id);
             
             // Insert each new entry
             $success = true;

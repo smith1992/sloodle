@@ -21,7 +21,7 @@
     *  sloodleuuid = the UUID of a user agent making the layout profile request
     *  sloodleavname = the name of an avatar identified by sloodleuuid
     *
-    * There are 3 modes of operation: browse, query, and update
+    * There are 3 modes of operation: browse, query, update
     * If called with no parameters other than the above, the it adopts browse mode.
     * This mode will return a list of all layout profiles in the current course (whichever course the sloodlecontrollerid is part of).
     * If successful, the stats code will be 1, and each data line will identify a single layout by name.
@@ -33,9 +33,12 @@
     * If query mode is succesful, it will return status code 1, with one entry per data line, as follows:
     *  name|position|rotation
     *
-    * Update mode save a new set of entries for a given profile.
+    * Update mode will add or replace entries in a layout.
     * To activate this mode, "sloodlelayoutname" must be specified, as well as the following parameter:
     *  sloodlelayoutentries = a pipe and line-separated list of entries to save against the profile
+    * The following parameter can also be specified to alter the behaviour (defaults to 'false' if not specified):
+    *  sloodleadd = if 'true', then the given entries are added to the layout instead of replacing them
+    * 
     *
     * The format for the "sloodlelayoutentries" parameter should be the same as the response from the query mode.
     * Due to the potentially large quantity of information this type of query may generate, it is advisable to use POST instead of GET.
@@ -45,7 +48,7 @@
     define('SLOODLE_LINKER_SCRIPT', true);
     
     /** Grab the Sloodle/Moodle configuration. */
-    require_once('../sl_config.php');
+    require_once('../../sl_config.php');
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
@@ -73,6 +76,9 @@
     // Get the optional parameters
     $sloodlelayoutname = $sloodle->request->optional_param('sloodlelayoutname');
     $sloodlelayoutentries = $sloodle->request->optional_param('sloodlelayoutentries');
+    $sloodleadd = $sloodle->request->optional_param('sloodleadd', 'false');
+    if (strcasecmp($sloodleadd, 'true') == 0 || $sloodleadd == '1') $sloodleadd = true;
+    else $sloodleadd = false;
     // Determine which mode we're in (0 = browse, 1 = query, 2 = update)
     $mode = 0;
     if ($sloodlelayoutname == null) $mode = 0;
@@ -142,7 +148,7 @@
         }
         
         // Udpate the layout
-        if ($sloodle->course->save_layout($sloodlelayoutname, $entries)) {
+        if ($sloodle->course->save_layout($sloodlelayoutname, $entries, $sloodleadd)) {
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
         } else {

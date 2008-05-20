@@ -121,7 +121,14 @@ list locstringnames = [
     "sloodleset:cmddialog",
     "sloodleset:objectmenu",
     "rezzingobject",
-    "reztimeout"
+    "reztimeout",
+    "sloodleset:noobjects",
+    
+    // Layouts
+    "layout:failedretrying",
+    "layout:failedaborting",
+    "layout:toofar",
+    "layout:storedobject"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -217,7 +224,14 @@ list locstrings = [
     "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
     "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
     "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
-    "Timeout while attempting to rez \"{{0}}\"," // Parameter should give the name of the object
+    "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
+    "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
+    
+    // Layouts
+    "Failed to store layout position. Retrying...",
+    "Failed to store layout position. Aborting.",
+    "Failed to store layout position - too far from rezzer.",
+    "Object stored in layout."
 ];
 
 ///// ----------- /////

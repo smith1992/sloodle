@@ -36,7 +36,7 @@ string password = ""; // stores the self-generated part of the password
 integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
 string SLOODLE_OBJECT_TYPE = "";
 
-key myrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
+key sloodlemyrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
 
 
 ///// TRANSLATION /////
@@ -188,7 +188,7 @@ default
             // Check for standard messages, then for anything else
             if (msg == "CLEANUP") {
                 // Did it come from the rezzer?
-                if (id == myrezzer && id != NULL_KEY) {
+                if (id == sloodlemyrezzer && id != NULL_KEY) {
                     // Delete this object
                     sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
                     llDie();
@@ -196,26 +196,34 @@ default
             } else {
                 // Ignore anything not owned by the same person
                 if (llGetOwnerKey(id) != llGetOwner()) return;
-                // This should be a Sloodle initialisation message. Format:
-                //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
+                // This should be a Sloodle initialisation message:
+                //  sloodle_init|<rezzer>|<target-uuid>|<moodle-address>|<authid>
                 list parts = llParseStringKeepNulls(msg, ["|"], []);
-                if (llGetListLength(parts) < 4) return;
                 string cmd = llList2String(parts, 0);
-                key uuid = (key)llList2String(parts, 1);
-                string url = llList2String(parts, 2);
-                string auth = llList2String(parts, 3);
                 
-                // Make sure the command is correct, the UUID matches, and that the URL looks valid
-                if (cmd != "sloodle_init") return;
-                if (uuid != llGetKey()) return;
-                url = llStringTrim(url, STRING_TRIM);
-                if (llSubStringIndex(url, "http") != 0) return;
-                
-                // Store the settings
-                sloodleserverroot = url;
-                sloodleauthid = auth;
-                myrezzer = id;
-                state auth_object_initial;
+                // Check what the command is
+                if (cmd == "sloodle_init") {
+                    // Make sure we have enough parts in the message
+                    if (llGetListLength(parts) < 5) return;
+                    key rezzer = (key)llList2String(parts, 1);
+                    key target = (key)llList2String(parts, 2);
+                    string url = llList2String(parts, 3);
+                    string auth = llList2String(parts, 4);
+                    
+                    // Make sure the command is correct, the UUIDs are OK, and that the URL looks valid
+                    if (rezzer == NULL_KEY) return;
+                    if (target != llGetKey()) return;
+                    url = llStringTrim(url, STRING_TRIM);
+                    if (llSubStringIndex(url, "http") != 0) return;
+                    
+                    // Store the settings
+                    sloodleserverroot = url;
+                    sloodleauthid = auth;
+                    sloodlemyrezzer = rezzer;
+                    if ((integer)auth > 0) state auth_object_initial;
+                    else state check_moodle;
+                }
+
             }
         }
     }
@@ -262,7 +270,7 @@ state check_moodle
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY);
         httpcheckmoodle = llHTTPRequest(sloodleserverroot + SLOODLE_VERSION_LINKER, [HTTP_METHOD, "GET"], "");
         // Listen for chat messages from the rezzer
-        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
     state_exit()
@@ -342,13 +350,21 @@ state check_moodle
     {
         // Check the channel
         if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // What is the message?
-            if (msg == "CLEANUP") {
-                // Did it come from the rezzer?
-                if (id == myrezzer && id != NULL_KEY) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
                     // Delete this object
                     sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
                     llDie();
+                    return;
                 }
             }
         }
@@ -362,7 +378,7 @@ state auth_object_initial
     {
         // We can skip this stage if a starting parameter was provided,
         //  as that will be our password
-        if (llGetStartParameter() != 0) {
+        if (llGetStartParameter() != 0 && (integer)sloodleauthid > 0) {
             // Store the password
             password = (string)llGetStartParameter();
             sloodlepwd = (string)llGetKey() + "|" + password;
@@ -381,7 +397,7 @@ state auth_object_initial
         httpauthobject = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         
         // Listen for chat messages from the rezzer
-        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
     state_exit()
@@ -445,13 +461,21 @@ state auth_object_initial
     {
         // Check the channel
         if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // What is the message?
-            if (msg == "CLEANUP") {
-                // Did it come from the rezzer?
-                if (id == myrezzer && id != NULL_KEY) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
                     // Delete this object
                     sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
                     llDie();
+                    return;
                 }
             }
         }
@@ -478,7 +502,7 @@ state configure_object
         }
         
         // Listen for chat messages from the rezzer
-        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
     state_exit()
@@ -512,13 +536,21 @@ state configure_object
             }
             
         } else if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // What is the message?
-            if (msg == "CLEANUP") {
-                // Did it come from the rezzer?
-                if (id == myrezzer && id != NULL_KEY) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
                     // Delete this object
                     sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
                     llDie();
+                    return;
                 }
             }
         }
@@ -554,8 +586,9 @@ state configure_object
             integer maxbufferlength = 1024;
             integer cmdbufferlength = 0;
             
-            // Add the servert address and password in as the first commands
+            // Add the server address and password in as the first commands. Also add the rezzer key if we have one
             cmdbuffer = "set:sloodleserverroot|"+sloodleserverroot+"\nset:sloodlepwd|" + sloodlepwd + "\n";
+            if (sloodlemyrezzer != NULL_KEY) cmdbuffer += "set:sloodlemyrezzer|" + (string)sloodlemyrezzer + "\n";
             cmdbufferlength = llStringLength(cmdbuffer);
             
             // Go through each data line
@@ -617,20 +650,28 @@ state idle
     state_entry()
     {
         // Listen for chat messages from the rezzer
-        if (myrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", myrezzer, "");
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
     listen(integer channel, string name, key id, string msg)
     {
         // Check the channel
         if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // What is the message?
-            if (msg == "CLEANUP") {
-                // Did it come from the rezzer?
-                if (id == myrezzer && id != NULL_KEY) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
                     // Delete this object
                     sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
                     llDie();
+                    return;
                 }
             }
         }

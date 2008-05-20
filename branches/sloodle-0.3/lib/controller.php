@@ -521,6 +521,24 @@
             return $config;
         }
         
+        /**
+        * Updates the last active timer on an object.
+        * (Cannot be called statically... object must be authorised for this controller).
+        * @param mixed $id If an integer, it is the ID of an active object. If it is a string it is the object's UUID.
+        * @return bool True if successful, or false if not.
+        */
+        function ping_object($id)
+        {
+            // Check what type the ID is and fetch the object
+            if (is_string($id)) $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $id);
+            else $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'id', (int)$id);
+            if (!$entry) return false;
+            
+            // Update the record
+            $entry->timeupdated = time();
+            return update_record('sloodle_active_object', $entry);
+        }
+        
     }
 
 ?>
