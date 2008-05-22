@@ -39,7 +39,7 @@ list autorez_rot = []; // Autorez rotations
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
-vector default_rez_pos = <1.0, 1.0, 1.0>; // The default relative position to rez new objects at
+vector default_rez_pos = <0.0, 1.0, 1.0>; // The default relative position to rez new objects at
 rotation default_rez_rot = ZERO_ROTATION; // The default rotation to rez new objects at
 
 vector rez_pos = <0.0,0.0,0.0>; // This is used to store the actual rez position for a rez request
@@ -261,7 +261,7 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return;
     // Attempt to rez the item relative to the root of this object
-    llRezObject(name, llGetPos() - llGetLocalPos() + pos, ZERO_VECTOR, rot, password);
+    llRezObject(name, llGetPos() - llGetLocalPos() + (pos * llGetRot()), ZERO_VECTOR, rot, password);
 }
 
 

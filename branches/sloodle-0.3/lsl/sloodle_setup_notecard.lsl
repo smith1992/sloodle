@@ -125,12 +125,13 @@ default
             {
                 // If this is a comment line, then do not forward it
                 string trimmeddata = llStringTrim(data, STRING_TRIM_HEAD);
-                if (llSubStringIndex(trimmeddata, COMMENT_PREFIX) == -1) sloodle_tell_other_scripts(data);
+                if (llSubStringIndex(trimmeddata, COMMENT_PREFIX) != 0) sloodle_tell_other_scripts(data);
                 // Advance to the next line
                 sloodle_notecard_line++;
                 sloodle_notecard_key = llGetNotecardLine("sloodle_config",sloodle_notecard_line);
             } else {
                 // This is the end of the configuration data
+                llSleep(0.2);
                 sloodle_tell_other_scripts(SLOODLE_EOF);
                 llSetText("", <0.0,0.0,0.0>, 0.0);
             }

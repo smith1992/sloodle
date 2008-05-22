@@ -41,7 +41,7 @@
         exit();
     }
     // Make sure the object is authorised
-    if ($auth_obj->course->controller->is_loaded() == false || $auth_obj->user->is_user_loaded() == false) {
+    if ($auth_obj->course->controller->is_loaded() == false) {
         //TODO: more appropriate error message?
         error(get_string('objectauthnotfound','sloodle'));
         exit();

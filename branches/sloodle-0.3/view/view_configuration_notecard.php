@@ -74,7 +74,7 @@
   <p>$strcfginstructions</p>
   <p>$strcfgsecurity</p>
   <textarea cols="60" rows="4" readonly="true">set:sloodleserverroot|{$CFG->wwwroot}
-set:pwd|{$controller->password}
+set:sloodlepwd|{$controller->password}
 set:sloodlecontrollerid|{$cm->id}</textarea>
   <p>$strcfgsetnote</p>
  </div>

@@ -79,6 +79,7 @@ sloodle_reset()
 // Returns TRUE if the object has all the data it needs
 integer sloodle_handle_command(string str) 
 {
+    sloodle_debug("Handling command: " + str);
     list bits = llParseString2List(str,["|"],[]);
     integer numbits = llGetListLength(bits);
     string name = llList2String(bits,0);
@@ -173,6 +174,7 @@ default
     state_entry()
     {
         // Starting again with a new configuration
+        llSetTexture("touch_to_set_moodle", 0);
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
         eof = FALSE;
@@ -199,7 +201,8 @@ default
             if (eof == TRUE) {
                 if (isconfigured == TRUE) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
-                    state ready;
+                    if (sloodlecoursename_full == "") state check_course;
+                    else state ready;
                 } else {
                     // No more data, but we're not configured yet...
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY);
@@ -298,6 +301,7 @@ state ready
     state_entry()
     {
         // Display the site and course info in the hover text
+        llSetTexture("sloodle_ready", 0);
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
         // Run a regular timer to cancel expired dialogs
         llSetTimerEvent(12.0);
