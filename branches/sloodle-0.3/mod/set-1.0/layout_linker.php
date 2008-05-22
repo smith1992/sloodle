@@ -22,7 +22,7 @@
     *  sloodleavname = the name of an avatar identified by sloodleuuid
     *
     * There are 3 modes of operation: browse, query, update
-    * If called with no parameters other than the above, the it adopts browse mode.
+    * If called with no parameters other than the above, then it adopts browse mode.
     * This mode will return a list of all layout profiles in the current course (whichever course the sloodlecontrollerid is part of).
     * If successful, the stats code will be 1, and each data line will identify a single layout by name.
     *

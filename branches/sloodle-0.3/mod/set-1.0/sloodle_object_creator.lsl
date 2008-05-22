@@ -17,12 +17,15 @@ integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
+integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
+
 string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 string sloodlecoursename_full = "";
 integer sloodleobjectaccessleveluse = 0; // Who can use this object?
-integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
@@ -114,7 +117,6 @@ integer sloodle_handle_command(string str)
         
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
-    else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
     else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     else if (name == "do:reset") llResetScript();
@@ -122,20 +124,28 @@ integer sloodle_handle_command(string str)
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0);
 }
 
-// Checks if the given agent is permitted to user this object
-// Returns TRUE if so, or FALSE if not
-integer sloodle_check_access_use(key id)
-{
-    // Currently only the owner for this object
-    return (id == llGetOwner());
-}
-
 // Checks if the given agent is permitted to control this object
 // Returns TRUE if so, or FALSE if not
 integer sloodle_check_access_ctrl(key id)
 {
-    // Currently only the owner for this object
+    // Only the owner can control this
     return (id == llGetOwner());
+}
+
+// Checks if the given agent is permitted to user this object
+// Returns TRUE if so, or FALSE if not
+integer sloodle_check_access_use(key id)
+{
+    // The owner can always use this
+    if (id == llGetOwner()) return TRUE;
+    
+    // Check the access mode
+    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
+        return llSameGroup(id);
+    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // Add the given agent to our command dialog list

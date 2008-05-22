@@ -130,7 +130,12 @@ list locstringnames = [
     "layout:failedretrying",
     "layout:failedaborting",
     "layout:toofar",
-    "layout:storedobject"
+    "layout:storedobject",
+    "layout:noneavailable",
+    "layout:loadmenu",
+    "layout:savemenu",
+    "layout:cmdmenu",
+    "layout:nolayouttosave"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -235,7 +240,12 @@ list locstrings = [
     "Failed to store layout position. Retrying...",
     "Failed to store layout position. Aborting.",
     "Failed to store layout position - too far from rezzer.",
-    "Object stored in layout."
+    "Object stored in layout.",
+    "Sorry {{0}}. There are no layouts available.", // Parameter: name of avatar
+    "Sloodle Set.\nSelect layout to load:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
+    "Sloodle Set.\nSelect layout to save:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
+    "Sloodle Set.\nWhat layout action would you like to perform?\n\n{{0}} = Load layout\n{{1}} = Save layout\n{{2}} = Save layout as...\n{{3}} = Cancel", // Parameters: button labels
+    "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first." // Parameter: avatar name
 ];
 
 ///// ----------- /////

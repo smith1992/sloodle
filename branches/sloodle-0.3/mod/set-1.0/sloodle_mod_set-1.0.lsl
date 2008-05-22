@@ -18,12 +18,18 @@ string SLOODLE_SET_LINKER = "/mod/sloodle/mod/set-1.0/linker.php";
 string SLOODLE_COURSEINFO_LINKER = "/mod/sloodle/classroom/course_info_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
+integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
+
+
 string SLOODLE_OBJECT_TYPE = "set-1.0";
 
 string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 string sloodlecoursename_full = "";
+integer sloodleobjectaccessleveluse = 0;
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
@@ -97,25 +103,34 @@ integer sloodle_handle_command(string str)
         else sloodlepwd = value1;
         
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
+    else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0);
-}
-
-// Checks if the given agent is permitted to user this object
-// Returns TRUE if so, or FALSE if not
-integer sloodle_check_access_use(key id)
-{
-    // Only the owner for this object
-    return (id == llGetOwner());
 }
 
 // Checks if the given agent is permitted to control this object
 // Returns TRUE if so, or FALSE if not
 integer sloodle_check_access_ctrl(key id)
 {
-    // Only the owner for this object
+    // Only the owner can control this
     return (id == llGetOwner());
+}
+
+// Checks if the given agent is permitted to user this object
+// Returns TRUE if so, or FALSE if not
+integer sloodle_check_access_use(key id)
+{
+    // The owner can always use this
+    if (id == llGetOwner()) return TRUE;
+    
+    // Check the access mode
+    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
+        return llSameGroup(id);
+    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // Show a command dialog to the specified user
