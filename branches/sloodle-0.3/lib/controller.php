@@ -291,8 +291,9 @@
         {
             // Use the current timestamp if necessary
             if ($timestamp == null) $timestamp = time();
-            // Extract the user ID
-            $userid = $user->get_user_id();
+            // Extract the user ID, if available
+            $userid = 0;
+            if ($user->is_user_loaded()) $userid = $user->get_user_id();
             
             // Check to see if an entry already exists for this object
             $entry = get_record('sloodle_active_object', 'uuid', $uuid);
@@ -425,9 +426,12 @@
             // Attempt to find an entry for the object
             $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
             if (!$entry) return false;
+            
             // Make sure it has been authorised by a legitimate user
-            $userid = (int)$entry->userid;
-            if ($userid == 0) return false;
+            // (we don't do this anymore, since objects could have been authorised by a Sloodle Set which used a notecard for config,
+            //  and where the controlling user has not yet registered their avatar)
+            //$userid = (int)$entry->userid;
+            //if ($userid == 0) return false;
             
             // Verify the password
             return ($password == $entry->password);

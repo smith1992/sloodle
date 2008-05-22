@@ -22,8 +22,6 @@
     //  sloodleobjuuid = the UUID of the object being authorised
     //  sloodleobjname = the name of the object being authorised
     //  sloodleobjpwd = a password for the new object
-    //  sloodleuuid = the UUID of the agent requesting object authorisation
-    //  sloodleavname = the name of the avatar requesting object authorisation
     //
     // The following parameters are optional:
     //
@@ -59,12 +57,11 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    // We want to check if the request is authenticated,
-    //  and also to see if the user can be identified.
-    // However, we do not need to terminate if neither is given.
+    // Attempt to authenticate the request
+    // (only require authentication if controller ID and/or password is set)
+    $authrequired = (isset($_REQUEST['sloodlecontrollerid']) || $_REQUEST['sloodlepwd']);
     $sloodle = new SloodleSession();
-    $request_auth = $sloodle->authenticate_request(false);
-    $user_auth = $sloodle->validate_user(false, true, true);
+    $request_auth = $sloodle->authenticate_request($authrequired);
     
     // Get the extra parameters
     $sloodleobjuuid = $sloodle->request->required_param('sloodleobjuuid');
@@ -75,32 +72,24 @@
     // If the request was authenticated, then the object is being fully authorised.
     // Otherwise, it is simply a 'pending' authorisation.
     if ($request_auth) {
-        // Make sure the user is authenticated too
-        if ($user_auth) {
-            // Does the user have permission to authorise objects on this course?
-            $sloodle->user->login();
-            if (!$sloodle->course->can_user_authorise_objects()) {
-                $sloodle->response->set_status_code(-331);
-                $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-                $sloodle->response->add_data_line('User not permitted to authorise objects on this course.');
-            } else {
+        // If the request is coming from an authorised object, then use that user as the authoriser for this one
+        $sloodlepwd = $sloodle->request->required_param('sloodlepwd');
+        $pwdparts = explode('|', $sloodlepwd, 2);
+        if (count($pwdparts) >= 2 && strlen($pwdparts[0]) == 36) { // Do we have a UUID?
+            $userid = $sloodle->course->controller->get_authorizing_user($pwdparts[0]);
+            if ($userid) $sloodle->user->load_user($userid);
+        }
         
-                // Authorise the object on the controller
-                $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
-                if ($authid) {
-                    $sloodle->response->set_status_code(1);
-                    $sloodle->response->set_status_descriptor('OK');
-                    $sloodle->response->add_data_line($authid);
-                } else {
-                    $sloodle->response->set_status_code(-201);
-                    $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-                    $sloodle->response->add_data_line('Failed to register new active object.');
-                }
-            }
+        // Authorise the object on the controller
+        $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
+        if ($authid) {
+            $sloodle->response->set_status_code(1);
+            $sloodle->response->set_status_descriptor('OK');
+            $sloodle->response->add_data_line($authid);
         } else {
-            $sloodle->response->set_status_code(-212);
+            $sloodle->response->set_status_code(-201);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-            $sloodle->response->add_data_line('User not recognised.');
+            $sloodle->response->add_data_line('Failed to register new active object.');
         }
     } else {
         // Create a new unauthorised entry

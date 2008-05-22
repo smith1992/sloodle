@@ -123,6 +123,8 @@ list locstringnames = [
     "rezzingobject",
     "reztimeout",
     "sloodleset:noobjects",
+    "notininventory",
+    "notobject",
     
     // Layouts
     "layout:failedretrying",
@@ -226,6 +228,8 @@ list locstrings = [
     "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
     "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
     "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
+    "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
+    "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
     
     // Layouts
     "Failed to store layout position. Retrying...",

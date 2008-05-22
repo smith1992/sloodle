@@ -50,7 +50,7 @@
         exit();
     }
     // Is the object already authorised?
-    $object_authorised = $auth_obj->course->controller->is_loaded() && $auth_obj->user->is_user_loaded();
+    $object_authorised = $auth_obj->course->controller->is_loaded();
     
     // Get the object type (only necessary if it was not already in the database)
     $sloodleobjtype = null;

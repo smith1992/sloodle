@@ -39,7 +39,11 @@ list autorez_rot = []; // Autorez rotations
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
-vector rez_pos = <1.0,1.0,1.0>; // Where we will rez objects, relative to this one
+vector default_rez_pos = <1.0, 1.0, 1.0>; // The default relative position to rez new objects at
+rotation default_rez_rot = ZERO_ROTATION; // The default rotation to rez new objects at
+
+vector rez_pos = <0.0,0.0,0.0>; // This is used to store the actual rez position for a rez request
+rotation rez_rot = ZERO_ROTATION; // This is used to store the actual rez rotation for a rez request
 string rez_object = ""; // Name of the object we will rez
 integer rez_password = 0; // Password of the object we have just rezzed
 key rez_http = NULL_KEY; // HTTP request to authorise the object we have just rezzed
@@ -252,12 +256,12 @@ update_inventory()
 }
 
 // Rez the named inventory item
-sloodle_rez_inventory(string name, integer password)
+sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
 {
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return;
-    // Attempt to rez the item
-    llRezObject(name, llGetPos() + rez_pos, ZERO_VECTOR, ZERO_ROTATION, password);
+    // Attempt to rez the item relative to the root of this object
+    llRezObject(name, llGetPos() - llGetLocalPos() + pos, ZERO_VECTOR, rot, password);
 }
 
 
@@ -276,6 +280,11 @@ default
         sloodlecoursename_full = "";
         sloodleobjectaccessleveluse = 0;
         sloodleserveraccesslevel = 0;
+        
+        // Reset our autorez lists
+        autorez_names = [];
+        autorez_pos = [];
+        autorez_rot = [];
     }
     
     link_message(integer sender_num, integer num, string str, key id)
@@ -312,6 +321,12 @@ state ready
 {
     state_entry()
     {
+        // If we have more items to autorez, then go back to the autorezzing state.
+        if (llGetListLength(autorez_names) > 0) {
+            state autorez;
+            return;
+        }
+    
         // Listen for dialog commands
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
         // Regularly purge expired dialogs
@@ -366,10 +381,7 @@ state ready
             string cmd = llList2String(lines, 0);
             
             // Are we being asked to rez items?
-            // (ignore it if we have some auto-rezzing pending)
-            if (cmd == "do:rez" && autorez_names == []) {
-                autorez_pos = [];
-                autorez_rot = [];
+            if (cmd == "do:rez") {
                 // Go through each other line
                 integer i = 1;
                 list fields = [];
@@ -377,11 +389,14 @@ state ready
                     // Extract the fields
                     fields = llParseString2List(llList2String(lines, i), ["|"], []);
                     if (llGetListLength(fields) >= 3) {
-                        autorez_names += [llList2String(fields, 0, 0)];
-                        autorez_pos += [(vector)llList2String(fields, 1, 1)];
-                        autorez_rot += [(vector)llList2String(fields, 2, 2)];
+                        autorez_names += [llList2String(fields, 0)];
+                        autorez_pos += [(vector)llList2String(fields, 1)];
+                        autorez_rot += [(vector)llList2String(fields, 2)];
                     }
                 }
+                
+                // Start the auto-rezzing
+                state autorez;
             }
         }  
     }
@@ -410,32 +425,76 @@ state ready
                 // Treat the message as a number (objects are numbered from 1)
                 integer objnum = (integer)msg;
                 if (objnum > 0 && objnum <= llGetListLength(inventory)) {
+                    sloodle_remove_cmd_dialog(id);
                     // Attempt to rez the specified item
                     rez_object = llList2String(inventory, objnum - 1);
                     rez_user = id;
+                    rez_pos = default_rez_pos;
+                    rez_rot = default_rez_rot;
                     state rezzing;
+                    return;
                 }
-                sloodle_remove_cmd_dialog(id);
             }
         }
     }
 }
 
 
-// In this state, we are rezzing a new object
+// Rez the next item on our autorez list
+state autorez
+{
+    state_entry()
+    {
+        // If we have no items to auto-rez, then finish here
+        if (llGetListLength(autorez_names) == 0) {
+            autorez_pos = [];
+            autorez_rot = [];
+            state ready;
+            return;
+        }
+        
+        // Get the first item
+        rez_object = llList2String(autorez_names, 0);
+        rez_pos = (vector)llList2String(autorez_pos, 0);
+        rez_rot = llEuler2Rot((vector)llList2String(autorez_rot, 0));
+        // Remove the data from the lists
+        autorez_names = llDeleteSubList(autorez_names, 0, 0);
+        autorez_pos = llDeleteSubList(autorez_pos, 0, 0);
+        autorez_rot = llDeleteSubList(autorez_rot, 0, 0);
+        
+        // Rez this item
+        state rezzing;
+    }
+}
+
+
+// Rez and automatically authorise an object
 state rezzing
 {
     state_entry()
     {
+        // First make sure the specified item is in inventory
+        integer invtype = llGetInventoryType(rez_object);
+        if (invtype == INVENTORY_NONE) {
+            // Does not exist
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notininventory", [rez_object], NULL_KEY);
+            state ready;
+            return;
+        } else if (invtype != INVENTORY_OBJECT) {
+            // Cannot rez non-objects
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notobject", [rez_object], NULL_KEY);
+            state ready;
+            return;
+        }
+    
         // Display an appropriate caption
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>,1.0], "rezzingobject", [rez_object], NULL_KEY);
         // Generate a password, and rez the object
         rez_password = sloodle_random_password();
-        sloodle_rez_inventory(rez_object, rez_password);
+        sloodle_rez_inventory(rez_object, rez_password, rez_pos, rez_rot);
         
         // Timeout after a while if the object doesn't get rezzed
         llSetTimerEvent(8.0);
-        
     }
     
     timer()
@@ -526,12 +585,15 @@ state rezzing
         // Extract the authorisation ID
         string authid = llList2String(lines, 1);
         // Determine the root key of the object
-        key rootkey = llGetLinkKey(1); // Gets the root prim of a link set
-        if (rootkey == NULL_KEY) rootkey = llGetLinkKey(0); // Gets the only prim if there is only one
+        key rootkey = llGetKey();
+        if (llGetLinkNumber() > 0) rootkey = llGetLinkKey(1);
         
         // Everything must be OK... send the data to the object. Format:
         //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
         llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
+        
+        // If we have more items to autorez, then go back to the autorezzing state.
+        if (llGetListLength(autorez_names) > 0) state autorez;
         state ready;
     }
 }

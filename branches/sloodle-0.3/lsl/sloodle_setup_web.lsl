@@ -30,13 +30,15 @@ key httpconfig = NULL_KEY;
 string sloodleserverroot = "";
 string sloodlepwd = ""; // stores the object-specific session key (UUID|pwd)
 string sloodleauthid = ""; // The ID which is passed to Moodle in the URL for the user authorisation step
+key sloodlemyrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
 
 string password = ""; // stores the self-generated part of the password
 
 integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
+integer show_config_url = TRUE; // By default, we will automatically show the config URL to the owner when config starts
 string SLOODLE_OBJECT_TYPE = "";
 
-key sloodlemyrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
+
 
 
 ///// TRANSLATION /////
@@ -115,13 +117,13 @@ string sloodle_check_type()
     
     // Go through each item
     integer i = 0;
-    for (i = 0; i < numscripts && type == ""; i++) {
+    for (i = 0; i < numscripts; i++) {
         // Get the name of this item
-        itemname = llGetInventoryName(INVENTORY_ALL, i);
+        itemname = llGetInventoryName(INVENTORY_SCRIPT, i);
         // Does this have the necessary prefix?
         if (llSubStringIndex(itemname, SLOODLE_SCRIPT_PREFIX) == 0) {
-            // Yes - is the script running?
-            if (llGetScriptState(itemname)) {
+            // Ignore the script if it's not running... unless we don't already have a type identified
+            if (llGetScriptState(itemname) == TRUE || type == "") {
                 // Looks like this is our type
                 type = llGetSubString(itemname, llStringLength(SLOODLE_SCRIPT_PREFIX), -1);
             }
@@ -144,7 +146,7 @@ default
         if (SLOODLE_OBJECT_TYPE == "") {
             SLOODLE_OBJECT_TYPE = sloodle_check_type();
             if (SLOODLE_OBJECT_TYPE == "") {
-                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notype", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notypeid", [], NULL_KEY);
                 
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
@@ -175,6 +177,7 @@ default
         if (channel == 0 || channel == 1) {
             // Ignore anybody but the owner
             if (id != llGetOwner()) return;
+            show_config_url = TRUE;
             // If the message starts with "http" then store it as the Moodle address
             msg = llStringTrim(msg, STRING_TRIM);
             if (llSubStringIndex(msg, "http") == 0) {
@@ -198,17 +201,20 @@ default
                 if (llGetOwnerKey(id) != llGetOwner()) return;
                 // This should be a Sloodle initialisation message:
                 //  sloodle_init|<rezzer>|<target-uuid>|<moodle-address>|<authid>
+                // (the last part is optional)
                 list parts = llParseStringKeepNulls(msg, ["|"], []);
+                integer numparts = llGetListLength(parts);
                 string cmd = llList2String(parts, 0);
                 
                 // Check what the command is
                 if (cmd == "sloodle_init") {
                     // Make sure we have enough parts in the message
-                    if (llGetListLength(parts) < 5) return;
+                    if (llGetListLength(parts) < 4) return;
                     key rezzer = (key)llList2String(parts, 1);
                     key target = (key)llList2String(parts, 2);
                     string url = llList2String(parts, 3);
-                    string auth = llList2String(parts, 4);
+                    string auth = "";
+                    if (numparts >= 5) auth = llList2String(parts, 4);
                     
                     // Make sure the command is correct, the UUIDs are OK, and that the URL looks valid
                     if (rezzer == NULL_KEY) return;
@@ -220,10 +226,21 @@ default
                     sloodleserverroot = url;
                     sloodleauthid = auth;
                     sloodlemyrezzer = rezzer;
-                    if ((integer)auth > 0) state auth_object_initial;
-                    else state check_moodle;
+                    
+                    // Do we have a password *and* an authorisation ID?
+                    if (llGetStartParameter() != 0 && (integer)auth > 0) {
+                        // Store the password
+                        password = (string)llGetStartParameter();
+                        sloodlepwd = (string)llGetKey() + "|" + password;
+                        // Allow the user to configure the object
+                        show_config_url = FALSE;
+                        state configure_object;
+                        return;
+                    }
+                    
+                    // Begin self-authorisation
+                    state check_moodle;
                 }
-
             }
         }
     }
@@ -317,8 +334,8 @@ state check_moodle
         float installedversion = (float)llList2String(datafields, 0);
         
         // Check compatibility
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY);
         if (installedversion < SLOODLE_VERSION_MIN) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY);
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY);
             return;
         }
@@ -376,17 +393,6 @@ state auth_object_initial
 {
     state_entry()
     {
-        // We can skip this stage if a starting parameter was provided,
-        //  as that will be our password
-        if (llGetStartParameter() != 0 && (integer)sloodleauthid > 0) {
-            // Store the password
-            password = (string)llGetStartParameter();
-            sloodlepwd = (string)llGetKey() + "|" + password;
-            // Immediately move to the configuration stage
-            state configure_object;
-            return;
-        }
-    
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "initobjectauth", [], NULL_KEY);
         
         // Generate a random password
@@ -498,7 +504,7 @@ state configure_object
         } else {
             llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
             // Load the URL immediately 
-            sloodle_load_config_url(llGetOwner());
+            if (show_config_url) sloodle_load_config_url(llGetOwner());
         }
         
         // Listen for chat messages from the rezzer
