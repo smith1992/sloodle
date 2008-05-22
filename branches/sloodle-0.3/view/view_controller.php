@@ -87,7 +87,7 @@
             }
             
             // Get all objects authorised for this controller
-            $recs = get_records('sloodle_active_object', 'controllerid', $cm->id);
+            $recs = get_records('sloodle_active_object', 'controllerid', $cm->id, 'timeupdated DESC');
             if (is_array($recs) && count($recs) > 0) {
                 // Construct a table
                 //TODO: add authorising user link

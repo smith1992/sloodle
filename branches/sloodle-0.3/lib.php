@@ -273,6 +273,7 @@
      * @todo Use a custom delay for expiries of users/objects
      **/
     function sloodle_cron () {
+        echo "\nProcessing Sloodle cron tasks:\n";
         
         // Delete any pending user entries which have expired
         //...
@@ -283,14 +284,19 @@
         // Deletes any unauthorised objects which have not checked-in for more than 1 hour
         $expirytime_auth = time() - 86400;
         $expirytime_unauth = time() - 3600;
-        delete_records_select('sloodle_active_object', "((`controllerid` = 0 OR `userid` = 0) AND `timeupdated` < $expirytime_unauth) OR `timeupdated` < $expirytime_auth");
+        echo "Removing expired active objects... ";
+        $res = delete_records_select('sloodle_active_object', "((`controllerid` = 0 OR `userid` = 0) AND `timeupdated` < $expirytime_unauth) OR `timeupdated` < $expirytime_auth");
+        if (is_array($res)) echo count($res)." removed";
+        echo "\n";
         
         // More stuff?
         //...
         
         // Email login details to auto-registered avatars in-world
+        echo "Sending out pending login notifications...\n";
         sloodle_process_pending_login_notifications();
 
+        echo "Done processing Sloodle cron tasks.\n\n";
         return true;
     }
 
