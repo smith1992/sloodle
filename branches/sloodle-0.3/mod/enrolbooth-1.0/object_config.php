@@ -1,14 +1,14 @@
 <?php
     /**
-    * Registration Booth 1.0 configuration form.
+    * Enrolment Booth 1.0 configuration form.
     *
-    * This is a fragment of HTML which gives the form elements for configuration of a registration booth object, v1.0.
+    * This is a fragment of HTML which gives the form elements for configuration of a enrolment booth object, v1.0.
     * ONLY the basic form elements should be included.
     * The "form" tags and submit button are already specified outside.
     * The $auth_obj and $sloodleauthid variables will identify the object being configured.
     *
     * @package sloodlechat
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield

@@ -106,6 +106,12 @@ sloodle_debug(string msg)
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
+sloodle_reset()
+{
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
+    llResetScript();
+}
+
 // Configure by receiving a linked message from another script in the object
 // Returns TRUE if the object has all the data it needs
 integer sloodle_handle_command(string str) 
@@ -451,7 +457,7 @@ state connecting
                 state reconnect;
                 return;
             } else if (msg == MENU_BUTTON_RESET) {
-                state default;
+                sloodle_reset();
                 return;
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
                 state shutdown;
@@ -662,7 +668,7 @@ state ready
             } else if (msg == MENU_BUTTON_RESET) {
                 // Reset the object
                 sloodle_remove_cmd_dialog(id);
-                state default;
+                sloodle_reset();
                 return;
                 
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
@@ -751,7 +757,7 @@ state shutdown
                 state reconnect;
                 return;
             } else if (msg == MENU_BUTTON_RESET) {
-                state default;
+                sloodle_reset();
                 return;
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
                 state shutdown;

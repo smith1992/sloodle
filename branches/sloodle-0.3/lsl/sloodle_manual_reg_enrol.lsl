@@ -12,9 +12,10 @@
 
 // Can be supplied with 3 link messages for registration only, enrolment only, or both.
 // The avatar in question should be identified in the key value for all 3.
-// The string value should take on the following format:
+// The string value should take on one of the following formats:
 //
-//  <cmd>|<sloodleserverroot>|<sloodlecontrollerid>|<sloodlepwd>
+//  <cmd>|<sloodleserverroot>|<sloodlecontrollerid>|<prim_pwd>
+//  <cmd>|<sloodleserverroot>|<sloodlecontrollerid>|<uuid>|<pwd>
 //
 // The <cmd> value should be one of the following:
 //
@@ -102,10 +103,21 @@ default
             integer sloodlecontrollerid = (integer)llList2String(fields, 2);
             string sloodlepwd = llList2String(fields, 3);
             
+            // If there is an additional field, then it was an object-specific password
+             if (numfields > 4) {
+                sloodlepwd += "|" + llList2String(fields, 4);
+             }
+            
             // Notify the user
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "attempting" + sloodlemode, [], kval);
+            
             // Send the request
-            key newhttp = llHTTPRequest(sloodleserverroot + SLOODLE_REG_LINKER + "?sloodlecontrollerid=" + (string)sloodlecontrollerid + "&sloodlepwd=" + sloodlepwd, [HTTP_METHOD, "GET"], "");
+            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+            body += "&sloodlepwd=" + sloodlepwd;
+            body += "&sloodleuuid=" + (string)kval;
+            body += "&sloodleavname=" + llKey2Name(kval);
+            body += "&sloodlemode=" + sloodlemode;
+            key newhttp = llHTTPRequest(sloodleserverroot + SLOODLE_REG_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
             httpreqs += [newhttp, kval];
         }
     }
@@ -157,7 +169,7 @@ default
         
         // Grab the URL
         string url = llList2String(lines, 1);
-        sloodle_translation_request(SLOODLE_TRANSLATE_URL_PARALLEL, [url], "regenrolurl", [], av);
+        sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL_PARALLEL, [url], "regenrolurl", [], av);
     }
 }
 

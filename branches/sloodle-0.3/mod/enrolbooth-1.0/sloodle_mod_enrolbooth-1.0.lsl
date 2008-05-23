@@ -1,5 +1,5 @@
-// Sloodle Registration Booth (for Sloodle 0.3)
-// Allows users to touch a panel to do manual registration of their avatar.
+// Sloodle Enrolment Booth (for Sloodle 0.3)
+// Allows users to touch a panel to do manual enrolment of their avatar.
 //
 // Copyright (c) 2007-8 Sloodle
 // Released under the GNU GPL
@@ -107,8 +107,7 @@ integer sloodle_check_access_use(key id)
 
 // Default state - waiting for configuration
 default
-{
-    
+{    
     state_entry()
     {
         // Starting again with a new configuration
@@ -165,12 +164,13 @@ state ready
         key id = NULL_KEY;
         string touched = "";
         for (; i < total_number; i++) {
+            // Get the user key
             id = llDetectedKey(i);
             // Check if this user can use the device
             if (sloodle_check_access_use(id)) {
                 // Was it the panel that was touched?
                 touched = llGetLinkName(llDetectedLinkNumber(i));
-                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reg|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
+                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:enrol|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
             }
