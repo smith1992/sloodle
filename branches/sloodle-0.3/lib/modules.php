@@ -20,6 +20,8 @@
     include_once(SLOODLE_LIBROOT.'/modules/module_distributor.php');
     /** Chat module. */
     include_once(SLOODLE_LIBROOT.'/modules/module_chat.php');
+    /** Glossary module. */
+    include_once(SLOODLE_LIBROOT.'/modules/module_glossary.php');
     
     //... include more module types here!
     

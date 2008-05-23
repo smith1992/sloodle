@@ -141,7 +141,11 @@ list locstringnames = [
     "layout:loadmenu",
     "layout:savemenu",
     "layout:cmdmenu",
-    "layout:nolayouttosave"
+    "layout:nolayouttosave",
+    
+    // MetaGloss
+    "metagloss:ready",
+    "metagloss:idle"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -257,7 +261,11 @@ list locstrings = [
     "Sloodle Set.\nSelect layout to load:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
     "Sloodle Set.\nSelect layout to save:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
     "Sloodle Set.\nWhat layout action would you like to perform?\n\n{{0}} = Load layout\n{{1}} = Save layout\n{{2}} = Save layout as...\n{{3}} = Cancel", // Parameters: button labels
-    "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first." // Parameter: avatar name
+    "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first.", // Parameter: avatar name
+    
+    // MetaGloss
+    "Sloodle MetaGloss: {{0}}\nChat \"{{1}}\" then a term to search glossary", // Parameters: glossary name, and chat prefix command
+    "Sloodle MetaGloss: {{0}}\nDEACTIVATED: touch me to re-activate" // Parameter: name of glossary
 ];
 
 ///// ----------- /////

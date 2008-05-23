@@ -119,6 +119,7 @@ $string['hour'] = 'hour';
 $string['hours'] = 'hours';
 
 $string['ID'] = 'ID';
+$string['idletimeoutseconds'] = 'Idle timeout (seconds)';
 $string['invalidid'] = 'Invalid ID';
 $string['invalidcourseid'] = 'Invalid course ID';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
@@ -183,6 +184,7 @@ $string['numobjects'] = 'Number of objects';
 $string['numdeleted'] = 'Number deleted';
 
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
+$string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
 
 $string['Object'] = 'Object';
@@ -229,7 +231,10 @@ $string['second'] = 'second';
 $string['seconds'] = 'seconds';
 $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. Module instance may need to be created again.';
 
+$string['searchaliases'] = 'Search Aliases';
+$string['searchdefinitions'] = 'Search Definitions';
 $string['selectchatroom'] = 'Select Chatroom';
+$string['selectglossary'] = 'Select Glossary';
 $string['selectdistributor'] = 'Select Distributor';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
@@ -237,6 +242,7 @@ $string['selectcontroller'] = 'Select Controller';
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';
 $string['showavatarsonly'] = 'Only show accounts with Sloodle entries';
+$string['showpartialmatches'] = 'Show Partial Matches';
 $string['size'] = 'Size';
 
 $string['sloodle'] = 'Sloodle';
