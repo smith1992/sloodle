@@ -115,7 +115,13 @@ list locstringnames = [
     // User registration
     "userauthenticated",
     "alreadyauthenticated",
+    "alreadyenrolled",
     "userauthenticationfailed:code",
+    "attemptingreg",
+    "attemptingenrol",
+    "attemptingregenrol",
+    "enrolfailed:notreg",
+    "regenrolurl",
     
     // Sloodle Set
     "sloodleset:cmddialog",
@@ -225,7 +231,12 @@ list locstrings = [
     // User registration
     "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
     "Thank you {{0}}. Your avatar was already authenticated.", // Parameter: avatar name
+    "Thank you {{0}}. Your account was already enrolled.", // Parameter: avatar name
     "Sorry {{0}}. Authentication of your avatar failed with code {{1}}.", // Parameters: avatar name, error code
+    "Attempting to register your avatar...",
+    "Attempting to enrol your avatar...",
+    "Attempting to register and enrol your avatar...",
+    "Please use this URL to complete the registration/enrolment process.",
     
     // Sloodle Set
     "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
@@ -235,6 +246,7 @@ list locstrings = [
     "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
     "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
     "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
+    "Enrolment failed. Your avatar is not registered yet.",
     
     // Layouts
     "Failed to store layout position. Retrying...",
@@ -256,17 +268,21 @@ integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
 
 // Translation output methods
-string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
-string SLOODLE_TRANSLATE_SAY = "say";               // 1 output parameter: chat channel number
-string SLOODLE_TRANSLATE_WHISPER = "whisper";       // 1 output parameter: chat channel number
-string SLOODLE_TRANSLATE_SHOUT = "shout";           // 1 output parameter: chat channel number
-string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";  // 1 output parameter: chat channel number
-string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
-string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
-string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
-string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
-string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
+string SLOODLE_TRANSLATE_LINK = "link";                     // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
+string SLOODLE_TRANSLATE_SAY = "say";                       // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_WHISPER = "whisper";               // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_SHOUT = "shout";                   // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";          // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";            // No output parameters
+string SLOODLE_TRANSLATE_DIALOG = "dialog";                 // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
+string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";              // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";  // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";          // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_IM = "instantmessage";             // Recipient avatar should be identified in link message keyval. No output parameters.
 
+
+// Used for sending parallel URL loading messages
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 
 ///// FUNCTIONS /////
 
@@ -454,13 +470,27 @@ default
                 } else sloodle_debug("ERROR: Insufficient output parameters to show dialog with string \"" + string_name + "\".");
                 
             } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL) {
-                // Display a dialog - we need a valid key
+                // Display a URL - we need a valid key
                 if (id == NULL_KEY) {
                     sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
                     return;
                 }                
                 // We need 1 additional parameter, containing the URL to load
                 if (num_output_params >= 1) llLoadURL(id, trans, llList2String(output_params, 0));
+                else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
+            
+            } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL_PARALLEL) {
+                // Display a URL - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
+                    return;
+                }
+                
+                // NOTE: currently the parallel URL loaders will drop any text.
+                // TODO: make parallel URL loaders use text as well.
+                
+                // We need 1 additional parameter, containing the URL to load
+                if (num_output_params >= 1) llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, llList2String(output_params, 0), id);
                 else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
             
             } else if (output_method == SLOODLE_TRANSLATE_HOVER_TEXT) {

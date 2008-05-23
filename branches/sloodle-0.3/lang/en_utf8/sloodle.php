@@ -49,7 +49,6 @@ $string['autoreg:courseallows'] = 'This course allows auto-registration';
 $string['autoreg:coursedisallows'] = 'This course does not allow auto-registration';
 $string['autoreg:disabled'] = 'Auto-registration is disabled on this site';
 
-$string['avatarnotfound'] = 'Your Second Life avatar could not be found in the database. Please try using the Registration Booth again, and ensure you followed the correct URL to reach this page.';
 $string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
 $string['avatarname'] = 'Avatar name';
 $string['avataruuid'] = 'Avatar UUID';
@@ -206,6 +205,7 @@ $string['objecttype'] = 'Object Type';
 
 $string['or'] = 'or';
 
+$string['pendingavatarnotfound'] = 'Could not locate a pending entry for your avatar. Perhaps you are already registered?';
 $string['pendingallocations'] = 'Pending Allocations';
 $string['pendingavatars'] = 'Pending Avatars';
 //$string['pendingavatars:info'] = '';

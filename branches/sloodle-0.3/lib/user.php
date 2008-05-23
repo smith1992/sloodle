@@ -383,7 +383,7 @@
         * @param string $uuid UUID of the avatar
         * @param string $avname Name of the avatar
         * @param int $timestamp The timestamp at which to mark the update (or null to use the current timestamp). Entries expire after a certain period.
-        * @return bool True if successful, or false if not.
+        * @return object|bool Returns the database object if successul, or false if not.
         * @access public
         */
         function add_pending_avatar($uuid, $avname, $timestamp = null)
@@ -396,6 +396,7 @@
             $pending_avatar->id = 0;
             $pending_avatar->uuid = $uuid;
             $pending_avatar->avname = $avname;
+            $pending_avatar->lst = sloodle_random_security_token();
             $pending_avatar->timeupdated = $timestamp;
             
             // Add the data to the database
@@ -404,7 +405,7 @@
                 return false;
             }
             
-            return true;
+            return $pending_avatar;
         }
         
         

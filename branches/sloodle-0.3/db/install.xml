@@ -110,8 +110,9 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="uuid" COMMENT="Primary index field"/>
         <FIELD NAME="uuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avname" COMMENT="UUID of the user agent"/>
-        <FIELD NAME="avname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="timeupdated" COMMENT="Name of the avatar"/>
-        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="avname" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
+        <FIELD NAME="avname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="uuid" NEXT="lst" COMMENT="Name of the avatar"/>
+        <FIELD NAME="lst" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avname" NEXT="timeupdated" COMMENT="The Login Security Token to secure the registration."/>
+        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="lst" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
