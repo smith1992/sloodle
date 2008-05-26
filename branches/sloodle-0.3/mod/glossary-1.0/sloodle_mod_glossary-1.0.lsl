@@ -390,6 +390,9 @@ state search
         body += "&sloodleavname=" + llEscapeURL(llKey2Name(searcheruuid));
         body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
         body += "&sloodleterm=" + searchterm;
+        body += "&sloodlepartialmatches=" + (string)sloodlepartialmatches;
+        body += "&sloodlesearchaliases=" + (string)sloodlesearchaliases;
+        body += "&sloodlesearchdefinitions=" + (string)sloodlesearchdefinitions;
         // Check if it's an object sending this message
         if (searcheruuid != llGetOwnerKey(searcheruuid)) {
             // This makes sure Moodle doesn't try to auto-register an object
@@ -411,14 +414,13 @@ state search
     {
         llSetTimerEvent(0.0);
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
-        llSleep(0.1);
-        sloodle_reset();
+        state ready;
     }
     
     http_response(key id, integer status, list meta, string body)
     {
         // Make sure this is the response we're expecting
-        if (id != httpcheck) return;
+        if (id != httpsearch) return;
         if (status != 200) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
             sloodle_reset();
