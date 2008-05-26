@@ -57,6 +57,7 @@ list locstringnames = [
     "httperror",
     "httperror:code",
     "httpempty",
+    "httptimeout",
     "servererror",
     "notypeid",
     "gottype",
@@ -72,6 +73,7 @@ list locstringnames = [
     "checkingcourse",
     "errortouchtoreset",
     "notconfiguredyet",
+    "resetting",
     
     // Sloodle installation/version
     "sloodlenotinstalled",
@@ -145,7 +147,11 @@ list locstringnames = [
     
     // MetaGloss
     "metagloss:ready",
-    "metagloss:idle"
+    "metagloss:idle",
+    "metagloss:checking",
+    "metagloss:checkok",
+    "metagloss:searching",
+    "metagloss:numdefs"
 ];
 
 // List of translations - translate these, but do not change their order
@@ -177,6 +183,7 @@ list locstrings = [
     "ERROR: HTTP request failed",
     "ERROR: HTTP request failed with code {{0}}",
     "ERROR: HTTP response empty",
+    "ERROR: HTTP request timed out.",
     "ERROR: server responded with status code {{0}}",
     "ERROR: failed to identify object type ID",
     "Identified object type as {{0}}", // Parameter gives an object type ID
@@ -192,6 +199,7 @@ list locstrings = [
     "Checking course...",
     "ERROR\nTouch me to reset",
     "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
+    "Resetting...",
     
     // Sloodle installation/version
     "ERROR: Sloodle is not installed on specified site.",
@@ -265,7 +273,11 @@ list locstrings = [
     
     // MetaGloss
     "Sloodle MetaGloss: {{0}}\nChat \"{{1}}\" then a term to search glossary", // Parameters: glossary name, and chat prefix command
-    "Sloodle MetaGloss: {{0}}\nDEACTIVATED: touch me to re-activate" // Parameter: name of glossary
+    "Sloodle MetaGloss: {{0}}\nDEACTIVATED: touch me to re-activate", // Parameter: name of glossary
+    "Checking Moodle glossary...",
+    "Successfully checked glossary: \"{{0}}\"", // Parameter: glossary name
+    "Sloodle MetaGloss: {{0}}\nSearching...", // Parameter: glossary name
+    "Number of definitions found for \"{{0}}\": {{1}}" // Parameters: search term, and number of occurrences
 ];
 
 ///// ----------- /////

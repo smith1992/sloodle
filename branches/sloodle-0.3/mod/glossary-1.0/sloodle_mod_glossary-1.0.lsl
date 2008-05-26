@@ -12,7 +12,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/glossary-1.0/linker.php";
+string SLOODLE_GLOSSARY_LINKER = "/mod/sloodle/mod/glossary-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
 string SLOODLE_OBJECT_TYPE = "glossary-1.0";
@@ -36,10 +36,13 @@ string sloodleglossaryname = ""; // Name of the glossary
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
-key httpquery = NULL_KEY; // Request used to send/receive chat
+key httpcheck = NULL_KEY; // Request used to check the glossary
+key httpsearch = NULL_KEY; // Request used to search the glossary
+float HTTP_TIMEOUT = 10.0; // Period of time to wait for an HTTP response before giving up
 
-string SLOODLE_METAGLOSS_COMMAND = "/def "; // The prefix for chat messages
+string SLOODLE_METAGLOSS_COMMAND = "/def "; // The command prefix for searching via chat message
 string searchterm = ""; // The term to be searched
+key searcheruuid = NULL_KEY; // Key of the avatar searching
 
 
 ///// TRANSLATION /////
@@ -76,6 +79,13 @@ sloodle_debug(string msg)
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
+sloodle_reset()
+{
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
+    llResetScript();
+}
+
 // Configure by receiving a linked message from another script in the object
 // Returns TRUE if the object has all the data it needs
 integer sloodle_handle_command(string str) 
@@ -98,7 +108,6 @@ integer sloodle_handle_command(string str)
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
     else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
-    else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
     else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == "set:sloodlepartialmatches") sloodlepartialmatches = (integer)value1;
     else if (name == "set:sloodlesearchaliases") sloodlesearchaliases = (integer)value1;
@@ -140,7 +149,6 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlemoduleid = 0;
-        sloodlelistentoobjects = 0;
         sloodleobjectaccessleveluse = 0;
         sloodleserveraccesslevel = 0;
         sloodlepartialmatches = 1;
@@ -183,11 +191,76 @@ default
 // If necessary, check the name of the glossary
 state check_glossary
 {
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message( integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset message?
+            if (str == "do:reset") llResetScript();
+        }
+    }
+
     state_entry()
     {
         // Lookup the glossary name
-        //... (temp):
-        sloodleglossaryname = "(unknown)";
+        sloodleglossaryname = "";
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "metagloss:checking", [], NULL_KEY);        
+        httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_GLOSSARY_LINKER + "?sloodlecontrollerid=" + (string)sloodlecontrollerid + "&sloodlepwd=" + sloodlepwd + "&sloodlemoduleid=" + (string)sloodlemoduleid, [HTTP_METHOD, "GET"], "");
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(HTTP_TIMEOUT);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        llSleep(0.1);
+        sloodle_reset();
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Make sure this is the response we're expecting
+        if (id != httpcheck) return;
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Split the response into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Check the statuscode
+        if (statuscode <= 0) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Make sure we have enough data
+        if (numlines < 2) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Store the glossary name
+        sloodleglossaryname = llList2String(lines, 1);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:checkok", [sloodleglossaryname], NULL_KEY);
         state ready;
     }
 }
@@ -199,7 +272,16 @@ state ready
     on_rez( integer param)
     {
         state default;
-    }    
+    }
+    
+    link_message( integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset message?
+            if (str == "do:reset") llResetScript();
+        }
+    }
     
     state_entry()
     {
@@ -229,6 +311,7 @@ state ready
     
             // Store the term to be searched and search it
             searchterm = llGetSubString(message, llStringLength(SLOODLE_METAGLOSS_COMMAND), -1);
+            searcheruuid = id;
             state search;
             return;
         }
@@ -244,6 +327,20 @@ state ready
 
 state shutdown
 {
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message( integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset message?
+            if (str == "do:reset") llResetScript();
+        }
+    }
+    
     state_entry()
     {
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.1,0.1>, 0.6], "metagloss:idle", [sloodleglossaryname], NULL_KEY);
@@ -257,7 +354,7 @@ state shutdown
         for (; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Does this user have permission to use this object?
-            if (sloodle_access_check_use(id)) {
+            if (sloodle_check_access_use(id)) {
                 state ready;
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [], NULL_KEY);
@@ -268,8 +365,96 @@ state shutdown
 
 state search
 {
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message( integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset message?
+            if (str == "do:reset") llResetScript();
+        }
+    }
+
     state_entry()
     {
+        // Search the specified term
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 0.9], "metagloss:searching", [sloodleglossaryname], NULL_KEY);
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)searcheruuid;
+        body += "&sloodleavname=" + llEscapeURL(llKey2Name(searcheruuid));
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&sloodleterm=" + searchterm;
+        // Check if it's an object sending this message
+        if (searcheruuid != llGetOwnerKey(searcheruuid)) {
+            // This makes sure Moodle doesn't try to auto-register an object
+            body += "&sloodleisobject=true";
+        }
+        // Send the request
+        httpsearch = llHTTPRequest(sloodleserverroot + SLOODLE_GLOSSARY_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(HTTP_TIMEOUT);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        llSleep(0.1);
+        sloodle_reset();
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Make sure this is the response we're expecting
+        if (id != httpcheck) return;
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Split the response into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Check the statuscode
+        if (statuscode <= 0) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Indicate how many definitions were found
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:numdefs", [searchterm, (numlines - 1)], NULL_KEY);
+        
+        // Go through each definition
+        integer defnum = 1;
+        list fields = [];
+        for (; defnum < numlines; defnum++) {
+            // Split this definition into fields
+            fields = llParseStringKeepNulls(llList2String(lines, defnum), ["|"], []);
+            if (llGetListLength(fields) >= 2) {
+                llSay(0, llList2String(fields, 0) + " = " + llList2String(fields, 1));
+            } else {
+                llSay(0, llList2String(fields, 0));
+            }
+        }
+
+        state ready;
     }
 }
+

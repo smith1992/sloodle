@@ -484,7 +484,6 @@ state logging
             else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
             body += name + ": " + message;
             
-            
             httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
     }

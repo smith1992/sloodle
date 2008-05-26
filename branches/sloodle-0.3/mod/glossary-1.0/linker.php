@@ -17,6 +17,11 @@
     //  sloodlecontrollerid = ID of a Sloodle Controller through which to access Moodle
     //  sloodlepwd = the prim password or object-specific session key to authenticate the request
     //  sloodlemoduleid = ID of a glossary
+    //
+    // If requested with only the above parameters, then the glossary name will be returned on the first data line (status code 1).
+    // The 'intro' (description), if available, will be provided on the second line, without any HTML markup.
+    //
+    // In order to search the glossary, the following parameters must also be specified:
     //  sloodleterm = a string to search by
     //  sloodleuuid = UUID of the avatar searching
     //  sloodleavname = name of the avatar searching
@@ -43,14 +48,28 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    // Authenticate the request and the user, and load a glossary module
+    // Authenticate the request, and load a glossary module
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
-    $sloodle->validate_user();
     $sloodle->load_module('glossary', true);
 
-    // Fetch our additional parameters
-    $sloodleterm = addslashes($sloodle->request->required_param('sloodleterm'));
+    // Has a search term been specified?
+    $sloodleterm = $sloodle->request->optional_param('sloodleterm', null);
+    if (empty($sloodleterm)) {
+        // Just fetch the name of the glossary
+        $sloodle->response->set_status_code(1);
+        $sloodle->response->set_status_descriptor('OK');
+        $sloodle->response->add_data_line($sloodle->module->get_name());
+        $sloodle->response->add_data_line(strip_tags($sloodle->module->get_intro()));
+        $sloodle->response->render_to_output();
+        exit();
+    }
+    
+    // For searching, we must authenticate the user
+    $sloodle->validate_user();
+    
+    // Get our other parameters
+    $sloodleterm = addslashes($sloodleterm);
     $sloodlepartialmatches = $sloodle->request->optional_param('sloodlepartialmatches', 'true');
     $sloodlesearchaliases = $sloodle->request->optional_param('sloodlesearchaliases', 'false');
     $sloodlesearchdefinitions = $sloodle->request->optional_param('sloodlesearchdefinitions', 'false');
@@ -70,7 +89,9 @@
         $sloodle->response->set_status_descriptor('OK');
         // Go through each result
         foreach ($results as $r) {
-            $sloodle->response->add_data_line(array($r->concept, $r->definition));
+            $concept = strip_tags($r->concept);
+            $def = str_replace("\n", "", strip_tags($r->definition));
+            $sloodle->response->add_data_line(array($concept, $def));
         }
     } else {
         $sloodle->response->set_status_code(-103);

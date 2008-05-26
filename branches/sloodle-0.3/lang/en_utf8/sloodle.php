@@ -216,8 +216,8 @@ $string['position'] = 'Position';
 
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
-$string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long.';
-$string['primpass:toolong'] = 'Prim Password should be at most 9 digits long.';
+$string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long (or leave field blank to disable it).';
+$string['primpass:toolong'] = 'Prim Password should be at most 9 digits long (or leave field blank to disable it).';
 $string['primpass:numonly'] = 'Prim Password should only contain numeric digits (0 to 9).';
 $string['primpass:error'] = 'Prim Password Error';
 $string['primpass:updated'] = 'Prim Password updated';

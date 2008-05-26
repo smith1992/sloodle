@@ -122,9 +122,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->setHelpButton('controller_password', array('prim_password', get_string('help:primpassword','sloodle'), 'sloodle'));
             // Set the field requirements
             $mform->setDefault('controller_password', mt_rand(100000000, 999999999));
-            //$mform->setType('controller_password', PARAM_INT);
             $mform->addRule('controller_password', null, 'numeric', null, 'client');
-            $mform->addRule('controller_password', null, 'required', null, 'client');
+            
+            // Prim Password can be omitted to disable it now (so don't require it)
+            //$mform->addRule('controller_password', null, 'required', null, 'client');
             
             break;
             
@@ -242,6 +243,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
             // Check that the prim password is OK
             $pwd = '';
             if (isset($data['controller_password'])) $pwd = $data['controller_password'];
+            // The password can be left unspecified
+            if (empty($pwd)) break;
+            
+            // Validate the password we have been given
             $pwderrors = array();
             if (!sloodle_validate_prim_password_verbose($pwd, $pwderrors)) {
                 $errors['controller_password'] = '';

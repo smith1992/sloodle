@@ -183,16 +183,15 @@
         
             // Get the password parameter
             $password = $this->request->get_password($require);
-            if ($password == null) return false;
+            if ($password == null) {
+                if ($require) {
+                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Prim Password cannot be empty.', false);
+                    exit();
+                }
+                return false;
+            }
             
             // Does the password contain an object UUID?
-            /*
-            $objpwd = null;
-            $matches = null;
-            if (preg_match('/^(.*?)\|(\d\d*)$/',$password, $matches)) {
-    			$objuuid = $matches[1]; // Object UUID
-    			$objpwd = $matches[2]; // Object-specific password
-            */
             $parts = explode('|', $password);
             if (count($parts) >= 2) {
                 $objuuid = $parts[0];
@@ -219,7 +218,17 @@
                 return false;
     		}
             
-            // Check the password as a whole against the password in the controller
+            // Get the controller password
+            $controllerpwd = $this->course->controller->get_password();
+            // Prim Password access is disabled if no password has been specified
+            if (strlen($controllerpwd) == 0) {
+                if ($require) {
+                    $this->response->quick_output(-213, 'OBJECT_AUTH', 'Access to this Controller by prim password has been disabled.', false);
+                    exit();
+                }
+                return false;
+            }
+            // Check that the passwords match
             if ($password != $this->course->controller->get_password()) {
                 if ($require) {
                     $this->response->quick_output(-213, 'OBJECT_AUTH', 'Prim password was invalid.', false);
@@ -442,7 +451,7 @@
             return ($this->user->login());
         }
         
-        //... Add functions for verifying user access to resources
+        //... Add functions for verifying user access to resources?
         
     }
 
