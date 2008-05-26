@@ -68,10 +68,10 @@
         
         // Setup our default values
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
-        $sloodlepartialmatches = (int)sloodle_get_value($settings, 'sloodlepartialmatches', 0);
+        $sloodlepartialmatches = (int)sloodle_get_value($settings, 'sloodlepartialmatches', 1);
         $sloodlesearchaliases = (int)sloodle_get_value($settings, 'sloodlesearchaliases', 0);
         $sloodlesearchdefinitions = (int)sloodle_get_value($settings, 'sloodlesearchdefinitions', 0);
-        $sloodleidletimeout = (int)sloodle_get_value($settings, 'sloodleidletimeout', 0);
+        $sloodleidletimeout = (int)sloodle_get_value($settings, 'sloodleidletimeout', 120);
         
     
     ///// GENERAL CONFIGURATION /////
@@ -80,7 +80,7 @@
         
         // Ask the user to select a chatroom
         echo get_string('selectglossary','sloodle').': ';
-        choose_from_menu($chatrooms, 'sloodlemoduleid', $sloodlemoduleid, '');
+        choose_from_menu($glossaries, 'sloodlemoduleid', $sloodlemoduleid, '');
         echo "<br><br>\n";
     
         // Show partial matches
