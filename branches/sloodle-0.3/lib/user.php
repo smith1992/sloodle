@@ -778,7 +778,7 @@
             // Check that the user is loaded
             if (empty($this->user_data)) return;
             // Delete the database entries
-            delete_records('sloodle_pending_login_notifications', 'username', $this->user_data->username);
+            delete_records('sloodle_login_notifications', 'username', $this->user_data->username);
         }
     }
     

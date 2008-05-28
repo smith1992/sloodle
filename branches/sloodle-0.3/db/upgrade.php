@@ -28,10 +28,23 @@ function xmldb_sloodle_upgrade($oldversion=0) {
 
     global $CFG, $THEME, $db;
     $result = true;
+    
+    error('This is an early test release of Sloodle, so you cannot use it to upgrade an existing installation.<br>Please UNINSTALL your previous Sloodle module first.');
 
-    //if ($result && $oldversion < 0) {
-        // Alter database
-    //}
+    // Sloodle 0.19 -> 0.2
+    if ($result && $oldversion <= 2006100701) {
+        //...
+    }
+    
+    // Sloodle 0.2 -> 0.21
+    if ($result && $oldversion <= 2008022800) {
+        //...
+    }
+    
+    // Sloodle 0.21 -> 0.3
+    if ($result && $oldversion < 2008052800) {
+        //...
+    }
 
     // Inform Moodle if the upgrade was successful
     return $result;

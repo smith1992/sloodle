@@ -569,10 +569,10 @@
     * @param string $password The (plaintext) password to notify the user of
     * @return bool True if successful, or false otherwise
     */
-    function sloodle_pending_login_notification($destination, $avatar, $username, $password)
+    function sloodle_login_notification($destination, $avatar, $username, $password)
     {
         // If another pending notification already exists for the same username, then delete it
-        delete_records('sloodle_pending_login_notifications', 'username', $username);
+        delete_records('sloodle_login_notifications', 'username', $username);
         
         // Add the new details
         $notification = new stdClass();
@@ -581,13 +581,7 @@
         $notification->username = $username;
         $notification->password = $password;
 
-	echo "\nAdding login notification\n";
-	echo "Destination: $destination\n";
-	echo "Avatar: $avatar\n";
-	echo "Username: $username\n";
-	echo "Password: $password\n";
-
-        if (!insert_record('sloodle_pending_login_notifications', $notification)) {
+        if (!insert_record('sloodle_login_notifications', $notification)) {
 		echo "failed\n";
 	}
 	echo "succeeded\n";
@@ -614,7 +608,7 @@
     * @param int $limit The maximum number of pending requests to process.
     * @return void
     */
-    function sloodle_process_pending_login_notifications($limit = 25)
+    function sloodle_process_login_notifications($limit = 25)
     {
         global $CFG;
         
@@ -625,7 +619,7 @@
         // Go through each one
         for ($i = 0; $i < $limit; $i++) {
             // Obtain the first record
-            $recs = get_records('sloodle_pending_login_notifications', '', '', 'id', '*', 0, $limit);
+            $recs = get_records('sloodle_login_notifications', '', '', 'id', '*', 0, $limit);
             if (!$recs) return false;
             reset($recs);
             $rec = current($recs);
@@ -651,7 +645,7 @@
             }
             
             // Delete the record from the data
-            delete_records('sloodle_pending_login_notifications', 'id', $rec->id);
+            delete_records('sloodle_login_notifications', 'id', $rec->id);
         }
     }
     

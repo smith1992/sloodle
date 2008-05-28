@@ -91,6 +91,7 @@ $string['disabled'] = 'Disabled';
 $string['day'] = 'day';
 $string['days'] = 'days';
 
+$string['editcourse'] = 'Edit Sloodle Course Settings';
 $string['enabled'] = 'Enabled';
 $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';

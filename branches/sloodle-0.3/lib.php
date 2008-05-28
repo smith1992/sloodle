@@ -275,8 +275,10 @@
     function sloodle_cron () {
         echo "\nProcessing Sloodle cron tasks:\n";
         
-        // Delete any pending user entries which have expired
-        //...
+        // Delete any pending user entries which have expired (more than 30 minutes old)
+        $expirytime = time() - 1800;
+        echo "Removing expired pending avatar entries...\n";
+        delete_records_select('sloodle_pending_avatars', "timeupdated < $expirytime");
         
         // Delete any active objects and session keys which have expired
         // (will eventually use custom expiry times, chosen in the configuration)
@@ -293,8 +295,8 @@
         //...
         
         // Email login details to auto-registered avatars in-world
-        echo "Sending out pending login notifications...\n";
-        sloodle_process_pending_login_notifications();
+        echo "Sending out login notifications...\n";
+        sloodle_process_login_notifications();
 
         echo "Done processing Sloodle cron tasks.\n\n";
         return true;

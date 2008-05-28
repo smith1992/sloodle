@@ -417,7 +417,7 @@
                 $this->response->add_side_effect(322);
                 // The user needs to be notified of their new username/password
                 if (isset($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'])) {
-                    sloodle_pending_login_notification($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'], $uuid, $this->user->get_username(), $password);
+                    sloodle_login_notification($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'], $uuid, $this->user->get_username(), $password);
                 }
             }
             
