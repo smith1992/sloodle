@@ -11,6 +11,8 @@ $string['blocknameplural'] = 'Sloodle Menus';
 $string['courseloginzone'] = 'Course Login Zone';
 $string['courseloginzone:nodata'] = 'There does not appear to be a LoginZone rezzed for this course.';
 
+$string['editcourse'] = 'Course Settings';
+
 $string['failedloadcourse'] = 'Failed to load Sloodle course data';
 
 $string['hide'] = 'Hide';

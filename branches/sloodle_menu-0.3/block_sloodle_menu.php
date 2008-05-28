@@ -46,7 +46,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008050600;
+        $this->version = 2008052800;
     }
     
     /**
@@ -176,10 +176,26 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$COURSE->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";            
         }
         
+        // Add a link to Sloodle course settings, if the user can update the course
+        if (has_capability('moodle/course:update', $course_context)) {
+            $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/page.gif\" width=\"16\" height=\"16\"/> ";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
+        }
+        
         // Add a module configuration link if the user has authority to administer the module
         if (has_capability('moodle/site:config', $course_context)) {
+            
+            // The address of the configuration page depends on our version of Moodle
+            if ($CFG->version < 2007101500) {
+                // < 1.9
+                $address = "/admin/module.php?module=sloodle";
+            } else {
+                // >= 1.9
+                $address = "/admin/settings.php?section=modsettingsloodle";
+            }
+        
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/configure.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/admin/module.php?module=sloodle\">".get_string('sloodleconfig', 'block_sloodle_menu')."</a><br/>";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}$address\">".get_string('sloodleconfig', 'block_sloodle_menu')."</a><br/>";
         }
         
         $this->content->text .= '</div>';
