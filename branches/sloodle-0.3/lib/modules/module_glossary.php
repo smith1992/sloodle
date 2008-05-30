@@ -130,7 +130,7 @@
             
             // Search definitions
             if ($searchDefinitions) {
-                $recs = get_records_select('glossary_entries', "`definition` $sql_like '%$term%'", '`concept`');
+                $recs = get_records_select('glossary_entries', "definition $sql_like '%$term%'", 'concept');
                 if (is_array($recs)) {
                     foreach ($recs as $r) {
                         if (!isset($entries[$r->id])) $entries[$r->id] = new SloodleGlossaryEntry($r->id, $r->concept, $r->definition);

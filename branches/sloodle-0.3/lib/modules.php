@@ -22,6 +22,8 @@
     include_once(SLOODLE_LIBROOT.'/modules/module_chat.php');
     /** Glossary module. */
     include_once(SLOODLE_LIBROOT.'/modules/module_glossary.php');
+    /** Sloodle Object assignment module. */
+    include_once(SLOODLE_LIBROOT.'/modules/module_sloodleobject.php');
     
     //... include more module types here!
     

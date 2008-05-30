@@ -43,7 +43,7 @@
         }
         
         // Get all visible Sloodle modules in the current course
-        $recs = get_records_select('course_modules', "`course` = $courseid AND `module` = {$rec->id} AND `visible` = 1");
+        $recs = get_records_select('course_modules', "course = $courseid AND module = {$rec->id} AND visible = 1");
         if (!is_array($recs)) $recs = array();
         $distributors = array();
         foreach ($recs as $cm) {

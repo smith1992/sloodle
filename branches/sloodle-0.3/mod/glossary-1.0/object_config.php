@@ -44,7 +44,7 @@
         $glossarymoduleid = $rec->id;
         
         // Get all visible glossary in the current course
-        $recs = get_records_select('course_modules', "`course` = $courseid AND `module` = $glossarymoduleid AND `visible` = 1");
+        $recs = get_records_select('course_modules', "course = $courseid AND module = $glossarymoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('noglossaries','sloodle'));
             exit();

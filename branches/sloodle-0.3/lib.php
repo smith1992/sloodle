@@ -287,7 +287,7 @@
         $expirytime_auth = time() - 86400;
         $expirytime_unauth = time() - 3600;
         echo "Removing expired active objects... ";
-        $res = delete_records_select('sloodle_active_object', "((`controllerid` = 0 OR `userid` = 0) AND `timeupdated` < $expirytime_unauth) OR `timeupdated` < $expirytime_auth");
+        $res = delete_records_select('sloodle_active_object', "((controllerid = 0 OR userid = 0) AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
         if (is_array($res)) echo count($res)." removed";
         echo "\n";
         

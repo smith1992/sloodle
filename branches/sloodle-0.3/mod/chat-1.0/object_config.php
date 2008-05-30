@@ -44,7 +44,7 @@
         $chatmoduleid = $rec->id;
         
         // Get all visible chatrooms in the current course
-        $recs = get_records_select('course_modules', "`course` = $courseid AND `module` = $chatmoduleid AND `visible` = 1");
+        $recs = get_records_select('course_modules', "course = $courseid AND module = $chatmoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('nochatrooms','sloodle'));
             exit();

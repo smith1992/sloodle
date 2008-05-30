@@ -183,6 +183,7 @@ $string['numsloodleentries'] = '# Sloodle entries';
 $string['numsettingsstored'] = 'Number of settings stored:';
 $string['numobjects'] = 'Number of objects';
 $string['numdeleted'] = 'Number deleted';
+$string['numprims'] = 'Prim Count: $a';
 
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
 $string['noglossaries'] = 'There are no glossaries available in this course.';

@@ -96,7 +96,7 @@
             // Calculate the earliest acceptable timestamp
             $earliest = time() - $time;
             // Get all message records for this chatroom
-            $recs = get_records_select('chat_messages', "`chatid` = {$this->moodle_chat_instance->id} AND `timestamp` >= $earliest", 'timestamp ASC');
+            $recs = get_records_select('chat_messages', "chatid = {$this->moodle_chat_instance->id} AND timestamp >= $earliest", 'timestamp ASC');
             if (!$recs) return array();
             
             // We'll need to lookup all the user data.
