@@ -188,6 +188,7 @@ $string['numprims'] = 'Prim Count: $a';
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
 $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
+$string['nosloodleassignments'] = 'There are no Sloodle-compatible assignments available in this course.';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
@@ -238,6 +239,7 @@ $string['searchdefinitions'] = 'Search Definitions';
 $string['selectchatroom'] = 'Select Chatroom';
 $string['selectglossary'] = 'Select Glossary';
 $string['selectdistributor'] = 'Select Distributor';
+$string['selectassignment'] = 'Select Assignment';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
