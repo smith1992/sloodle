@@ -46,7 +46,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008052800;
+        $this->version = 2008053000;
     }
     
     /**
@@ -112,11 +112,10 @@ class block_sloodle_menu extends block_base {
         // Add the Sloodle and Sloodle Menu version info to the footer of the block
         $this->content->footer = '<span style="color:#565656;font-style:italic; font-size:10pt;">'.get_string('sloodlemenuversion', 'block_sloodle_menu').': '.(string)SLOODLE_MENU_VERSION.'</span>';
         $this->content->footer .= '<br/><span style="color:#888888;font-style:italic;font-size:8pt;">'.get_string('sloodleversion', 'block_sloodle_menu').': '.(string)SLOODLE_VERSION.'</span>';
-                
+        
         // Attempt to find a Sloodle user for the Moodle user
-        $dbquery = "    SELECT * FROM `{$CFG->prefix}sloodle_users`
-                        WHERE `userid` = {$USER->id} AND !(`avname` = '' AND `uuid` = '')
-                        LIMIT 0,2
+        $dbquery = "    SELECT * FROM {$CFG->prefix}sloodle_users
+                        WHERE userid = {$USER->id} AND NOT (avname = '' AND uuid = '')
                     ";
         $dbresult = get_records_sql($dbquery);
         $sl_avatar_name = "";
