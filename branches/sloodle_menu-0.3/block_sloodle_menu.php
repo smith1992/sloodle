@@ -7,9 +7,6 @@
 * @contributor Peter R. Bloomfield
 */
 
-ini_set('display_errors','1');
-error_reporting(2047);
-
 /** Include the current Sloodle configuration, if possible. */
 @include_once($CFG->dirroot .'/mod/sloodle/sl_config.php');
 if (defined('SLOODLE_LIBROOT')) {
@@ -46,7 +43,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008053000;
+        $this->version = 2008060200;
     }
     
     /**
@@ -124,7 +121,8 @@ class block_sloodle_menu extends block_base {
         else {
             $userresult = TRUE;
             reset($dbresult);
-            $sl_avatar_name = current($dbresult)->avname;
+            $cur = current($dbresult);
+            $sl_avatar_name = $cur->avname;
         }
         
         if ($userresult === TRUE) {
