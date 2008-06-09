@@ -18,7 +18,8 @@
 // Sloodle constants
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
+string SLOODLE_PRIMDROP_LINKER = "/mod/sloodle/mod/primdrop-1.0/linker.php";
+string SLOODLE_ASSIGNMENT_VIEW = "/mod/assignment/view.php";
 string SLOODLE_EOF = "sloodleeof";
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
@@ -45,7 +46,31 @@ key current_user = NULL_KEY;
 // These lists are used when determining what inventory has been added
 list old_inventory = [];
 list new_inventory = [];
+// The name of the object which is being submitted
+string submit_obj = "";
 
+// HTTP request keys
+key httpcheck = NULL_KEY; // Request used to check the assignment
+
+// Assignment information
+string assignmentname = "";
+string assignmentsummary = "";
+
+// Alternating list of keys, timestamps and page numbers, indicating who activated a dialog and when
+list cmddialog = [];
+
+// Menu button labels
+string MENU_BUTTON_CANCEL = "0";
+string MENU_BUTTON_SUMMARY = "1";
+string MENU_BUTTON_SUBMIT = "2";
+string MENU_BUTTON_ONLINE = "3";
+string MENU_BUTTON_REZ = "4";
+string MENU_BUTTON_TAKE = "5";
+string MENU_BUTTON_TAKE_ALL = "6";
+string MENU_BUTTON_FEEDBACK = "7";
+
+// The relative position at which items will be rezzed
+vector rez_pos = <0.0, 2.0, 1.0>;
 
 ///// TRANSLATION /////
 
@@ -81,6 +106,13 @@ sloodle_debug(string msg)
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
+sloodle_reset()
+{
+    llSetText("", <0.0,0.0,0.0>, 0.0);
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
+    llResetScript();
+}
+
 // Configure by receiving a linked message from another script in the object
 // Returns TRUE if the object has all the data it needs
 integer sloodle_handle_command(string str) 
@@ -102,11 +134,9 @@ integer sloodle_handle_command(string str)
         
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
     else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
-    else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
     else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
-    else if (name == "set:sloodleautodeactivate") sloodleautodeactivate = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
@@ -142,6 +172,50 @@ integer sloodle_check_access_use(key id)
     return (id == llGetOwner());
 }
 
+// Add the given agent to our command dialog list
+sloodle_add_cmd_dialog(key id)
+{
+    // Does the person already exist?
+    integer pos = llListFindList(cmddialog, [id]);
+    if (pos < 0) {
+        // No - add the agent to the end
+        cmddialog += [id, llGetUnixTime()];
+    } else {
+        // Yes - update the time
+        cmddialog = llListReplaceList(cmddialog, [llGetUnixTime()], pos + 1, pos + 1);
+    }
+}
+
+// Remove the given agent from our command dialog list
+sloodle_remove_cmd_dialog(key id)
+{
+    // Is the person in the list?
+    integer pos = llListFindList(cmddialog, [id]);
+    if (pos >= 0) {
+        // Yes - remove them and their timestamp
+        cmddialog = llDeleteSubList(cmddialog, pos, pos + 1);
+    }
+}
+
+// Purge the command dialog list of old activity
+sloodle_purge_cmd_dialog()
+{
+    // Store the current timestamp
+    integer curtime = llGetUnixTime();
+    // Go through each command dialog
+    integer i = 0;
+    while (i < llGetListLength(cmddialog)) {
+        // Is the current timestamp more than 12 seconds old?
+        if ((curtime - llList2Integer(cmddialog, i + 1)) > 12) {
+            // Yes - remove it
+            cmddialog = llDeleteSubList(cmddialog, i, i + 1);
+        } else {
+            // No - advance to the next
+            i += 2;
+        }
+    }
+}
+
 // Does the object have valid permissions?
 // Returns TRUE if so, or FALSE otherwise
 integer valid_perms(string obj)
@@ -153,13 +227,13 @@ integer valid_perms(string obj)
 }
 
 // Returns a list of all inventory (all types)
-list get_inventory()
+list get_inventory(integer type)
 {
     list inv = [];
-    integer num = llGetInventoryNumber(INVENTORY_ALL);
+    integer num = llGetInventoryNumber(type);
     integer i = 0;
     for (; i < num; i++) {
-        inv += [llGetInventoryName(INVENTORY_ALL, i)];
+        inv += [llGetInventoryName(type, i)];
     }
     
     return inv;
@@ -215,7 +289,7 @@ default
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
-                state ready;
+                state check_assignment;
             }
         }
     }
@@ -232,6 +306,89 @@ default
 // Checking that the assignment is accessible
 state check_assignment
 {
+    state_entry()
+    {
+        // Check the assignment details
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "assignment:checking", [], NULL_KEY);
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)id;
+        body += "&sloodleavname=" + llEscapeURL(name);
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;        
+        httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_PRIMDROP_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(8.0);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+        httpcheck = NULL_KEY;
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    timer()
+    {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+        sloodle_reset();
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Is this the expected data?
+        if (id != httpcheck) return;
+        httpcheck = NULL_KEY;
+        // Check that we got a proper response
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        if (body == "") {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Split the data up into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);  
+        integer numlines = llGetListLength(lines);
+        // Extract all the status fields
+        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+        // Get the statuscode
+        integer statuscode = llList2Integer(statusfields,0);
+        
+        // Was it an error code?
+        if (statuscode == -601) {
+            // Failed to connect to the assignment, possibly because it is the wrong type, or because it is invisible
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:connectionfailed", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_reset();
+            return;
+            
+        } else if (statuscode <= 0) {
+            // Get the error message if one was given
+            if (numlines > 1) {
+                string errmsg = llList2String(lines, 1);
+                sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
+            }
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_reset();
+            return;
+        }
+        
+        // Extract the assignment information
+        assignmentname = llList2String(lines, 1);
+        assignmentsummary = llList2String(lines, 2);
+        
+        state ready;
+    }
 }
 
 
@@ -240,17 +397,113 @@ state ready
 {
     state_entry()
     {
-        llSetText("Ready", <1.0,1.0,1.0>, 1.0);
-        llListen(0, "", NULL_KEY, "");
+        // Display summary information
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 1.0], "assignment:ready", [assignmentname], NULL_KEY);
+        llSay(0, assignmentsummary);
+        
+        // Listen for dialog commands from any avatar
+        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
+        
+        // Regularly purge the list of dialog user entries
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(12.0);
+        
+        // Clear our current user, to avoid any confusion
+        current_user = NULL_KEY;
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Go through each toucher
+        integer i = 0;
+        key id = NULL_KEY;
+        integer level = 0;
+        for (; i < num_detected; i++) {
+            id = llDetectedKey(i);
+            // Can this avatar use and/or control this item?
+            if (sloodle_check_access_ctrl(id)) level = 2;
+            else if (sloodle_check_access_use(id)) level = 1;
+            }
+            // Show the appropriate menu, or report the lack of permission
+            if (level == 2) {
+                // Teacher menu
+                sloodle_add_cmd_dialog(id);
+                sloodle_show_teacher_menu(id);
+            } else if (level == 1) {
+                // General user menu
+                sloodle_add_cmd_dialog(id);
+                sloodle_show_user_menu(id);
+            } else {
+                // Report the lack of permission
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(i)], NULL_KEY);
+            }
+        }
     }
 
     listen(integer channel, string name, key id, string msg)
     {
-        if (channel == 0 && id == llGetOwner()) {
-            if (msg == "DROP") {
-                current_user = id;
-                state drop;
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Ignore non-avatars
+            if (llGetOwnerKey(id) != id) return;
+            // Make sure we are listening to this user
+            if (llListFindList(cmddialog, [id]) < 0) return;
+            sloodle_remove_cmd_dialog(id);
+            
+            // Make sure the given user is allowed to use this object
+            if (!sloodle_check_access_use(id)) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [name], NULL_KEY);
                 return;
+            }
+            // Check if the user can control this item
+            integer canctrl = sloodle_check_access_ctrl(id);
+            
+            // Store the user
+            current_user = id;
+            
+            // Check the command            
+            if (msg == MENU_BUTTON_CANCEL) {
+                // Cancel the menu
+                // Nothing to do
+                return;
+                
+            } else if (msg == MENU_BUTTON_SUMMARY) {
+                // Chat the assignment summary text
+                llSay(0, assignmentsummary);
+                
+            } else if (msg == MENU_BUTTON_SUBMIT) {
+                // Check that the user can submit
+                state check_user_submit;
+            
+            } else if (msg == MENU_BUTTON_ONLINE) {
+                // Give the user a URL
+                llLoadURL(id, assignmentname, sloodleserverroot + SLOODLE_ASSIGNMENT_VIEW + "?id=" + (string)sloodlemoduleid);
+            
+            } else if (msg == MENU_BUTTON_REZ && canctrl) {
+                // User wants to rez an item
+                state rez;
+            
+            } else if (msg == MENU_BUTTON_TAKE && canctrl) {
+                // User wants to take an item to their inventory (useful e.g. if parcel prim count is reached)
+                state take;
+                
+            } else if (msg == MENU_BUTTON_TAKE_ALL && canctrl) {
+                // User wants to take all objects to their inventory
+                list inv = get_inventory(INVENTORY_OBJECT);
+                if (inv == []) {
+                    // No submissions available
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:nosubmissions", [], id);
+                } else {
+                    // Give all items into a new folder
+                    llGiveInventoryList(id, assignmentname, inv);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:allgiven", [assignmentname], id);
+                }
             }
         }
     }
@@ -259,11 +512,93 @@ state ready
 // Checking if the current user can submit objects to this assignment
 state check_user_submit
 {
-}
-
-// Checking if the current user can rez objects from this PrimDrop
-state check_user_rez
-{
+    state_entry()
+    {
+        // Check the assignment details
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingpermission", [llKey2Name(current_user)], NULL_KEY);
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)id;
+        body += "&sloodleavname=" + llEscapeURL(name);
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_PRIMDROP_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(8.0);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+        httpcheck = NULL_KEY;
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    timer()
+    {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        state ready;
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Is this the expected data?
+        if (id != httpcheck) return;
+        httpcheck = NULL_KEY;
+        // Check that we got a proper response
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            state ready;
+            return;
+        }
+        if (body == "") {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            state ready;
+            return;
+        }
+        
+        // Split the data up into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);  
+        integer numlines = llGetListLength(lines);
+        // Extract all the status fields
+        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+        integer statuscode = llList2Integer(statusfields,0);
+        
+        // Extract the side effect codes
+        list sideeffects = [];
+        if (llGetListLength(statusfields) >= 3) {
+            sideeffects = llCSV2List(llList2String(statusfields, 2));
+        }
+        
+        // Get the user's name
+        string current_user_name = llKey2Name(current_user);
+        
+        // Has an error been reported?
+        if (statuscode < 0) {
+            // Check if it's a known code
+            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY);
+            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY);
+            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY);
+            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY);
+            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
+            
+            // Debug output, if possible
+            if (numlines > 1) {
+                string errmsg = llList2String(lines, 1);
+                sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
+            }
+            
+            state ready;
+            return;
+        }
+        
+        // Check to see if the submission is late
+        if (llListFindList(sideeffects, [-10204]) >= 0) sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:lateaccepting", [current_user_name], NULL_KEY);
+        
+        // User is accepted
+        state drop;
+    }
 }
 
 // Waiting for an object to be dropped
@@ -271,30 +606,40 @@ state drop
 {
     state_entry()
     {
-        llSetText("Checking inventory...", <0.5,0.1,0.0>, 1.0);
-        old_inventory = get_inventory();
-        llSetText("Waiting for object from: " + llKey2Name(current_user), <0.0,0.6,0.0>, 1.0);
+        // Check the current inventory
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkinginventory", [], NULL_KEY);
+        old_inventory = get_inventory(INVENTORY_ALL);
+        // Prepare to receive a submission
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.5,1.0>, 1.0], "assignment:waitingforsubmission", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:dropsubmission", [llKey2Name(current_user)], NULL_KEY);
         llAllowInventoryDrop(TRUE);
-        llSetTimerEvent(15.0);
+        
+        // Allow the user 60 seconds to make their submission
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(60.0);
     }
     
     state_exit()
     {
+        // Stop receiving inventory drops
         llAllowInventoryDrop(FALSE);
-        llSetText("", <0.0,0.6,0.0>, 1.0);
+        llSetText("", <0.0,0.0,0.0>, 1.0);
         llSetTimerEvent(0.0);
     }
     
     
     timer()
     {
-        llSay(0, "Timeout");
+        // Submission timed-out
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submittimeout", [llKey2Name(current_user)], NULL_KEY);
         state ready;
     }
     
     changed(integer change)
     {
+        // Has out inventory changed?
         if ((change & CHANGED_INVENTORY) || (change & CHANGED_ALLOWED_DROP)) {
+            // Check the drop
             state check_drop;
         }
     }
@@ -306,60 +651,238 @@ state check_drop
     state_entry()
     {
         // Determine what our new object is
-        llSetText("Checking object...", <0.5,0.3,0.0>, 1.0);
-        new_inventory = get_inventory();
-        string obj = ListDiff(new_inventory, old_inventory);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY);
+        new_inventory = get_inventory(INVENTORY_ALL);
+        string submit_obj = ListDiff(new_inventory, old_inventory);
         
         // Make sure it exists
-        if (llGetInventoryType(obj) == INVENTORY_NONE || obj == "") {
-            llSay(0, "Error locating new object.");
+        if (llGetInventoryType(submit_obj) == INVENTORY_NONE || submit_obj == "") {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionerror", [], NULL_KEY);
             state ready;
             return;
         }
         
         // Make sure it is the correct type
-        if (llGetInventoryType(obj) != INVENTORY_OBJECT) {
-            llSay(0, "ERROR: only objects are accepted.");
-            llRemoveInventory(obj);
+        if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY);
+            llRemoveInventory(submit_obj);
             state ready;
             return;
         }
 
         // Determine the object ID and creator
-        key obj_id = llGetInventoryKey(obj);
-        key obj_creator = llGetInventoryCreator(obj);
+        key obj_id = llGetInventoryKey(submit_obj);
+        key obj_creator = llGetInventoryCreator(submit_obj);
         
         // Make sure the creator is the expected user
         if (obj_creator != current_user) {
-            llSay(0, "Error: for security, object must be submitted by its creator.");
-            llRemoveInventory(obj);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:creatoronly", [], NULL_KEY);
+            llRemoveInventory(submit_obj);
             state ready;
             return;
         }
         
-        if (valid_perms(obj)) {
-            llSay(0, "Object did not have valid permissions. Please ensure copy and transfer are enabled.");
-            llRemoveInventory(obj);
+        // Make sure the permissions are correct
+        if (valid_perms(submit_obj)) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:invalidperms", [], NULL_KEY);
+            llRemoveInventory(submit_obj);
             state ready;
             return;
         }
         
-        llSay(0, "Object \"" + obj + "\" received successfully. Thank you " + llKey2Name(current_user));
+        // Seems OK - submit it
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:itemok", [submit_obj, llKey2Name(current_user)], NULL_KEY);
         state submitting;
     }
     
     state_exit()
     {
-        llSetText("", <0.0,0.6,0.0>, 1.0);
+        llSetText("", <0.0,0.0,0.0>, 1.0);
     }
 }
 
 // Submitting an object which was dropped
 state submitting
 {
+    state_entry()
+    {
+        // Check the assignment details
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:submitting", [llKey2Name(current_user)], NULL_KEY);
+        
+        // Build the body of data
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)id;
+        body += "&sloodleavname=" + llEscapeURL(name);
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&sloodleobjname=" + submit_obj;
+        body += "&sloodleprimcount=" + (string)llGetObjectPrimCount(llGetInventoryKey(submit_obj));
+        body += "&sloodleprimdropname=" + llGetObjectName();
+        body += "&sloodleprimdropuuid=" + (string)llGetKey();
+        body += "&sloodleregion=" + llGetRegionName();
+        body += "&sloodlepos=" + (string)llGetPos();
+        // Send the HTTP request
+        httpsubmit = llHTTPRequest(sloodleserverroot + SLOODLE_PRIMDROP_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(8.0);
+    }
+    
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+        httpsubmit = NULL_KEY;
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    timer()
+    {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        state ready;
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Is this the expected data?
+        if (id != httpsubmit) return;
+        httpsubmit = NULL_KEY;
+        // Check that we got a proper response
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            state ready;
+            return;
+        }
+        if (body == "") {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            state ready;
+            return;
+        }
+        
+        // Split the data up into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);  
+        integer numlines = llGetListLength(lines);
+        // Extract all the status fields
+        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+        integer statuscode = llList2Integer(statusfields,0);
+        
+        // Get the user's name
+        string current_user_name = llKey2Name(current_user);
+        
+        // Has an error been reported?
+        if (statuscode < 0) {
+            // Check if it's a known code
+            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY);
+            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY);
+            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY);
+            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY);
+            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionfailed", [current_user_name, statuscode], NULL_KEY);
+            
+            // Debug output, if possible
+            if (numlines > 1) {
+                string errmsg = llList2String(lines, 1);
+                sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
+            }
+            
+            state ready;
+            return;
+        }
+        
+        // Success
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionok", [current_user_name], NULL_KEY);        
+        state ready;
+    }
 }
 
 // Rezzing an object
-state rezzing
+state rez
 {
+    state_entry()
+    {
+        // Display instructions
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:rezmode", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY);
+        // Listen for the object name being chatted on channel 0 and 1
+        llListen(0, "", current_user, "");
+        llListen(1, "", current_user, "");
+        // Give the user 2 minutes
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(120.0);
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        state ready;
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Make sure the channel and avatar are correct
+        if (channel != 0 && channel != 1) return;
+        if (id != current_user) return;
+        
+        // Make sure the item is valid
+        if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY);
+            state ready;
+            return;
+        }
+        
+        // Rez the item
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:rezzing", [msg], NULL_KEY);
+        llRezObject(msg, rez_pos, ZERO_VECTOR, ZERO_ROTATION, 0);
+        state ready;
+    }
+}
+
+// Taking an object
+state take
+{
+    state_entry()
+    {
+        // Display instructions
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:takemode", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY);
+        // Listen for the object name being chatted on channel 0 and 1
+        llListen(0, "", current_user, "");
+        llListen(1, "", current_user, "");
+        // Give the user 2 minutes
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(120.0);
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        state ready;
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Make sure the channel and avatar are correct
+        if (channel != 0 && channel != 1) return;
+        if (id != current_user) return;
+        
+        // Make sure the item is valid
+        if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY);
+            state ready;
+            return;
+        }
+        
+        // Rez the item
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:giving", [msg], NULL_KEY);
+        llGiveInventory(current_user, msg);
+        state ready;
+    }
 }

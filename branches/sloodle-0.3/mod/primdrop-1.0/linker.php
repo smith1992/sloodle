@@ -30,6 +30,7 @@
     //  -10202 = Assignment is not yet open for submissions
     //  -10203 = Assignment due date has passed, and is closed for submissions
     //  -10204 = Assignment due date has passed, but is still accepting submissions
+    //  -10205 = User has already submitted, and resubmissions are not being accepted
     //
     // To report a submission, the following parameters (in addition to all above) should be provided:
     //  sloodleobjname = Name of the object being submitted
@@ -40,9 +41,9 @@
     //  sloodlepos = position of the PrimDrop (vector <x,y,z>)
     //
     // If the submission was successful, the status code will be 1.
-    // Otherwise, the codes above may be returned (although -10204 will only appear as a side effect)
+    // Otherwise, the codes above may be returned (although -10204 will only appear as a side effect).
+    // Status code -103 will appear if some assignment submission to the database fails.
     //
-    
 
     /** Lets Sloodle know we are in a linker script. */
     define('SLOODLE_LINKER_SCRIPT', true);
@@ -58,8 +59,8 @@
     $sloodle->load_module('sloodleobject', true);
     
     // Has user data been omitted?
-    $uuid = $sloodle_request->get_avatar_uuid(false);
-    $avname = $sloodle_request->get_avatar_name(false);
+    $uuid = $sloodle->request->get_avatar_uuid(false);
+    $avname = $sloodle->request->get_avatar_name(false);
     if ($uuid == null && $avname == null) {
         // Just query the assignment details
         $sloodle->response->set_status_code(1);
@@ -88,7 +89,7 @@
     if ($status < 1) {
         $sloodle->response->set_status_code($status);
         $sloodle->response->set_status_descriptor('ASSIGNMENT');
-        $sloodle->render_to_output();
+        $sloodle->response->render_to_output();
         exit();
     }
     
@@ -98,7 +99,7 @@
         // No - just checking if the user can submit
         $sloodle->response->set_status_code(1);
         $sloodle->response->set_status_descriptor('OK');
-        $sloodle->render_to_output();
+        $sloodle->response->render_to_output();
         exit();
     }
     
@@ -114,9 +115,18 @@
     if (!$arr) $sloodlepos = '<0.0,0.0,0.0>';
     
     // Submit all the data
-    if ($sloodle->module->submit($sloodle->user, $sloodleobjname, $sloodleprimcount, $sloodleprimdropname, $sloodleprimdropuuid, $sloodleregion, $sloodlepos);
+    if ($sloodle->module->submit($sloodle->user, $sloodleobjname, $sloodleprimcount, $sloodleprimdropname, $sloodleprimdropuuid, $sloodleregion, $sloodlepos)) {
+        // OK
+        $sloodle->response->set_status_code(1);
+        $sloodle->response->set_status_descriptor('OK');
+    } else {
+        // Error
+        $sloodle->response->set_status_code(-103);
+        $sloodle->response->set_status_descriptor('SYSTEM');
+        $sloodle->response->add_data_line('Failed to add assignment data into database.');
+    }
     
     // Render the response
-    $sloodle->render_to_output();
+    $sloodle->response->render_to_output();
     exit();    
 ?>

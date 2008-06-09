@@ -75,9 +75,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -200,7 +200,7 @@ sloodle_start_recording_agent(key id)
 {
     // Do nothing if the person is already on the list
     if (llListFindList(recordingkeys, [id]) >= 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:alreadyrecording", [llKey2Name(id)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:alreadyrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
         return;
     }
     
@@ -209,7 +209,7 @@ sloodle_start_recording_agent(key id)
     recordingnames += [llKey2Name(id)];
     
     // Announce the update
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY);
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
 }
 
@@ -219,7 +219,7 @@ sloodle_stop_recording_agent(key id)
     // Do nothing if the person is not already on the list
     integer pos = llListFindList(recordingkeys, [id]);
     if (pos < 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:notrecording", [llKey2Name(id)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:notrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
         return;
     }
     
@@ -228,7 +228,7 @@ sloodle_stop_recording_agent(key id)
     recordingnames = llDeleteSubList(recordingnames, pos, pos);
     
     // Announce the update
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY);
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
 }
 
@@ -244,7 +244,7 @@ sloodle_update_hover_text()
 {
     string recordlist = llDumpList2String(recordingnames, "\n");
     if (recordlist == "") recordlist = "-";
-    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [recordlist], NULL_KEY);
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [recordlist], NULL_KEY, "webintercom");
 }
 
 
@@ -284,7 +284,7 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                 state ready;
             }
         }
@@ -316,7 +316,7 @@ state ready
         recordingnames = [];
         cmddialog = [];
 
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "webintercom");
         // Determine our "beep" sound file name
         SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
     }
@@ -330,13 +330,13 @@ state ready
     {
         // Activating this requires access permission
         if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "webintercom");
             return;
         }
     
         llListenRemove(listenctrl);
         listenctrl = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llDetectedKey(0), "");
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0));
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0), "webintercom");
         llSetTimerEvent(10.0);
     }
     
@@ -349,9 +349,9 @@ state ready
     
             // Has chat logging been activated?
             if (message == "1") {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:chatloggingon", [llDetectedName(0)], NULL_KEY);
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY);
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:touchtorecord", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:chatloggingon", [llDetectedName(0)], NULL_KEY, "webintercom");
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:touchtorecord", [], NULL_KEY, "webintercom");
                 
                 // Initially record the one who activated us
                 recordingkeys = [id];
@@ -408,13 +408,13 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id);
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id);
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "webintercom");
         }
     }
     
@@ -601,7 +601,7 @@ state logging
             nosensorcount++;
             // Is it time to deactivate?
             if (nosensorcount >= nosensormax) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:autodeactivate", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:autodeactivate", [], NULL_KEY, "webintercom");
                 state ready;
                 return;
             }

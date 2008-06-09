@@ -18,6 +18,9 @@ require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
 /** Include the general Sloodle functions. */
 require_once($CFG->dirroot.'/mod/sloodle/lib/general.php');
 
+/** Include the base assignment class, if necessary. */
+require_once($CFG->dirroot.'/mod/assignment/lib.php');
+
 /**
  * Extend the base assignment class for assignments where you submit an SL object in-world.
  * This has been modified from the "assignment_online" type.
