@@ -44,7 +44,7 @@ list locstrings = [
 	"webintercom:touchtorecord", "Touch logger to record your chat",
 	"webintercom:ctrlmenu", "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
 	"webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
-	"webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivated WebIntercom", // Parameters: stop, start, and deactivate button labels
+	"webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom", // Parameters: stop, start, and deactivate button labels
 	"webintercom:autodeactivate", "Deactivating due to lack of nearby users"
 ];
 

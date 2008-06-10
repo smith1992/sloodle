@@ -316,7 +316,7 @@ state ready
         recordingnames = [];
         cmddialog = [];
 
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "webintercom");
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "");
         // Determine our "beep" sound file name
         SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
     }

@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "distributor";
+string mybatch = "distributor"; // Used by the Vending Machine object
 
 
 // List of string names and translation pairs.

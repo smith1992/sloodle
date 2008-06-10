@@ -42,9 +42,9 @@ string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should b
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -89,7 +89,7 @@ sloodle_start_reading_notecard()
     // Do we have a configuratio notecard?
     if (llGetInventoryType(SLOODLE_CONFIG_NOTECARD) == INVENTORY_NOTECARD) {
         // Start reading it
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readingconfignotecard", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readingconfignotecard", [], NULL_KEY, "");
         sloodle_debug("starting reading notecard");
         sloodle_notecard_line = 0;
         sloodle_notecard_key = llGetNotecardLine("sloodle_config", 0); // read the first line. The dataserver event will get the next one.

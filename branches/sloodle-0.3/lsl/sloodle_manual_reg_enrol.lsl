@@ -50,14 +50,14 @@ string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";  // 1 output parameter: chat 
 string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
-string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";  // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -109,7 +109,7 @@ default
              }
             
             // Notify the user
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "attempting" + sloodlemode, [], kval);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "attempting" + sloodlemode, [], kval, "regenrol");
             
             // Send the request
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -133,7 +133,7 @@ default
         
         // Check the return code
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "httperror:code", [status], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "httperror:code", [status], av, "");
             return;
         }
         
@@ -145,31 +145,31 @@ default
         integer statuscode = (integer)llList2String(statusfields, 0);
         // Check for standard status codes
         if (statuscode == -321) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av, "regenrol");
             return;
             
         } else if (statuscode == 301) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyauthenticated", [llKey2Name(av)], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyauthenticated", [llKey2Name(av)], av, "regenrol");
             return;
 
         } else if (statuscode == 401) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyenrolled", [llKey2Name(av)], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyenrolled", [llKey2Name(av)], av, "regenrol");
             return;            
         
         } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "servererror", [statuscode], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "servererror", [statuscode], av, "");
             return;
         }
         
         // We expect at least 2 lines
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "badresponseformat", [], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "badresponseformat", [], av, "");
             return;
         }
         
         // Grab the URL
         string url = llList2String(lines, 1);
-        sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL_PARALLEL, [url], "regenrolurl", [], av);
+        sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL_PARALLEL, [url], "regenrolurl", [], av, "regenrol");
     }
 }
 

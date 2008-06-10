@@ -57,9 +57,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -189,7 +189,7 @@ state ready
         layoutpos = llGetPos() - rezzerpos;
         // If the distance is more than can be rezzed later on, then ignore it
         if (llVecMag(layoutpos) > 10.0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:toofar", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:toofar", [], NULL_KEY, "");
             return;
         }
         
@@ -305,14 +305,14 @@ state request
         
         // Check the HTTP status
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state failed;
             return;
         }
         
         // Check the body of the response
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             state failed;
             return;
         }
@@ -325,7 +325,7 @@ state request
                 
         // Did an error occur?
         if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             sloodle_debug("HTTP response: " + body);
             state failed;
             return;
@@ -355,10 +355,10 @@ state failed
     {
         // Do we have any attempts left?
         if (attemptnum < attemptmax) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:failedretrying", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:failedretrying", [], NULL_KEY, "");
             state store_layout;
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:failedaborting", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:failedaborting", [], NULL_KEY, "");
             state ready;
         }
     }
@@ -382,7 +382,7 @@ state success
     state_entry()
     {
         // Done!
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:stored", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:stored", [], NULL_KEY, "");
         state ready;
     }
     

@@ -39,7 +39,7 @@ list locstrings = [
 	"pwresetready:staff", "Password Reset\nSite: {{0}}\nCourse: {{1}}\nSTAFF ONLY", // Address of site and name of course
 	"pwreseterror:hasemail", "Sorry {{0}}. There is an email address associated with your Moodle account at {{1}}. Please use Moodle to reset your password.", // Parameter 0 should be an avatar name, and 1 should be a site address.
 	"pwreseterror:failed:code", "Sorry {{0}}. Error {{1}} occured while trying to reset your password.", // Parameters: avatar name and error code
-	"pwreset:success", "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}} \nUsername: {{2}} \nPassword: {{3}}", // Parameters: avatar name, site address, username, password
+	"pwreset:success", "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}} \nUsername: {{2}} \nPassword: {{3}}" // Parameters: avatar name, site address, username, password
 ];
 
 ///// ----------- /////

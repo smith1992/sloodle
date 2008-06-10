@@ -69,7 +69,7 @@ list locstrings = [
 	"objectauthfailed:code", "ERROR: object authorisation failed with code {{0}}",
 	"objectconfigfailed:code", "ERROR: object configuration failed with code {{0}}",
 	"initobjectauth", "Initiating object authorisation...",
-	"autoreg:newaccount", "A new Moodle account has been automatically generated for you.\nWebsite: {{0}}\nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
+	"autoreg:newaccount", "A new Moodle account has been automatically generated for you.\nWebsite: {{0}} \nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
 	"configurationreceived", "Configuration received",
 	"configdatamissing", "ERROR: some required data was missing from the configuration",
 	"readingconfignotecard", "Reading configuration notecard...",
@@ -86,7 +86,13 @@ list locstrings = [
 	//  Permissions
 	"nopermission:use", "Sorry {{0}}. You do not have permission to use this object.", // Parameter should be the name of an avatar
 	"nopermission:ctrl", "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
-	"nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course." // Parameter should be the name of an avatar
+	"nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
+    
+    // Layout (duplicated deliberately)
+    "layout:failedretrying", "Failed to store layout position. Retrying...",
+	"layout:failedaborting", "Failed to store layout position. Aborting.",
+	"layout:toofar", "Failed to store layout position - too far from rezzer.",
+	"layout:storedobject", "Object stored in layout."
 ];
 
 ///// ----------- /////

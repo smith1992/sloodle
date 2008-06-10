@@ -1,3 +1,5 @@
+// NOTE: this version of the script should be fully functional, but does not appear to be compilable by SL.
+
 // Sloodle PrimDrop (for Sloodle 0.3)
 // Allows students to submit SL objects as Moodle assignments.
 // Part of the Sloodle project (www.sloodle.org)
@@ -480,13 +482,11 @@ state ready
             
             } else if (msg == MENU_BUTTON_REZ && canctrl) {
                 // User wants to rez an item
-                //state rez;
-                llSay(0, "Sorry. Rez does not work yet.");
+                state rez;
             
             } else if (msg == MENU_BUTTON_TAKE && canctrl) {
                 // User wants to take an item to their inventory (useful e.g. if parcel prim count is reached)
-                //state take;
-                llSay(0, "Sorry. Take does not work yet.");
+                state take;
                 
             } else if (msg == MENU_BUTTON_TAKE_ALL && canctrl) {
                 // User wants to take all objects to their inventory
@@ -788,3 +788,96 @@ state submitting
     }
 }
 
+// Rezzing an object
+state rez
+{
+    state_entry()
+    {
+        // Display instructions
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:rezmode", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        // Listen for the object name being chatted on channel 0 and 1
+        llListen(0, "", current_user, "");
+        llListen(1, "", current_user, "");
+        // Give the user 2 minutes
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(120.0);
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        state ready;
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Make sure the channel and avatar are correct
+        if (channel != 0 && channel != 1) return;
+        if (id != current_user) return;
+        
+        // Make sure the item is valid
+        if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY, "assignment");
+            state ready;
+            return;
+        }
+        
+        // Rez the item
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:rezzing", [msg], NULL_KEY, "assignment");
+        llRezObject(msg, rez_pos, ZERO_VECTOR, ZERO_ROTATION, 0);
+        state ready;
+    }
+}
+
+// Taking an object
+state take
+{
+    state_entry()
+    {
+        // Display instructions
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:takemode", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        // Listen for the object name being chatted on channel 0 and 1
+        llListen(0, "", current_user, "");
+        llListen(1, "", current_user, "");
+        // Give the user 2 minutes
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(120.0);
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        state ready;
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Make sure the channel and avatar are correct
+        if (channel != 0 && channel != 1) return;
+        if (id != current_user) return;
+        
+        // Make sure the item is valid
+        if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY, "assignment");
+            state ready;
+            return;
+        }
+        
+        // Rez the item
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:giving", [msg], NULL_KEY, "assignment");
+        llGiveInventory(current_user, msg);
+        state ready;
+    }
+}

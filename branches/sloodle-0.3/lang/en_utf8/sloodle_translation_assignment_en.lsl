@@ -43,7 +43,7 @@ list locstrings = [
 	"assignment:nopermission", "Sorry {{0}}. You do not have permission to submit to this assignment.", // Parameter: avatar name
 	"assignment:ready", "Sloodle Assignment Ready:\n{{0}}", // Parameter: name of the assignment
 	"assignment:primdropmenu", "PrimDrop Menu\n{{0}} = Cancel\n{{1}} = Assignment summary\n{{2}}Submit\n{{3}} = View Online", // Parameters: button labels
-	"assignment:primdropteachermenu", "PrimDrop Teacher Menu\n{{0}} = Cancel\n{{1}} = Assignment summary\n{{2}}Submit\n{{3}} = View Online\n{{4}} = Rez Submission\n{{5}} = Take a Submission\n{{6}} = Take All Objects\n{{7}} = Leave Feedback", // Parameters: button labels
+	"assignment:primdropteachermenu", "PrimDrop Teacher Menu\n{{0}} = Cancel\n{{1}} = Assignment summary\n{{2}}Submit\n{{3}} = View Online\n{{4}} = Rez Submission\n{{5}} = Take a Submission\n{{6}} = Take All Objects", // Parameters: button labels
 	"assignment:allgiven", "All assignment submissions have been given to you in a folder called \"{{0}}\".", // Parameter: name of inventory folder
 	"assignment:nosubmissions", "ERROR: No submissions in inventory.",
 	"assignment:checkingpermission", "PLEASE WAIT\nChecking permission for {{0}}.", // Parameter: avatar name

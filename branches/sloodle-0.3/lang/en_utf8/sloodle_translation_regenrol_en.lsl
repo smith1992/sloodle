@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "regenrol"; // General registerion/enrolment stuff
+string mybatch = "regenrol"; // General registration/enrolment stuff
 
 
 // List of string names and translation pairs.
@@ -41,8 +41,8 @@ list locstrings = [
 	"attemptingreg", "Attempting to register your avatar...",
 	"attemptingenrol", "Attempting to enrol your avatar...",
 	"attemptingregenrol", "Attempting to register and enrol your avatar...",
-	"enrolfailed:notreg", "Please use this URL to complete the registration/enrolment process.",
-	"regenrolurl", "Sloodle Set Menu\n\n{{0}} = Reset" // Parameter: button label
+	"enrolfailed:notreg", "Enrolment failed. Your avatar is not registered yet.",
+	"regenrolurl", "Please use this URL to complete the registration/enrolment process."
 ];
 
 ///// ----------- /////

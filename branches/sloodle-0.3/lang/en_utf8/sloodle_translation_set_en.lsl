@@ -34,13 +34,13 @@ string mybatch = "set"; // Sloodle Set
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
 	//  Sloodle Set
-	"sloodleset:cmddialog", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-	"sloodleset:objectmenu", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
-	"rezzingobject", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
-	"reztimeout", "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
-	"sloodleset:noobjects", "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
-	"notininventory", "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
-	"notobject", "Enrolment failed. Your avatar is not registered yet.",
+	"sloodleset:cmddialog", "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
+	"sloodleset:objectmenu", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
+	"rezzingobject", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
+	"reztimeout", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
+	"sloodleset:noobjects", "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
+	"notininventory", "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
+	"notobject", "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
 
 	//  Layouts
 	"layout:failedretrying", "Failed to store layout position. Retrying...",

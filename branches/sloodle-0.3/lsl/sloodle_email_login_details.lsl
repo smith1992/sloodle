@@ -11,9 +11,9 @@ integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -65,7 +65,7 @@ default
                 
                 // Send the information to the user
                 if (useruuid != NULL_KEY) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "autoreg:newaccount", [website, username, password], useruuid);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "autoreg:newaccount", [website, username, password], useruuid, "");
                 }
             }
             

@@ -59,9 +59,9 @@ string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should b
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -94,7 +94,7 @@ string sloodle_random_object_password()
 // Show a menu letting the user choose between configuring the object, and downloading the configuration into SL
 sloodle_show_config_menu(key av)
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webconfigmenu", ["0", "1"], av);
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webconfigmenu", ["0", "1"], av, "");
     llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "0");
     llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "1");
 }
@@ -103,7 +103,7 @@ sloodle_show_config_menu(key av)
 sloodle_load_config_url(key av)
 {
     string url = sloodleserverroot + SLOODLE_CONFIG_INTERFACE + "?sloodleauthid=" + sloodleauthid + "&sloodleobjtype=" + SLOODLE_OBJECT_TYPE;
-    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [url], "configlink", [], av);
+    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [url], "configlink", [], av, "");
 }
 
 // Check to see what type this script is to use
@@ -146,10 +146,10 @@ default
         if (SLOODLE_OBJECT_TYPE == "") {
             SLOODLE_OBJECT_TYPE = sloodle_check_type();
             if (SLOODLE_OBJECT_TYPE == "") {
-                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notypeid", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notypeid", [], NULL_KEY, "");
                 
             } else {
-                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY, "");
             }
         }
     
@@ -161,7 +161,7 @@ default
         if (!sloodle_has_config_notecard()) {
             // No - if we have no starting parameter, then invite the user to use web-configuration
             if (llGetStartParameter() == 0) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY, "");
             }
         }
     }
@@ -257,8 +257,8 @@ default
             llListen(0, "", llGetOwner(), "");
             llListen(1, "", llGetOwner(), "");
             
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "chatserveraddress", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "waitingforserveraddress", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "chatserveraddress", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "waitingforserveraddress", [], NULL_KEY, "");
             return;
         }
         
@@ -284,7 +284,7 @@ state check_moodle
 {
     state_entry()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY, "");
         httpcheckmoodle = llHTTPRequest(sloodleserverroot + SLOODLE_VERSION_LINKER, [HTTP_METHOD, "GET"], "");
         // Listen for chat messages from the rezzer
         if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
@@ -303,7 +303,7 @@ state check_moodle
         httpcheckmoodle = NULL_KEY;
         // Check the status code
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
         
@@ -316,16 +316,16 @@ state check_moodle
         // Make sure the status code was OK
         if (statuscode == -106) {
             sloodle_debug("ERROR -106: the Sloodle module is not installed on the specified Moodle site (" + sloodleserverroot + ")");
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY, "");
             return;
         } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "failedcheckcompatibility", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "failedcheckcompatibility", [], NULL_KEY, "");
             return;
         }
         
         // Make sure we have enough other data
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             return;
         }
         
@@ -335,8 +335,8 @@ state check_moodle
         
         // Check compatibility
         if (installedversion < SLOODLE_VERSION_MIN) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY, "");
             return;
         }
         
@@ -393,7 +393,7 @@ state auth_object_initial
 {
     state_entry()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "initobjectauth", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "initobjectauth", [], NULL_KEY, "");
         
         // Generate a random password
         password = sloodle_random_object_password();
@@ -417,7 +417,7 @@ state auth_object_initial
         // Make sure this is the response we're expecting
         if (id != httpauthobject) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
         
@@ -429,13 +429,13 @@ state auth_object_initial
         
         // Check the statuscode
         if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
             return;
         }
         
         // Attempt to get the auth ID
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             return;
         }
         sloodleauthid = llList2String(lines, 1);
@@ -569,7 +569,7 @@ state configure_object
             httpconfig = NULL_KEY;
             // Check the return code
             if (status != 200) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
                 return;
             }
             
@@ -580,12 +580,12 @@ state configure_object
             list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
             integer statuscode = (integer)llList2String(statusfields, 0);
             if (statuscode <= 0) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY, "");
                 return;
             }
             
             // Indicate that we are sending configuration data
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "sendingconfig", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "sendingconfig", [], NULL_KEY, "");
             
             // This will be our buffer of configuration commands
             string cmdbuffer = "";
