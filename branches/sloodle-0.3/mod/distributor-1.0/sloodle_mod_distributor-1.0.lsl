@@ -91,9 +91,10 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 // Parameter: string_name = the name of the localization string to output
 // Parameter: string_params = a list of parameters which will be included in the translated string (or an empty list if none)
 // Parameter: keyval = a key to send in the link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+// Parameter: batch = the name of the localization batch which should handle this request
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -271,7 +272,7 @@ sloodle_show_command_dialog(key id)
 {
     // The dialog presents 3 options: reconnect, reset, and shutdown.
     // Numerical buttons are used for request inventory, so we'll use letters here: A, B, and C.
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "A", "B", "C"], "dialog:distributorcommandmenu", ["A", "B", "C"], id);
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "A", "B", "C"], "dialog:distributorcommandmenu", ["A", "B", "C"], id, "distributor");
 }
 
 // Shows the given user a dialog of objects, starting at the specified page
@@ -307,10 +308,10 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     // Are we to show the commmand button?
     if (showcmd) {
         // Display the object menu with the command button
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels + [MENU_BUTTON_CMD], "dialog:distributorobjectmenu:cmd", [buttondef, MENU_BUTTON_CMD], id);
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels + [MENU_BUTTON_CMD], "dialog:distributorobjectmenu:cmd", [buttondef, MENU_BUTTON_CMD], id, "distributor");
     } else {
         // Display the basic object menu
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu", [buttondef], id);
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu", [buttondef], id, "distributor");
     }
 }
 
@@ -392,7 +393,7 @@ state connecting
         
         isconnected = FALSE;
         // Open an xmlrpc channel
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "openingxmlrpc", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "openingxmlrpc", [], NULL_KEY, "distributor");
         llOpenRemoteDataChannel();
         
         // Listen for settings coming in on the avatar dialog channel
@@ -411,7 +412,7 @@ state connecting
         if (type == REMOTE_DATA_CHANNEL) { // channel created
             
             ch = channel;
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "establishingconnection", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "establishingconnection", [], NULL_KEY, "distributor");
             sloodle_debug("Opened XMLRPC channel "+(string)ch);
         
             // Get all available inventory
@@ -438,7 +439,7 @@ state connecting
                 sloodle_add_cmd_dialog(id, 0);
             } else {
                 // Inform the user that they do not have permission
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }
@@ -483,14 +484,12 @@ state connecting
         
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
-            //sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "connectionfailed", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state ready;
             return;
         }
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
-            //sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "connectionfailed", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             state ready;
             return;
         }
@@ -503,7 +502,7 @@ state connecting
         
         // The status could should be positive if successful
         if (statuscode > 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "connected", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "connected", [], NULL_KEY, "");
             isconnected = TRUE;
             state ready;
         } else {
@@ -512,8 +511,8 @@ state connecting
                 string errmsg = llList2String(lines, 1);
                 sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
             }
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "connectionfailed", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "connectionfailed", [], NULL_KEY, "");
         }
         
         state ready;
@@ -529,9 +528,9 @@ state ready
         sloodle_debug("Distributor: ready state");
         // Display status text
         if (sloodlemoduleid > 0 && isconnected == TRUE) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.1,0.9,0.1>, 0.9], "readyconnectedto", [sloodleserverroot], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.1,0.9,0.1>, 0.9], "readyconnectedto", [sloodleserverroot], NULL_KEY, "");
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.1,0.9,0.1>, 0.9], "readynotconnected", [sloodleserverroot], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.1,0.9,0.1>, 0.9], "readynotconnected", [sloodleserverroot], NULL_KEY, "");
         }
         
         // Make sure the refresh timer is not too often... no more than once per minute
@@ -632,7 +631,7 @@ state ready
                 sloodle_add_cmd_dialog(id, 0);
             } else {
                 // Inform the user of the problem
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }
@@ -718,7 +717,7 @@ state shutdown
     state_entry()
     {
         sloodle_debug("Distributor: shutdown state");
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.5,0.5>, 1.0], "shutdown", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.5,0.5>, 1.0], "shutdown", [], NULL_KEY, "");
         llSetTimerEvent(12.0);
         // Listen for settings coming in on the avatar dialog channel
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
@@ -738,7 +737,7 @@ state shutdown
                 sloodle_add_cmd_dialog(id, 0);
             } else {
                 // Inform the user that they do not have permission
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }

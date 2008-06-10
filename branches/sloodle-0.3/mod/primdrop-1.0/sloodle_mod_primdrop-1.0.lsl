@@ -91,9 +91,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -288,7 +288,7 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                 state check_assignment;
             }
         }
@@ -309,7 +309,7 @@ state check_assignment
     state_entry()
     {
         // Check the assignment details
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "assignment:checking", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "assignment:checking", [], NULL_KEY, "assignment");
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
@@ -331,8 +331,8 @@ state check_assignment
     
     timer()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
         sloodle_reset();
     }
     
@@ -343,14 +343,14 @@ state check_assignment
         httpcheck = NULL_KEY;
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
             sloodle_reset();
             return;
         }
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
             sloodle_reset();
             return;
         }
@@ -366,8 +366,8 @@ state check_assignment
         // Was it an error code?
         if (statuscode == -601) {
             // Failed to connect to the assignment, possibly because it is the wrong type, or because it is invisible
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:connectionfailed", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:connectionfailed", [], NULL_KEY, "assignment");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
             sloodle_reset();
             return;
             
@@ -377,8 +377,8 @@ state check_assignment
                 string errmsg = llList2String(lines, 1);
                 sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
             }
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
             sloodle_reset();
             return;
         }
@@ -398,7 +398,7 @@ state ready
     state_entry()
     {
         // Display summary information
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 1.0], "assignment:ready", [assignmentname], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 1.0], "assignment:ready", [assignmentname], NULL_KEY, "assignment");
         llSay(0, assignmentsummary);
         
         // Listen for dialog commands from any avatar
@@ -441,7 +441,7 @@ state ready
                 sloodle_show_user_menu(id);
             } else {
                 // Report the lack of permission
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(i)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(i)], NULL_KEY, "");
             }
         }
     }
@@ -458,7 +458,7 @@ state ready
             
             // Make sure the given user is allowed to use this object
             if (!sloodle_check_access_use(id)) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [name], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [name], NULL_KEY, "");
                 return;
             }
             // Check if the user can control this item
@@ -498,11 +498,11 @@ state ready
                 list inv = get_inventory(INVENTORY_OBJECT);
                 if (inv == []) {
                     // No submissions available
-                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:nosubmissions", [], id);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:nosubmissions", [], id, "assignment");
                 } else {
                     // Give all items into a new folder
                     llGiveInventoryList(id, assignmentname, inv);
-                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:allgiven", [assignmentname], id);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:allgiven", [assignmentname], id, "assignment");
                 }
             }
         }
@@ -515,7 +515,7 @@ state check_user_submit
     state_entry()
     {
         // Check the assignment details
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingpermission", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingpermission", [llKey2Name(current_user)], NULL_KEY, "assignment");
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
@@ -537,7 +537,7 @@ state check_user_submit
     
     timer()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
         state ready;
     }
     
@@ -548,12 +548,12 @@ state check_user_submit
         httpcheck = NULL_KEY;
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state ready;
             return;
         }
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             state ready;
             return;
         }
@@ -577,11 +577,11 @@ state check_user_submit
         // Has an error been reported?
         if (statuscode < 0) {
             // Check if it's a known code
-            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY);
-            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY);
-            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY);
-            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY);
-            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
+            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY, "assignment");
+            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             
             // Debug output, if possible
             if (numlines > 1) {
@@ -594,7 +594,7 @@ state check_user_submit
         }
         
         // Check to see if the submission is late
-        if (llListFindList(sideeffects, [-10204]) >= 0) sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:lateaccepting", [current_user_name], NULL_KEY);
+        if (llListFindList(sideeffects, [-10204]) >= 0) sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:lateaccepting", [current_user_name], NULL_KEY, "assignment");
         
         // User is accepted
         state drop;
@@ -607,11 +607,11 @@ state drop
     state_entry()
     {
         // Check the current inventory
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkinginventory", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkinginventory", [], NULL_KEY, "assignment");
         old_inventory = get_inventory(INVENTORY_ALL);
         // Prepare to receive a submission
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.5,1.0>, 1.0], "assignment:waitingforsubmission", [llKey2Name(current_user)], NULL_KEY);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:dropsubmission", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.5,1.0>, 1.0], "assignment:waitingforsubmission", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:dropsubmission", [llKey2Name(current_user)], NULL_KEY, "assignment");
         llAllowInventoryDrop(TRUE);
         
         // Allow the user 60 seconds to make their submission
@@ -631,7 +631,7 @@ state drop
     timer()
     {
         // Submission timed-out
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submittimeout", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submittimeout", [llKey2Name(current_user)], NULL_KEY, "assignment");
         state ready;
     }
     
@@ -651,20 +651,20 @@ state check_drop
     state_entry()
     {
         // Determine what our new object is
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY, "assignment");
         new_inventory = get_inventory(INVENTORY_ALL);
         string submit_obj = ListDiff(new_inventory, old_inventory);
         
         // Make sure it exists
         if (llGetInventoryType(submit_obj) == INVENTORY_NONE || submit_obj == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionerror", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionerror", [], NULL_KEY, "assignment");
             state ready;
             return;
         }
         
         // Make sure it is the correct type
         if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY, "assignment");
             llRemoveInventory(submit_obj);
             state ready;
             return;
@@ -676,7 +676,7 @@ state check_drop
         
         // Make sure the creator is the expected user
         if (obj_creator != current_user) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:creatoronly", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:creatoronly", [], NULL_KEY, "assignment");
             llRemoveInventory(submit_obj);
             state ready;
             return;
@@ -684,14 +684,14 @@ state check_drop
         
         // Make sure the permissions are correct
         if (valid_perms(submit_obj)) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:invalidperms", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:invalidperms", [], NULL_KEY, "assignment");
             llRemoveInventory(submit_obj);
             state ready;
             return;
         }
         
         // Seems OK - submit it
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:itemok", [submit_obj, llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:itemok", [submit_obj, llKey2Name(current_user)], NULL_KEY, "assignment");
         state submitting;
     }
     
@@ -707,7 +707,7 @@ state submitting
     state_entry()
     {
         // Check the assignment details
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:submitting", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:submitting", [llKey2Name(current_user)], NULL_KEY, "assignment");
         
         // Build the body of data
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -737,7 +737,7 @@ state submitting
     
     timer()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
         state ready;
     }
     
@@ -748,12 +748,12 @@ state submitting
         httpsubmit = NULL_KEY;
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state ready;
             return;
         }
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             state ready;
             return;
         }
@@ -771,11 +771,11 @@ state submitting
         // Has an error been reported?
         if (statuscode < 0) {
             // Check if it's a known code
-            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY);
-            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY);
-            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY);
-            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY);
-            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionfailed", [current_user_name, statuscode], NULL_KEY);
+            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY, "assignment");
+            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY, "assignment");
+            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionfailed", [current_user_name, statuscode], NULL_KEY, "assignment");
             
             // Debug output, if possible
             if (numlines > 1) {
@@ -788,7 +788,7 @@ state submitting
         }
         
         // Success
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionok", [current_user_name], NULL_KEY);        
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionok", [current_user_name], NULL_KEY, "assignment");        
         state ready;
     }
 }
@@ -799,8 +799,8 @@ state rez
     state_entry()
     {
         // Display instructions
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:rezmode", [llKey2Name(current_user)], NULL_KEY);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:rezmode", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY, "assignment");
         // Listen for the object name being chatted on channel 0 and 1
         llListen(0, "", current_user, "");
         llListen(1, "", current_user, "");
@@ -828,13 +828,13 @@ state rez
         
         // Make sure the item is valid
         if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY, "assignment");
             state ready;
             return;
         }
         
         // Rez the item
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:rezzing", [msg], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:rezzing", [msg], NULL_KEY, "assignment");
         llRezObject(msg, rez_pos, ZERO_VECTOR, ZERO_ROTATION, 0);
         state ready;
     }
@@ -846,8 +846,8 @@ state take
     state_entry()
     {
         // Display instructions
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:takemode", [llKey2Name(current_user)], NULL_KEY);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>, 0.9], "assignment:takemode", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:chatitemname", [llKey2Name(current_user)], NULL_KEY, "assignment");
         // Listen for the object name being chatted on channel 0 and 1
         llListen(0, "", current_user, "");
         llListen(1, "", current_user, "");
@@ -875,13 +875,13 @@ state take
         
         // Make sure the item is valid
         if (llGetInventoryType(msg) != INVENTORY_OBJECT) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionnotfound", [msg], NULL_KEY, "assignment");
             state ready;
             return;
         }
         
         // Rez the item
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:giving", [msg], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:giving", [msg], NULL_KEY, "assignment");
         llGiveInventory(current_user, msg);
         state ready;
     }

@@ -51,9 +51,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -153,7 +153,7 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                 state running;
             }
         }  
@@ -261,12 +261,12 @@ state running
         // Check if it was successful
         if (statuscode == 301) {
             if (av != NULL_KEY) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "alreadyauthenticated", [llKey2Name(av)], av);
+                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "alreadyauthenticated", [llKey2Name(av)], av, "regenrol");
                 return;
             }
         } else if (statuscode > 0) {
             if (av != NULL_KEY) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticated", [llKey2Name(av)], av);
+                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticated", [llKey2Name(av)], av, "regenrol");
                 return;
             }
         } else if (statuscode == -301) {
@@ -275,7 +275,7 @@ state running
             return;
         } else {
             if (av != NULL_KEY) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticationfailed:code", [llKey2Name(av), statuscode], av);
+                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "userauthenticationfailed:code", [llKey2Name(av), statuscode], av, "regenrol");
                 return;
             } else {
                 sloodle_debug("Authentication of unknown avatar failed with status code " + (string)statuscode);

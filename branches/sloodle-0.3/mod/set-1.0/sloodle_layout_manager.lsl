@@ -1,3 +1,5 @@
+// NEEDS REWRITTEN!
+
 // Sloodle Set layout manager script.
 // Allows users in-world to use and manage layouts.
 //
@@ -68,9 +70,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -210,7 +212,7 @@ sloodle_show_layout_dialog(key id, integer page, integer load)
     // Check how many layouts we have
     integer numlayouts = llGetListLength(availablelayouts);
     if (numlayouts == 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:noneavailable", [llKey2Name(id)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:noneavailable", [llKey2Name(id)], NULL_KEY, "set");
         return;
     }
     
@@ -242,8 +244,8 @@ sloodle_show_layout_dialog(key id, integer page, integer load)
     }
     
     // Display the appropriate menu
-    if (load) sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:loadmenu", [buttondef], id);
-    else sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:savemenu", [buttondef], id);
+    if (load) sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:loadmenu", [buttondef], id, "set");
+    else sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:savemenu", [buttondef], id, "set");
 }
 
 // Request an updated list of layouts on behalf of the specified user.
@@ -265,7 +267,7 @@ sloodle_show_command_dialog(key id)
 {
     // Use letters for this menu
     list btns = [MENU_BUTTON_LOAD, MENU_BUTTON_SAVE, MENU_BUTTON_SAVE_AS, MENU_BUTTON_CANCEL];
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + btns, "layout:cmdmenu", btns, id);
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + btns, "layout:cmdmenu", btns, id, "set");
 }
 
 
@@ -311,9 +313,9 @@ default
     {
         // Can the user use this object
         if (sloodle_check_access_use(llDetectedKey(0))) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY, "");
         }
     }
 }
@@ -344,7 +346,7 @@ state ready
                                 
             } else {
                 // Inform the user of the problem
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }
@@ -396,7 +398,7 @@ state ready
             } else if (msg == MENU_BUTTON_SAVE) {
                 // Do we currently have a layout loaded?
                 if (currentlayout == "") {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:nolayouttosave", [name], NULL_KEY);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:nolayouttosave", [name], NULL_KEY, "set");
                     sloodle_remove_cmd_dialog(id);
                 } else {
                     // Show the save dialog

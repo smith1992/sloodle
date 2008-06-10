@@ -54,9 +54,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -219,11 +219,11 @@ state ready
     {
         // Display status
         if (sloodleserveraccesslevel == 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:course", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:course", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "pwreset");
         } else if (sloodleserveraccesslevel == 3) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:staff", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:staff", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "pwreset");
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:site", [sloodleserverroot], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.9], "pwresetready:site", [sloodleserverroot], NULL_KEY, "pwreset");
         }
     }
     
@@ -256,13 +256,13 @@ state ready
         
         // Check the response status
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
         
         // Check the response body
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             return;
         }
         
@@ -275,25 +275,25 @@ state ready
         // Check the status code
         if (statuscode == -341) {
             // User cannot have their password reset in-world
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:hasemail", [name, sloodleserverroot], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:hasemail", [name, sloodleserverroot], av, "pwreset");
             sloodle_debug("ERROR reported in response: " + body);
             return;
             
         } else if (statuscode == -331) {
             // User cannot use this device
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "nopermission:use", [name], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "nopermission:use", [name], av, "");
             return;
             
         } else if (statuscode <= 0) {
             // Error occurred
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:failed:code", [name, statuscode], av);
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:failed:code", [name, statuscode], av, "pwreset");
             sloodle_debug("ERROR reported in response: " + body);
             return;
         }
         
         // Check that there are enough lines
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             sloodle_debug("ERROR: not enough lines in response: " + body);
             return;
         }
@@ -301,7 +301,7 @@ state ready
         // Attempt to parse the data line
         list datafields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
         if (llGetListLength(datafields) < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             sloodle_debug("ERROR: not enough data fields in response: " + body);
             return;
         }
@@ -311,6 +311,6 @@ state ready
         string password = llList2String(datafields, 1);
         
         // Inform the user of their new password
-        sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreset:success", [name, sloodleserverroot, username, password], av);
+        sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreset:success", [name, sloodleserverroot, username, password], av, "pwreset");
     }
 }

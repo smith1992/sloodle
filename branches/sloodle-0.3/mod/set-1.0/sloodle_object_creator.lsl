@@ -73,9 +73,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -216,7 +216,7 @@ sloodle_show_object_dialog(key id, integer page)
     // Check how many objects we have
     integer numobjects = llGetListLength(inventory);
     if (numobjects == 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleset:noobjects", [llKey2Name(id)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleset:noobjects", [llKey2Name(id)], NULL_KEY, "set");
         return;
     }
     
@@ -242,7 +242,7 @@ sloodle_show_object_dialog(key id, integer page)
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     
     // Display the basic object menu
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "sloodleset:objectmenu", [buttondef], id);
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
 }
 
 // Update our inventory list
@@ -320,9 +320,9 @@ default
     {
         // Can the user use this object
         if (sloodle_check_access_use(llDetectedKey(0))) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
         } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY, "");
         }
     }
 }
@@ -370,7 +370,7 @@ state ready
                 sloodle_add_cmd_dialog(id, 0);
             } else {
                 // Inform the user of the problem
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }
@@ -487,18 +487,18 @@ state rezzing
         integer invtype = llGetInventoryType(rez_object);
         if (invtype == INVENTORY_NONE) {
             // Does not exist
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notininventory", [rez_object], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notininventory", [rez_object], NULL_KEY, "set");
             state ready;
             return;
         } else if (invtype != INVENTORY_OBJECT) {
             // Cannot rez non-objects
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notobject", [rez_object], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notobject", [rez_object], NULL_KEY, "set");
             state ready;
             return;
         }
     
         // Display an appropriate caption
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>,1.0], "rezzingobject", [rez_object], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,1.0>,1.0], "rezzingobject", [rez_object], NULL_KEY, "set");
         // Generate a password, and rez the object
         rez_password = sloodle_random_password();
         sloodle_rez_inventory(rez_object, rez_password, rez_pos, rez_rot);
@@ -510,7 +510,7 @@ state rezzing
     timer()
     {
         llSetTimerEvent(0.0);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "reztimeout", [rez_object], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "reztimeout", [rez_object], NULL_KEY, "set");
         state ready;
     }
     
@@ -554,14 +554,14 @@ state rezzing
         
         // Check the HTTP status
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state ready;
             return;
         }
         
         // Check the body of the response
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
             state ready;
             return;
         }
@@ -574,7 +574,7 @@ state rezzing
         
         // Make sure we have enough data
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             sloodle_debug("HTTP response: " + body);
             state ready;
             return;
@@ -582,11 +582,11 @@ state rezzing
                 
         // Did an error occur?
         if (statuscode == -331) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:authobject", [llKey2Name(rez_user)], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:authobject", [llKey2Name(rez_user)], NULL_KEY, "");
             state ready;
             return;
         } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             sloodle_debug("HTTP response: " + body);
             state ready;
             return;

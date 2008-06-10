@@ -58,9 +58,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -136,7 +136,7 @@ integer sloodle_check_access_use(key id)
 // Show a command dialog to the specified user
 sloodle_show_command_dialog(key id)
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_RESET], "sloodleset:cmddialog", [MENU_BUTTON_RESET], id);
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_RESET], "sloodleset:cmddialog", [MENU_BUTTON_RESET], id, "set");
 }
 
 // Add the given agent to our command dialog list
@@ -215,12 +215,12 @@ default
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE) {
                 if (isconfigured == TRUE) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                     if (sloodlecoursename_full == "") state check_course;
                     else state ready;
                 } else {
                     // No more data, but we're not configured yet...
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
                 }
             }
         }  
@@ -246,7 +246,7 @@ state check_course
 {
     state_entry()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "checkingcourse", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "checkingcourse", [], NULL_KEY, "");
         // Send our course check request
         httpcheckcourse = llHTTPRequest(sloodleserverroot + SLOODLE_COURSEINFO_LINKER + "?sloodlecontrollerid=" + (string)sloodlecontrollerid + "&sloodlepwd=" + sloodlepwd, [HTTP_METHOD, "GET"], "");
     }
@@ -259,13 +259,13 @@ state check_course
         
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY, "");
             return;
         }
         if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY, "");
             return;
         }
         
@@ -275,8 +275,8 @@ state check_course
         
         // Make sure there were enough lines
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY, "");
             return;
         }
         
@@ -286,8 +286,8 @@ state check_course
         
         // The status could should be positive if successful
         if (statuscode == -106) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY, "");
             return;
         } else if (statuscode <= 0) {
             // Get the error message if one was given
@@ -295,8 +295,8 @@ state check_course
                 string errmsg = llList2String(lines, 1);
                 sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
             }
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY);
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "errortouchtoreset", [], NULL_KEY, "");
             return;
         }
         
@@ -317,7 +317,7 @@ state ready
     {
         // Display the site and course info in the hover text
         llSetTexture("sloodle_ready", 0);
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "");
         // Run a regular timer to cancel expired dialogs
         llSetTimerEvent(12.0);
         // Listen for dialog input
@@ -338,7 +338,7 @@ state ready
                 sloodle_add_cmd_dialog(id);
             } else {
                 // Inform the user that they do not have permission
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
         }
     }

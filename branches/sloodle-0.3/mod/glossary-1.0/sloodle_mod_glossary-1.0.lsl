@@ -64,9 +64,9 @@ string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colo
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
-sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval)
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
-    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params), keyval);
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
 ///// ----------- /////
@@ -81,7 +81,7 @@ sloodle_debug(string msg)
 
 sloodle_reset()
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY);
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
     llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
     llResetScript();
 }
@@ -172,7 +172,7 @@ default
             
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE && isconfigured == TRUE) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                 state check_glossary;
             }
         }
@@ -209,7 +209,7 @@ state check_glossary
     {
         // Lookup the glossary name
         sloodleglossaryname = "";
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "metagloss:checking", [], NULL_KEY);        
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "metagloss:checking", [], NULL_KEY, "metagloss");        
         httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_GLOSSARY_LINKER + "?sloodlecontrollerid=" + (string)sloodlecontrollerid + "&sloodlepwd=" + sloodlepwd + "&sloodlemoduleid=" + (string)sloodlemoduleid, [HTTP_METHOD, "GET"], "");
         llSetTimerEvent(0.0);
         llSetTimerEvent(HTTP_TIMEOUT);
@@ -223,7 +223,7 @@ state check_glossary
     timer()
     {
         llSetTimerEvent(0.0);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
         llSleep(0.1);
         sloodle_reset();
     }
@@ -233,7 +233,7 @@ state check_glossary
         // Make sure this is the response we're expecting
         if (id != httpcheck) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             sloodle_reset();
             return;
         }
@@ -246,21 +246,21 @@ state check_glossary
         
         // Check the statuscode
         if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             sloodle_reset();
             return;
         }
         
         // Make sure we have enough data
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             sloodle_reset();
             return;
         }
         
         // Store the glossary name
         sloodleglossaryname = llList2String(lines, 1);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:checkok", [sloodleglossaryname], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:checkok", [sloodleglossaryname], NULL_KEY, "metagloss");
         state ready;
     }
 }
@@ -286,7 +286,7 @@ state ready
     state_entry()
     {
         // Update the hover text
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "metagloss:ready", [sloodleglossaryname, SLOODLE_METAGLOSS_COMMAND], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "metagloss:ready", [sloodleglossaryname, SLOODLE_METAGLOSS_COMMAND], NULL_KEY, "metagloss");
         // Listen for chat messages
         llListen(0, "", NULL_KEY, "");
     
@@ -343,7 +343,7 @@ state shutdown
     
     state_entry()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.1,0.1>, 0.6], "metagloss:idle", [sloodleglossaryname], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.1,0.1>, 0.6], "metagloss:idle", [sloodleglossaryname], NULL_KEY, "metagloss");
     }
     
     touch_start(integer num_detected)
@@ -357,7 +357,7 @@ state shutdown
             if (sloodle_check_access_use(id)) {
                 state ready;
             } else {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [], NULL_KEY);
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [], NULL_KEY, "");
             }
         }
     }
@@ -382,7 +382,7 @@ state search
     state_entry()
     {
         // Search the specified term
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 0.9], "metagloss:searching", [sloodleglossaryname], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 0.9], "metagloss:searching", [sloodleglossaryname], NULL_KEY, "metagloss");
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
@@ -413,7 +413,7 @@ state search
     timer()
     {
         llSetTimerEvent(0.0);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
         state ready;
     }
     
@@ -422,7 +422,7 @@ state search
         // Make sure this is the response we're expecting
         if (id != httpsearch) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             sloodle_reset();
             return;
         }
@@ -435,13 +435,13 @@ state search
         
         // Check the statuscode
         if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             sloodle_reset();
             return;
         }
         
         // Indicate how many definitions were found
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:numdefs", [searchterm, (numlines - 1)], NULL_KEY);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:numdefs", [searchterm, (numlines - 1)], NULL_KEY, "metagloss");
         
         // Go through each definition
         integer defnum = 1;
