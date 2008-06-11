@@ -63,12 +63,10 @@ string MENU_BUTTON_CANCEL = "0";
 string MENU_BUTTON_SUMMARY = "1";
 string MENU_BUTTON_SUBMIT = "2";
 string MENU_BUTTON_ONLINE = "3";
-string MENU_BUTTON_REZ = "4";
-string MENU_BUTTON_TAKE = "5";
-string MENU_BUTTON_TAKE_ALL = "6";
+string MENU_BUTTON_TAKE_ALL = "4";
 
 // List of button labels ('cos otherwise the compiler runs out of memory!)
-list teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE, MENU_BUTTON_REZ, MENU_BUTTON_TAKE, MENU_BUTTON_TAKE_ALL];
+list teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
 list userbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
 
 // The relative position at which items will be rezzed
@@ -251,6 +249,55 @@ string ListDiff(list list1, list list2) {
 }
 
 
+// Checks and validates an inventory drop.
+// Returns TRUE if it is OK, or FALSE if not.
+integer sloodle_check_drop()
+{
+    // Determine what our new object is
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY, "assignment");
+    new_inventory = get_inventory(INVENTORY_ALL);
+    submit_obj = ListDiff(new_inventory, old_inventory);
+    
+    old_inventory = [];
+    new_inventory = [];
+    
+    // Make sure it exists
+    if (llGetInventoryType(submit_obj) == INVENTORY_NONE || submit_obj == "") {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionerror", [], NULL_KEY, "assignment");
+        return FALSE;
+    }
+    
+    // Make sure it is the correct type
+    if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY, "assignment");
+        llRemoveInventory(submit_obj);
+        return FALSE;
+    }
+
+    // Determine the object ID and creator
+    key obj_id = llGetInventoryKey(submit_obj);
+    key obj_creator = llGetInventoryCreator(submit_obj);
+    
+    // Make sure the creator is the expected user
+    if (obj_creator != current_user) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:creatoronly", [], NULL_KEY, "assignment");
+        llRemoveInventory(submit_obj);
+        return FALSE;
+    }
+    
+    // Make sure the permissions are correct
+    if (valid_perms(submit_obj)) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:invalidperms", [], NULL_KEY, "assignment");
+        llRemoveInventory(submit_obj);
+        return FALSE;
+    }
+
+    // Seems OK - submit it
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:itemok", [submit_obj, llKey2Name(current_user)], NULL_KEY, "assignment");
+    return TRUE;
+}
+
+
 /// STATES ///
 
 // Default state - waiting for configuration
@@ -380,6 +427,7 @@ state check_assignment
         // Extract the assignment information
         assignmentname = llList2String(lines, 1);
         assignmentsummary = llList2String(lines, 2);
+        llSay(0, assignmentsummary);
         
         state ready;
     }
@@ -393,7 +441,6 @@ state ready
     {
         // Display summary information
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 1.0], "assignment:ready", [assignmentname], NULL_KEY, "assignment");
-        llSay(0, assignmentsummary);
         
         // Listen for dialog commands from any avatar
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
@@ -471,23 +518,13 @@ state ready
                 llSay(0, assignmentsummary);
                 
             } else if (msg == MENU_BUTTON_SUBMIT) {
-                // Check that the user can submit
-                state check_user_submit;
+                // Wait for a drop
+                state drop;
             
             } else if (msg == MENU_BUTTON_ONLINE) {
                 // Give the user a URL
                 llLoadURL(id, assignmentname, sloodleserverroot + SLOODLE_ASSIGNMENT_VIEW + "?id=" + (string)sloodlemoduleid);
             
-            } else if (msg == MENU_BUTTON_REZ && canctrl) {
-                // User wants to rez an item
-                //state rez;
-                llSay(0, "Sorry. Rez does not work yet.");
-            
-            } else if (msg == MENU_BUTTON_TAKE && canctrl) {
-                // User wants to take an item to their inventory (useful e.g. if parcel prim count is reached)
-                //state take;
-                llSay(0, "Sorry. Take does not work yet.");
-                
             } else if (msg == MENU_BUTTON_TAKE_ALL && canctrl) {
                 // User wants to take all objects to their inventory
                 list inv = get_inventory(INVENTORY_OBJECT);
@@ -501,98 +538,6 @@ state ready
                 }
             }
         }
-    }
-}
-
-// Checking if the current user can submit objects to this assignment
-state check_user_submit
-{
-    state_entry()
-    {
-        // Check the assignment details
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingpermission", [llKey2Name(current_user)], NULL_KEY, "assignment");
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-        body += "&sloodleuuid=" + (string)current_user;
-        body += "&sloodleavname=" + llEscapeURL(llKey2Name(current_user));
-        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-        httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_PRIMDROP_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-        
-        llSetTimerEvent(0.0);
-        llSetTimerEvent(8.0);
-    }
-    
-    state_exit()
-    {
-        llSetTimerEvent(0.0);
-        httpcheck = NULL_KEY;
-        llSetText("", <0.0,0.0,0.0>, 0.0);
-    }
-    
-    timer()
-    {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
-        state ready;
-    }
-    
-    http_response(key id, integer status, list meta, string body)
-    {
-        // Is this the expected data?
-        if (id != httpcheck) return;
-        httpcheck = NULL_KEY;
-        // Check that we got a proper response
-        if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
-            state ready;
-            return;
-        }
-        if (body == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httpempty", [], NULL_KEY, "");
-            state ready;
-            return;
-        }
-        
-        // Split the data up into lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);  
-        integer numlines = llGetListLength(lines);
-        // Extract all the status fields
-        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
-        integer statuscode = llList2Integer(statusfields,0);
-        
-        // Extract the side effect codes
-        list sideeffects = [];
-        if (llGetListLength(statusfields) >= 3) {
-            sideeffects = llCSV2List(llList2String(statusfields, 2));
-        }
-        
-        // Get the user's name
-        string current_user_name = llKey2Name(current_user);
-        
-        // Has an error been reported?
-        if (statuscode < 0) {
-            // Check if it's a known code
-            if (statuscode == -10201)       sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:nopermission", [current_user_name], NULL_KEY, "assignment");
-            else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY, "assignment");
-            else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY, "assignment");
-            else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY, "assignment");
-            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
-            
-            // Debug output, if possible
-            if (numlines > 1) {
-                string errmsg = llList2String(lines, 1);
-                sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
-            }
-            
-            state ready;
-            return;
-        }
-        
-        // Check to see if the submission is late
-        if (llListFindList(sideeffects, [-10204]) >= 0) sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:lateaccepting", [current_user_name], NULL_KEY, "assignment");
-        
-        // User is accepted
-        state drop;
     }
 }
 
@@ -616,12 +561,7 @@ state drop
     
     state_exit()
     {
-        // Stop receiving inventory drops
-        llAllowInventoryDrop(FALSE);
-        llSetText("", <0.0,0.0,0.0>, 1.0);
-        llSetTimerEvent(0.0);
     }
-    
     
     timer()
     {
@@ -634,65 +574,15 @@ state drop
     {
         // Has out inventory changed?
         if ((change & CHANGED_INVENTORY) || (change & CHANGED_ALLOWED_DROP)) {
+            // Stop receiving inventory drops
+            llAllowInventoryDrop(FALSE);
+            llSetText("", <0.0,0.0,0.0>, 1.0);
+            llSetTimerEvent(0.0);
+        
             // Check the drop
-            state check_drop;
+            if (sloodle_check_drop()) state submitting;
+            else state ready;
         }
-    }
-}
-
-// Checking an object which was dropped
-state check_drop
-{
-    state_entry()
-    {
-        // Determine what our new object is
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY, "assignment");
-        new_inventory = get_inventory(INVENTORY_ALL);
-        string submit_obj = ListDiff(new_inventory, old_inventory);
-        
-        // Make sure it exists
-        if (llGetInventoryType(submit_obj) == INVENTORY_NONE || submit_obj == "") {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionerror", [], NULL_KEY, "assignment");
-            state ready;
-            return;
-        }
-        
-        // Make sure it is the correct type
-        if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY, "assignment");
-            llRemoveInventory(submit_obj);
-            state ready;
-            return;
-        }
-
-        // Determine the object ID and creator
-        key obj_id = llGetInventoryKey(submit_obj);
-        key obj_creator = llGetInventoryCreator(submit_obj);
-        
-        // Make sure the creator is the expected user
-        if (obj_creator != current_user) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:creatoronly", [], NULL_KEY, "assignment");
-            llRemoveInventory(submit_obj);
-            state ready;
-            return;
-        }
-        
-        // Make sure the permissions are correct
-        if (valid_perms(submit_obj)) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:invalidperms", [], NULL_KEY, "assignment");
-            llRemoveInventory(submit_obj);
-            state ready;
-            return;
-        }
-        
-        // Seems OK - submit it
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:itemok", [submit_obj, llKey2Name(current_user)], NULL_KEY, "assignment");
-        state submitting;
-    }
-    
-    state_exit()
-    {
-        llSetText("", <0.0,0.0,0.0>, 1.0);
     }
 }
 
@@ -701,6 +591,12 @@ state submitting
 {
     state_entry()
     {
+        if (submit_obj == "") {
+            llSay(0, "ERROR: no object to submit.");
+            state ready;
+            return;
+        }
+        
         // Check the assignment details
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:submitting", [llKey2Name(current_user)], NULL_KEY, "assignment");
         

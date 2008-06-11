@@ -427,12 +427,6 @@
             $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
             if (!$entry) return false;
             
-            // Make sure it has been authorised by a legitimate user
-            // (we don't do this anymore, since objects could have been authorised by a Sloodle Set which used a notecard for config,
-            //  and where the controlling user has not yet registered their avatar)
-            //$userid = (int)$entry->userid;
-            //if ($userid == 0) return false;
-            
             // Verify the password
             return ($password == $entry->password);
         }

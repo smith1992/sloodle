@@ -150,10 +150,12 @@ default
             
         } else if (statuscode == 301) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyauthenticated", [llKey2Name(av)], av, "regenrol");
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "confirm:reg", av);
             return;
 
         } else if (statuscode == 401) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "alreadyenrolled", [llKey2Name(av)], av, "regenrol");
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "confirm:enrol", av);
             return;            
         
         } else if (statuscode <= 0) {

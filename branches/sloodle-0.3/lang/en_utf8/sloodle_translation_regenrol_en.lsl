@@ -42,7 +42,8 @@ list locstrings = [
 	"attemptingenrol", "Attempting to enrol your avatar...",
 	"attemptingregenrol", "Attempting to register and enrol your avatar...",
 	"enrolfailed:notreg", "Enrolment failed. Your avatar is not registered yet.",
-	"regenrolurl", "Please use this URL to complete the registration/enrolment process."
+	"regenrolurl", "Please use this URL to complete the registration/enrolment process.",
+    "accessgranted", "Access is granted to {{0}}." // Parameter: avatar name
 ];
 
 ///// ----------- /////
