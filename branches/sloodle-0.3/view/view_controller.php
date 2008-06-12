@@ -77,6 +77,8 @@
                         // Only delete the object if it belongs to this controller
                         if (delete_records('sloodle_active_object', 'controllerid', $cm->id, 'id', (int)$parts[1])) {
                             $numdeleted++;
+                            // Delete any associated configuration settings too
+                            delete_records('sloodle_object_config', 'object', (int)$parts[1]);
                         }
                         
                     }

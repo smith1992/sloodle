@@ -600,7 +600,9 @@ state configure_object
             // Fetch the status line
             list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
             integer statuscode = (integer)llList2String(statusfields, 0);
-            if (statuscode <= 0) {
+            if (statuscode == -103) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noconfigavailable", [], NULL_KEY, "");
+            } else if (statuscode <= 0) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY, "");
                 return;
             }

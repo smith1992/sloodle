@@ -291,8 +291,16 @@
         // Deletes any unauthorised objects which have not checked-in for more than 1 hour
         $expirytime_auth = time() - 86400;
         $expirytime_unauth = time() - 3600;
-        echo "Removing expired active objects...\n";
-        delete_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        echo "Searching for expired active objects...\n";
+        $recs = get_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        if ($recs) {
+            // Go through each object
+            echo "Removing " . count($recs) . " expired active objects and associated configuration settings...\n";
+            foreach ($recs as $r) {
+                delete_records('sloodle_object_config', 'object', $r->id);
+                delete_records('sloodle_active_object', 'id', $r->id);
+            }            
+        }
         
         // More stuff?
         //...

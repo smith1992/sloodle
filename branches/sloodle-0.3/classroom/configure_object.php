@@ -54,8 +54,11 @@
     
     // Get the object type (only necessary if it was not already in the database)
     $sloodleobjtype = null;
-    if (empty($auth_obj->type)) $sloodleobjtype = required_param('sloodleobjtype', PARAM_TEXT);
-    else $sloodleobjtype = optional_param('sloodleobjtype', null, PARAM_TEXT);
+    if (empty($auth_obj->type)) {
+        $sloodleobjtype = required_param('sloodleobjtype', PARAM_TEXT);
+    } else {
+        $sloodleobjtype = optional_param('sloodleobjtype', null, PARAM_TEXT);
+    }
     
     // Treat this like a Sloodle session, but do not authenticate anything
     $sloodle = new SloodleSession();
@@ -265,6 +268,9 @@
         // Make sure the user has permission to manage activities on this course
         $course_context = get_context_instance(CONTEXT_COURSE, $auth_obj->course->get_course_id());
         require_capability('moodle/course:manageactivities', $course_context);
+        
+        // Make sure the type value is stored in the database too
+        $sloodle->course->controller->update_object_type($auth_obj->uuid, $usetype);
     
         // Based on the object type, determine where our configuration form should be
         $config_file = SLOODLE_DIRROOT."/mod/{$usetype}/object_config.php";
@@ -277,6 +283,8 @@
         if (file_exists($config_file)) {
             // Display our configuration form
             echo '<form action="'.SLOODLE_WWWROOT.'/classroom/store_object_config.php" method="POST">';
+            // Add a hidden field to store the object's type
+            echo '<input type="hidden" name="sloodleobjtype" value="'.$usetype.'"/>';
             
             
             // Include the form elements
@@ -290,7 +298,21 @@
             echo '</form>';
             
         } else {
+            // No configuration settings for this object
             print_string('noobjectconfig','sloodle');
+            
+            // Add or udpate a configuration value to store this object's type
+            $cfgtype = get_record('sloodle_object_config', 'object', $sloodleauthid, 'name', 'sloodleobjtype');
+            if (!$cfgtype) {
+                $cfgtype = new stdClass();
+                $cfgtype->object = $sloodleauthid;
+                $cfgtype->name = 'sloodleobjtype';
+                $cfgtype->value = $usetype;
+                insert_record('sloodle_object_config', $cfgtype);
+            } else {
+                $cfgtype->value =  $usetype;
+                update_record('sloodle_object_config', $cfgtype);
+            }
         }
         
         echo '</div>';

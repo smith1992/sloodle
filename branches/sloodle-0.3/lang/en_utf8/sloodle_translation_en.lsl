@@ -77,6 +77,7 @@ list locstrings = [
 	"errortouchtoreset", "ERROR\nTouch me to reset",
 	"notconfiguredyet", "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
 	"resetting", "Resetting...",
+    "noconfigavailable", "There is no configuration available to download. Please visit the configuration web-page first.",
 
 	//  Sloodle installation/version
 	"sloodlenotinstalled", "ERROR: Sloodle is not installed on specified site.",

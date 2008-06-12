@@ -59,7 +59,7 @@
     
     // Attempt to authenticate the request
     // (only require authentication if controller ID and/or password is set)
-    $authrequired = (isset($_REQUEST['sloodlecontrollerid']) || $_REQUEST['sloodlepwd']);
+    $authrequired = (isset($_REQUEST['sloodlecontrollerid']) || isset($_REQUEST['sloodlepwd']));
     $sloodle = new SloodleSession();
     $request_auth = $sloodle->authenticate_request($authrequired);
     

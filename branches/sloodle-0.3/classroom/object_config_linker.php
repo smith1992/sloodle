@@ -23,7 +23,7 @@
     //  1|OK
     //  name|value
     //
-    // Returns status code -103 if the object was not found.
+    // Returns status code -103 if the object was not found or has not been configured yet.
     //
     
     /** Grab the Sloodle/Moodle configuration. */
@@ -49,7 +49,7 @@
     
     // Authenticate the request
     $sloodle->course = $auth_obj->course; // The object doesn't know it's controller yet, but the database does.
-    $_REQUEST['sloodlecontrollerid'] = $auth_obj->course->controller->get_id(); // Dirty hack... MUST BE TESTED!
+    $_REQUEST['sloodlecontrollerid'] = $auth_obj->course->controller->get_id();
     $sloodle->authenticate_request();
     
     // Add a note of the controller and course names to the outgoing data
@@ -59,7 +59,12 @@
     
     // Fetch all the configuration settings
     $settings = get_records('sloodle_object_config', 'object', $sloodleauthid);
-    if (!$settings) $settings = array();
+    if (!$settings) {
+        // Error: no configuration settings... there should be at least one indicating the type
+        
+    }
+    
+    // Output each setting
     foreach ($settings as $s) {
         $sloodle->response->add_data_line(array($s->name, $s->value));
     }
