@@ -426,6 +426,8 @@
             // Attempt to find an entry for the object
             $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
             if (!$entry) return false;
+            // Make sure we have the type data
+            if (empty($entry->type)) return false;
             
             // Verify the password
             return ($password == $entry->password);

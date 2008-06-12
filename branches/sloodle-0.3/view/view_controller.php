@@ -95,6 +95,8 @@
                 $objects_table->head = array(get_string('objectname','sloodle'),get_string('objectuuid','sloodle'),get_string('objecttype','sloodle'),get_string('lastupdated','sloodle'),'');
                 $objects_table->align = array('left', 'left', 'left', 'left', 'center');
                 foreach ($recs as $obj) {
+                    // Skip this object if it has no type information
+                    if (empty($obj->type)) continue;
                     // Construct a link to this object's configuration page
                     $config_link = "<a href=\"{$CFG->wwwroot}/mod/sloodle/classroom/configure_object.php?sloodleauthid={$obj->id}\">";
                     $objects_table->data[] = array($config_link.$obj->name.'</a>', $obj->uuid, $obj->type, date('Y-m-d H:i:s T', (int)$obj->timeupdated), "<input type=\"checkbox\" name=\"sloodledeleteobj_{$obj->id}\" value=\"true\" /");
@@ -106,7 +108,7 @@
                 echo '<input type="hidden" name="action" value="delete_objects"/>';
                 
                 print_table($objects_table);
-                echo '<input type="submit" value="'.get_string('deleteselected','sloodle').'"/>'; 
+                echo '<input type="submit" value="'.get_string('deleteselected','sloodle').'"/>';
                 
                 echo '</form>';
                 

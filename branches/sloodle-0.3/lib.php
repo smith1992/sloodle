@@ -280,16 +280,19 @@
         echo "Removing expired pending avatar entries...\n";
         delete_records_select('sloodle_pending_avatars', "timeupdated < $expirytime");
         
+        // Delete any LoginZone allocations which have expired (more than 15 minutes old)
+        $expirytime = time() - 900;
+        echo "Removing expired LoginZone allocations...\n";
+        delete_records_select('sloodle_loginzone_allocation', "timecreated < $expirytime");
+        
         // Delete any active objects and session keys which have expired
         // (will eventually use custom expiry times, chosen in the configuration)
         // Deletes any authorised objects which have not checked-in for more than 1 day.
         // Deletes any unauthorised objects which have not checked-in for more than 1 hour
         $expirytime_auth = time() - 86400;
         $expirytime_unauth = time() - 3600;
-        echo "Removing expired active objects... ";
-        $res = delete_records_select('sloodle_active_object', "((controllerid = 0 OR userid = 0) AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
-        if (is_array($res)) echo count($res)." removed";
-        echo "\n";
+        echo "Removing expired active objects...\n";
+        delete_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
         
         // More stuff?
         //...

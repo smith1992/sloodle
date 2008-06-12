@@ -55,7 +55,7 @@
     // Get the object type (only necessary if it was not already in the database)
     $sloodleobjtype = null;
     if (empty($auth_obj->type)) $sloodleobjtype = required_param('sloodleobjtype', PARAM_TEXT);
-    else optional_param('sloodleobjtype', null, PARAM_TEXT);
+    else $sloodleobjtype = optional_param('sloodleobjtype', null, PARAM_TEXT);
     
     // Treat this like a Sloodle session, but do not authenticate anything
     $sloodle = new SloodleSession();

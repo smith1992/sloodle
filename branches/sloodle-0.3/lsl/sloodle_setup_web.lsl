@@ -36,6 +36,7 @@ string password = ""; // stores the self-generated part of the password
 
 integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
 integer show_config_url = TRUE; // By default, we will automatically show the config URL to the owner when config starts
+integer url_shown = FALSE; // At first we simply want to show the URL, but thereafter we can show the menu
 string SLOODLE_OBJECT_TYPE = "";
 
 
@@ -386,6 +387,11 @@ state check_moodle
             }
         }
     }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
 }
 
 // Initial object authorisation (stores details in the database)
@@ -463,6 +469,11 @@ state auth_object_initial
         }
     }
     
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
+    
     listen(integer channel, string name, key id, string msg)
     {
         // Check the channel
@@ -496,6 +507,8 @@ state configure_object
 {
     state_entry()
     {
+        url_shown = FALSE;
+        
         // Has object configuration been requested?
         if (request_config) {
             request_config = FALSE;
@@ -504,7 +517,10 @@ state configure_object
         } else {
             llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
             // Load the URL immediately 
-            if (show_config_url) sloodle_load_config_url(llGetOwner());
+            if (show_config_url) {
+                sloodle_load_config_url(llGetOwner());
+                url_shown = TRUE;
+            }
         }
         
         // Listen for chat messages from the rezzer
@@ -521,8 +537,13 @@ state configure_object
     {
         // Ignore anybody but the owner
         if (llDetectedKey(0) != llGetOwner()) return;
-        // Present the menu of configuration options
-        sloodle_show_config_menu(llGetOwner());
+        // If the URL has already been shown, then display the menu.
+        // Otherwise, offer the URL
+        if (url_shown) sloodle_show_config_menu(llGetOwner());
+        else {
+            sloodle_load_config_url(llGetOwner());
+            url_shown = TRUE;
+        }
     }
     
     listen(integer channel, string name, key id, string msg)
@@ -646,6 +667,11 @@ state configure_object
             }
         }
     }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
 }
 
 
@@ -700,7 +726,19 @@ state idle
                     state default;
                 }
                 return;
+            } else if (sval == "do:reconfigure") {
+                // Let the user re-configure from the start
+                show_config_url = TRUE;
+                state configure_object;
             }
         }
+    }
+    
+    on_rez(integer param)
+    {
+        // Temporary measure: request the existing configuration.
+        // (this allows a pre-configured object to be rezzed from inventory, assuming the active object entry has not yet expired)
+        request_config = TRUE;
+        state configure_object;
     }
 }
