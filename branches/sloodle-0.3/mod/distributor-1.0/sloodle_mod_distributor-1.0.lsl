@@ -355,7 +355,17 @@ default
             }
             
             // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE && isconfigured == TRUE) state connecting;
+            if (eof == TRUE) {
+                if (isconfigured == TRUE) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
+                    state connecting;
+                } else {
+                    // Got all configuration but, it's not complete... request reconfiguration
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                    eof = FALSE;
+                }
+            }
         }
     }
     
@@ -404,7 +414,7 @@ state connecting
     
     on_rez(integer start_param)
     {
-        state reconnect;
+        state default;
     }
     
     remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
@@ -458,7 +468,8 @@ state connecting
                 state reconnect;
                 return;
             } else if (msg == MENU_BUTTON_RESET) {
-                sloodle_reset();
+                llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                state default;
                 return;
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
                 state shutdown;
@@ -546,7 +557,7 @@ state ready
     
     on_rez(integer start_param)
     {
-        state reconnect;
+        state default;
     }
     
     remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
@@ -667,7 +678,8 @@ state ready
             } else if (msg == MENU_BUTTON_RESET) {
                 // Reset the object
                 sloodle_remove_cmd_dialog(id);
-                sloodle_reset();
+                llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                state default;
                 return;
                 
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
@@ -714,6 +726,11 @@ state ready
 
 state shutdown
 {
+    on_rez(integer param)
+    {
+        state default;
+    }
+
     state_entry()
     {
         sloodle_debug("Distributor: shutdown state");
@@ -756,7 +773,8 @@ state shutdown
                 state reconnect;
                 return;
             } else if (msg == MENU_BUTTON_RESET) {
-                sloodle_reset();
+                llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                state default;
                 return;
             } else if (msg == MENU_BUTTON_SHUTDOWN) {
                 state shutdown;

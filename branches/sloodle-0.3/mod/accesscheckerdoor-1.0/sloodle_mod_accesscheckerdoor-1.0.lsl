@@ -129,9 +129,6 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodleobjectaccessleveluse = 0;
-        
-        // Detect collisions
-        llVolumeDetect(TRUE);
     }
     
     link_message( integer sender_num, integer num, string str, key id)
@@ -147,9 +144,16 @@ default
             }
             
             // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE && isconfigured == TRUE) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
-                state ready;
+            if (eof == TRUE) {
+                if (isconfigured == TRUE) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
+                    state ready;
+                } else {
+                    // Go all configuration but, it's not complete... request reconfiguration
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                    eof = FALSE;
+                }
             }
         }
     }
@@ -167,8 +171,7 @@ state ready
 {
     on_rez( integer param)
     {
-        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
-        llResetScript();
+        state default;
     }
     
     state_entry()
@@ -177,8 +180,6 @@ state ready
         authorised = [];
         llSetTimerEvent(0.0);
         llSetTimerEvent(TIME_PURGE_AUTH);
-        // Detect collisions
-        llVolumeDetect(TRUE);
     }
     
     timer()
@@ -186,9 +187,9 @@ state ready
         authorised = [];
     }
         
-    collision_start(integer total_number)
+    touch_start(integer total_number)
     {
-        // Go through each collider
+        // Go through each toucher
         integer i = 0;
         key id = NULL_KEY;
         string touched = "";
@@ -224,8 +225,8 @@ state ready
                 // Avatar is registered and enrolled. Add them to the authorised list.
                 if (kval != NULL_KEY && llListFindList(authorised, [kval]) < 0) {
                     authorised += [kval];
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "accessgranted", [llKey2Name(id)], NULL_KEY, "regenrol");
-                    send_permit_message(id);
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "accessgranted", [llKey2Name(kval)], NULL_KEY, "regenrol");
+                    send_permit_message(kval);
                 }
             }
         }

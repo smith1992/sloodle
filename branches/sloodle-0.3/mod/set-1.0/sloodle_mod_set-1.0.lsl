@@ -221,6 +221,8 @@ default
                 } else {
                     // No more data, but we're not configured yet...
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                    eof = FALSE;
                 }
             }
         }  
@@ -307,6 +309,11 @@ state check_course
         
         state ready;
     }
+    
+    on_rez(integer param)
+    {
+        state default;
+    }
 }
 
 
@@ -366,5 +373,10 @@ state ready
     timer()
     {
         sloodle_purge_cmd_dialog();
+    }
+    
+    on_rez(integer param)
+    {
+        state default;
     }
 }

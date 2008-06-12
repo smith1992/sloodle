@@ -194,7 +194,17 @@ default
             }
             
             // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE && isconfigured == TRUE) state ready;
+            if (eof == TRUE) {
+                if (isconfigured == TRUE) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
+                    state ready;
+                } else {
+                    // Got all configuration but, it's not complete... request reconfiguration
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
+                    eof = FALSE;
+                }
+            }
         }
     }
     
