@@ -61,7 +61,8 @@
     $settings = get_records('sloodle_object_config', 'object', $sloodleauthid);
     if (!$settings) {
         // Error: no configuration settings... there should be at least one indicating the type
-        
+        $sloodle->response->quick_output(-103, 'SYSTEM', 'Object not configured yet.', false);
+        exit();
     }
     
     // Output each setting
