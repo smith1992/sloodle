@@ -15,42 +15,12 @@
     
 
     // Get our Sloodle configuration
-    require_once($CFG->dirroot.'/mod/sloodle/config.php');
-    require_once(SLOODLE_DIRROOT.'/lib/sl_generallib.php');
+    require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Attempt to get the configuration settings
-    $sloodleprimpwd = sloodle_get_config('sloodle_prim_password');
-    $allow_user_edit_by_teachers = sloodle_get_config('sloodle_allow_user_edit_by_teachers');
-    $sloodleauthmethod = sloodle_get_config('sloodle_auth_method');
-    
-    // Is the prim password setting missing from the configuration?
-    if (isset($sloodleprimpwd) == FALSE || is_null($sloodleprimpwd) || empty($sloodleprimpwd)) {
-        // Not set - generate a random one
-        $sloodleprimpwd = (string)mt_rand(100000000, 999999999);
-        sloodle_set_config('sloodle_prim_password', $sloodleprimpwd);
-    }
-    // If a prim password has been passed back to this form, then use it
-    // Otherwise, get the setting from the database
-    $temppwd = optional_param('sloodlepwd', NULL, PARAM_RAW);
-    if ($temppwd != NULL) $sloodleprimpwd = $temppwd;
-    
-    // Has an appropriate value been set in the 'allow user edit by teachers' field?
-    if ($allow_user_edit_by_teachers != 'true' && $allow_user_edit_by_teachers != 'false') {
-        // Set a default value
-        $allow_user_edit_by_teachers = 'false';
-        sloodle_set_config('allow_user_edit_by_teachers', 'false');
-    }
-    
-    // Is the authentication method missing from the configuration?
-    if (isset($sloodleauthmethod) == FALSE || is_null($sloodleauthmethod) || empty($sloodleauthmethod)) {
-        // Not set - default to web-based
-        $sloodleauthmethod = 'web';
-        sloodle_set_config('sloodle_auth_method', $sloodleauthmethod);
-    }
-    // If an auth method has been passed back to this form, then use it
-    // Otherwise, get the setting from the database
-    $tempauth = optional_param('sloodleauth', NULL, PARAM_RAW);
-    if ($tempauth != NULL) $sloodleauthmethod = $tempauth;
+    $allow_autoreg = (sloodle_autoreg_enabled_site()) ? 1 : 0;
+    $allow_autoenrol = (sloodle_autoenrol_enabled_site()) ? 1 : 0;
 ?>
 
 
@@ -70,37 +40,6 @@
     echo ')</div>';
 ?>
 
-<!-- ERROR REPORTING -->
-<?php
-
-    // Configuration errors will be reported by the presence of various GET parameters
-    $sloodlepwdshort = optional_param("sloodlepwdshort", FALSE, PARAM_BOOL);
-    $sloodlepwdlong = optional_param("sloodlepwdlong", FALSE, PARAM_BOOL);
-    $sloodlepwdnonnum = optional_param("sloodlepwdnonnum", FALSE, PARAM_BOOL);
-    $sloodlepwdleadzero = optional_param("sloodlepwdleadzero", FALSE, PARAM_BOOL);
-    $sloodleauthinvalid = optional_param("sloodleauthinvalid", FALSE, PARAM_BOOL);
-    
-    // If at least one error was raised, then display an error box
-    if ($sloodlepwdshort || $sloodlepwdlong || $sloodlepwdnonnum || $sloodlepwdleadzero || $sloodleauthinvalid) {
-        echo '<div style="border:solid 2px red; background-color:white;">';
-        // Check each error in turn
-        //echo '<h3>'.get_string('configerror','sloodle').'</h3>';
-        $error_strings = array();
-        if ($sloodlepwdshort) $error_strings[] = get_string('primpass:tooshort','sloodle') . "\n";
-        if ($sloodlepwdlong) $error_strings[] = get_string('primpass:toolong','sloodle') . "\n";
-        if ($sloodlepwdnonnum) $error_strings[] = get_string('primpass:numonly','sloodle') . "\n";
-        if ($sloodlepwdleadzero) $error_strings[] = get_string('primpass:leadingzero','sloodle') . "\n";
-        if ($sloodleauthinvalid) $error_strings[] = get_string('authmethod:invalid','sloodle') . "\n";
-        
-        echo '<ul>';
-        foreach ($error_strings as $err) {
-            echo "<li>$err</li>\n";
-            
-        }
-        echo '</ul>';
-        echo '</div>';
-    }
-?>
 
 <!-- Sloodle configuration form -->
 
@@ -113,6 +52,7 @@
 <table cellpadding="9" cellspacing="0" >
 
 <!-- Notecard -->
+<!-- N.B: ****** possibly add a note here to say how to find the new notecard configuration pages? *******
 <tr>
     <td colspan="3" align="left">
             <h3><?php print_string("objectconfig:header", "sloodle"); ?></h3>
@@ -121,54 +61,35 @@
              <a href="<?php echo SLOODLE_WWWROOT; ?>/sl_setup_notecard.php"><?php print_string("createnotecard", "sloodle"); ?></a>
             </p>
     </td>
-</tr>
+</tr>-->
 
-<!-- Prim Password -->
+<!-- Auto-registration -->
 <tr>
     <td colspan="3" align="left">
 
-        <h3><?php print_string("primpass:set", "sloodle"); ?> <?php echo helpbutton('prim_password', get_string('help:primpassword','sloodle'), 'sloodle', true, false, '', true); ?></h3>
-        <p><?php print_string("primpass:setdesc", "sloodle"); ?></p>
-        <input size="40" maxlength="40" type="text" name="prim_password" value="<?php echo $sloodleprimpwd; ?>"/>
-    </td>
-</tr>
-
-<!-- Avatar Editing -->
-<tr>
-    <td colspan="3" align="left">
-
-        <h3><?php print_string("sloodleuserediting", "sloodle"); ?> <?php echo helpbutton('user_editing', get_string('help:userediting','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <h3><?php print_string('autoreg', 'sloodle'); ?> <?php echo helpbutton('auto_registration', get_string('help:autoreg','sloodle'), 'sloodle', true, false, '', true); ?></h3>
         <p>
-         <input type="checkbox" name="allow_user_edit_by_teachers" <?php if ($allow_user_edit_by_teachers == 'true') echo 'checked'; ?> value="true"/>
-         <?php print_string("sloodleuserediting:allowteachers", "sloodle"); ?>
+         <?php
+            print_string("autoreg:allowforsite", "sloodle");
+            echo ': ';
+            choose_from_menu_yesno('allow_autoreg', $allow_autoreg);
+         ?>
         </p>
     </td>
 </tr>
 
-<!-- User Authentication Method -->
+<!-- Auto-registration -->
 <tr>
     <td colspan="3" align="left">
-        <h3><?php print_string("userauth:header", "sloodle"); ?>  <?php echo helpbutton('user_authentication', get_string('help:userauth','sloodle'), 'sloodle', true, false, '', true); ?></h3>
 
-        <p><?php print_string("userauth:desc", "sloodle"); ?></p>
-        
-        <table border="0">
-            <tr>
-                <td><input type="radio" name="auth_method" <?php if ($sloodleauthmethod == "web") echo "checked"; ?> value="web"/></td>
-                <td><?php print_string("userauth:sendtopage", "sloodle"); ?></td>
-            </tr>
-            
-            <tr>
-                <td><input type="radio" name="auth_method" <?php if ($sloodleauthmethod == "autoregister") echo "checked"; ?> value="autoregister"/></td>
-
-                <td><?php print_string("userauth:autoreg", "sloodle"); ?></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td><i><?php print_string("userauth:autoregnote", "sloodle"); ?></i><br /></td>
-            </tr>
-        </table>
-        
+        <h3><?php print_string('autoenrol', 'sloodle'); ?> <?php echo helpbutton('auto_enrolment', get_string('help:autoenrol','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p>
+         <?php
+            print_string("autoenrol:allowforsite", "sloodle");
+            echo ': ';
+            choose_from_menu_yesno('allow_autoenrol', $allow_autoenrol);
+         ?>
+        </p>
     </td>
 </tr>
 

@@ -1,10 +1,11 @@
 <?php
+    // This file is part of the Sloodle project (www.sloodle.org)
+
     /**
-    * Sloodle module instance view placeholder script.
+    * Index page for listing all instances of the Sloodle module.
+    * Used as an interface script by the Moodle framework.
     *
-    * A temporary placeholder to give information when a user attempts to browse Sloodle module instances.
-    *
-    * @package sloodleplaceholders
+    * @package sloodle
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
@@ -12,41 +13,127 @@
     *
     */
 
-    /** Sloodle/Moodle configuration. */
-    require_once('config.php');
+    /** Sloodle/Moodle configuration script. */
+    require_once('sl_config.php');
+    /** Sloodle core library functionality */
+    require_once(SLOODLE_DIRROOT.'/lib.php');
     
-    // Get the localization strings
+    // Fetch the course ID from request parameters
+    $id = optional_param('id', 0, PARAM_INT);
+    
+    
+    // Fetch the course data
+    $course = null;
+    if ($id) {
+        if (! $course = get_record("course", "id", $id)) {
+            error("Course ID is incorrect");
+        }
+    } else {
+        if (! $course = get_site()) {
+            error("Could not find a top-level course!");
+        }
+    }
+
+    // Require that the user logs in
+    require_login($course, false);
+    // Log this page view
+    add_to_log($course->id, "sloodle", "view sloodle modules", "index.php?id=$course->id");
+
+    // Fetch our string table data
     $strsloodle = get_string('modulename', 'sloodle');
     $strsloodles = get_string('modulenameplural', 'sloodle');
+    $strid = get_string('ID', 'sloodle');
+    $strname = get_string('name', 'sloodle');
+    $strdescription = get_string('description');
+    $strmoduletype = get_string('moduletype', 'sloodle');
     
-    // Display the header
-    print_header_simple($strsloodles, "", $strsloodles, "", "", true, "");
-
-    // Display the Sloodle version
-    print_heading(get_string('sloodleversion','sloodle').': '.(string)SLOODLE_VERSION, 'center', 3);
-    // Get and display the module version number (from version.php)
-    $sloodlemodule = get_record('modules', 'name', 'sloodle');
-    $releasenum = 0;
-    if ($sloodlemodule !== FALSE) $releasenum = $sloodlemodule->version;
-    print_heading(get_string('releasenum','sloodle').': '.(string)$releasenum, 'center', 5);
+    // Fetch the full names of each module type
+    $sloodle_type_names = array();
+    foreach ($SLOODLE_TYPES as $ST) {        
+        // Get the module type name
+        $sloodle_type_names[$ST] = get_string("moduletype:$ST", 'sloodle');
+    }
     
-    // Display a help button regarding the version numbers
-    echo '<div style="text-align:center;">(';
-    helpbutton('version_numbers', get_string('help:versionnumbers', 'sloodle'), 'sloodle', true, true);
-    echo ')</div>';
-?>
+    // We're going to make one table for each module type
+    $sloodle_tables = array();
+    
+    // Get all Sloodle modules for the current course
+    $sloodles = get_records('sloodle', 'course', $course->id, 'name');
+    if (!$sloodles) $sloodles = array();
+    // Go through each module    
+    foreach ($sloodles as $s) {
+        // Prepare this line of data
+        $line = array();
+        $line[] = $s->id;
+        $line[] = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?s={$s->id}\">$s->name</a>";
+        $line[] = $s->intro;
+        // Insert it into the appropriate table
+        $sloodle_tables[$s->type]->data[] = $line;
+    }
+    
+    // Add header information to each table
+    // (cannot use "foreach" on the $sloodle_tables array as PHP4 doesn't support alteration of the original array that way)
+    $table_types = array_keys($sloodle_tables);
+    foreach ($table_types as $k) {
+        $sloodle_tables[$k]->head = array($strid, $strname, $strdescription);
+        $sloodle_tables[$k]->align = array('center', 'left', 'left');
+    }
 
-<br/>
-<div style="border:1px solid #bababa; padding:8px;">
-<!-- Text taken from "mod.html" -->
-<?php print_string('mod.html:placeholder1', 'sloodle'); ?><br/><br/>
-<?php print_string('mod.html:placeholder2', 'sloodle'); ?><br/>
-<?php print_string('mod.html:placeholder3', 'sloodle'); ?> <a href="http://www.sloodle.org/" title="<?php print_string('clicktovisitsloodle.org', 'sloodle'); ?>">www.sloodle.org</a><br/><br/>
-<?php print_string('mod.html:placeholder4', 'sloodle'); ?><br/>
-<!-- ..... -->
-</div>
+    // Page header
+    if ($course->id != SITEID) {
+        print_header("{$course->shortname}: $strsloodles", $course->fullname,
+                    "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> -> $strsloodles",
+                    "", "", true, "", navmenu($course));
+    } else {
+        print_header("$course->shortname: $strsloodles", $course->fullname, "$strsloodles",
+                    "", "", true, "", navmenu($course));
+    }
+    
+    
+//-----------------------------------------------------
+    // Quick links (top right of page)
+    
+    // Open the section
+    echo "<div style=\"text-align:right; font-size:80%;\">\n";
+    
+    // Link to own avatar profile
+    echo "<a href=\"\" title=\"\">View my avatar details</a><br>\n";
+    
+    // Course information
+    if (empty($sloodlecourse->autoreg)) {
+        echo "This course does not allow auto-registration<br>";
+    } else {
+        echo "This course allows auto-registration<br>";
+    }
+    
+    // Display the link for editing course settings
+    $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
+    if (has_capability('moodle/course:update', $course_context)) {
+        echo "<a href=\"\" title=\"\">Edit Sloodle course settings</a><br>\n";
+    }
+    
+    
+    echo "</div>\n";
+    
+    
+    
+//-----------------------------------------------------
+    
 
-<?php
-    // Display the footer
-    print_footer();
+    // Make sure we got some results
+    if (is_array($sloodle_tables) && count($sloodle_tables) > 0) {
+        // Go through each Sloodle table
+        foreach ($sloodle_tables as $type => $table) {
+            // Output a heading for this type
+            print_heading_with_help($sloodle_type_names[$type], "moduletype_$type", 'sloodle');
+            // Display the table
+            print_table($table);
+        }
+    } else {
+        print_heading(get_string('noentries', 'sloodle'));
+    }
+    
+    // Page footer
+    print_footer($course);
+
 ?>
