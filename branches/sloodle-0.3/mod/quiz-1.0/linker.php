@@ -477,7 +477,7 @@
             
 				$output[] = array(
 					'question',
-					$i,
+					$localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
 					$q->id,
 					$q->parent,
 					strip_tags(stripslashes($q->questiontext)),

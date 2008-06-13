@@ -55,7 +55,7 @@
             $inst = get_record('quiz', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the quiz details
-            $quiz[$cm->id] = $inst->name;
+            $quizzes[$cm->id] = $inst->name;
         }
         // Sort the list by name
         natcasesort($quizzes);
@@ -71,7 +71,7 @@
         $sloodlerepeat = (int)sloodle_get_value($settings, 'sloodlerepeat', 0);
         $sloodlerandomize = (int)sloodle_get_value($settings, 'sloodlerandomize', 1);
         $sloodledialog = (int)sloodle_get_value($settings, 'sloodledialog', 1);
-        $sloodleplaysound = (int)sloodle_get_value($settings, 'sloodleplaysound', 1);
+        $sloodleplaysound = (int)sloodle_get_value($settings, 'sloodleplaysound', 0);
     
     ///// GENERAL CONFIGURATION /////
         print_box_start('generalbox boxaligncenter');

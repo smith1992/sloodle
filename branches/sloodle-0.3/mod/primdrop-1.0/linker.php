@@ -99,6 +99,7 @@
         // No - just checking if the user can submit
         $sloodle->response->set_status_code(1);
         $sloodle->response->set_status_descriptor('OK');
+$sloodle->response->add_data_line('Checked assignment status');
         $sloodle->response->render_to_output();
         exit();
     }
@@ -119,6 +120,7 @@
         // OK
         $sloodle->response->set_status_code(1);
         $sloodle->response->set_status_descriptor('OK');
+$sloodle->response->add_data_line('SUBMITTED OBJECT');
     } else {
         // Error
         $sloodle->response->set_status_code(-103);
