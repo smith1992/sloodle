@@ -11,7 +11,7 @@
 //
 
 
-integer doRepeat = 1; // whether we should run through the questions again when we're done
+integer doRepeat = 0; // whether we should run through the questions again when we're done
 integer doDialog = 1; // whether we should ask the questions using dialog rather than chat
 integer doPlaySound = 1; // whether we should play sound
 integer doRandomize = 1; // whether we should ask the questions in random order
@@ -150,9 +150,7 @@ integer request_has_timed_out()
 }
 
 populate_qa_list(string response) 
-{
-    //llWhisper(0,"Got response from server:"+response);
-    
+{    
     // Split the response into several lines
     list lines = llParseStringKeepNulls(response, ["\n"], []);
     integer numlines = llGetListLength(lines);
@@ -162,10 +160,9 @@ populate_qa_list(string response)
     
     // Was it an error code?
     if (statuscode <= 0) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
         // Check if an error message was reported
-        string errmsg = "";
-        if (numlines > 1) errmsg = llList2String(lines, 1);
-        llSay(0, "Quiz error ("+(string)statuscode+"): "+errmsg);
+        if (numlines > 1) sloodle_debug(llList2String(lines, 1));
         return 0;
     }
 
@@ -271,6 +268,8 @@ request_question( integer activeq )
 {
     integer limittoquestion = llList2Integer(item_ids, activeq-1);
     
+    sloodle_debug("request_question(" + (string)activeq + "), LTQ: = " + (string)limittoquestion);
+    
     string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
     body += "&sloodlepwd=" + sloodlepwd;
     body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
@@ -311,9 +310,9 @@ ask_or_fetch_question()
 
         is_waiting_for_active_question = 0;
                     
-        if ( llList2Integer(item_ids, (active_question+1-1) )  != qitem_next ) {
+        if ( llList2Integer(item_ids, (active_question) )  != qitem_next ) {
             
-            if ( (active_question == 0) || (active_question <= number_of_questions) ) {
+            if ( (active_question == 0) || (active_question < number_of_questions)) { //= number_of_questions) ) {
                 request_question(active_question+1); // fetch the next question in advance so the student doesn't have to wait.
             }
             
@@ -421,15 +420,14 @@ handle_answer(string message) {
             notify_server( qtype_current, llList2Integer(qoptionids_current,llList2Integer(item_ids,active_question-1)) , llList2Integer(qoptionids_current, x) );
 
         } else {
-        
-            llWhisper(0, "Your choice was not in the list of available choices. Please try again.");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], NULL_KEY, "quiz");
             repeat_question();        
             
         }        
     
     } else {
 
-        llSay(0,"Error: This object cannot handle quiz question of type " + qtype_current);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], NULL_KEY, "quiz");
 
       //  string answer = llList2String( as, active_question );   
       //  if (message == answer) {
@@ -440,7 +438,7 @@ handle_answer(string message) {
 
     }
     
-    llSay(0,feedback);
+    if (feedback != "") llInstantMessage(sitter, feedback);
     //llDialog(sitter, feedback, ["Next"],SLOODLE_CHANNEL_AVATAR_IGNORE);
     move_vertical(scorechange); 
     play_sound(scorechange);
@@ -496,8 +494,8 @@ play_sound(integer multiplier) {
         volume = (float)multiplier;
     }    
     
-    llPlaySound(sound_file,multiplier);
-
+    // Make sure the sound file exists
+    if (llGetInventoryType(sound_file) == INVENTORY_SOUND) llPlaySound(sound_file,multiplier);
 }
 
 move_vertical(integer multiplier) {
@@ -531,12 +529,12 @@ move_to_start() {
 
 process_done() 
 {
-    llWhisper(avatar_channel, "Quiz complete");      
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete", [], NULL_KEY, "quiz");
     move_to_start(); 
     if (doRepeat == 1) {
         active_question = 0;
         next_question();   
-        llWhisper(avatar_channel, "Repeating...");
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "repeating", [], NULL_KEY, "quiz");
     }
     
 }
@@ -737,7 +735,7 @@ state ready
                     active_question = 0;
                     next_question(); // request first question
                     
-                    llWhisper(0,"Starting quiz for "+llKey2Name(llAvatarOnSitTarget()));
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "starting", [llKey2Name(sitter)], NULL_KEY, "quiz");
                     
                 }
             }
