@@ -186,6 +186,7 @@ $string['numdeleted'] = 'Number deleted';
 $string['numprims'] = 'Prim Count: $a';
 
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
+$string['noquizzes'] = 'There are no quizzes available in this course.';
 $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
 $string['nosloodleassignments'] = 'There are no Sloodle-compatible assignments available in this course.';
@@ -215,6 +216,7 @@ $string['pendingallocations'] = 'Pending Allocations';
 $string['pendingavatars'] = 'Pending Avatars';
 //$string['pendingavatars:info'] = '';
 
+$string['playsounds'] = 'Play sounds?';
 $string['position'] = 'Position';
 
 $string['primpass'] = 'Prim Password';
@@ -226,9 +228,11 @@ $string['primpass:error'] = 'Prim Password Error';
 $string['primpass:updated'] = 'Prim Password updated';
 $string['primpass:leadingzero'] = 'Prim Password should not start with a 0.';
 
+$string['randomquestionorder'] = 'Randomize question order?';
 $string['releasenum'] = 'Module release number';
 $string['region'] = 'Region';
 $string['refreshtimeseconds'] = 'Refresh time (seconds)';
+$string['repeatquiz'] = 'Automatically repeat the quiz?';
 
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';
@@ -240,6 +244,7 @@ $string['selectchatroom'] = 'Select Chatroom';
 $string['selectglossary'] = 'Select Glossary';
 $string['selectdistributor'] = 'Select Distributor';
 $string['selectassignment'] = 'Select Assignment';
+$string['selectquiz'] = 'Select Quiz';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
@@ -290,6 +295,7 @@ $string['unknownuser'] = 'unknown user';
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 $string['usersearch'] = 'User search';
+$string['usedialogs'] = 'Use dialogs (instead of chat)?';
 
 $string['uuid'] = 'UUID';
 
