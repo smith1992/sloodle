@@ -50,7 +50,13 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         return false;
     }
     
-    echo '<b>Thanks for helping us test Sloodle 0.3! :-)</b>';
+    if ($result && $oldversion < 2008061600) {
+        //...
+        echo('<b>ERROR: please uninstall your previous Sloodle 0.3 version, and then install this one.</b>');
+        return false;
+    }
+    
+    echo '<center><b>Thanks for helping us test Sloodle 0.3! :-)</b></center>';
 
     // Inform Moodle if the upgrade was successful
     return $result;

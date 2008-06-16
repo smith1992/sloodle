@@ -302,6 +302,15 @@
             }            
         }
         
+        // Delete any user-authorised objects which have expired
+        // (will eventually use custom expiry times, chosen in the configuration)
+        // Deletes any authorised objects which have not checked-in for more than 2 weeks.
+        // Deletes any unauthorised objects which have not checked-in for more than 1 hour
+        $expirytime_auth = time() - 1209600;
+        $expirytime_unauth = time() - 3600;
+        echo "Deleting expired user objects...\n";
+        delete_records_select('sloodle_user_object', "(authorised = 0 AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        
         // More stuff?
         //...
         

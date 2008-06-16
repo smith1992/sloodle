@@ -40,12 +40,14 @@
     
     // Make sure the Moodle user is logged-in
     require_login();
+    // Make sure the user has permission to register their avatar
+    require_capability('mod/sloodle:registeravatar', get_context_instance(CONTEXT_SYSTEM));
     
     /** Include the Sloodle API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    print_header('Welcome to sloodle', '', '', '', false, '', '', false, '');
-	print_heading('Welcome to sloodle');
+    // Display the page header
+    print_header_simple(get_string('welcometosloodle', 'sloodle'), "", get_string('welcometosloodle', 'sloodle'), "", "", true);
     
     // Make sure it's not a guest who is logged in
     if (isguest()) {

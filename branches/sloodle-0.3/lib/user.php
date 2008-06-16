@@ -780,6 +780,75 @@
             // Delete the database entries
             delete_records('sloodle_login_notifications', 'username', $this->user_data->username);
         }
+        
+        
+    ///// USER-CENTRIC OBJECTS /////
+    
+        /**
+        * Authorises the given object for the current avatar.
+        * Note: the object must already exist in the database.
+        * @param int $authid The ID of the authorisation entry
+        * @return bool True if successful, or false otherwise
+        */
+        function authorise_user_object($authid)
+        {
+            // Make sure an avatar is loaded
+            if (!$this->is_avatar_loaded()) return false;
+            
+            // Does the object already exist in the database?
+            $auth = get_record('sloodle_user_object', 'id', $authid, 'avuuid', $this->get_avatar_uuid());
+            if (!$auth) return false;
+            // Update the existing record
+            $auth->authorised = 1;
+            $auth->timeupdated = time();
+            
+            return update_record('sloodle_user_object', $auth);
+        }
+        
+        
+        /**
+        * Adds or udpates the given user object as unauthorised.
+        * (This function can be called statically).
+        * @param string $avuuid UUID of the avatar the object will be authorised for
+        * @param string $objuuid UUID of the object
+        * @param string $objname Name of the object
+        * @param string $password Password to store for the object
+        * @return int|bool Integer ID of the authorisation entry, or false otherwise
+        */
+        function add_user_object($avuuid, $objuuid, $objname, $password)
+        {
+            // Make sure our other parameters are valid
+            if (empty($objuuid) || empty($password)) return false;
+            
+            // Does the object already exist in the database?
+            $auth = get_record('sloodle_user_object', 'objuuid', $objuuid);
+            $success = false;
+            if (!$auth) {
+                // No - insert a new record
+                $auth = new stdClass();
+                $auth->avuuid = $avuuid;
+                $auth->objuuid = $objuuid;
+                $auth->objname = $objname;
+                $auth->password = $password;
+                $auth->authorised = 0;
+                $auth->timeupdated = time();
+                $success = insert_record('sloodle_user_object', $auth);
+                
+            } else {
+                // Yes - update the existing record
+                $auth->avuuid = $avuuid;
+                $auth->objuuid = $objuuid;
+                $auth->objname = $objname;
+                $auth->password = $password;
+                $auth->authorised = 0;
+                $auth->timeupdated = time();
+                
+                if (update_record('sloodle_user_object', $auth)) $success = $auth->id;
+            }
+            
+            return $success;
+        }
+        
     }
     
 

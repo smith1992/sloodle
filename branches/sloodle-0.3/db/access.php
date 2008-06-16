@@ -73,6 +73,19 @@ $mod_sloodle_capabilities = array(
         )
     ),
     
+    // Authorising user objects to access user-specific parts of Sloodle (e.g. blogging)
+    'mod/sloodle:userobjectauth' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'legacy' => array(
+            'guest' => CAP_PROHIBIT,
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'admin' => CAP_ALLOW
+        )
+    ),
+    
     
     // Access and use classroom layout profiles
     'mod/sloodle:uselayouts' => array(
@@ -101,6 +114,7 @@ $mod_sloodle_capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
+            'guest' => CAP_PROHIBIT,
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -113,6 +127,7 @@ $mod_sloodle_capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
+            'guest' => CAP_PROHIBIT,
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -126,6 +141,7 @@ $mod_sloodle_capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
+            'guest' => CAP_PROHIBIT,
             'editingteacher' => CAP_ALLOW,
             'admin' => CAP_ALLOW
         )

@@ -242,14 +242,88 @@
         
         
         /**
+        * Verifies security for the incoming user-centric request.
+        * This ensures that the identified object is authorised for user-centric activities with the specified user.
+        * @param bool $require If TRUE (default) then the script will terminate with an error message on failure. Otherwise, it will return false on failure.
+        * @return bool TRUE if successful, or FALSE on failure (unless parameter $require was TRUE).
+        */
+        function authenticate_user_request( $require = true )
+        {
+            // Get the avatar UUID parameter
+            $avuuid = $this->request->get_avatar_uuid($require);
+            if ($avuuid == null) {
+                if ($require) {
+                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Avatar UUID required for user-centric request authentication.', false);
+                    exit();
+                }
+                return false;
+            }
+        
+            // Get the password parameter
+            $password = $this->request->get_password($require);
+            if ($password == null) {
+                if ($require) {
+                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Password cannot be empty.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Does the password contain an object UUID?
+            $parts = explode('|', $password);
+            if (count($parts) < 2) {
+                if ($require) {
+                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Expected UUID and password, separated by pipe character.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Extract the parts
+            $objuuid = $parts[0];
+            $objpwd = $parts[1];
+            
+            // Make sure the password was provided
+            if (empty($objpwd)) {
+                if ($require) {
+                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Object-specific password cannot be empty.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Attempt to retreive a record matching the avatar and object UUID's
+            $rec = get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
+            if (!$rec) {
+                if ($require) {
+                    $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object not authorised for this user.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Make sure the passwords match
+            if ($objpwd != $rec->password) {
+                $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
+                exit();
+            }
+            
+            // Everything looks fine
+            return true;
+        }
+        
+        
+        /**
         * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
         * Attempts auto-registration/enrolment if that is allowed and required, and logs-in the user.
         * Server access level is checked if it is specified in the request parameters.
-        * Note: if the request indicates that it relates to an object, then the validation fails.
+        * If the request indicates that it relates to an object, then the validation fails.
+        * Note: if you only require to ensure that an avatar is registered, then use {@link validate_avatar()}.
         * @param bool $require If true, the script will be terminated with an error message if validation fails
         * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
         * @param bool $suppress_autoenrol If true, auto-enrolment will be completely suppressed for this function call
         * @return bool Returns true if validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
+        * @see SloodleSession::validate_avatar()
         */
         function validate_user($require = true, $suppress_autoreg = false, $suppress_autoenrol = false)
         {
@@ -451,8 +525,50 @@
             return ($this->user->login());
         }
         
-        //... Add functions for verifying user access to resources?
+        /**
+        * Validate the avatar specified in the request, to ensure it is registered to a Moodle account.
+        * (Also ensures that avatar details were in fact provided in the request).
+        * This is effectively a less strict version of {@link validated_user()}, which also checks enrolment and such like.
+        * This function will NOT perform auto-registration or auto-enrolment.
+        * @param bool $require If true, the script will be terminated with an error message if validation fails
+        * @return bool Returns true if validation was successful. Returns false on failure (unless $require was true).
+        * @see SloodleSession::validate_user()
+        */
+        function validate_avatar( $require = true )
+        {
+            // Attempt to fetch avatar details
+            $sloodleuuid = $this->request->get_avatar_uuid(false);
+            $sloodleavname = $this->request->get_avatar_name(false);
+            // We need at least one of the values
+            if (empty($sloodleuuid) && empty($sloodleavname)) {
+                if ($require) {
+                    $this->response->quick_output(-311, 'USER_AUTH', 'Require avatar UUID and/or name.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Attempt to find an avatar matching the given details
+            $rec = false;
+            if (!empty($sloodleuuid)) $rec = get_record('sloodle_users', 'uuid', $sloodleuuid);
+            if (!$rec) $rec = get_record('sloodle_users', 'avname', $sloodleavname);
+            // Did we find a matching entry?
+            if (!$rec) {
+                // No - avatar is not validated
+                if ($require) {
+                    $this->response->quick_output(-321, 'USER_AUTH', 'Require avatar UUID and/or name.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            return true;
+        }
         
+        
+        
+        //... Add functions for verifying user access to resources?
     }
+    
 
 ?>

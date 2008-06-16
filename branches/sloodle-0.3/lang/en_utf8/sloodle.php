@@ -211,6 +211,7 @@ $string['objecttype'] = 'Object Type';
 
 $string['or'] = 'or';
 
+$string['postedfromsl'] = 'Posted from Second Life';
 $string['pendingavatarnotfound'] = 'Could not locate a pending entry for your avatar. Perhaps you are already registered?';
 $string['pendingallocations'] = 'Pending Allocations';
 $string['pendingavatars'] = 'Pending Avatars';
@@ -261,6 +262,7 @@ $string['sloodleversion'] = 'Sloodle Version';
 
 $string['sloodle:staff'] = 'Sloodle Staff member';
 $string['sloodle:objectauth'] = 'Authorise objects for Sloodle access';
+$string['sloodle:userobjectauth'] = 'Authorise user objects for self';
 $string['sloodle:uselayouts'] = 'Use classroom layout profiles';
 $string['sloodle:editlayouts'] = 'Edit/delete classroom layout profiles';
 $string['sloodle:registeravatar'] = 'Register own avatar';
@@ -295,6 +297,7 @@ $string['unknownuser'] = 'unknown user';
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 $string['usersearch'] = 'User search';
+$string['userobjectauth'] = 'Sloodle User Object Authorization';
 $string['usedialogs'] = 'Use dialogs (instead of chat)?';
 
 $string['uuid'] = 'UUID';

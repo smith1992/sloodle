@@ -24,6 +24,10 @@
     include_once(SLOODLE_LIBROOT.'/modules/module_glossary.php');
     /** Sloodle Object assignment module. */
     include_once(SLOODLE_LIBROOT.'/modules/module_sloodleobject.php');
+    /** Blog module. */
+    include_once(SLOODLE_LIBROOT.'/modules/module_blog.php');
+    /** Sloodle avilister module. */
+    include_once(SLOODLE_LIBROOT.'/modules/module_avilister.php');
     
     //... include more module types here!
     

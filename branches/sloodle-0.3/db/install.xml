@@ -26,7 +26,7 @@
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
             <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="id" NEXT="enabled" COMMENT="Identifies which Sloodle instance this refers to."/>
-            <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="sloodleid" NEXT="password" COMMENT="Shortname of the access level for this controller."/>
+            <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="sloodleid" NEXT="password" COMMENT="Indicates whether or not this Controller is enabled.."/>
             <FIELD NAME="password" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" COMMENT="Prim Password for this instance. If left blank, it should use the site default."/>
         </FIELDS>
         <KEYS>
@@ -200,7 +200,7 @@
         </INDEXES>
     </TABLE>
     
-    <TABLE NAME="sloodle_loginzone_allocation" PREVIOUS="sloodle_layout_entry" COMMENT="Gives allocation of a loginzone for a given user">
+    <TABLE NAME="sloodle_loginzone_allocation" PREVIOUS="sloodle_layout_entry" NEXT="sloodle_user_object" COMMENT="Gives allocation of a loginzone for a given user">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course"/>
             <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="id" NEXT="userid" COMMENT="Identifies which course this allocation is for"/>
@@ -217,6 +217,23 @@
         </INDEXES>
     </TABLE>
     
+    <TABLE NAME="sloodle_user_object" COMMENT="Lists user-centric objects which individual users have authorised for use with their own accounts, such as blogging" PREVIOUS="sloodle_loginzone_allocation">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="avuuid" COMMENT="Primary index field"/>
+        <FIELD NAME="avuuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="objuuid" COMMENT="UUID of the avatar"/>
+        <FIELD NAME="objuuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avuuid" NEXT="objname" COMMENT="UUID of the object"/>
+        <FIELD NAME="objname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="objuuid" NEXT="password" COMMENT="Name of the object"/>
+        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="objname" NEXT="authorised" COMMENT="Object- and avatar-specific password"/>
+        <FIELD NAME="authorised" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="password" NEXT="timeupdated" COMMENT="Indicates whether or not this object has been authorised.."/>
+        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="authorised" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="objuuid" UNIQUE="true" FIELDS="objuuid" COMMENT="User objects can only be authorised against one avatar at a time."/>
+      </INDEXES>
+    </TABLE>
 
   </TABLES>
 </XMLDB>
