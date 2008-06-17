@@ -605,6 +605,7 @@ state configure_object
                 return;
             } else if (statuscode <= 0) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY, "");
+                state default;
                 return;
             }
             

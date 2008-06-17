@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = ""; // Blank - this is the common Sloodle batch
+string mybatch = "toolbar";
 
 
 // List of string names and translation pairs.
@@ -33,71 +33,44 @@ string mybatch = ""; // Blank - this is the common Sloodle batch
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Common terms
-	"yes", "Yes",
-	"no", "No",
-	"on", "On",
-	"off", "Off",
-	"enabled", "Enabled",
-	"disabled", "Disabled",
-
-	//  Web-configuration
-	"webconfigmenu", "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
-	"configlink", "Use this link to configure the object.",
-	"chatserveraddress", "Please chat the address of your Moodle site, without a trailing slash. For example: http://www.yoursite.blah/moodle",
-	"waitingforserveraddress", "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
-	"checkingserverat", "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
-	"sendingconfig", "Sending configuration data...",
-	"touchforwebconfig", "Touch me to start web-configuration",
+	// Gestures (parameter for each is an avatar name)
+    "gesture:handup", "{{0}} raises his/her hand.",
+    "gesture:wave", "{{0}} waves.",
+    "gesture:clap", "{{0}} claps.",
+    "gesture:nodoff", "{{0}} falls asleep.",
+    "gesture:huh", "{{0}} scratches his/her head.",
+    "gesture:gotit", "{{0}} has got it!",
+    "gesture:yes", "{{0}} nods his/her head.",
+    "gesture:no", "{{0}} shakes his/her head.",
     
-    // User-centric authorisation
-    "userauthurl", "Please login to Moodle with this URL to authorize the object for your own use.",
-
-	//  General connection and authorisation
-	"readynotconnected", "Ready\n[Not connected]",
-	"shutdown", "Shutdown",
-	"connected", "Connected successfully",
-	"readyconnectedto", "Ready\n[Connected to: {{0}}]", // Parameter should identify what is connected to (e.g. URL of website)
-	"readyconnectedto:sitecourse", "Ready\n[Site: {{0}}]\n[Course: {{1}}]", // Parameters: site address, course name
-	"connectionfailed", "Connection failed",
-	"httperror", "ERROR: HTTP request failed",
-	"httperror:code", "ERROR: HTTP request failed with code {{0}}",
-	"httpempty", "ERROR: HTTP response empty",
-	"httptimeout", "ERROR: HTTP request timed out.",
-	"servererror", "ERROR: server responded with status code {{0}}",
-	"notypeid", "ERROR: failed to identify object type ID",
-	"gottype", "Identified object type as {{0}}", // Parameter gives an object type ID
-	"failedcheckcompatibility", "ERROR: failed to check compatibility with site",
-	"badresponseformat", "ERROR: response from server was badly formatted",
-	"objectauthfailed:code", "ERROR: object authorisation failed with code {{0}}",
-	"objectconfigfailed:code", "ERROR: object configuration failed with code {{0}}",
-	"initobjectauth", "Initiating object authorisation...",
-	"autoreg:newaccount", "A new Moodle account has been automatically generated for you.\nWebsite: {{0}} \nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
-	"configurationreceived", "Configuration received",
-	"configdatamissing", "ERROR: some required data was missing from the configuration",
-	"readingconfignotecard", "Reading configuration notecard...",
-	"checkingcourse", "Checking course...",
-	"errortouchtoreset", "ERROR\nTouch me to reset",
-	"notconfiguredyet", "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
-	"resetting", "Resetting...",
-    "noconfigavailable", "There is no configuration available to download. Please visit the configuration web-page first.",
-    "checkingauth", "Checking authorisation...",
-
-	//  Sloodle installation/version
-	"sloodlenotinstalled", "ERROR: Sloodle is not installed on specified site.",
-	"sloodleversioninstalled", "Sloodle version installed on server: {{0}}", // Parameter gives a Sloodle version number
-	"sloodleversionrequired", "ERROR: you require at least Sloodle version {{0}}", // Parameter gives a Sloodle version number
-
-	//  Permissions
-	"nopermission:use", "Sorry {{0}}. You do not have permission to use this object.", // Parameter should be the name of an avatar
-	"nopermission:ctrl", "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
-	"nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
+    // General
+    "helpnotecardnotfound", "Cannot give help; notecard \"{{0}}\" not found in my inventory.", // Parameter: notecard name
+    "channelmenu", "Currently using channel: {{0}}.\nPlease select which channel you would like to use.", // Parameter: current channel number
+    "usingchannel", "Now using chat channel {{0}}.", // Parameter: channel number
+    "visibilitymenu", "Please select which post visibility level you would like to use.\n\n{{0}} = public\n{{1}} = site\n{{2}} = private", // Parameters: button labels
+    "visibility:public", "Now using public visibility. Anybody will be able to see your post in Moodle.",
+    "visibility:site", "Now using site visibility. Only registered users will be able to see your post in Moodle.",
+    "visibility:private", "Now using private visibility. Only you will be able to see your post in Moodle.",
+    "chatsubject", "Please chat the subject line of your blog entry.",
+    "cancelled", "Blog entry cancelled.",
+    "chatbody", "Please caht the body text of your blog entry. You can use multiple caht messages, up to a total of {{0}} character.", // Parameter: maximum number of characters
+    "full", "Your blog entry is now full.",
+    "charsleft", "{{0}} character(s) remaining.", // Parameter: number of characters
+    "sending", "Thank you {{0}}. Please wait while your entry is sent...", // Parameter: avatar name
+    "sent", "Updated blog entry successfully.",
     
-    // Layout (duplicated deliberately)
-    "layout:failedretrying", "Failed to store layout position. Retrying...",
-	"layout:failedaborting", "Failed to store layout position. Aborting.",
-	"layout:toofar", "Failed to store layout position - too far from rezzer.",
-	"layout:storedobject", "Object stored in layout."
+    // Error messages
+    "attachashud", "Error: please attach me as a HUD object.",
+    "errorstate", "Initialisation failed. Please detach then re-attach the Toolbar to try again.",
+    "timeout:subject", "Timeout waiting for blog subject. Cancelling blog entry.",
+    "cannotsave:needsubjectbody", "Cannot save blog entry entry. Please enter the subject and body text first.",
+    "needsubject", "The blog subject cannot be empty. Please enter it again.",
+    "timeout:body", "Timeout waiting for blog body text. Cancelling blog entry.",
+    "needbody", "Please enter some body text before saving your blog entry.",
+    "atmaximum", "Sorry {{0}}. Your blog is already at the maximum length.", // Parameter: avatar name
+    "toolong", "Sorry {{0}}. That message would make your blog entry too long. You only have {{1}} characters left", // Parameters: avatar name, number of characters
+    "httperror", "ERROR: Failed to update blog due to HTTP request failure. You may try again or cancel.",
+    "autherror", "Failed to update blog due to user authentication error {{0}}."
 ];
 
 ///// ----------- /////

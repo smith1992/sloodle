@@ -27,6 +27,9 @@
     //   sloodleblogsubject = the subject line of the blog entry
     //   sloodleblogbody = the main body of the blog entry
     //
+    // The followign parameter is optional:
+    //
+    //   sloodleblogvisibility = the visibility of the post: public, site, private (or draft)
 
     /** Lets Sloodle know we are in a linker script. */
     define('SLOODLE_LINKER_SCRIPT', true);
@@ -46,7 +49,7 @@
     // Get our additional parameters
     $sloodleblogsubject = $sloodle->request->required_param('sloodleblogsubject');
     $sloodleblogbody = $sloodle->request->required_param('sloodleblogbody');
-    $sloodleblogvisibility = $sloodle->request->optional_param('sloodleblogvisibility');
+    $sloodleblogvisibility = $sloodle->request->optional_param('sloodleblogvisibility', 'site');
     
     // We need to know if all header data was retrieved
     $use_slurl = (isset($_SERVER['HTTP_X_SECONDLIFE_REGION']) && isset($_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION']));
