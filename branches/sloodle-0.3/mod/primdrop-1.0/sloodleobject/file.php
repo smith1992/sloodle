@@ -66,7 +66,9 @@
         echo '<tr><td class="c0">'.get_string('lastedited').':</td>';
         echo '    <td class="c1">'.userdate($submission->timemodified);
         // Show the number of prims
-        echo ' ('.get_string('numprims', 'sloodle', $sloodle_submission->num_prims).')</td></tr>';
+        $num_prims = $sloodle_submission->num_prims;
+        if ($num_prims == 0) $num_prims = '?';
+        echo ' ('.get_string('numprims', 'sloodle', $num_prims).')</td></tr>';
         echo '</table>';
         print_simple_box_end();
 

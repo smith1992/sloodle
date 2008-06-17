@@ -97,7 +97,9 @@ class assignment_sloodleobject extends assignment_base {
             echo '    <td class="c1">'.userdate($submission->timemodified);
             
             // Display the number of prims in the submission
-            echo ' ('.get_string('numprims', 'sloodle', $sloodle_submission->num_prims).')</td></tr>';
+            $num_prims = $sloodle_submission->num_prims;
+            if ($num_prims == 0) $num_prims = '?';
+            echo ' ('.get_string('numprims', 'sloodle', $num_prims).')</td></tr>';
         }
         echo '</table>';
         print_simple_box_end();
@@ -160,8 +162,10 @@ class assignment_sloodleobject extends assignment_base {
         $sloodle_submission->load_submission($submission);
 
         // Display the number of prims
+        $num_prims = $sloodle_submission->num_prims;
+        if ($num_prims == 0) $num_prims = '?';
         print_simple_box_start('center', '', '', 0, 'generalbox', 'wordcount');
-        echo ' ('.get_string('numprims', 'sloodle', $sloodle_submission->num_prims).')';
+        echo ' ('.get_string('numprims', 'sloodle', $num_prims).')';
         print_simple_box_end();
         
         // Display the text summary of this submission
@@ -335,6 +339,11 @@ class assignment_sloodleobject_submission
             
             $arr = sloodle_vector_to_array($this->primdrop_pos);
             if (!$arr) $arr = array('x'=>0, 'y'=>0, 'z'=>0);
+            else {
+                $arr['x'] = round($arr['x']);
+                $arr['y'] = round($arr['y']);
+                $arr['z'] = round($arr['z']);
+            }
             
             $loc = "secondlife://{$this->primdrop_region}/{$arr['x']}/{$arr['y']}/{$arr['z']}";
             $text .= "<b><a href=\"$loc\">$loc</a></b><br>";

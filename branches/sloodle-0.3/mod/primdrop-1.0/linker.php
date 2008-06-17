@@ -113,7 +113,8 @@ $sloodle->response->add_data_line('Checked assignment status');
     
     // Make sure the position is valid
     $arr = sloodle_vector_to_array($sloodlepos);
-    if (!$arr) $sloodlepos = '<0.0,0.0,0.0>';
+    if (!$arr) $sloodlepos = '<0,0,0>';
+    else $sloodlepos = sloodle_round_vector($sloodlepos);
     
     // Submit all the data
     if ($sloodle->module->submit($sloodle->user, $sloodleobjname, $sloodleprimcount, $sloodleprimdropname, $sloodleprimdropuuid, $sloodleregion, $sloodlepos)) {
