@@ -53,7 +53,7 @@ list locstrings = [
     "visibility:private", "Now using private visibility. Only you will be able to see your post in Moodle.",
     "chatsubject", "Please chat the subject line of your blog entry.",
     "cancelled", "Blog entry cancelled.",
-    "chatbody", "Please caht the body text of your blog entry. You can use multiple caht messages, up to a total of {{0}} character.", // Parameter: maximum number of characters
+    "chatbody", "Please chat the body text of your blog entry. You can use multiple caht messages, up to a total of {{0}} characters.", // Parameter: maximum number of characters
     "full", "Your blog entry is now full.",
     "charsleft", "{{0}} character(s) remaining.", // Parameter: number of characters
     "sending", "Thank you {{0}}. Please wait while your entry is sent...", // Parameter: avatar name

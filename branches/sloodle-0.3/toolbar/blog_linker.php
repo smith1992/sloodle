@@ -58,7 +58,7 @@
         $region = $_SERVER['HTTP_X_SECONDLIFE_REGION'];
         $region = substr ( $region,0, strpos($region, '(' ) - 1 );
         $position = $_SERVER['HTTP_X_SECONDLIFE_LOCAL_POSITION'];
-        sloodle_debug_output('Constructing SLurl...<br/>');
+        sloodle_debug('Constructing SLurl...<br/>');
         sscanf($position, "(%f, %f, %f)", $x, $y, $z);
         $slurl = "http://slurl.com/secondlife/" .$region ."/" .$x ."/" .$y ."/" .$z;
         $slurl = '<a href="' .$slurl .'">' .$region .'</a>';

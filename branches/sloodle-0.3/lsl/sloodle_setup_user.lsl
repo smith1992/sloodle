@@ -80,7 +80,7 @@ string sloodle_random_object_password()
 // Load the authorisation URL
 sloodle_load_auth_url(key av)
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [SLOODLE_USER_AUTH_INTERFACE], "userauthurl", [], av, "");
+    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [sloodleauthurl], "userauthurl", [], av, "");
 }
 
 ///// STATES /////
@@ -99,7 +99,7 @@ default
     
         // Check to see if the server URL is in the object description
         string desc = llGetObjectDesc();
-        if (desc != "" && llSubStringIndex("desc", "http") == 0) sloodleserverroot = "";
+        if (desc != "" && llSubStringIndex(desc, "http") == 0) sloodleserverroot = desc;
         
         // Did we get a server root?
         if (sloodleserverroot == "") {
@@ -154,6 +154,17 @@ default
                 return;
             }
         }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            llResetScript();
     }
 }
 
@@ -382,7 +393,6 @@ state check_auth
         // Make sure this is the response we're expecting
         if (id != httpauthobject) return;
         if (status != 200) {
-            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state default;
             return;
         }
@@ -395,14 +405,7 @@ state check_auth
         
         // Check the statuscode
         if (statuscode <= 0) {
-            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
-            state default;
-            return;
-        }
-        
-        // Attempt to get the auth ID
-        if (numlines < 2) {
-            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            sloodle_debug(body);
             state default;
             return;
         }
@@ -457,7 +460,6 @@ state idle
             // Check the command type
             if (sval == "do:reset") {
                 llResetScript();
-                return;
             } else if (sval == "do:requestconfig") {
                 state check_auth;
             } else if (sval == "do:reconfigure") {

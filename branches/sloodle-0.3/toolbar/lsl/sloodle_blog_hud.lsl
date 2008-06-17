@@ -1,80 +1,129 @@
-// Standard translation script for Sloodle.
-// Contains the common, re-usable words and phrases.
+// Sloodle Blog HUD
+// Allows SL users in-world to write to their Moodle blog
+// Part of the Sloodle project (www.sloodle.org)
 //
-// The "locstrings" list is pairs of strings.
-// The first of each pair is the name, and second is the translation.
-//
-// This script is part of the Sloodle project.
-// Copyright (c) 2008 Sloodle (various contributors)
-// Released under the GNU GPL v3
+// Copyright (c) 2006-8 Sloodle (various contributors)
+// Released under the GNU GPL
 //
 // Contributors:
+//  Daniel Livingstone
+//  Edmund Edgar
 //  Peter R. Bloomfield
 //
 
-// Note: where a translation string contains {{x}} (where x is a number),
-//  it means that a parameter can be inserted. Please make sure to include these
-//  parameters in the appropriate location in your translation.
-// It may be sensible to add comments after your string to indicate what its parameters mean.
-// NOTE: parameter numbering starts at 0 (unlike previous versions, which started at 1).
+// Version history:
+//
+// 1.3 - updated to use new language system, new user-centric authorisation, and post visibility option (Sloodle 0.3)
+// 1.2.2 - resolved another bug in multi-part blogging causing stack/heap collision with long subject
+// 1.2.1 - resolved bug in multi-part blogging causing stack/heap collision is subject was too long
+// 1.2 - multi-part blogging
+// 1.1 - added channel menu and "ready" display
+// 1.0 - updated to use new communications and avatar registration methods for Sloodle 0.2
+// 0.9.2 - Corrected the reset calls from 0.9.1 to use "attach" event, and changed authentication link to a chat message
+// 0.9.1 - Added appropriate reset calls for whenever the HUD object gets attached to the HUD
+// 0.9 - Rewritten by Peter Bloomfield to allow full notecard initialisation
+// 0.8 - Toolbar 2 in 1 - merge with gesture toolbar. Yikes.
+// 0.7 - Textures from Jeremy Kemp, Authentication improvements
+// 0.6 - Did some stuff... I forget
+// 0.5 - Improved blogging. Also links to new simple authentication system.
+// 0.4 - can't quite recall what I did
+// 0.3 - adding in auto-update
+//     - rewriting some code, to simplify things and allow for more control via buttons
+// 0.2 - uses Edmund Earp's authentication data
+//      - No longer asks user to set ID in notecard, but user
+//        must be authenticated to use this successfully
+// 0.1 - based on sloodle chat 0.72. DL
+//
 
-// Translations can be requested by sending a link message on the SLOODLE_CHANNEL_TRANSLATION_REQUEST channel.
-// It is advisable simply to use the "sloodle_translation_request" function provided in this script.
+
+///// CONSTANTS /////
+// Memory-saving hack!
+key null_key = NULL_KEY;
+
+// Timeout values
+float CHAT_TIMEOUT = 600.0; // Time to wait for the user to chat something
+float CONFIRM_TIMEOUT = 600.0; // Time to wait for the user to confirm the entry
+float HTTP_TIMEOUT = 15.0; // Time to wait for an HTTP response
+
+// What channel should configuration data be received on?
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
+// What link channel should be used to communicate URLs?
+integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
+// What channel should we listen on for avatar dialogs?
+integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+
+// End of file (config data) marker
+string SLOODLE_EOF = "sloodleeof";
+
+// Relative path of the blog linker script
+string SLOODLE_BLOG_LINKER = "/mod/sloodle/toolbar/blog_linker.php";
+
+// Maximum allowed length of blog body
+integer MAX_BLOG_BODY_LENGTH = 1001;
 
 
-///// TRANSLATION /////
+// Commands to other parts of the object
+string SLOODLE_CMD_BLOG = "blog";
+string SLOODLE_CMD_CHANNEL = "channel";
+string SLOODLE_CMD_VISIBILITY = "visibility";
+string SLOODLE_CMD_BLOG_LENGTH = "bloglength";
+// Command statuses
+string SLOODLE_CMD_READY = "ready";
+string SLOODLE_CMD_NOTREADY = "notready";
+string SLOODLE_CMD_ERROR = "error";
+string SLOODLE_CMD_SUBJECT = "subject";
+string SLOODLE_CMD_BODY = "body";
+string SLOODLE_CMD_CONFIRM = "confirm";
+string SLOODLE_CMD_SENDING = "sending";
 
-// Localization batch - indicates the purpose of this file
-string mybatch = "toolbar";
+// Menu button labels
+string MENU_BUTTON_PUBLIC = "1";
+string MENU_BUTTON_SITE = "2";
+string MENU_BUTTON_PRIVATE = "3";
+
+///// --- /////
 
 
-// List of string names and translation pairs.
-// The name is the first of each pair, and should not be translated.
-// The second of each pair is the translation.
-// Additional comments are sometimes given afterward to aid translations.
-list locstrings = [
-    // Gestures (parameter for each is an avatar name)
-    "gesture:handup", "{{0}} raises his/her hand.",
-    "gesture:wave", "{{0}} waves.",
-    "gesture:clap", "{{0}} claps.",
-    "gesture:nodoff", "{{0}} falls asleep.",
-    "gesture:huh", "{{0}} scratches his/her head.",
-    "gesture:gotit", "{{0}} has got it!",
-    "gesture:yes", "{{0}} nods his/her head.",
-    "gesture:no", "{{0}} shakes his/her head.",
-    
-    // General
-    "helpnotecardnotfound", "Cannot give help; notecard \"{{0}}\" not found in my inventory.", // Parameter: notecard name
-    "channelmenu", "Currently using channel: {{0}}.\nPlease select which channel you would like to use.", // Parameter: current channel number
-    "usingchannel", "Now using chat channel {{0}}.", // Parameter: channel number
-    "visibilitymenu", "Please select which post visibility level you would like to use.\n\n{{0}} = public\n{{1}} = site\n{{2}} = private", // Parameters: button labels
-    "visibility:public", "Now using public visibility. Anybody will be able to see your post in Moodle.",
-    "visibility:site", "Now using site visibility. Only registered users will be able to see your post in Moodle.",
-    "visibility:private", "Now using private visibility. Only you will be able to see your post in Moodle.",
-    "chatsubject", "Please chat the subject line of your blog entry.",
-    "cancelled", "Blog entry cancelled.",
-    "chatbody", "Please caht the body text of your blog entry. You can use multiple caht messages, up to a total of {{0}} character.", // Parameter: maximum number of characters
-    "full", "Your blog entry is now full.",
-    "charsleft", "{{0}} character(s) remaining.", // Parameter: number of characters
-    "sending", "Thank you {{0}}. Please wait while your entry is sent...", // Parameter: avatar name
-    "sent", "Updated blog entry successfully.",
-    
-    // Error messages
-    "attachashud", "Error: please attach me as a HUD object.",
-    "errorstate", "Initialisation failed. Please detach then re-attach the Toolbar to try again.",
-    "timeout:subject", "Timeout waiting for blog subject. Cancelling blog entry.",
-    "cannotsave:needsubjectbody", "Cannot save blog entry entry. Please enter the subject and body text first.",
-    "needsubject", "The blog subject cannot be empty. Please enter it again.",
-    "timeout:body", "Timeout waiting for blog body text. Cancelling blog entry.",
-    "needbody", "Please enter some body text before saving your blog entry.",
-    "atmaximum", "Sorry {{0}}. Your blog is already at the maximum length.", // Parameter: avatar name
-    "toolong", "Sorry {{0}}. That message would make your blog entry too long. You only have {{1}} characters left", // Parameters: avatar name, number of characters
-    "httperror", "ERROR: Failed to update blog due to HTTP request failure. You may try again or cancel.",
-    "autherror", "Failed to update blog due to user authentication error {{0}}."
-];
+///// DATA /////
 
-///// ----------- /////
+// What chat channel should we receive user info on?
+integer user_chat_channel = 0;
+// Handle for the current "listen" command for user dialog
+integer user_listen_handle = 0;
 
+// Configuration data
+string sloodleserverroot = "";
+string sloodlepwd = "";
+integer isconfigured = FALSE;
+integer eof = FALSE;
+
+// The subject and body of the blog entry
+string blogsubject = "";
+string blogbody = "";
+// Current length of the blog body
+integer blogbodylength = 0;
+
+// Keys of the pending HTTP requests for a blog entry, and for avatar registration
+key httpblogrequest = null_key;
+key httpregrequest = null_key;
+
+// Is the edit in confirmation mode?
+// (i.e. has the entry been made, but is the user editing it to correct something?)
+integer confirmationmode = FALSE;
+
+// These values indicate when we started listening for particular dialogs.
+// If 0, then we are not listening.
+integer dlglisten_channel = 0; // Channel change dialog
+integer dlglisten_visibility = 0; // Post visibility dialog
+
+// Current visibility setting
+string visibility = "site";
+
+///// --- /////
+
+
+
+///// TRANSLATIONS /////
 
 // Link message channels
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
@@ -93,264 +142,625 @@ string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";  // Recipient avatar 
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";          // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";             // Recipient avatar should be identified in link message keyval. No output parameters.
 
-
-// Used for sending parallel URL loading messages
-integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
-
-///// FUNCTIONS /////
-
-
 // Send a translation request link message
-// (Here for reference only)
-// Parameter: output_method = should identify an output method, as given by the "SLOODLE_TRANSLATE_..." constants above
-// Parameter: output_params = a list of parameters which controls the output, such as chat channel or buttons for a dialog
-// Parameter: string_name = the name of the localization string to output
-// Parameter: string_params = a list of parameters which will be included in the translated string (or an empty list if none)
-// Parameter: keyval = a key to send in the link message
-// Parameter: batch = the name of the localization batch which should handle this request
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
 
-// Send a translation response link message
-sloodle_translation_response(integer target, string name, string translation)
+///// FUNCTIONS /////
+// Send a debug message (requires the "sloodle_debug" script in the same link)
+sloodle_debug(string msg)
 {
-    llMessageLinked(target, SLOODLE_CHANNEL_TRANSLATION_RESPONSE, name + "|" + translation + "|" + mybatch, NULL_KEY);
+    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, null_key);
 }
 
-// Get the translation of a particular string
-string sloodle_get_string(string name)
+// Reset the entire script
+resetScript()
 {
-    // Attempt to find the string name
-    integer numstrings = llGetListLength(locstrings);
-    integer pos = llListFindList(locstrings, [name]);
+    llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
+    llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
+    llResetScript();
+}
+
+// Reset the display
+resetDisplay()
+{
+    llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
+    llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
+}
+
+// Reset the settings values
+resetSettings()
+{
+    sloodleserverroot = "";
+    sloodlepwd = "";
+    eof = FALSE;
+    isconfigured = FALSE;
+}
+
+// Reset the working values
+resetWorkingValues()
+{
+    // Reset our variables
+    blogsubject = "";
+    blogbody = "";
+    blogbodylength = 0;
+    httpblogrequest = null_key;
+    httpregrequest = null_key;
+    confirmationmode = FALSE;
+    // Cancel any timer request
+    llSetTimerEvent(0.0);
     
-    // IMPORTANT: we must be careful not to match a translations instead of a name.
-    // If this was an even number, then we have a string name.
-    if ((pos % 2) == 0) {
-        // Make sure there is a subsequent translation in the list
-        if ((pos + 1) < numstrings) return llList2String(locstrings, pos + 1);
-        // The translation is not there
-        pos = -1;
+    // Update display
+    update_blog_length_display();
+}
+
+// Configure by receiving a linked message from another script in the object
+// Returns TRUE if the object has all the data it needs
+integer sloodle_handle_command(string str) 
+{
+    list bits = llParseString2List(str,["|"],[]);
+    integer numbits = llGetListLength(bits);
+    string name = llList2String(bits,0);
+    string value1 = "";
+    string value2 = "";
+    
+    if (numbits > 1) value1 = llList2String(bits,1);
+    if (numbits > 2) value2 = llList2String(bits,2);
+    
+    if (name == "set:sloodleserverroot") sloodleserverroot = value1;
+    else if (name == "set:sloodlepwd") {
+        // The password may be a single prim password, or a UUID and a password
+        if (value2 != "") sloodlepwd = value1 + "|" + value2;
+        else sloodlepwd = value1;
+        
+    }
+    else if (name == SLOODLE_EOF) eof = TRUE;
+    
+    return (sloodleserverroot != "" && sloodlepwd != "");
+}
+// Show the chat channel menu
+// (Shows menu to owner, and starts listening for owner messages)
+show_channel_menu()
+{
+    dlglisten_channel = llGetUnixTime();
+    dlglisten_visibility = 0;
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llGetOwner(), "");
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2", "X"], "channelmenu", [(string)user_chat_channel], llGetOwner(), "toolbar");
+}
+
+// Show the post visibility menu
+show_visibility_menu()
+{
+    dlglisten_channel = 0;
+    dlglisten_visibility = llGetUnixTime();
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llGetOwner(), "");
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_PUBLIC, MENU_BUTTON_SITE, MENU_BUTTON_PRIVATE], "visibilitymenu", [MENU_BUTTON_PUBLIC, MENU_BUTTON_SITE, MENU_BUTTON_PRIVATE], llGetOwner(), "toolbar");
+}
+
+// Handle a channel change message
+handle_channel_change(integer ch)
+{
+    // Make sure it's a valid number
+    if (ch >= 0 || ch <= 2) {
+        dlglisten_channel = 0;
+        // Store the new channel number and change the "listen" command
+        user_chat_channel = ch;
+        llListenRemove(user_listen_handle);
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
+        // Update the display
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_CHANNEL + "|" + (string)ch, null_key);
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "usingchannel", [(string)ch], null_key, "toolbar");
+    }
+}
+
+// Handle a visibility change message
+handle_visibility_change(string msg)
+{
+    dlglisten_visibility = 0;
+    // Figure out which setting it was
+    if (msg == MENU_BUTTON_PUBLIC) visibility = "public";
+    else if (msg == MENU_BUTTON_SITE) visibility = "site";
+    else if (msg == MENU_BUTTON_PRIVATE) visibility = "private";
+    // Update the display
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_VISIBILITY + "|" + visibility, null_key);
+    sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "visibility:" + visibility, [], null_key, "toolbar");
+}
+
+// Update the blog length display
+update_blog_length_display()
+{
+    float len = (float)blogbodylength / (float)MAX_BLOG_BODY_LENGTH;
+    if (len < 0.0) len = 0.0;
+    if (len > 1.0) len = 1.0;
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG_LENGTH + "|" + (string)len, NULL_KEY);
+}
+
+///// --- /////
+
+
+/// INITIALISING STATE ///
+// Waiting for configuration
+default
+{    
+    state_entry()
+    {
+        // Update the display to say "not ready"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_NOTREADY, NULL_KEY);
+        // Clear any item text
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        // Reset our channel and visibility display
+        handle_channel_change(0);
+        handle_visibility_change("site");
+        
+        // Make sure this is attached as a HUD object
+        if (llGetAttached() < 30)
+        {
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "attachashud", [], NULL_KEY, "toolbar");
+            state error;
+        }
+
+        // Reset all values
+        resetDisplay();
+        resetSettings();
+        resetWorkingValues();
+        
+        // Request configuration data again
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
     }
     
-    // If we could not find the string, then return a placeholder
-    if (pos < 0) return "[[" + name + "]]";
-    
-    // If we got here, then we matched a translation instead of a string name.
-    // As such, we need to resort to searching through the list manually (which can be very slow).
-    // To saved time, we can start from the position just beyond where we got to.
-    // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
-        // Do we have a match?
-        if (llList2String(locstrings, pos) == name) {
-            // Yes - make sure there is a translation following it
-            if ((pos + 1) < numstrings) return llList2String(locstrings, pos + 1);
-            // The translation is not there - skip the rest of the search
-            pos = numstrings;
+    touch_start(integer num)
+    {
+        if (llDetectedKey(0) == llGetOwner()) {
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         }
     }
     
-    // If we reached this point, then the string is not available. Return a placeholder.
-    return "[[" + name + "]]";
-}
-
-// Send a debug link message
-sloodle_debug(string msg)
-{
-    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
-}
-
-
-// Get a formatted translation of a string
-string sloodle_get_string_f(string name, list params)
-{
-    // Get the string itself
-    string str = sloodle_get_string(name);
-    // How many parameters do we have?
-    integer numparams = llGetListLength(params);
+    state_exit()
+    {
+    }
     
-    // Go through each parameter we have been provided
-    integer curparamnum = 0;
-    string curparamtok = "{{x}}";
-    integer curparamtoklength = 0;
-    string curparamstr = "";
-    integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
-        // Construct this parameter token
-        curparamtok = "{{" + (string)(curparamnum) + "}}";
-        curparamtoklength = llStringLength(curparamtok);
-        // Fetch the parameter text
-        curparamstr = llList2String(params, curparamnum);
-        
-        // Ensure the parameter text does NOT contain double braces (this avoids an infinite loop!)
-        if (llSubStringIndex(curparamstr, "{{") < 0 && llSubStringIndex(curparamstr, "}}") < 0) {            
-            // Go through every instance of this parameter's token
-            while ((tokpos = llSubStringIndex(str, curparamtok)) >= 0) {
-                // Replace the token with the parameter string
-                str = llDeleteSubString(str, tokpos, tokpos + curparamtoklength - 1);
-                str = llInsertString(str, tokpos, curparamstr);
+    link_message(integer sender_num, integer num, string msg, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Split the message into lines
+            list lines = llParseString2List(msg, ["\n"], []);
+            integer numlines = llGetListLength(lines);
+            integer i = 0;
+            for (; i < numlines; i++) {
+                isconfigured = sloodle_handle_command(llList2String(lines, i));
+            }
+            
+            // If we've got all our data AND reached the end of the configuration data, then move on
+            if (eof == TRUE) {
+                if (isconfigured == TRUE) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
+                    state ready;
+                } else {
+                    // Go all configuration but, it's not complete... request reconfiguration
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    sloodle_debug("sloodleserverroot = " + sloodleserverroot + "\nsloodlepwd = " + sloodlepwd);
+                    eof = FALSE;
+                }
             }
         }
     }
-    
-    return str;
 }
 
 
-///// STATES /////
-
-default
-{
+/// ERROR STATE ///
+// Initialisation and/or authentication has failed.
+// Object can be clicked to retry setup.
+state error
+{    
     state_entry()
     {
+        // Reset all values
+        resetSettings();
+        resetWorkingValues();
+        // Inform the user that they can retry the setup process
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "errorstate", [], NULL_KEY, "toolbar");
+        
+        // Update the display to say "error"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_ERROR, NULL_KEY);
     }
     
-    link_message(integer sender_num, integer num, string str, key id)
+    state_exit()
     {
-        // Check the channel
-        if (num == SLOODLE_CHANNEL_TRANSLATION_REQUEST) {            
-            
-            // // PROCESS REQUEST // //
+        // Clear the text caption
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
+    }
+}
+
+
+/// READY ///
+// Ready to start blogging
+state ready
+{   
+    state_entry()
+    {
+        // Reset all of the working values and display from the last blog entry
+        resetDisplay();
+        resetWorkingValues();
         
-            // Split the incoming message into fields
-            list fields = llParseStringKeepNulls(str, ["|"], []);
-            integer numfields = llGetListLength(fields);
+        // Update display to say "ready"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_READY, NULL_KEY);
+    }
+    
+    touch_start( integer num )
+    {
+        // Make sure it is the owner touching the HUD
+        if (llDetectedKey(0) != llGetOwner()) return;
+                
+        // Get the name of the prim that was touched
+        string name = llGetLinkName(llDetectedLinkNumber(0));
+        if (name == "start_blog") {
+            state get_subject;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
+        } else if (name == "visibility") {
+            show_visibility_menu();
+        }
+    }
+    
+    listen( integer channel, string name, key id, string msg )
+    {
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Ignore cancellation messages
+            if (llToLower(msg) == "cancel" || llToLower(msg) == "x") return;
             
-            // Extract and check the localization batch
-            string batch = "";
-            if (numfields > 4) batch = llList2String(fields, 4);
-            if (batch != mybatch) return;
+            // Determine the earliest time a menu could have active without expiring yet (give them 12 seconds)
+            integer expirytime = llGetUnixTime() - 12;
+            // Check which menu was most recently activated
+            if (dlglisten_channel > dlglisten_visibility) {
+                // Channel change
+                if (dlglisten_channel >= expirytime) handle_channel_change((integer)msg);
+            } else {
+                // Visibility
+                if (dlglisten_visibility >= expirytime) handle_visibility_change(msg);
+            }
+            return;
+        }
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
+    }
+}
+
+
+/// GET SUBJECT ///
+// Listen for the subject of the blog
+state get_subject
+{   
+    state_entry()
+    {
+        // Disable any existing timeout event
+        llSetTimerEvent(0.0);
+        
+        // Listen for chat messages from the owner of this object
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "chatsubject", [], null_key, "toolbar");
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
+        
+        // Set a timeout
+        llSetTimerEvent(CHAT_TIMEOUT);
+
+        // Update display to say "subject"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_SUBJECT, NULL_KEY);
+    }
+    
+    state_exit()
+    {
+        // Cancel the timeout if necessary
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        // We have timed-out waiting for a response
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "timeout:subject", [], null_key, "toolbar");
+        state ready;
+    }
+    
+    touch_start( integer num )
+    {
+        // Make sure it was the owner who touched the object
+        if (llDetectedKey(0) != llGetOwner()) return;
+        // Get the name of the touched prim
+        string name = llGetLinkName(llDetectedLinkNumber(0));
+        
+        // What was touched?
+        if (name == "send") {
+            // The "send" button was touched
+            // We cannot send until we have a blog body
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "cannotsave:needsubjectbody", [], null_key, "toolbar");
+            return;
             
-            // We expect at least 3 fields
-            // ... or 4 if there are insertion parameters...
-            // ... anybody up for a 6th parameter? :)
-            if (numfields < 3) {
-                sloodle_debug("ERROR: Insufficient fields for translation of string.");
+        } else if (name == "cancel") {
+            // The "cancel" button was touched
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "cancelled", [], null_key, "toolbar");
+            state ready;
+            
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
+        } else if (name == "visibility") {
+            show_visibility_menu();
+        }
+    }
+    
+    listen( integer channel, string name, key id, string msg )
+    {
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Ignore cancellation messages
+            if (llToLower(msg) == "cancel" || llToLower(msg) == "x") return;
+            
+            // Determine the earliest time a menu could have active without expiring yet (give them 12 seconds)
+            integer expirytime = llGetUnixTime() - 12;
+            // Check which menu was most recently activated
+            if (dlglisten_channel > dlglisten_visibility) {
+                // Channel change
+                if (dlglisten_channel >= expirytime) handle_channel_change((integer)msg);
+            } else {
+                // Visibility
+                if (dlglisten_visibility >= expirytime) handle_visibility_change(msg);
+            }
+            return;
+            
+        } else if (channel == user_chat_channel) {
+            // Make sure the message is not empty
+            if (msg == "") {
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "needsubject", [], null_key, "toolbar");
                 return;
             }
             
-            // Extract the key parts of the request
-            string output_method = llList2String(fields, 0);
-            list output_params = llCSV2List(llList2String(fields, 1));
-            integer num_output_params = llGetListLength(output_params);
-            string string_name = llList2String(fields, 2);
-            list string_params = [];
-            if (numfields > 3) {
-                // Extract the string parameters (extra text added to the output)
-                string string_param_text = llList2String(fields, 3);
-                if (string_param_text != "") string_params = llCSV2List(string_param_text);
-            }
-            
-            // // TRANSLATE STRING // //
-            
-            // This string will store the translation
-            string trans = "";
-            // Do nothing if the string name is empty
-            if (string_name != "") {
-                // If there are no string parameters, then it is only a basic translation
-                if (llGetListLength(string_params) == 0) {
-                    // Get the basic translation
-                    trans = sloodle_get_string(string_name);
-                } else {
-                    // Construct the formatted string
-                    trans = sloodle_get_string_f(string_name, string_params);
-                }
-            }
-            
-            // // OUTPUT STRING // //
-            
-            // Check what output method has been requested
-            if (output_method == SLOODLE_TRANSLATE_LINK) {
-                // Return the string via link message
-                sloodle_translation_response(sender_num, string_name, trans);
-                
-            } else if (output_method == SLOODLE_TRANSLATE_SAY) {
-                // Say the string
-                if (num_output_params > 0) llSay(llList2Integer(output_params, 0), trans);
-                else sloodle_debug("ERROR: Insufficient output parameters to say string \"" + string_name + "\".");
-                
-            } else if (output_method == SLOODLE_TRANSLATE_WHISPER) {
-                // Whisper the string
-                if (num_output_params > 0) llWhisper(llList2Integer(output_params, 0), trans);
-                else sloodle_debug("ERROR: Insufficient output parameters to whisper string \"" + string_name + "\".");
-                
-            } else if (output_method == SLOODLE_TRANSLATE_SHOUT) {
-                // Shout the string
-                if (num_output_params > 0) llShout(llList2Integer(output_params, 0), trans);
-                else sloodle_debug("ERROR: Insufficient output parameters to shout string \"" + string_name + "\".");
-                
-            } else if (output_method == SLOODLE_TRANSLATE_REGION_SAY) {
-                // RegionSay the string
-                if (num_output_params > 0) llRegionSay(llList2Integer(output_params, 0), trans);
-                else sloodle_debug("ERROR: Insufficient output parameters to region-say string \"" + string_name + "\".");
-                
-            } else if (output_method == SLOODLE_TRANSLATE_OWNER_SAY) {
-                // Ownersay the string
-                llOwnerSay(trans);
-                
-            } else if (output_method == SLOODLE_TRANSLATE_DIALOG) {
-                // Display a dialog - we need a valid key
-                if (id == NULL_KEY) {
-                    sloodle_debug("ERROR: Non-null key value required to show dialog with string \"" + string_name + "\".");
-                    return;
-                }
-                // We need at least 2 additional output parameters (channel, and at least 1 button)
-                if (num_output_params >= 2) {
-                    // Extract the channel number
-                    integer channel = llList2Integer(output_params, 0);
-                    // Extract up to 12 button values
-                    list buttons = llList2List(output_params, 1, 12);
-                    
-                    // Display the dialog
-                    llDialog(id, trans, buttons, channel);
-                    
-                } else sloodle_debug("ERROR: Insufficient output parameters to show dialog with string \"" + string_name + "\".");
-                
-            } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL) {
-                // Display a URL - we need a valid key
-                if (id == NULL_KEY) {
-                    sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
-                    return;
-                }                
-                // We need 1 additional parameter, containing the URL to load
-                if (num_output_params >= 1) llLoadURL(id, trans, llList2String(output_params, 0));
-                else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
-            
-            } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL_PARALLEL) {
-                // Display a URL - we need a valid key
-                if (id == NULL_KEY) {
-                    sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
-                    return;
-                }
-                
-                // NOTE: currently the parallel URL loaders will drop any text.
-                // TODO: make parallel URL loaders use text as well.
-                
-                // We need 1 additional parameter, containing the URL to load
-                if (num_output_params >= 1) llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, llList2String(output_params, 0), id);
-                else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
-            
-            } else if (output_method == SLOODLE_TRANSLATE_HOVER_TEXT) {
-                // We need 1 additional parameter, containing the URL to load
-                if (num_output_params >= 2) llSetText(trans, (vector)llList2String(output_params, 0), (float)llList2String(output_params, 1));
-                else sloodle_debug("ERROR: Insufficient output parameters to show hover text with string \"" + string_name + "\".");
-            
-            } else if (output_method == SLOODLE_TRANSLATE_IM) {
-                // Send an IM - we need a valid key
-                if (id == NULL_KEY) {
-                    sloodle_debug("ERROR: Non-null key value required to send IM with string \"" + string_name + "\".");
-                    return;
-                }                
-                // Send the IM
-                llInstantMessage(id, trans);
+            // Store and display the blog subject
+            if (llStringLength(msg) <= 128) blogsubject = msg;
+            else blogsubject = llGetSubString(msg, 0, 127);
+            llMessageLinked(LINK_ALL_CHILDREN, 1, blogsubject, NULL_KEY);
 
-            } else {
-                // Don't know the output method
-                sloodle_debug("ERROR: unrecognised output method \"" + output_method + "\".");
-            }
+            state get_body;
+            return;
         }
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
+    }
+}
+
+
+/// GET BODY ///
+// Listen for the body of the blog
+state get_body
+{   
+    state_entry()
+    {
+        // Disable any existing timeout event
+        llSetTimerEvent(0.0);
+        
+        // Set the initial blog body length to the length of the subject line
+        blogbodylength = llStringLength(blogsubject);
+        
+        // Listen for chat messages from the owner of this object
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "chatbody", [(string)(MAX_BLOG_BODY_LENGTH - blogbodylength - 1)], null_key, "toolbar");
+        
+        user_listen_handle = llListen(user_chat_channel, "", llGetOwner(), "");
+        
+        // Set a timeout
+        llSetTimerEvent(CHAT_TIMEOUT);
+
+        // Update display to say "body"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_BODY, NULL_KEY);
+    }
+    
+    state_exit()
+    {
+        // Cancel the timeout if necessary
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        // We have timed-out waiting for a response
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "timeoutbody", [], null_key, "toolbar");
+        state ready;
+    }
+    
+    touch_start( integer num )
+    {
+        // Make sure it was the owner who touched the object
+        if (llDetectedKey(0) != llGetOwner()) return;
+        // Get the name of the touched prim
+        string name = llGetLinkName(llDetectedLinkNumber(0));
+        
+        // What button was touched?
+        if (name == "send") {
+            // The "send" button was touched
+            // Make sure a body has been typed
+            if (blogbody == "") {
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "needbody", [], null_key, "toolbar");
+                return;
+            }
+            // Send it
+            state send;
+        } else if (name == "cancel") {
+            // The "cancel" button was touched
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "cancelled", [], null_key, "toolbar");
+            state ready;
+        } else if (name == "channel" || name == "channel_num") {
+            show_channel_menu();
+        } else if (name == "visibility") {
+            show_visibility_menu();
+        }
+    }
+    
+    listen( integer channel, string name, key id, string msg )
+    {
+        // Check which channel this is coming in on
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+            // Make sure it's from the owner and that the message is not empty
+            if (id != llGetOwner() || msg == "") return;
+            // Ignore cancellation messages
+            if (llToLower(msg) == "cancel" || llToLower(msg) == "x") return;
+            
+            // Determine the earliest time a menu could have active without expiring yet (give them 12 seconds)
+            integer expirytime = llGetUnixTime() - 12;
+            // Check which menu was most recently activated
+            if (dlglisten_channel > dlglisten_visibility) {
+                // Channel change
+                if (dlglisten_channel >= expirytime) handle_channel_change((integer)msg);
+            } else {
+                // Visibility
+                if (dlglisten_visibility >= expirytime) handle_visibility_change(msg);
+            }
+            return;
+            
+        } else if (channel == user_chat_channel) {
+            // If the body is already at maximum length, then ignore this
+            if (blogbodylength >= MAX_BLOG_BODY_LENGTH) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "atmaximum", [llKey2Name(llGetOwner())], null_key, "toolbar");
+                return;
+            }
+            // Make sure the message is not empty
+            if (msg == "") return;
+            
+            // Add a space at the end of the message
+            msg += " ";
+            // Check that we can fit this message in
+            integer msglen = llStringLength(msg);
+            if ((blogbodylength + msglen) > MAX_BLOG_BODY_LENGTH) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "toolong", [llKey2Name(llGetOwner()), (string)(MAX_BLOG_BODY_LENGTH - blogbodylength - 1)], null_key, "toolbar");
+                return;
+            }
+            
+            // Store and display it
+            blogbodylength += msglen;
+            blogbody += msg;
+            llMessageLinked(LINK_ALL_CHILDREN, 2, blogbody, NULL_KEY);
+            update_blog_length_display();
+            
+            // Report the number of characters remaining
+            integer charsleft = MAX_BLOG_BODY_LENGTH - blogbodylength - 1;
+            if (charsleft > 0) sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "charsleft", [(string)charsleft], null_key, "toolbar");
+            else sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "full", [], null_key, "toolbar");
+        }
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
+    }
+}
+
+
+/// SEND ///
+// Send the blog entry to the server
+state send
+{   
+    state_entry()
+    {
+        // Disable any existing timeout event
+        llSetTimerEvent(0.0);
+        
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "sending", [llKey2Name(llGetOwner())], null_key, "toolbar");
+        
+        // Update display to say "sending"
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, SLOODLE_CMD_BLOG + "|" + SLOODLE_CMD_SENDING, NULL_KEY);
+        // Construct the body of the request
+        string body = "sloodlepwd=" + sloodlepwd;
+        body += "&sloodleuuid=" + (string)llGetOwner();
+        body += "&sloodleblogsubject=" + llEscapeURL(blogsubject);
+        body += "&sloodleblogbody=" + blogbody;
+        body += "&sloodleblogvisibility=" + visibility;
+
+        sloodle_debug("Sending request to update blog.");
+        httpblogrequest = llHTTPRequest(sloodleserverroot + SLOODLE_BLOG_LINKER, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], body);
+        
+        // Set a timeout event
+        llSetTimerEvent(HTTP_TIMEOUT);
+    }
+    
+    state_exit()
+    {
+        // Cancel the timeout if necessary
+        llSetTimerEvent(0.0);
+    }
+    
+    timer()
+    {
+        // We have timed-out waiting for an HTTP response
+        llSetTimerEvent(0.0);
+        llOwnerSay("ERROR: Timeout waiting for HTTP response. You may try again, or cancel.");
+        state get_body;
+    }
+    
+    http_response(key request_id, integer status, list metadata, string body)
+    {
+        // Make sure this is the expected HTTP response
+        if (request_id != httpblogrequest) return;
+        httpblogrequest = null_key;
+        
+        sloodle_debug("HTTP Response ("+(string)status+"): "+body);
+        
+        // Was the HTTP request successful?
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httperror", [status], null_key, "toolbar");
+            state ready;
+            return;
+        }
+        
+        // Split the response into lines and extract the status fields
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+        integer statuscode = llList2Integer(statusfields, 0);
+        // We expect at most 1 data line
+        string dataline = "";
+        if (numlines > 1) dataline = llList2String(lines, 1);
+        
+        // Check the status code
+        if (statuscode <= -300 && statuscode > -400) {
+            // It is a user authentication error - attempt re-authentication
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "autherror", [(string)statuscode], null_key, "toolbar");
+            sloodle_debug(body);
+            state default;
+            return;
+            
+        } else if (statuscode <= 0) {
+            // Don't know what kind of error it was
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "servererror", [(string)statuscode], null_key, "");
+            sloodle_debug(body);
+            state ready;
+            return;
+        }
+        
+        // If we get here, then it must have been successful
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "sent", [], null_key, "toolbar");
+        state ready;
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
     }
 }
