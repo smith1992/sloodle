@@ -104,18 +104,27 @@
         if ($sloodle->course->load_user_by_loginzone($sloodlepos, $sloodle->user)) {
             // Success
             
-            // Add the avatar to our database
-            if ($sloodle->user->add_linked_avatar($sloodle->user->get_user_id(), $sloodleuuid, $sloodleavname)) {
-                // Delete the LoginZone allocation now
-                $sloodle->course->delete_loginzone_allocation($sloodle->user);
-                // We've been successful
-                $sloodle->response->set_status_code(1);
-                $sloodle->response->set_status_descriptor('OK');
+            // Make sure the user has permission to register their avatar
+            $sloodle->user->login();
+            if (!has_capability('mod/sloodle:registeravatar', get_context_instance(CONTEXT_SYSTEM))) {
+                $sloodle->response->set_status_code(-331);
+                $sloodle->response->set_status_descriptor('USER_AUTH');
+                $sloodle->response->add_data_line('User does not have permission to register an avatar.');
+                
             } else {
-                // Failed to add the avatar
-                $sloodle->response->set_status_code(-102);
-                $sloodle->response->set_status_descriptor('SYSTEM');
-                $sloodle->response->add_data_line('Failed to add avatar to database');
+                // Add the avatar to our database
+                if ($sloodle->user->add_linked_avatar($sloodle->user->get_user_id(), $sloodleuuid, $sloodleavname)) {
+                    // Delete the LoginZone allocation now
+                    $sloodle->course->delete_loginzone_allocation($sloodle->user);
+                    // We've been successful
+                    $sloodle->response->set_status_code(1);
+                    $sloodle->response->set_status_descriptor('OK');
+                } else {
+                    // Failed to add the avatar
+                    $sloodle->response->set_status_code(-102);
+                    $sloodle->response->set_status_descriptor('SYSTEM');
+                    $sloodle->response->add_data_line('Failed to add avatar to database');
+                }
             }
             
         } else {

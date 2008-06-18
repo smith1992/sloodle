@@ -122,6 +122,9 @@
         exit();
     }
     
+    // Make sure the user is allowed to register an avatar
+    require_capability('mod/sloodle:registeravatar', get_context_instance(CONTEXT_SYSTEM));
+    
     // Has a new allocation been requested?
     if (isset($_REQUEST['allocate_loginzone'])) {
         // Yes - generate one
