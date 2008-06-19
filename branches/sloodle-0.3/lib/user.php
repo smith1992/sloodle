@@ -22,6 +22,8 @@
     require_once(SLOODLE_DIRROOT.'/lib/general.php');
     /** Include the Sloodle course data structure. */
     require_once(SLOODLE_DIRROOT.'/lib/course.php');
+    /** Include the user object data structure */
+    require_once(SLOODLE_DIRROOT.'/lib/user_object.php');
     
     
     /**
@@ -847,6 +849,49 @@
             }
             
             return $success;
+        }
+        
+        
+        /**
+        * Gets a list of all user-centric objects authorised for the current avatar.
+        * @return array A numeric array of {@link SloodleUserObject} objects
+        */
+        function get_user_objects()
+        {
+            // Make sure an avatar is loaded
+            if (!$this->is_avatar_loaded()) return array();
+            // Get all objects authorised for this avatar's UUID
+            $recs = get_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid());
+            if (!$recs) return array();
+            // Construct an array of SloodleUserObject's
+            $output = array();
+            foreach ($recs as $r) {
+                $obj = new SloodleUserObject();
+                $obj->id = $r->id;
+                $obj->avuuid = $r->avuuid;
+                $obj->objuuid = $r->objuuid;
+                $obj->objname = $r->objname;
+                $obj->password = $r->password;
+                $obj->authorized = (bool)$r->authorised; // Note different spelling... oops! -PB
+                $obj->timeupdated = $r->timeupdated;
+                
+                $output[] = $obj;
+            }
+            
+            return $output;
+        }
+        
+        
+        /**
+        * Deletes a user-centric object by UUID.
+        * Note: the object must have been authorised for the current avatar.
+        * @param string $uuid The UUID of the object to delete
+        * @return void
+        */
+        function delete_user_object($uuid)
+        {
+            if (!$this->is_avatar_loaded()) return;
+            delete_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid(), 'objuuid', $uuid);
         }
         
     }

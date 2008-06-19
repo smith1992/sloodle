@@ -36,7 +36,9 @@ list locstrings = [
     "invalidtype", "Error: this object cannot handle quiz questions of type: {{0}}", // Parameter: question type name
     "complete", "Quiz Complete",
     "repeating", "Repeating...",
-    "starting", "Starting quiz for {{0}}" // Parameter: avatar name
+    "starting", "Starting quiz for {{0}}", // Parameter: avatar name
+    "noquestions", "ERROR: there are no questions available",
+    "noattemptsleft", "Sorry {{0}}. You are not allowed to attempt this quiz again." // Parameter: avatar name
 ];
 
 ///// ----------- /////

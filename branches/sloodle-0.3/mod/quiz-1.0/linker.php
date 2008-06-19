@@ -152,7 +152,7 @@
     $numberofpreviousattempts = count_records_select('quiz_attempts', "quiz = '{$quiz->id}' AND " .
         "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
     if ($quiz->attempts and $numberofpreviousattempts >= $quiz->attempts) {
-        $sloodle->response->quick_output(-701, 'QUIZ', 'You do not have any attempts left', FALSE);
+        $sloodle->response->quick_output(-10301, 'QUIZ', 'You do not have any attempts left', FALSE);
         exit();
     }
 
@@ -164,7 +164,7 @@
 
 /// Check password access
     if ($quiz->password) {
-        $sloodle->response->quick_output(-701, 'QUIZ', 'Quiz requires password - not supported by Sloodle', FALSE);
+        $sloodle->response->quick_output(-10302, 'QUIZ', 'Quiz requires password - not supported by Sloodle', FALSE);
         exit();
 	}
 
@@ -245,7 +245,7 @@
     }
 
     if (!$questionlist) {
-        $sloodle->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
+        $sloodle->response->quick_output(-10303, 'QUIZ', 'No questions found.', FALSE);
         exit();
     }
 
@@ -257,13 +257,13 @@
 
     // Load the questions
     if (!$questions = get_records_sql($sql)) {
-        $sloodle->response->quick_output(-701, 'QUIZ', 'No questions found.', FALSE);
+        $sloodle->response->quick_output(-10303, 'QUIZ', 'No questions found.', FALSE);
         exit();
     }
 
     // Load the question type specific information
     if (!get_question_options($questions)) {
-        $sloodle->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
+        $sloodle->response->quick_output(-10303, 'QUIZ', 'Could not load question options.', FALSE);
         exit();
     }
 
@@ -387,13 +387,13 @@
                    " WHERE i.quiz = '$quiz->id' AND q.id = i.question".
                    "   AND q.id IN ($closequestionlist)";
             if (!$closequestions = get_records_sql($sql)) {
-                $sloodle->response->quick_output(-701, 'QUIZ', 'Questions missing.', FALSE);
+                $sloodle->response->quick_output(-10303, 'QUIZ', 'Questions missing.', FALSE);
                 exit();
             }
 
             // Load the question type specific information
             if (!get_question_options($closequestions)) {
-                $sloodle->response->quick_output(-701, 'QUIZ', 'Could not load question options.', FALSE);
+                $sloodle->response->quick_output(-10303, 'QUIZ', 'Could not load question options.', FALSE);
                 exit();
             }
 

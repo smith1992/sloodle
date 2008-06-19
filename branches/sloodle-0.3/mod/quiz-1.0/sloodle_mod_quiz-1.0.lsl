@@ -159,11 +159,19 @@ populate_qa_list(string response)
     integer statuscode = llList2Integer(statusfields, 0);
     
     // Was it an error code?
-    if (statuscode <= 0) {
+    if (statuscode == -10301) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noattemptsleft", [llKey2Name(sitter)], NULL_KEY, "");
+        return;
+        
+    } else if (statuscode == -10302) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noquestions", [], NULL_KEY, "");
+        return;
+        
+    } else if (statuscode <= 0) {
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
         // Check if an error message was reported
         if (numlines > 1) sloodle_debug(llList2String(lines, 1));
-        return 0;
+        return;
     }
 
     integer loadedqitem = -1;

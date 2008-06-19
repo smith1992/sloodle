@@ -729,7 +729,78 @@
         
         print_box_end();
     }
+
+
+    /**
+    * Returns a very approximate natural language description of a period of time (in minutes, hours, days, or weeks).
+    * Can also be used to describe how long ago something happened, in which case anything less than 1 minute is treated as 'now'.
+    * @param int $secs Number of seconds in period of time
+    * @param bool $ago If true (not default), then the time will be described in past tense, e.g. "3 days ago", as opposed to simply "3 days".
+    * @return string
+    */
+    function sloodle_describe_approx_time($secs, $ago = false)
+    {
+        // Make sure the time is a positive integer
+        $secs = (int)$secs;
+        if ($secs < 0) $secs *= -1;
+        
+        // Less than a minute
+        if ($secs < 60) {
+            // If we are describing a past time, then approximate to 'now'
+            if ($ago) return ucwords(get_string('now', 'sloodle'));
+            // Give the number of seconds
+            if ($secs == 1) return '1 '. get_string('second', 'sloodle');
+            return $secs.' '. get_string('seconds', 'sloodle');
+        }
+        
+        // This variable will hold the time description
+        $desc = '';
+        
+        // Roughly 1 minute
+        if ($secs < 120) $desc = '1 '. get_string('minute', 'sloodle');
+        // Several minutes (up to 1 hour)
+        else if ($secs < 3600) $desc = ((string)(int)($secs / 60)).' '. get_string('minutes', 'sloodle');
+        // Roughly 1 hour
+        else if ($secs < 7200) $desc = '1 '. get_string('hour', 'sloodle');
+        // Several hours (up to 1 day)
+        else if ($secs < 86400) $desc = ((string)(int)($secs / 3600)).' '. get_string('hours', 'sloodle');
+        // Roughly 1 day
+        else if ($secs < 172800) $desc = '1 '. get_string('day', 'sloodle');
+        // Several days (up to 1 week)
+        else if ($secs < 604800) $desc = ((string)(int)($secs / 86400)).' '. get_string('days', 'sloodle');
+        // Roughly 1 week
+        else if ($secs < 1209600) $desc = '1 '. get_string('week', 'sloodle');
+        // Several weeks (up to 2 months)
+        else if ($secs < 5184000) $desc = ((string)(int)($secs / 604800)).' '. get_string('weeks', 'sloodle');
+        // Several months (up to 11 months)
+        else if ($secs < 29462400) $desc = ((string)(int)($secs / 2592000)).' '. get_string('months', 'sloodle');
+        // 1 year
+        else if ($secs < 63072000) $desc = '1 '. get_string('year', 'sloodle');
+        // Several years
+        else $desc = ((string)(int)($secs / 31536000)).' '. get_string('years', 'sloodle');
+        
+        // Add 'ago' if necessary
+        if ($ago) return get_string('timeago', 'sloodle', $desc);
+        return $desc;
+    }
     
+    /**
+    * Gets the basic URL of the current web-page being accessed.
+    * Includes the protocol, hostname, and script path/name.
+    * @return string
+    */
+    function sloodle_get_web_path()
+    {
+        // Check for the protocol
+        if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') $protocol = "http";
+        else $protocol = "https";
+        // Get the host name (e.g. domain)
+        $host = $_SERVER['SERVER_NAME'];
+        // Finally, get the script path/name
+        $file = $_SERVER['SCRIPT_NAME'];
+        
+        return $protocol.'://'.$host.$file;
+    }
     
 
 ?>

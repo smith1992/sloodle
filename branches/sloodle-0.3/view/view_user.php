@@ -39,6 +39,8 @@
 
     /** Sloodle/Moodle configuration. */
     require_once('../sl_config.php');
+    /** Sloodle Session code. */
+    require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     /** General Sloodle functionality. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     
@@ -52,10 +54,42 @@
     
     // Fetch the parameters
     $moodleuserid = required_param('id', PARAM_RAW);
-    $deletesloodleentry = optional_param('delete', NULL, PARAM_INT);
-    $userconfirmed = optional_param('confirm', NULL, PARAM_RAW);
+    $deletesloodleentry = optional_param('delete', null, PARAM_INT);
+    $userconfirmed = optional_param('confirm', null, PARAM_RAW);
     $courseid = optional_param('course', 1, PARAM_INT);
     $searchstr = addslashes(optional_param('search', '', PARAM_TEXT));
+    $deleteuserobjects = optional_param('deleteuserobjects', null, PARAM_TEXT);
+    
+    // Were any of the delete parameters specified in HTTP (e.g. from a form)?
+    if (!empty($deleteuserobjects) || !empty($deletesloodleentry) || !empty($userconfirmed)) {
+        // Convert them to session parameters
+        if (!empty($deleteuserobjects)) $_SESSION['deleteuserobjects'] = $deleteuserobjects;
+        if (!empty($deletesloodleentry)) $_SESSION['deletesloodleentry'] = $deletesloodleentry;
+        if (!empty($userconfirmed)) $_SESSION['userconfirmed'] = $userconfirmed;
+        
+        // Construct our full URL, with GET parameters
+        $url = sloodle_get_web_path();
+        $url .= "?id=$moodleuserid";
+        if (!empty($courseid)) $url .= "&course=$courseid";
+        if (!empty($searchstr)) $url .= "&search=$searchstr";
+        // Reload this page without those parameters
+        redirect($url);
+        exit();
+    }
+    
+    // Extract data from our session parameters
+    if (isset($_SESSION['deleteuserobjects'])) {
+        $deleteuserobjects = $_SESSION['deleteuserobjects'];
+        unset($_SESSION['deleteuserobjects']);
+    }
+    if (isset($_SESSION['deletesloodleentry'])) {
+        $deletesloodleentry = $_SESSION['deletesloodleentry'];
+        unset($_SESSION['deletesloodleentry']);
+    }
+    if (isset($_SESSION['userconfirmed'])) {
+        $userconfirmed = $_SESSION['userconfirmed'];
+        unset($_SESSION['userconfirmed']);
+    }
     
     // Check the mode: all, search, pending, or single
     $allentries = false;
@@ -147,6 +181,7 @@
             $deletemsg .= '<form action="'.$form_url.'" method="get">';
             
             if ($allentries) $deletemsg .= '<input type="hidden" name="id" value="all" />';
+            else if ($searchentries) $deletemsg .= '<input type="hidden" name="id" value="search" /><input type="hidden" name="search" value="'.$searchstr.'" />';
             else $deletemsg .= '<input type="hidden" name="id" value="'.$moodleuserid.'" />';
             
             if (!is_null($courseid)) $deletemsg .= '<input type="hidden" name="course" value="'.$courseid.'" />';
@@ -170,7 +205,7 @@
         // Search entries
         $moodleuserdata = null;
         $LIKE = sql_ilike();
-        $sloodleentries = get_records_select('sloodle_users', "`avname` $LIKE '%$searchstr%' OR `uuid` $LIKE '%$searchstr%'", '`avname`');
+        $sloodleentries = get_records_select('sloodle_users', "avname $LIKE '%$searchstr%' OR uuid $LIKE '%$searchstr%'", 'avname');
     } else {
         // Attempt to fetch the Moodle user data
         $moodleuserdata = get_record('user', 'id', $moodleuserid);
@@ -186,15 +221,6 @@
     $strsloodle = get_string('modulename', 'sloodle');
     $strsloodles = get_string('modulenameplural', 'sloodle');
     $strunknown = get_string('unknown', 'sloodle');
-    $strminute = get_string('minute', 'sloodle');
-    $strminutes = get_string('minutes', 'sloodle');
-    $strhour = get_string('hour', 'sloodle');
-    $strhours = get_string('hours', 'sloodle');
-    $strday = get_string('day', 'sloodle');
-    $strdays = get_string('days', 'sloodle');
-    $strweek = get_string('week', 'sloodle');
-    $strweeks = get_string('weeks', 'sloodle');
-
     
     // Construct the breadcrumb links
     $navigation = "";
@@ -289,9 +315,23 @@
         $sloodletable->size = array('5%', '5%', '27%', '35%', '20%', '8%');
         
         $deletestr = get_string('delete', 'sloodle');
+        
+        // We want to build a list of Sloodle user objects too
+        $userobjects = array();
+        // Create a dummy Sloodle Session
+        $sloodle = new SloodleSession(false);
                 
         // Go through each Sloodle entry for this user
         foreach ($sloodleentries as $su) {
+            
+            // Add this user's Sloodle objects (if we're not in 'all' or search modes)
+            if (!$allentries && !$searchentries) {
+                if ($sloodle->user->load_avatar($su->uuid, '')) {
+                    $userobjects += $sloodle->user->get_user_objects();
+                }
+            }
+            
+        
             // Is this entry being deleted (i.e. is the user being asked to confirm its deletion)?
             $deletingcurrent = ($confirmingdeletion == true && $su->id == $deletesloodleentry);
             
@@ -324,32 +364,9 @@
             if (!empty($su->lastactive)) {
                 // Calculate the time difference
                 $difference = time() - (int)$su->lastactive;
-                
-                // Assume first that the user is online now
-                // (Updates can easily take a minute or so... ignore anything less than 1 minute)
-                $duration = '';
-                if ($difference < 60) {
-                    $duration = ucwords(get_string('now', 'sloodle'));
-                } else if ($difference < 119) { // < 2 minutes
-                    $duration = "1 $strminute";
-                } else if ($difference < 3600) { // < 1 hour
-                    $duration = (string)(int)($difference / 60)." $strminutes";
-                } else if ($difference < 7200) { // < 2 hours
-                    $duration = "1 $strhour";
-                } else if ($difference < 86400) { // < 1 day
-                    $duration = (string)(int)($difference / 3600)." $strhours";
-                } else if ($difference < 172800) { // < 2 days
-                    $duration = "1 $strday";
-                } else if ($difference < 604800) { // < 1 week
-                    $duration = (string)(int)($difference / 86400)." $strdays";
-                } else if ($difference < 1209600) { // < 2 weeks
-                    $duration = "1 $strweek";
-                } else {
-                    $duration = (string)(int)($difference / 604800)." $strweeks";
-                }
-                
+                if ($difference < 0) $difference = 0;
                 // Add it to the table
-                $line[] = $duration;
+                $line[] = sloodle_describe_approx_time($difference, true);
             } else {
                 $line[] = '('.$strunknown.')';
             }
@@ -357,6 +374,7 @@
             // Display the "delete" action
             if ($canedit) {
                 if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view/view_user.php?id=all&amp;course=$courseid&amp;delete={$su->id}";
+                else if ($searchentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view/view_user.php?id=search&amp;course=$courseid&amp;search=$searchstr&amp;delete={$su->id}";
                 else $deleteurl = $CFG->wwwroot."/mod/sloodle/view/view_user.php?id=$moodleuserid&amp;course=$courseid&amp;delete={$su->id}";
                 $deletecaption = get_string('clicktodeleteentry','sloodle');
                 $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
@@ -371,6 +389,108 @@
         
         // Display the table
         print_table($sloodletable);
+        
+        
+        // Now display the section of user-authorized objects
+        if (!$allentries && !$searchentries) {
+            echo '<br><h3>'.get_string('userobjects','sloodle');
+            helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', false);
+            echo "</h3>\n";
+            
+            
+            // Have we been asked to delete the user objects?
+            if ($deleteuserobjects == 'true') {
+                // Yes - display a confirmation form
+                echo '<h4 style="color:red; font-weight:bold;">'.get_string('confirmdeleteuserobjects','sloodle').'</h4>';
+                
+                echo '<table style="border-style:none; margin-left:auto; margin-right:auto;"><tr><td>';
+                
+                echo '<form action="view_user.php" method="GET">';
+                echo '<input type="hidden" name="id" value="'.$moodleuserid.'" >';
+                if (!empty($courseid)) echo '<input type="hidden" name="course" value="'.$courseid.'" >';
+                echo '<input type="hidden" name="deleteuserobjects" value="confirm" >';
+                echo '<input type="submit" value="'.get_string('yes').'" title="'.get_string('deleteuserobjects:help','sloodle').'" >';
+                echo '</form>';
+                
+                echo '</td><td>';
+                
+                echo '<form action="view_user.php" method="GET">';
+                echo '<input type="hidden" name="id" value="'.$moodleuserid.'" >';
+                if (!empty($courseid)) echo '<input type="hidden" name="course" value="'.$courseid.'" >';
+                echo '<input type="submit" value="'.get_string('no').'" >';
+                echo '</form>';
+                
+                echo '</td></tr></table><br>';
+                
+            } else if ($deleteuserobjects == 'confirm') {
+                // Delete each one
+                $numdeleted = 0;
+                foreach ($userobjects as $obj) {
+                    delete_records('sloodle_user_object', 'id', $obj->id);
+                    $numdeleted++;
+                }
+                $userobjects = array();
+                echo get_string('numdeleted','sloodle').': '.$numdeleted.'<br><br>';
+            }
+            
+            
+            // Do we have any objects to display?
+            if (count($userobjects) > 0) {
+                
+                // Yes - prepare the table
+                $sloodletable = new stdClass();
+                $sloodletable->head = array(    get_string('ID', 'sloodle'),
+                                                get_string('avataruuid', 'sloodle'),
+                                                get_string('uuid', 'sloodle'),
+                                                get_string('name', 'sloodle'),
+                                                get_string('isauthorized', 'sloodle'),
+                                                get_string('lastused', 'sloodle')
+                                            );
+                $sloodletable->align = array('center', 'left', 'left', 'left', 'center', 'left');
+                //$sloodletable->size = array('5%', '5%', '27%', '35%', '20%', '8%');
+                
+                // Store the current timestamp for consistency
+                $curtime = time();
+                
+                // Go through each object
+                foreach ($userobjects as $obj) {
+                    $line = array();
+                    $line[] = $obj->id;
+                    $line[] = $obj->avuuid;
+                    $line[] = $obj->objuuid;
+                    $line[] = $obj->objname;
+                    if ($obj->authorized) $line[] = ucwords(get_string('yes'));
+                    else $line[] = ucwords(get_string('no'));
+                    
+                    $lastused = (int)$obj->timeupdated;
+                    if ($lastused > 0) $line[] = sloodle_describe_approx_time($curtime - $lastused, true);
+                    else $line[] = '('.get_string('unknown','sloodle').')';
+                    
+                    $sloodletable->data[] = $line;
+                }
+                
+                // Display the table
+                print_table($sloodletable);
+                
+                // Display a button to delete all the Sloodle objects
+                if (empty($deleteuserobjects)) {
+                    echo '<br><form action="view_user.php" method="GET">';
+                    echo '<input type="hidden" name="id" value="'.$moodleuserid.'" >';
+                    if (!empty($courseid)) echo '<input type="hidden" name="course" value="'.$courseid.'" >';
+                    echo '<input type="hidden" name="deleteuserobjects" value="true" >';
+                    echo '<input type="submit" value="'.get_string('deleteuserobjects','sloodle').'" title="'.get_string('deleteuserobjects:help','sloodle').'" >';
+                    echo '</form><br>';
+                }
+                
+                
+            } else {
+                // No user objects
+                echo '<span style="color:red; font-weight:bold;">';
+                print_string('noentries', 'sloodle');
+                echo '</span>';
+            }
+        }
+        
     }
     echo '</div>';
     

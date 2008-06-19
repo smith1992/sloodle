@@ -25,6 +25,13 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
 string SLOODLE_OBJECT_TYPE = "primdrop-1.0";
 
+
+integer SLOODLE_CHANNEL_PRIMDROP_INVENTORY = -1639270071;
+string PRIMDROP_RECEIVE_DROP = "do:receivedrop"; // Instructs the object to receive a drop
+string PRIMDROP_CANCEL_DROP = "do:canceldrop"; // Cancel drop receiving
+string PRIMDROP_FINISHED_DROP = "set:droppedobject"; // The drop has finished (object name passed as parameter after pipe character)
+
+
 // Configuration settings
 string sloodleserverroot = "";
 string sloodlepwd = "";
@@ -221,7 +228,7 @@ integer valid_perms(string obj)
     return (!((perms_owner & PERM_COPY) && (perms_owner & PERM_TRANSFER) && (perms_next & PERM_COPY) && (perms_next & PERM_TRANSFER)));
 }
 
-// Returns a list of all inventory (all types)
+// Returns a list of all inventory
 list get_inventory(integer type)
 {
     list inv = [];
@@ -234,32 +241,12 @@ list get_inventory(integer type)
     return inv;
 }
 
-// Compares 2 lists
-// Returns the first item on list1 that is not on list2
-// Returns an empty string if nothing is found
-string ListDiff(list list1, list list2) {
-    integer i;
-
-    for (i = 0; i < llGetListLength(list1); i++) {
-        if (llListFindList(list2, llList2List(list1, i, i)) == -1) {
-            return(llList2String(list1, i));
-        }
-    }
-    return("");
-}
-
-
 // Checks and validates an inventory drop.
 // Returns TRUE if it is OK, or FALSE if not.
 integer sloodle_check_drop()
 {
-    // Determine what our new object is
+    // Our new object is stored in variable "submit_obj"
     sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkingitem", [], NULL_KEY, "assignment");
-    new_inventory = get_inventory(INVENTORY_ALL);
-    submit_obj = ListDiff(new_inventory, old_inventory);
-    
-    old_inventory = [];
-    new_inventory = [];
     
     // Make sure it exists
     if (llGetInventoryType(submit_obj) == INVENTORY_NONE || submit_obj == "") {
@@ -563,13 +550,12 @@ state drop
 {
     state_entry()
     {
-        // Check the current inventory
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "assignment:checkinginventory", [], NULL_KEY, "assignment");
-        old_inventory = get_inventory(INVENTORY_ALL);
+        // Instruct the inventory manager to receive a drop
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_PRIMDROP_INVENTORY, PRIMDROP_RECEIVE_DROP, NULL_KEY);
+    
         // Prepare to receive a submission
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.5,1.0>, 1.0], "assignment:waitingforsubmission", [llKey2Name(current_user)], NULL_KEY, "assignment");
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:dropsubmission", [llKey2Name(current_user)], NULL_KEY, "assignment");
-        llAllowInventoryDrop(TRUE);
         
         // Allow the user 60 seconds to make their submission
         llSetTimerEvent(0.0);
@@ -578,28 +564,36 @@ state drop
     
     state_exit()
     {
-        llAllowInventoryDrop(FALSE);
+        llSetTimerEvent(0.0);
     }
     
     timer()
     {
         // Submission timed-out
+        llSetTimerEvent(0.0);
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submittimeout", [llKey2Name(current_user)], NULL_KEY, "assignment");
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_PRIMDROP_INVENTORY, PRIMDROP_CANCEL_DROP, NULL_KEY);
         state ready;
     }
     
-    changed(integer change)
+    link_message(integer sender_num, integer num, string sval, key kval)
     {
-        // Has out inventory changed?
-        if ((change & CHANGED_INVENTORY) || (change & CHANGED_ALLOWED_DROP)) {
-            // Stop receiving inventory drops
-            llAllowInventoryDrop(FALSE);
-            llSetText("", <0.0,0.0,0.0>, 1.0);
-            llSetTimerEvent(0.0);
-        
-            // Check the drop
-            if (sloodle_check_drop()) state submitting;
-            else state ready;
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_PRIMDROP_INVENTORY) {
+            // Split the message
+            list parts = llParseStringKeepNulls(sval, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+            // Check the command
+            if (cmd == PRIMDROP_FINISHED_DROP) {
+                // Cancel the timeout
+                llSetTimerEvent(0.0);
+                // Store the submitted object and check it
+                submit_obj = val;
+                if (sloodle_check_drop()) state submitting;
+                else state ready;
+            }
         }
     }
     

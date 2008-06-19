@@ -75,6 +75,7 @@ $string['clicktovisitsloodle.org'] = 'Click here to visit Sloodle.org';
 $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
+$string['confirmdeleteuserobjects'] = 'Are you sure you want to delete all these user objects?';
 $string['controlaccess'] = 'You can control access to your courses by enabling or disabling the Sloodle Controllers';
 $string['courseconfig'] = 'Sloodle Course Configuration';
 $string['courseconfig:info'] = 'On this page, you can configure the Sloodle settings which affect your entire course. However, some of the settings may be disabled on your Moodle site by an administrator.<br/><br/><b>Please note:</b> auto-registration and auto-enrolment are not suitable for all Moodle installations. Please read the documentation about each one before enabling them.';
@@ -90,6 +91,9 @@ $string['deletionsuccessful'] = 'Deletion successful';
 $string['disabled'] = 'Disabled';
 $string['day'] = 'day';
 $string['days'] = 'days';
+
+$string['deleteuserobjects'] = 'Delete User Objects';
+$string['deleteuserobjects:help'] = 'Click this button to delete all the user objects associated with the above avatar(s)';
 
 $string['editcourse'] = 'Edit Sloodle Course Settings';
 $string['enabled'] = 'Enabled';
@@ -123,11 +127,13 @@ $string['ID'] = 'ID';
 $string['idletimeoutseconds'] = 'Idle timeout (seconds)';
 $string['invalidid'] = 'Invalid ID';
 $string['invalidcourseid'] = 'Invalid course ID';
+$string['isauthorized'] = 'Is Authorized?';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
 $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
 
 $string['lastactive'] = 'Last Sloodle Activity';
 $string['lastupdated'] = 'Last Updated';
+$string['lastused'] = 'Last Used';
 $string['linkedtomoodleusernum'] = 'Moodle User #';
 $string['listentoobjects'] = 'Listen to object chat';
 
@@ -165,6 +171,9 @@ $string['moodleadminindex'] = 'Moodle administration index';
 $string['moodleusernotfound'] = 'That Moodle user does not appear to exist. It may have been completely deleted from the database, or else you may have the wrong user ID.';
 $string['moodleuserprofile'] = 'Moodle user profile';
 $string['multipleentries'] = 'Warning: there are multiple Sloodle entries associated with this Moodle account.';
+
+$string['month'] = 'month';
+$string['months'] = 'months';
 
 $string['name'] = 'Name';
 $string['needadmin'] = 'You need administrator privileges to continue.';
@@ -291,12 +300,15 @@ $string['status'] = 'Status';
 $string['storedlayouts'] = 'Stored Layouts';
 $string['submit'] = 'Submit';
 
+$string['timeago'] = '$a ago'; // $a = period of time, e.g. "3 weeks"
+
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
 
 $string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 $string['usersearch'] = 'User search';
+$string['userobjects'] = 'User Objects';
 $string['userobjectauth'] = 'Sloodle User Object Authorization';
 $string['usedialogs'] = 'Use dialogs (instead of chat)?';
 
@@ -314,6 +326,8 @@ $string['xmlrpc:unexpectedresponse'] = 'Not getting the expected XMLRPC response
 $string['xmlrpc:error'] = 'XMLRPC Error';
 $string['xmlrpc:channel'] = 'XMLRPC Channel';
 
+$string['year'] = 'year';
+$string['years'] = 'years';
 $string['Yes'] = 'Yes';
 
 ?>
