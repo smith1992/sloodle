@@ -22,6 +22,9 @@ $string['accesslevelobject:control'] = 'Control object';
 $string['accesslevelserver'] = 'Server Access Level';
 $string['accesslevelserver:desc'] = 'This determines who may use the server resource';
 
+$string['activeobjects'] = 'Active objects';
+$string['activeobjectlifetime'] = 'Active object lifetime (days)';
+$string['activeobjectlifetime:info'] = 'The number of days before which an active object will expire if not used.';
 $string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
 
 $string['allocated'] = 'Allocated';
@@ -213,6 +216,7 @@ $string['object:set'] = 'Sloodle Set';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
+$string['objectnotinstalled'] = 'Object not installed';
 $string['objectconfig:header'] = 'Sloodle Object Configuration';
 $string['objectconfig:body'] = 'You can choose to configure some Sloodle objects with a notecard instead of using the common web-based authorisation. It is less secure, as it involves the use of a single prim password for all objects, but it makes it quicker and easier to rez pre-configured objects from your inventory.';
 $string['objectconfig:select'] = 'Select which object you would like to create a configuration notecard for from the list below. If multiple versions are available, then they are shown in the brackets -- only use the older versions if the main version does not work.';
@@ -324,6 +328,8 @@ $string['userlinkfailed'] = 'There was an error while trying to link your avatar
 $string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All Sloodle objects linked to this site should now recognised you automatically.';
 $string['usersearch'] = 'User search';
 $string['userobjects'] = 'User Objects';
+$string['userobjectlifetime'] = 'User object lifetime (days)';
+$string['userobjectlifetime:info'] = 'The number of days before which a user-centric object (such as the Toolbar) will expire if not used.';
 $string['userobjectauth'] = 'Sloodle User Object Authorization';
 $string['usedialogs'] = 'Use dialogs (instead of chat)?';
 

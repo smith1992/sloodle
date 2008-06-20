@@ -32,7 +32,7 @@ $stryes = get_string('yes');
 $strno = get_string('no');
 
     
-// This election box determines whether or not auto-registration is allowed on the site
+// This selection box determines whether or not auto-registration is allowed on the site
 $settings->add( new admin_setting_configselect(
                 'sloodle_allow_autoreg',
                 '',
@@ -42,7 +42,7 @@ $settings->add( new admin_setting_configselect(
 ));
 
     
-// This election box determines whether or not auto-enrolment is allowed on the site
+// This selection box determines whether or not auto-enrolment is allowed on the site
 $settings->add( new admin_setting_configselect(
                 'sloodle_allow_autoenrol',
                 '',
@@ -51,5 +51,19 @@ $settings->add( new admin_setting_configselect(
                 array(0 => $strno, 1 => $stryes)
 ));
 
+// This text box will let the user set a number of days after which active objects should expire
+$settings->add( new admin_setting_configtext(
+                'sloodle_active_object_lifetime',
+                get_string('activeobjectlifetime', 'sloodle'),
+                get_string('activeobjectlifetime:info', 'sloodle').helpbutton('object_authorization', get_string('activeobjects','sloodle'), 'sloodle', true, false, '', true),
+                7));
+                
+
+// This text box will let the user set a number of days after which user objects should expire
+$settings->add( new admin_setting_configtext(
+                'sloodle_user_object_lifetime',
+                get_string('userobjectlifetime', 'sloodle'),
+                get_string('userobjectlifetime:info', 'sloodle').helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', true),
+                21));
 
 ?>

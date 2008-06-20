@@ -21,6 +21,10 @@
     // Attempt to get the configuration settings
     $allow_autoreg = (sloodle_autoreg_enabled_site()) ? 1 : 0;
     $allow_autoenrol = (sloodle_autoenrol_enabled_site()) ? 1 : 0;
+    $active_object_lifetime = 7; // Give active objects a week by default
+    if (!empty($CFG->sloodle_active_object_lifetime)) $active_object_lifetime = $CFG->sloodle_active_object_lifetime;
+    $user_object_lifetime = 21; // Give user objects 3 weeks by default
+    if (!empty($CFG->sloodle_user_object_lifetime)) $user_object_lifetime = $CFG->sloodle_user_object_lifetime;
 ?>
 
 
@@ -78,7 +82,7 @@
     </td>
 </tr>
 
-<!-- Auto-registration -->
+<!-- Auto-enrolment -->
 <tr>
     <td colspan="3" align="left">
 
@@ -92,6 +96,39 @@
         </p>
     </td>
 </tr>
+
+
+<!-- Active object lifetime -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string('activeobjectlifetime', 'sloodle'); ?> <?php echo helpbutton('object_authorization', get_string('activeobjects','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p>
+         <?php
+            print_string("activeobjectlifetime:info", "sloodle");
+            echo ': ';
+            echo '<input type="text" name="active_object_lifetime" value="'.$active_object_lifetime.'" >';
+         ?>
+        </p>
+    </td>
+</tr>
+
+
+<!-- User object lifetime -->
+<tr>
+    <td colspan="3" align="left">
+
+        <h3><?php print_string('userobjectlifetime', 'sloodle'); ?> <?php echo helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', true); ?></h3>
+        <p>
+         <?php
+            print_string("userobjectlifetime:info", "sloodle");
+            echo ': ';
+            echo '<input type="text" name="user_object_lifetime" value="'.$user_object_lifetime.'" >';
+         ?>
+        </p>
+    </td>
+</tr>
+
 
 <!-- Form Submission -->
 <tr>

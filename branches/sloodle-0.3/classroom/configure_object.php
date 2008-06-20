@@ -261,7 +261,8 @@
     // Get the type
     $usetype = "";
     if (!empty($auth_obj->type)) $usetype = $auth_obj->type;
-    else $usetype = $sloodleobjtype;
+    else $usetype = $sloodleobjtype;    
+    
 
     // If the object is now authorised, we can display its configuration form
     if ($object_authorised && !empty($usetype)) {
@@ -272,15 +273,19 @@
         // Make sure the type value is stored in the database too
         $sloodle->course->controller->update_object_type($auth_obj->uuid, $usetype);
     
-        // Based on the object type, determine where our configuration form should be
-        $config_file = SLOODLE_DIRROOT."/mod/{$usetype}/object_config.php";
+        // Make sure the type exists
+        $objectpath = SLOODLE_DIRROOT."/mod/$usetype";
+        if (!file_exists($objectpath)) error(get_string('objectnotinstalled','sloodle'));
+        // Determine if we have a custom configuration page
+        $customconfig = $objectpath.'/object_config.php';
+        $hascustomconfig = file_exists($customconfig);
         
         // Display the configuration section
         print_box_start('generalbox boxwidthnormal boxaligncenter');
         echo '<div style="text-align:center;"><h2>'.get_string('objectconfiguration','sloodle').'</h2>';
         
-        // Check to see if the file exists
-        if (file_exists($config_file)) {
+        // Do we have custom configuration settings?
+        if ($hascustomconfig) {
             // Display our configuration form
             echo '<form action="'.SLOODLE_WWWROOT.'/classroom/store_object_config.php" method="POST">';
             // Add a hidden field to store the object's type
@@ -288,7 +293,7 @@
             
             
             // Include the form elements
-            require($config_file);
+            require($customconfig);
             
             
             // Add this object's authorisation ID, and a submit button

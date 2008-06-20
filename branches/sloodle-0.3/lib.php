@@ -285,11 +285,16 @@
         echo "Removing expired LoginZone allocations...\n";
         delete_records_select('sloodle_loginzone_allocation', "timecreated < $expirytime");
         
+        // Fetch our configuration settings, if they exist
+        $active_object_days = 7; // Give active objects a week by default
+        if (!empty($CFG->sloodle_active_object_lifetime)) $active_object_days = $CFG->sloodle_active_object_lifetime;
+        $user_object_days = 21; // Give user objects 3 weeks by default
+        if (!empty($CFG->sloodle_user_object_lifetime)) $user_object_days = $CFG->sloodle_user_object_lifetime;
+        
         // Delete any active objects and session keys which have expired
-        // (will eventually use custom expiry times, chosen in the configuration)
-        // Deletes any authorised objects which have not checked-in for more than 1 day.
+        // Deletes any authorised objects which have not checked-in for more than X days (where X is specified in module config)
         // Deletes any unauthorised objects which have not checked-in for more than 1 hour
-        $expirytime_auth = time() - 86400;
+        $expirytime_auth = time() - (86400 * $active_object_days);
         $expirytime_unauth = time() - 3600;
         echo "Searching for expired active objects...\n";
         $recs = get_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
@@ -304,9 +309,9 @@
         
         // Delete any user-authorised objects which have expired
         // (will eventually use custom expiry times, chosen in the configuration)
-        // Deletes any authorised objects which have not checked-in for more than 2 weeks.
+        // Deletes any authorised objects which have not checked-in for more than X days (where X is specified in module config)
         // Deletes any unauthorised objects which have not checked-in for more than 1 hour
-        $expirytime_auth = time() - 1209600;
+        $expirytime_auth = time() - (86400 * $user_object_days);
         $expirytime_unauth = time() - 3600;
         echo "Deleting expired user objects...\n";
         delete_records_select('sloodle_user_object', "(authorised = 0 AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
