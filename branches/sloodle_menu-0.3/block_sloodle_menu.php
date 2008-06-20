@@ -43,7 +43,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008060200;
+        $this->version = 2008062000;
     }
     
     /**
@@ -88,7 +88,7 @@ class block_sloodle_menu extends block_base {
         $course_context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
         
         // This version of the menu isn't compatible with older version of the Sloodle module
-        if (SLOODLE_VERSION < 0.3) {
+        if (defined('SLOODLE_VERSION') && SLOODLE_VERSION < 0.3) {
             $this->content->text = get_string('oldmodule', 'block_sloodle_menu');
             return $this->content;
         }
