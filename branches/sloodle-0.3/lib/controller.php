@@ -505,6 +505,9 @@
         */
         function get_object_configuration($id)
         {
+            // If the ID is empty, then we have no configuration settings to get
+            if (empty($id)) return array();
+        
             // Check what type the ID is and fetch the object
             if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
             else $entry = get_record('sloodle_active_object', 'id', (int)$id);

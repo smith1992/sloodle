@@ -50,6 +50,28 @@
         
         
         /**
+        * Checks if blogging is enabled on the site.
+        * @return bool True if blogging is enabled, or false otherwise
+        */
+        function is_enabled()
+        {
+            // If blog level is not specified, then blogging is disabled
+            global $CFG;
+            if (empty($CFG->bloglevel)) return false;
+            return true;
+        }
+        
+        /**
+        * Checks if the currently logged-in user has permission to create blog entries.
+        * @return bool True if user has permission, or false otherwise
+        */
+        function user_can_write()
+        {
+            return has_capability('moodle/blog:create', get_context_instance(CONTEXT_SYSTEM, SITEID));
+        }
+        
+        
+        /**
         * Attempts to write a new blog entry to the database, attributed to the user currently loaded in the {@link SloodleSession}.
         * All of the text provided in parameters _must_ be database-safe!
         * @param string $subject The subject line of the post
@@ -86,7 +108,13 @@
             $blogEntry->rating = 0;
             
             // Attempt to insert it into the database
-            return insert_record('post', $blogEntry);
+            $blogEntry->id = insert_record('post', $blogEntry);
+            if (!$blogEntry->id) return false;
+            
+            // Log the entry
+            add_to_log(SITEID, 'blog', 'add', 'index.php?userid='.$blogEntry->userid.'&postid='.$blogEntry->id, "Entry posted from SL via Sloodle: \"{$blogEntry->subject}\"", $blogEntry->userid);
+            
+            return true;
         }
         
         /**

@@ -163,7 +163,10 @@
     //print_box_start('generalbox boxaligncenter boxwidthnormal', '');
     //echo '<p style="text-align:center;">'.$sloodle->intro.'</p>';
     //print_box_end();
-    print_box($sloodle->intro, 'generalbox', 'intro'); // Let's be consistent with other modules!
+    
+    $generalintro = '';
+    if ($sloodle->type == SLOODLE_TYPE_CTRL) $generalintro = '<p style="font-style:italic;">'.get_string('controllerinfo','sloodle').'</p>';
+    print_box($generalintro.$sloodle->intro, 'generalbox', 'intro'); // Let's be consistent with other modules!
     
     
 //-----------------------------------------------------

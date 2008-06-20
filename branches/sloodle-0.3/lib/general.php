@@ -802,5 +802,96 @@
         return $protocol.'://'.$host.$file;
     }
     
+    /**
+    * Gets an array of subdirectories within the given directory.
+    * Ignores anything which starts with a .
+    * @param string $dir The directory to search WITHOUT a trailing slash. (Note: cannot search the current directory or higher in the file hierarchy)
+    * @param bool $relative If TRUE (default) the array of results will be relative to the input directory. Otherwise, they will include the input directory path.
+    * @return array|false A numeric array of subdirectory names sorted alphabetically, or false if an error occurred (such as the input value not being a directory)
+    */
+    function sloodle_get_subdirectories($dir, $relative = true)
+    {
+        // Make sure we have a valid directory
+        if (empty($dir)) return false;
+        // Open the directory
+        if (!is_dir($dir)) return false;
+        if (!$dh = opendir($dir)) return false;
+        
+        // Go through each item
+        $output = array();
+        while (($file = readdir($dh)) !== false) {
+            // Ignore anything starting with a . and anything which isn't a directory
+            if (strpos($file, '.') == 0) continue;
+            $filetype = @filetype($dir.'/'.$file);
+            if (empty($filetype) || $filetype != 'dir') continue;
+            
+            // Store it
+            if ($relative) $output[] = $file;
+            else $output[] = $dir.'/'.$file;
+        }
+        closedir($dh);
+        natcasesort($output);
+        return $output;
+    }
+    
+    /**
+    * Extracts the object name and version number from an object identifier.
+    * @param string $objid An object identifier, such as "chat-1.0"
+    * @return array A numeric array of name then version number.
+    */
+    function sloodle_parse_object_identifier($objid)
+    {
+        // Find the last dash character, and split the string around it.
+        $lastpos = strrpos($objid, '-');
+        // Check for common problems
+        if ($lastpos === false) return array($objid, ''); // No dash
+        if ($lastpos == 0) return array('', substr($objid, 1)); // Dash at start
+        if ($lastpos == (strlen($objid) - 1)) return array(substr($objid, 0, -1), ''); // Dash at end
+        // Split up the values
+        $name = substr($objid, 0, $lastpos);
+        $version = substr($objid, $lastpos + 1, strlen($objid) - $lastpos - 1);
+        return array($name, $version);
+    }
+    
+    /**
+    * Gets all object types and versions available in this installation.
+    * Creates a 2-dimensional associative array.
+    * The top level is the object name, and the second is the object version (both as strings).
+    * The associated value is the path to the configuration form script, or boolean false
+    *  if the object has no configuration options.
+    * @return array|false Returns a 2d associative array if successful, or false if an error occurs
+    */
+    function sloodle_get_installed_object_types()
+    {
+        // Fetch all sub-directories of the "mod" directory
+        $MODPATH = SLOODLE_DIRROOT.'/mod';
+        $dirs = sloodle_get_subdirectories($MODPATH, true);
+        if (!$dirs) return false;
+        
+        // Go through each object to parse names and version numbers.
+        // Object names should have format "name-version" (e.g. "chat-1.0").
+        // We will skip anything that does not match this format.
+        $mods = array();
+        foreach ($dirs as $d) {
+            if (empty($d)) continue;
+            
+            // Parse the object identifier
+            list($name, $version) = sloodle_parse_object_identifier($d);
+            if (empty($name) || empty($version)) continue;
+            
+            // Check if this object has a configuration script
+            $cfgscript = "$MODPATH/$d/object_config.php";
+            if (file_exists($cfgscript)) {
+                $mods[$name][$version] = $cfgscript;
+            } else {
+                $mods[$name][$version] = false;
+            }
+        }
+        
+        // Sort the array by name of the object
+        ksort($mods);        
+        return $mods;
+    }
+    
 
 ?>
