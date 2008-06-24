@@ -220,6 +220,7 @@ integer sloodle_handle_command(string str)
     
     return (sloodleserverroot != "" && sloodlepwd != "");
 }
+
 // Show the chat channel menu
 // (Shows menu to owner, and starts listening for owner messages)
 show_channel_menu()
@@ -709,7 +710,7 @@ state send
     {
         // We have timed-out waiting for an HTTP response
         llSetTimerEvent(0.0);
-        llOwnerSay("ERROR: Timeout waiting for HTTP response. You may try again, or cancel.");
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httptimeout", [], NULL_KEY, "");
         state get_body;
     }
     

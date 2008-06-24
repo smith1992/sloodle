@@ -33,6 +33,8 @@
     * If query mode is succesful, it will return status code 1, with one entry per data line, as follows:
     *  name|position|rotation
     *
+    * The rotation should be a rotation cast to a string... NOT an Euler-angle vector!
+    *
     * Update mode will add or replace entries in a layout.
     * To activate this mode, "sloodlelayoutname" must be specified, as well as the following parameter:
     *  sloodlelayoutentries = a pipe and line-separated list of entries to save against the profile

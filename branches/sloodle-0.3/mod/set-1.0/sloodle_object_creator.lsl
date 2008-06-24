@@ -271,7 +271,8 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return;
     // Attempt to rez the item relative to the root of this object
-    llRezObject(name, llGetPos() - llGetLocalPos() + (pos * llGetRot()), ZERO_VECTOR, rot, password);
+    // (position and rotation should be relative to the root of this link set)
+    llRezObject(name, llGetPos() - llGetLocalPos() + (pos * llGetRot()), ZERO_VECTOR, llGetRootRotation() * rot, password);
 }
 
 
@@ -401,7 +402,7 @@ state ready
                     if (llGetListLength(fields) >= 3) {
                         autorez_names += [llList2String(fields, 0)];
                         autorez_pos += [(vector)llList2String(fields, 1)];
-                        autorez_rot += [(vector)llList2String(fields, 2)];
+                        autorez_rot += [(rotation)llList2String(fields, 2)];
                     }
                 }
                 
@@ -465,8 +466,8 @@ state autorez
         
         // Get the first item
         rez_object = llList2String(autorez_names, 0);
-        rez_pos = (vector)llList2String(autorez_pos, 0);
-        rez_rot = llEuler2Rot((vector)llList2String(autorez_rot, 0));
+        rez_pos = llList2Vector(autorez_pos, 0);
+        rez_rot = llList2Rot(autorez_rot, 0));
         // Remove the data from the lists
         autorez_names = llDeleteSubList(autorez_names, 0, 0);
         autorez_pos = llDeleteSubList(autorez_pos, 0, 0);

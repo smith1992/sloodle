@@ -296,7 +296,16 @@
             $rec = get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
             if (!$rec) {
                 if ($require) {
-                    $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object not authorised for this user.', false);
+                    $this->response->quick_output(-216, 'OBJECT_AUTH', 'Object not found in database.', false);
+                    exit();
+                }
+                return false;
+            }
+            
+            // Make sure the object is authorised
+            if (empty($rec->authorised) || $rec->authorised == "0") {
+                if ($require) {
+                    $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object is not yet authorised.', false);
                     exit();
                 }
                 return false;

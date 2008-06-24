@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "set"; // Sloodle Set
+string mybatch = "avilister";
 
 
 // List of string names and translation pairs.
@@ -33,40 +33,10 @@ string mybatch = "set"; // Sloodle Set
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Sloodle Set
-	"sloodleset:cmddialog", "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
-	"sloodleset:objectmenu", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-	"rezzingobject", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
-	"reztimeout", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
-	"sloodleset:noobjects", "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
-	"notininventory", "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
-	"notobject", "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
-
-	//  Layouts
-	"layout:failedretrying", "Failed to store layout position. Retrying...",
-	"layout:failedaborting", "Failed to store layout position. Aborting.",
-	"layout:toofar", "Failed to store layout position - too far from rezzer.",
-	"layout:storedobject", "Object stored in layout.",
-	"layout:noneavailable", "Sorry {{0}}. There are no layouts available.", // Parameter: name of avatar
-	"layout:loadmenu", "Sloodle Set.\nSelect layout to load:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
-	"layout:savemenu", "Sloodle Set.\nSelect layout to save:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
-	"layout:cmdmenu", "Sloodle Set.\nWhat layout action would you like to perform?\n\n{{0}} = Load layout\n{{1}} = Save layout\n{{2}} = Save layout as...\n{{3}} = Cancel", // Parameters: button labels
-	"layout:nolayouttosave", "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first.", // Parameter: avatar name
-    "layout:chatlayoutname", "Please chat the name of the new layout on channel 0 or 1. Touch the layout manager to cancel the operation.",
-    "layout:layoutnametimeout", "Timeout waiting for layout name. Cancelling operation.",
-    "layout:cancelsave", "Cancelling save operation.",
-    "layout:saving", "Saving layout \"{{0}}\".", // Parameter: name of a layout
-    "layout:loading", "Loading layout \"{{0}}\".", // Parameter: name of a layout
-    "layout:nopermission", "Sorry {{0}}, you do not have permission to use layouts on this course.", // Parameter: avatar name
-    "layout:savefailed", "Failed to save layout.",
-    "layout:notexist", "That layout does not exist.",
-    "layout:alreadyexists", "That layout already exists.",
-    
-    "layoutcaption:saving", "Saving...",
-    "layoutcaption:savingas", "Saving As...",
-    "layoutcaption:loading", "Loading...",
-    "layoutcaption:layout", "Current Layout:\n{{0}}" // Parameter: name of layout
-    
+	"noavatars", "No avatars detected in range.",
+    "requesting", "Requesting identification of {{0}} avatar(s) from: {{1}}", // Parameters: number of avatars, and Moodle URL
+    "nonerecognised", "None of the avatars were recognised by Moodle.",    
+    "numidentified", "Number of avatars identified by Moodle: {{0}}", // Parameter: number of avatars
 ];
 
 ///// ----------- /////
@@ -222,7 +192,6 @@ default
             
             // We expect at least 3 fields
             // ... or 4 if there are insertion parameters...
-            // ... or 5 if there is a language code
             // ... anybody up for a 6th parameter? :)
             if (numfields < 3) {
                 sloodle_debug("ERROR: Insufficient fields for translation of string.");

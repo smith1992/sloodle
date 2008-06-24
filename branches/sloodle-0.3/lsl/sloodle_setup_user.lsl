@@ -22,6 +22,7 @@ float SLOODLE_VERSION_MIN = 0.3; // Minimum required version of Sloodle
 
 key httpcheckmoodle = NULL_KEY;
 key httpauthobject = NULL_KEY;
+key httpcheckauth = NULL_KEY;
 
 string sloodleserverroot = "";
 string sloodlepwd = ""; // stores the object-specific session key (UUID|pwd)
@@ -314,12 +315,11 @@ state auth_object
             return;
         }
         
-        
         // The dataline will contain our URL
         sloodleauthurl = llList2String(lines, 1);
         sloodle_load_auth_url(llGetOwner());
         
-        state send_config;
+        state check_auth;;
     }
     
     touch_start(integer num_detected)
@@ -343,13 +343,102 @@ state auth_object
     
     on_rez(integer start_param)
     {
-        llResetScript();
+        state default;
     }
     
     attach( key av )
     {
         if (av != NULL_KEY)
-            llResetScript();
+            state default;
+    }
+}
+
+
+// Check the object's authorisation status
+state check_auth
+{
+    state_entry()
+    {
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "checkingauth", [], NULL_KEY, "");
+        // Check the authorisation regularly until it passes or we need to reset
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(1.0); // Set the first timer right away for the first test
+    }
+    
+    timer()
+    {
+        // Set the timer to something more sensible
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(15.0);
+        
+        // Initiate the authorisation check
+        string body = "sloodleuuid=" + (string)llGetOwner();
+        body += "&sloodlepwd=" + sloodlepwd;
+        httpcheckauth = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_CHECKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+    }
+    
+    state_exit()
+    {
+        httpcheckauth = NULL_KEY;
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Make sure this is the response we're expecting
+        if (id != httpcheckauth) return;
+        httpcheckauth = NULL_KEY;
+        if (status != 200) {
+            state default;
+            return;
+        }
+        
+        // Split the response into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Check the statuscode.
+        // If it reports that the object hasn't been authorised yet, then keep checking.
+        // For any other error, go back to the start of the process.
+        if (statuscode == -214) return;
+        else if (statuscode <= 0) {
+            state default;
+            return;
+        }
+        
+        // Looks like we're authorised OK
+        state send_config;
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Check again right away
+        llSetTimerEvent(0.0);
+        llSetTimerEvent(0.1);
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            }
+        }
+    }
+    
+    on_rez(integer start_param)
+    {
+        state default;
+    }
+    
+    attach( key av )
+    {
+        if (av != NULL_KEY)
+            state default;
     }
 }
 
@@ -366,82 +455,6 @@ state send_config
         sloodle_tell_other_scripts(config);
         
         state idle;
-    }
-}
-
-
-// Check the object's authorisation status
-state check_auth
-{
-    state_entry()
-    {
-        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "checkingauth", [], NULL_KEY, "");
-
-        // Initiate the object authorisation
-        string body = "sloodleuuid=" + (string)llGetOwner();
-        body += "&sloodlepwd=" + sloodlepwd;
-        httpauthobject = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_CHECKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-    }
-    
-    state_exit()
-    {
-        httpauthobject = NULL_KEY;
-    }
-    
-    http_response(key id, integer status, list meta, string body)
-    {
-        // Make sure this is the response we're expecting
-        if (id != httpauthobject) return;
-        if (status != 200) {
-            state default;
-            return;
-        }
-        
-        // Split the response into lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);
-        integer numlines = llGetListLength(lines);
-        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
-        integer statuscode = (integer)llList2String(statusfields, 0);
-        
-        // Check the statuscode
-        if (statuscode <= 0) {
-            sloodle_debug(body);
-            state default;
-            return;
-        }
-        
-        // Everything seems fine
-        state send_config;
-    }
-    
-    touch_start(integer num_detected)
-    {
-        // Revert to the default state if the owner touched
-        if (llDetectedKey(0) != llGetOwner()) return;
-        state default;
-    }
-    
-    link_message(integer sender_num, integer num, string sval, key kval)
-    {
-        // Check the channel
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // Is it a reset command?
-            if (sval == "do:reset") {
-                llResetScript();
-                return;
-            }
-        }
-    }
-    
-    on_rez(integer start_param)
-    {
-        llResetScript();
-    }
-    
-    attach( key av )
-    {
-        if (av != NULL_KEY)
-            llResetScript();
     }
 }
 
