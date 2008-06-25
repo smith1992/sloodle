@@ -196,6 +196,7 @@ $string['numdeleted'] = 'Number deleted';
 $string['numprims'] = 'Prim Count: $a';
 
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
+$string['nochoices'] = 'There are no choices available in this course.';
 $string['noquizzes'] = 'There are no quizzes available in this course.';
 $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
@@ -270,6 +271,7 @@ $string['secondarytablenotfound'] = 'Secondary Sloodle module table not found. M
 $string['searchaliases'] = 'Search Aliases';
 $string['searchdefinitions'] = 'Search Definitions';
 $string['selectchatroom'] = 'Select Chatroom';
+$string['selectchoice'] = 'Select Choice';
 $string['selectglossary'] = 'Select Glossary';
 $string['selectdistributor'] = 'Select Distributor';
 $string['selectassignment'] = 'Select Assignment';
