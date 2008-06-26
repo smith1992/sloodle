@@ -83,8 +83,8 @@
     else $sloodleadd = false;
     // Determine which mode we're in (0 = browse, 1 = query, 2 = update)
     $mode = 0;
-    if ($sloodlelayoutname == null) $mode = 0;
-    else if ($sloodlelayoutentries == null) $mode = 1;
+    if ($sloodlelayoutname === null) $mode = 0;
+    else if ($sloodlelayoutentries === null) $mode = 1;
     else $mode = 2;
     
     

@@ -200,7 +200,7 @@ state ready
         
         // Calculate the rotational offset from the rezzer to this object.
         // (This should let us re-rez later in appropriate orientation compared to the Set).
-        layoutrot = llAngleBetween(rezzerrot, llGetRot());
+        layoutrot = llGetRootRotation() / rezzerrot;
         
         // Attempt to store the layout
         attemptnum = 0;

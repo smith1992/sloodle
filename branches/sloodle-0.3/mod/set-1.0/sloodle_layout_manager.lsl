@@ -1,5 +1,3 @@
-// NEEDS REWRITTEN!
-
 // Sloodle Set layout manager script.
 // Allows users in-world to use and manage layouts.
 //
@@ -171,15 +169,18 @@ sloodle_show_layout_dialog(key id, integer load)
 }
 
 // Request an updated list of layouts on behalf of the specified user.
-sloodle_update_layout_list(key id)
+// Returns the HTTP request key.
+key sloodle_update_layout_list(key id)
 {
+    llSay(0, "Checking available layouts...");
+
     // Start authorising the object
     string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
     body += "&sloodlepwd=" + sloodlepwd;
     body += "&sloodleuuid=" + (string)id;
     body += "&sloodleavname=" + llKey2Name(id);
     
-    httplayoutbrowse = llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+    return llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
 // Display the command dialog to the specified user
@@ -231,7 +232,8 @@ default
     {
         // Can the user use this object
         if (sloodle_check_access_use(llDetectedKey(0))) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         } else {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY, "");
         }
@@ -254,27 +256,22 @@ state ready
     
     touch_start(integer num_detected)
     {
-        // Go through each toucher
-        integer i = 0;
-        key id = NULL_KEY;
-        for (; i < num_detected; i++) {
-            id = llDetectedKey(0);
-            // Make sure the user is allowed to use this object
-            if (sloodle_check_access_use(id) || sloodle_check_access_ctrl(id)) {
-                // Update the internal list of layouts
-                sloodle_update_layout_list(id);
-            } else {
-                // Inform the user of the problem
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
-            }
+        // Make sure the user is allowed to use this object
+        key id = llDetectedKey(0);
+        if (!sloodle_check_access_use(id) && !sloodle_check_access_ctrl(id)) {
+            // Inform the user of the problem
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
+            return;
         }
+        // Check te user's server access, and get all layouts they are allowed to use
+        httplayoutbrowse = sloodle_update_layout_list(id);
     }
     
     http_response(key id, integer status, list meta, string body)
     {
         // Make sure this is the expected HTTP response
-        if (id != httplayoutquery) return;
-        httplayoutquery = NULL_KEY;
+        if (id != httplayoutbrowse) return;
+        httplayoutbrowse = NULL_KEY;
         
         sloodle_debug("HTTP Response ("+(string)status+"): "+body);
         
@@ -285,7 +282,7 @@ state ready
         }
         
         // Split the response into lines and extract the status fields
-        list lines = llParseList2String(body, ["\n"], []);
+        list lines = llParseString2List(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
         list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
         integer statuscode = llList2Integer(statusfields, 0);
@@ -304,13 +301,13 @@ state ready
         }
         
         // Store the list of layouts
-        if (numlines > 1) availablelayouts = llListDeleteList(lines, 0, 0);
+        if (numlines > 1) availablelayouts = llDeleteSubList(lines, 0, 0);
         else availablelayouts = [];
         lines = [];
         
         // Show the command menu
         menutime = llGetUnixTime();
-        sloodle_show_command_dialog(id);
+        sloodle_show_command_dialog(llGetOwner());
     }
     
     listen(integer channel, string name, key id, string msg)
@@ -321,7 +318,7 @@ state ready
             if (id != llGetOwner()) return;
             // Make sure the menu has not yet expired
             integer curtime = llGetUnixTime();
-            if ((curtime - menutime) < 20) return;
+            if ((curtime - menutime) > 20) return;
             
             // Check what message is
             if (msg == MENU_BUTTON_NEXT) {
@@ -337,11 +334,11 @@ state ready
                 sloodle_show_layout_dialog(id, loadmenu);
                 
             } else if (msg == MENU_BUTTON_LOAD) {
-                // Display the loading dialog
-                loadmenu = TRUE;
-                layoutspagenum = 0;
-                menutime = curtime;
-                sloodle_show_layout_dialog(id, loadmenu);
+				// Display the loading dialog
+				loadmenu = TRUE;
+				layoutspagenum = 0;
+				menutime = curtime;
+				sloodle_show_layout_dialog(id, loadmenu);
                 
             } else if (msg == MENU_BUTTON_SAVE) {
                 // Do we currently have a layout loaded?
@@ -375,8 +372,8 @@ state ready
                 // Attempt to load or save the given laout
                 currentlayout = llList2String(availablelayouts, num);
                 if (currentlayout == "") return;
-                if (loadmenu) state load_layout;
-                else state save_layout;
+                if (loadmenu) state load;
+                else state save;
             }
         }
     }

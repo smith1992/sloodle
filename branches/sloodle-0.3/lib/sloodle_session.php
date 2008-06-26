@@ -303,7 +303,6 @@
             }
             
             // Make sure the object is authorised
-			sloodle_debug("*** authorised = {$rec->authorised} ***");
             if (empty($rec->authorised) || $rec->authorised == "0") {
                 if ($require) {
                     $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object is not yet authorised.', false);
