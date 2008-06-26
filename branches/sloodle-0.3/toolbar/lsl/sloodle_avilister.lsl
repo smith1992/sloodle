@@ -27,6 +27,9 @@ vector COL_PROCESSING = <0.4,0.1,1.0>;
 // Sensor radius (in metres) for detecting avatars
 float SENSOR_RADIUS = 48.0;
 
+// End of file identfier for configuration data
+string SLOODLE_EOF = "sloodleeof";
+
 ///// --- /////
 
 
@@ -38,6 +41,10 @@ string sloodleserverroot = "";
 string sloodlepwd = "";
 // The ID of a controller, if we are using course-centric authorisation
 integer sloodlecontrollerid = 0;
+
+// Have we reached the end of the config data, and is this item configured?
+integer eof = FALSE;
+integer isconfigured = FALSE;
 
 // Relative paths to the AviLister linker script
 string LINKER_SCRIPT = "/mod/sloodle/toolbar/avilister_linker.php";
@@ -149,11 +156,15 @@ default
                     state ready;
                 } else {
                     // Go all configuration but, it's not complete... request reconfiguration
-                    sloodle_debug("sloodleserverroot = " + sloodleserverroot + "\nsloodlepwd = " + sloodlepwd);
                     eof = FALSE;
                 }
             }
         }
+    }
+    
+    touch_start(integer num)
+    {
+        if (llDetectedKey(0) == llGetOwner()) llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
     }
     
     attach( key av )
@@ -299,4 +310,3 @@ state searching
             state default;
     }
 }
-

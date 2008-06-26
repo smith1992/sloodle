@@ -36,7 +36,7 @@ list locstrings = [
 	"noavatars", "No avatars detected in range.",
     "requesting", "Requesting identification of {{0}} avatar(s) from: {{1}}", // Parameters: number of avatars, and Moodle URL
     "nonerecognised", "None of the avatars were recognised by Moodle.",    
-    "numidentified", "Number of avatars identified by Moodle: {{0}}", // Parameter: number of avatars
+    "numidentified", "Number of avatars identified by Moodle: {{0}}" // Parameter: number of avatars
 ];
 
 ///// ----------- /////

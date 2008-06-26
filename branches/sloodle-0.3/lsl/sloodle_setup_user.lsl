@@ -84,11 +84,21 @@ sloodle_load_auth_url(key av)
     sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [sloodleauthurl], "userauthurl", [], av, "");
 }
 
+// Initiate an authorisation check.
+// Returns the key of the HTTP request.
+key sloodle_check_user_auth()
+{
+    string body = "sloodleuuid=" + (string)llGetOwner();
+    body += "&sloodlepwd=" + sloodlepwd;
+    body += "&sloodledebug=true";
+    return llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_CHECKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+}
+
 ///// STATES /////
 
 default
 {    
-    state_entry() 
+    state_entry()
     {
         // Pause for a moment, in case all scripts were reset at the same time
         llSleep(0.2);
@@ -191,7 +201,7 @@ state check_moodle
         httpcheckmoodle = NULL_KEY;
         // Check the status code
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
         
@@ -204,16 +214,16 @@ state check_moodle
         // Make sure the status code was OK
         if (statuscode == -106) {
             sloodle_debug("ERROR -106: the Sloodle module is not installed on the specified Moodle site (" + sloodleserverroot + ")");
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "sloodlenotinstalled", [], NULL_KEY, "");
             return;
         } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "failedcheckcompatibility", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "failedcheckcompatibility", [], NULL_KEY, "");
             return;
         }
         
         // Make sure we have enough other data
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             return;
         }
         
@@ -223,8 +233,8 @@ state check_moodle
         
         // Check compatibility
         if (installedversion < SLOODLE_VERSION_MIN) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY, "");
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY, "");
             return;
         }
         
@@ -293,7 +303,7 @@ state auth_object
         // Make sure this is the response we're expecting
         if (id != httpauthobject) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
         
@@ -305,13 +315,13 @@ state auth_object
         
         // Check the statuscode
         if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
             return;
         }
         
         // Attempt to get the auth ID
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [0], "badresponseformat", [], NULL_KEY, "");
             return;
         }
         
@@ -319,7 +329,7 @@ state auth_object
         sloodleauthurl = llList2String(lines, 1);
         sloodle_load_auth_url(llGetOwner());
         
-        state check_auth;;
+        state check_auth;
     }
     
     touch_start(integer num_detected)
@@ -360,25 +370,24 @@ state check_auth
     state_entry()
     {
         sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "checkingauth", [], NULL_KEY, "");
+
         // Check the authorisation regularly until it passes or we need to reset
         llSetTimerEvent(0.0);
-        llSetTimerEvent(1.0); // Set the first timer right away for the first test
+        llSetTimerEvent(15.0);
+
+        // Initiate the authorisation check
+        httpcheckauth = sloodle_check_user_auth();
     }
     
     timer()
     {
-        // Set the timer to something more sensible
-        llSetTimerEvent(0.0);
-        llSetTimerEvent(15.0);
-        
         // Initiate the authorisation check
-        string body = "sloodleuuid=" + (string)llGetOwner();
-        body += "&sloodlepwd=" + sloodlepwd;
-        httpcheckauth = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_CHECKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        httpcheckauth = sloodle_check_user_auth();
     }
     
     state_exit()
     {
+        llSetTimerEvent(0.0);
         httpcheckauth = NULL_KEY;
     }
     
@@ -388,7 +397,8 @@ state check_auth
         if (id != httpcheckauth) return;
         httpcheckauth = NULL_KEY;
         if (status != 200) {
-            state default;
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httperror", [status], NULL_KEY, "");
+            state idle;
             return;
         }
         
@@ -403,6 +413,7 @@ state check_auth
         // For any other error, go back to the start of the process.
         if (statuscode == -214) return;
         else if (statuscode <= 0) {
+            //sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "servererror", [statuscode], NULL_KEY, "");
             state default;
             return;
         }
@@ -413,9 +424,8 @@ state check_auth
     
     touch_start(integer num_detected)
     {
-        // Check again right away
-        llSetTimerEvent(0.0);
-        llSetTimerEvent(0.1);
+        // Initiate the authorisation check
+        httpcheckauth = sloodle_check_user_auth();
     }
     
     link_message(integer sender_num, integer num, string sval, key kval)

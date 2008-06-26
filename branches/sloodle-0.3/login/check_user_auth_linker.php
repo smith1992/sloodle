@@ -41,6 +41,7 @@
     // Everything seems OK
     $sloodle->response->set_status_code(1);
     $sloodle->response->set_status_descriptor('OK');
+	$sloodle->response->render_to_output();
     
     exit();
 ?>

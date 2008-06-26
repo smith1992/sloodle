@@ -303,6 +303,7 @@
             }
             
             // Make sure the object is authorised
+			sloodle_debug("*** authorised = {$rec->authorised} ***");
             if (empty($rec->authorised) || $rec->authorised == "0") {
                 if ($require) {
                     $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object is not yet authorised.', false);
@@ -313,8 +314,11 @@
             
             // Make sure the passwords match
             if ($objpwd != $rec->password) {
-                $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
-                exit();
+				if ($require) {
+	                $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
+	                exit();
+				}
+				return false;
             }
             
             // Everything looks fine
