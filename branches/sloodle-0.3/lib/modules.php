@@ -28,6 +28,8 @@
     include_once(SLOODLE_LIBROOT.'/modules/module_blog.php');
     /** Sloodle avilister module. */
     include_once(SLOODLE_LIBROOT.'/modules/module_avilister.php');
+    /** Choice module. */
+    include_once(SLOODLE_LIBROOT.'/modules/module_choice.php');
     
     //... include more module types here!
     

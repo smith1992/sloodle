@@ -33,7 +33,19 @@ string mybatch = "choice";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	"example", "This is an example string"
+	
+    // Success
+    "selectionmade", "Thank you {{0}}. Your selection has been made.", // Parameter: avatar name
+    "selectionupdated", "Thank you {{0}}. Your selection has been updated.", // Parameter: avatar name
+    "selectionalreadymade", "Thank you {{0}}. You had already selected that option.", // Parameter: avatar name
+    
+    
+    // Errors
+    "selectionerror", "Sorry {{0}}. There was an unknown error making your selection.", // Parameter: avatar name
+    "noupdate", "Sorry {{0}}. You cannot update your selection.", // Parameter: avatar name
+    "maxselections", "Sorry {{0}}. The maximum number of selections for that option have already been made.", // Parameter: avatar name
+    "notopen", "Sorry {{0}}. This choice is not yet open for selections.", // Parameter: avatar name
+    "closed", "Sorry {{0}}. This choice has been closed.", // Parameter: avatar name
 ];
 
 ///// ----------- /////

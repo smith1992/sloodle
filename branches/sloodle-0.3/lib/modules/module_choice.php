@@ -16,6 +16,9 @@
     /** General Sloodle functions. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     
+    /** Include the standard Moodle choice module library. */
+    require_once($CFG->dirroot.'/mod/choice/lib.php');
+    
     /**
     * The Sloodle choice module class.
     * @package sloodle
@@ -97,7 +100,7 @@
             
             // Fetch options
             $this->options = array();
-            if ($options = get_records('choice_options', 'choiceid', $choiceid, 'id')) {
+            if ($options = get_records('choice_options', 'choiceid', $this->moodle_choice_instance->id)) {
                 foreach ($options as $opt) {
                     // Create our option object and add our data
                     $this->options[$opt->id] = new SloodleChoiceOption();
@@ -110,15 +113,94 @@
             }
             
             // Determine how many people on the course have not yet answered
-            $users = get_course_users($course);
+            $users = get_course_users($this->cm->course);
             if (!is_array($users)) return false;
             $num_users = count($users);
-            $numanswers = (int)count_records('choice_answers', 'choiceid', $choice->id);
+            $numanswers = (int)count_records('choice_answers', 'choiceid', $this->moodle_choice_instance->id);
             $this->numunanswered = max(0, $num_users - $numanswers);
             
             return true;
         }
         
+        /**
+        * Selects an option in this choice on behalf of the specified user.
+        * Logs the user in to the VLE if necessary.
+        * If a general error occurs, FALSE will be returned.
+        * Otherwise, an integer {@link http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes status code} will be returned.
+        * The following status codes are typical responses:
+        *  * 10011 = added new choice selection
+        *  * 10012 = updated existing choice selection
+        *  * 10013 = user previously selected same option
+        *  * -10011 = User already made a selection, and re-selection is not allowed
+        *  * -10012 = max number of selections for this option already made
+        *  * -10013 = choice is not yet open
+        *  * -10014 = choice is already closed
+        *
+        * @param mixed $optionid The unique site-wide identifier of the option to be selected
+        * @param mixed $user A SloodleUser identifying the current user; if omitted, the current {@link SloodleSession} will be used.
+        * @return integer|false
+        */
+        function select_option($optionid, $user = null)
+        {
+            // Fetch a user if necessary
+            if ($user === null) {
+                // Make sure we have a session user
+                if (!isset($this->_session->user)) return false;
+                $user = $this->_session->user;
+            }
+            // Make sure we have a user loaded and logged-in
+            if (!$user->is_user_loaded()) return false;
+            if (!$user->login()) return false;
+            
+            // Make sure the user is permitted to select from this choice
+            if (!has_capability('mod/choice:choose', get_context_instance(CONTEXT_MODULE, $this->cm->id))) return -331;
+            // Make sure the choice is open
+            if ($this->is_early()) return -10013;
+            if ($this->is_late()) return -10014;
+            
+            // Has the user already made a selection for this choice?
+            $update_selection = false;
+            $previous_selection = get_record('choice_answers', 'choiceid', $this->moodle_choice_instance->id, 'userid', $user->get_user_id());
+            if ($previous_selection) {
+                // Was it a selection of the same option?
+                if ($previous_selection->optionid == $optionid) {
+                    // Yes - that's fine. Nothing to do.
+                    return 10013;
+                }
+                // No - are re-selections allowed?
+                if (!$this->allow_update()) {
+                    // No - stop here
+                    return -10011;
+                }
+                $update_selection = true;
+            }
+            
+            // Fetch the option record
+            $option = get_record('choice_options', 'id', $optionid, 'choiceid', $this->moodle_choice_instance->id);
+            if (!$option) return false;
+            
+            // Make sure the maximum selections for the given option have not yet been made
+            if (!empty($this->moodle_choice_instance->limitanswers)) {
+                $numselections = count_records('choice_answers', 'optionid', $optionid);
+                if (!$numselections) return false;
+                if ($numselections >= $option->maxanswers) return -10012;
+            }
+            
+            // If necessary, delete the existing selection
+            if ($update_selection) delete_records('choice_answers', 'choiceid', $this->moodle_choice_instance->id, 'userid', $user->get_user_id());
+            
+            // Select the new option
+            $selection = new stdClass();
+            $selection->choiceid = $this->moodle_choice_instance->id;
+            $selection->userid = $user->get_user_id();
+            $selection->optionid = $optionid;
+            $selection->timemodified = time();
+            if (!insert_record('choice_answers', $selection)) return false;
+            
+            // Success!
+            if ($update_selection) return 10012;
+            return 10011;
+        }
         
         
     // ACCESSORS //
@@ -281,7 +363,7 @@
         */
         function get_num_unanswered()
         {
-            return $this->numanswered;
+            return $this->numunanswered;
         }
 
     }
@@ -320,7 +402,7 @@
         * @var int
         * @access public
         */
-        var $maxselections = -1
+        var $maxselections = -1;
         
         /**
         * Timestamp of when this option was last modified.
