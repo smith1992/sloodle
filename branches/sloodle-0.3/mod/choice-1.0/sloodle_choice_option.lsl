@@ -57,11 +57,15 @@ set_scale(float prop)
 // Returns true if successful, or false otherwise.
 integer process_update_command(list parts)
 {
+    // Get our option number
+    myoptionnum = (integer)llGetObjectDesc();
+
     // We should have several parameters: "command|num|text|colour|count|prop"
     if (llGetListLength(parts) < 6) return FALSE;
+    // Make sure the option number matches this one
+    if (myoptionnum != (integer)llList2String(parts, 1)) return FALSE;
     
     // Extract the data
-    myoptionnum = (integer)llList2String(parts, 1);
     vector mycol = (vector)llList2String(parts, 3);
     integer mycount = (integer)llList2String(parts, 4);
     float myprop = (float)llList2String(parts, 5);
@@ -86,7 +90,7 @@ reset_option()
 
 
 // Uninitialised
-state default
+default
 {
     state_entry()
     {

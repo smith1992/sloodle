@@ -166,7 +166,7 @@ send_reset()
 send_update()
 {
     // Update the choice text itself
-    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBEJCT_CHOICE, SLOODLE_CHOICE_UPDATE_TEXT + "|" + choicetext, NULL_KEY);
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, SLOODLE_CHOICE_UPDATE_TEXT + "|" + choicetext, NULL_KEY);
     
     // Determine the maximum number of selections in our list
     integer maxnumselections = -1;
@@ -180,7 +180,7 @@ send_update()
 
     // Go through each option we have
     string data = "";
-    for (; i < num_options; i++) {
+    for (i = 0; i < num_options; i++) {
         // Send all the data
         data = SLOODLE_CHOICE_UPDATE_OPTION;
         data += "|" + (string)i;
@@ -298,8 +298,10 @@ state ready
     
     touch_start(integer total_number)
     {
-        // Request another status update
-        httpstatus = request_status();
+        // Request another status update (but only if it this exact prim which was touched)
+        if (llDetectedLinkNumber(0) == llGetLinkNumber()) {
+            httpstatus = request_status();
+        }
     }
     
     http_response(key id, integer status, list meta, string body)
@@ -307,6 +309,7 @@ state ready
         // Is this a status update?
         if (id == httpstatus) {
             httpstatus = NULL_KEY;
+            //sloodle_debug("HTTP response: " + body);
             
             // Make sure the HTTP response was OK
             if (status != 200) {
@@ -334,12 +337,12 @@ state ready
             }
             
             // Extract the necessary choice data
-            choicetext = llList2String(lines, 0) + "\n\"" + llList2String(lines, 1) + "\"";
+            choicetext = llList2String(lines, 1) + "\n\"" + llList2String(lines, 2) + "\"";
             // (There is more data provided that we could use later)
             
             // Determine how many options there are.
             // If there are a different number now than we already had, then reset all our options
-            integer numoptions = numlines - 4;
+            integer numoptions = numlines - 5;
             if (numoptions != llGetListLength(optionids)) {
                 send_reset();
             }
@@ -347,9 +350,10 @@ state ready
             // Reset our data
             optionids = [];
             optiontexts = [];
+            optionselections = [];
             
             // Go through each option
-            integer i = 4;
+            integer i = 5;
             list fields = [];
             for (; i < numlines; i++) {
                 // Parse the option data
@@ -361,6 +365,10 @@ state ready
                 }
             }
             
+            sloodle_debug("Number of options received: " + (string)llGetListLength(optionids));
+            
+            // Update all our components
+            send_update();
             
             return;
         }
@@ -407,6 +415,7 @@ state ready
             
             // Make sure to update the status
             httpstatus = request_status();
+            return;
         }
     }
     
