@@ -14,6 +14,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+integer SLOODLE_CHANNEL_OBJECT_LAYOUT = -1639270013;
 string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -347,11 +348,15 @@ state ready
                     menutime = 0;
                     state save_as;
                 } else {
+                    // Save the current layout
+                    menutime = 0;
+                    state save;
+                
                     // Show the save dialog
-                    loadmenu = FALSE;
-                    layoutspagenum = 0;
-                    menutime = curtime;
-                    sloodle_show_layout_dialog(id, loadmenu);
+                    //loadmenu = FALSE;
+                    //layoutspagenum = 0;
+                    //menutime = curtime;
+                    //sloodle_show_layout_dialog(id, loadmenu);
                 }
                 
             } else if (msg == MENU_BUTTON_SAVE_AS) {
@@ -427,7 +432,6 @@ state save
             return;
         }
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.0>, 0.8], "layoutcaption:saving", [], NULL_KEY, "set");
-        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:saving", [currentlayout], NULL_KEY, "set");
         
         // Start by clearing the current layout (update it with no entries)
         // Construct the body of the request
@@ -526,7 +530,8 @@ state save
         msg += "|" + (string)llGetRootRotation(); // rotation of the root of this object
         msg += "|" + currentlayout; // Name of the layout to save
         
-        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, msg);
+        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:saving", [currentlayout], NULL_KEY, "set");
+        llSay(SLOODLE_CHANNEL_OBJECT_LAYOUT, msg);
         
         state ready;
     }

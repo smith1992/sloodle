@@ -156,8 +156,10 @@ sloodle_debug(string msg)
 }
 
 // Reset the entire script
-resetScript()
+sloodle_reset()
 {
+    sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "resetting", [], NULL_KEY, "");
+    llMessageLinked(LINK_SET, SLOODLE_OBJECT_CHANNEL_DIALOG, "do:reset", NULL_KEY);
     llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
     llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
     llResetScript();
@@ -324,6 +326,9 @@ default
     
     link_message(integer sender_num, integer num, string msg, key id)
     {
+        // Ignore self
+        if (sender_num == llGetLinkNumber()) return;
+    
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Split the message into lines
@@ -377,7 +382,30 @@ state error
     attach( key av )
     {
         if (av != NULL_KEY)
-            state default;
+            sloodle_reset();
+    }
+    
+    touch_start( integer num )
+    {
+        // Make sure it is the owner touching the HUD
+        if (llDetectedKey(0) != llGetOwner()) return;
+                
+        // Get the name of the prim that was touched
+        string name = llGetLinkName(llDetectedLinkNumber(0));
+        if (name = "reset") {
+            sloodle_reset();
+        }
+    }
+    
+    link_message(integer sender_num, integer num, string msg, key id)
+    {
+        // Ignore self
+        if (sender_num == llGetLinkNumber()) return;
+    
+        // Check if it was a reset message
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && msg == "do:reset") {
+            sloodle_reset();
+        }
     }
 }
 
@@ -409,6 +437,8 @@ state ready
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
+        } else if (name = "reset") {
+            sloodle_reset();
         }
     }
     
@@ -499,6 +529,8 @@ state get_subject
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
+        } else if (name = "reset") {
+            sloodle_reset();
         }
     }
     
@@ -610,6 +642,8 @@ state get_body
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
+        } else if (name = "reset") {
+            sloodle_reset();
         }
     }
     
@@ -763,5 +797,17 @@ state send
     {
         if (av != NULL_KEY)
             state default;
+    }
+    
+    touch_start( integer num )
+    {
+        // Make sure it is the owner touching the HUD
+        if (llDetectedKey(0) != llGetOwner()) return;
+                
+        // Get the name of the prim that was touched
+        string name = llGetLinkName(llDetectedLinkNumber(0));
+        if (name = "reset") {
+            sloodle_reset();
+        }
     }
 }

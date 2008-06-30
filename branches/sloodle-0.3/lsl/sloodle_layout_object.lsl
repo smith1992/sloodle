@@ -13,6 +13,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+integer SLOODLE_CHANNEL_OBJECT_LAYOUT = -1639270013;
 string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -61,8 +62,8 @@ string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should b
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
+    llMessage
 }
-
 ///// ----------- /////
 
 
@@ -149,8 +150,8 @@ state ready
         // Reset our data
         useruuid = NULL_KEY;
         layoutname = "";
-        // Listen for chat messages on the object dialog channel
-        llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", sloodlemyrezzer, "");
+        // Listen for chat messages on the layout channel
+        llListen(SLOODLE_CHANNEL_OBJECT_LAYOUT, "", NULL_KEY, "");
     }
     
     listen(integer channel, string name, key id, string msg)
@@ -158,8 +159,8 @@ state ready
         // Ignore anything if we don't know who our rezzer is
         if (sloodlemyrezzer == NULL_KEY) return;
         
-        // Ignore anything but object chat
-        if (channel != SLOODLE_CHANNEL_OBJECT_DIALOG) return;
+        // Ignore anything but layout messages
+        if (channel != SLOODLE_CHANNEL_OBJECT_LAYOUT) return;
         // Ignore anything owned by a different agent
         if (llGetOwnerKey(id) != llGetOwner()) return;
         
