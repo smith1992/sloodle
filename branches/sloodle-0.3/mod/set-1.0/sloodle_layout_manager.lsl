@@ -131,7 +131,7 @@ integer sloodle_check_access_use(key id)
 // If "load" is TRUE, then each button label will be prefixed with "L" and a "load" dialog will be shown.
 // Otherwise, each button label will be prefixed with "S" and a "save" dialog will be shown.
 sloodle_show_layout_dialog(key id, integer load)
-{
+{    
     // Each dialog can display 12 buttons
     // However, we'll reserve the top row (buttons 10, 11, 12) for the next/previous buttons.
     // This leaves us with 9 others.
@@ -163,7 +163,7 @@ sloodle_show_layout_dialog(key id, integer load)
     // Add our page buttons if necessary
     if (layoutspagenum > 0) buttonlabels += [MENU_BUTTON_PREVIOUS];
     if (layoutspagenum < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
-    
+
     // Display the appropriate menu
     if (load) sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:loadmenu", [buttondef], id, "set");
     else sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:savemenu", [buttondef], id, "set");
@@ -366,17 +366,24 @@ state ready
             } else if (msg == MENU_BUTTON_CANCEL) {
                 menutime = 0;
                 
-            } else if (llStringLength(msg) > 1) {
+            } else if (llStringLength(msg) > 0) {
+                llOwnerSay("Received menu option number");
                 // This should be a number identifying a layout.
                 // The dialog buttons are 1-based, but the list is 0-based, so we'll need to compensate.
                 menutime = 0;
                 integer num = (integer)msg;
-                if (num < 1 || num > llGetListLength(availablelayouts)) return;
+                if (num < 1 || num > llGetListLength(availablelayouts)) {
+                    llOwnerSay("Not valid layout number: " + (string)num);
+                    return;
+                }
                 num -=1;
                 
                 // Attempt to load or save the given laout
                 currentlayout = llList2String(availablelayouts, num);
-                if (currentlayout == "") return;
+                if (currentlayout == "") {
+                    llOwnerSay("Blank layout name");
+                    return;
+                }
                 if (loadmenu) state load;
                 else state save;
             }
@@ -661,7 +668,6 @@ state load
         // We can just use all the layout data directly from the HTTP response.
         // All we need to do is replace the first line with an appropriate command.
         lines = llListReplaceList(lines, ["do:rez"], 0, 0);
-        lines = [];
         body = llDumpList2String(lines, "\n");
         // Send the link message
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, body, NULL_KEY);

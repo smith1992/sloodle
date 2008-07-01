@@ -68,8 +68,7 @@
         
         // Setup our default values
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
-        $sloodlelistentoobjects = (int)sloodle_get_value($settings, 'sloodlelistentoobjects', 0);
-        $sloodleautodeactivate = (int)sloodle_get_value($settings, 'sloodleautodeactivate', 1);
+        $sloodlerefreshtime = (int)sloodle_get_value($settings, 'sloodlerefreshtime', 600);
     
     ///// GENERAL CONFIGURATION /////
         print_box_start('generalbox boxaligncenter');

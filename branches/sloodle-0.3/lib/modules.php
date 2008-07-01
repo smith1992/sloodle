@@ -15,17 +15,18 @@
     
     /** Base module. */
     require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
+
     
     // Now we will go through every file in the "lib/modules" folder which starts "module_", and include it.
     $MODULESPATH = SLOODLE_LIBROOT.'/modules';
-    $modulefiles = sloodle_get_files($MODULESPATH, false);
+    $modulefiles = sloodle_get_files($MODULESPATH, true);
     // Go through each file
     if (is_array($modulefiles)) {
     	foreach ($modulefiles as $mf) {
     		// Does this filename start with "module_" and end with ".php"?
     		if (strcasecmp(substr($mf, 0, 7), 'module_') == 0 && strcasecmp(substr($mf, -4), '.php') == 0) {
     			// Yes - include it
-    			@include_once($mf);
+    			include_once($MODULESPATH.'/'.$mf);
     		}
     	}
     }
