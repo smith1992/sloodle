@@ -16,23 +16,19 @@
     /** Base module. */
     require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
     
-    /** Distributor module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_distributor.php');
-    /** Chat module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_chat.php');
-    /** Glossary module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_glossary.php');
-    /** Sloodle Object assignment module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_sloodleobject.php');
-    /** Blog module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_blog.php');
-    /** Sloodle avilister module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_avilister.php');
-    /** Choice module. */
-    include_once(SLOODLE_LIBROOT.'/modules/module_choice.php');
-    
-    //... include more module types here!
-    
+    // Now we will go through every file in the "lib/modules" folder which starts "module_", and include it.
+    $MODULESPATH = SLOODLE_LIBROOT.'/modules';
+    $modulefiles = sloodle_get_files($MODULESPATH, false);
+    // Go through each file
+    if (is_array($modulefiles)) {
+    	foreach ($modulefiles as $mf) {
+    		// Does this filename start with "module_" and end with ".php"?
+    		if (strcasecmp(substr($mf, 0, 7), 'module_') == 0 && strcasecmp(substr($mf, -4), '.php') == 0) {
+    			// Yes - include it
+    			@include_once($mf);
+    		}
+    	}
+    }
     
     // We will store an associative array of module types to module class names
     // e.g. { 'chat'=>'SloodleModuleChat', 'distributor'=>'SloodleModuleDistributor', ...}

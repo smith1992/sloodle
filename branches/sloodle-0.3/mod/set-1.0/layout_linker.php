@@ -98,7 +98,7 @@
         $sloodle->response->set_status_code(1);
         $sloodle->response->set_status_descriptor('OK');
         foreach ($layouts as $id => $name) {
-            $sloodle->response->add_data_line(array($id, $name));
+            $sloodle->response->add_data_line($name);
         }
         
         break;

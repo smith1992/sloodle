@@ -62,7 +62,6 @@ string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should b
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
-    llMessage
 }
 ///// ----------- /////
 

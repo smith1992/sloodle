@@ -835,6 +835,38 @@
     }
     
     /**
+    * Gets an array of files within the given directory.
+    * Ignores anything which starts with a .
+    * @param string $dir The directory to search WITHOUT a trailing slash. (Note: cannot search the current directory or higher in the file hierarchy)
+    * @param bool $relative If TRUE (default) the array of results will be relative to the input directory. Otherwise, they will include the input directory path.
+    * @return array|false A numeric array of file names sorted alphabetically, or false if an error occurred (such as the input value not being a directory)
+    */
+    function sloodle_get_files($dir, $relative = true)
+    {
+        // Make sure we have a valid directory
+        if (empty($dir)) return false;
+        // Open the directory
+        if (!is_dir($dir)) return false;
+        if (!$dh = opendir($dir)) return false;
+        
+        // Go through each item
+        $output = array();
+        while (($file = readdir($dh)) !== false) {
+            // Ignore anything starting with a . and anything which isn't a file
+            if (strpos($file, '.') == 0) continue;
+            $filetype = @filetype($dir.'/'.$file);
+            if (empty($filetype) || $filetype != 'file') continue;
+            
+            // Store it
+            if ($relative) $output[] = $file;
+            else $output[] = $dir.'/'.$file;
+        }
+        closedir($dh);
+        natcasesort($output);
+        return $output;
+    }
+    
+    /**
     * Extracts the object name and version number from an object identifier.
     * @param string $objid An object identifier, such as "chat-1.0"
     * @return array A numeric array of name then version number.

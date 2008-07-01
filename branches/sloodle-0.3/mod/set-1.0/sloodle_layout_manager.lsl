@@ -335,11 +335,11 @@ state ready
                 sloodle_show_layout_dialog(id, loadmenu);
                 
             } else if (msg == MENU_BUTTON_LOAD) {
-				// Display the loading dialog
-				loadmenu = TRUE;
-				layoutspagenum = 0;
-				menutime = curtime;
-				sloodle_show_layout_dialog(id, loadmenu);
+                // Display the loading dialog
+                loadmenu = TRUE;
+                layoutspagenum = 0;
+                menutime = curtime;
+                sloodle_show_layout_dialog(id, loadmenu);
                 
             } else if (msg == MENU_BUTTON_SAVE) {
                 // Do we currently have a layout loaded?
@@ -382,6 +382,16 @@ state ready
             }
         }
     }
+
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
+    }
 }
 
 // State in which we get the name of a layout for a "save as" operation
@@ -418,6 +428,16 @@ state save_as
         // Trim and store the layout name
         currentlayout = llStringTrim(msg, STRING_TRIM);
         state save;
+    }
+    
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
     }
 }
 
@@ -535,6 +555,16 @@ state save
         
         state ready;
     }
+    
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
+    }
 }
 
 // Load a new layout
@@ -637,6 +667,16 @@ state load
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, body, NULL_KEY);
         
         state ready;
+    }
+    
+    on_rez(integer par)
+    {
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
     }
 }
 

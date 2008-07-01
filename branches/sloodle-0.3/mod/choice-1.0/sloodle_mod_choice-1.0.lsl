@@ -64,7 +64,7 @@ list optioncolours = [
     <0.5, 0.0, 0.0>, // Dark red
     <0.0, 0.5, 0.0>, // Dark green
     <0.0, 0.0, 0.5>, // Dark blue
-    <0.5, 0.5, 0.0>, // Brown
+    <1.0, 0.5, 0.0>, // Orange
     <0.5, 0.0, 0.5>, // Purple
     <0.0, 0.5, 0.5> // Indigo
 ];
