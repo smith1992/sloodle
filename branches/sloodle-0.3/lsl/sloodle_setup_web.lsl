@@ -18,6 +18,9 @@ string SLOODLE_VERSION_LINKER = "/mod/sloodle/version_linker.php";
 string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
 string SLOODLE_CONFIG_INTERFACE = "/mod/sloodle/classroom/configure_object.php";
 string SLOODLE_CONFIG_LINKER = "/mod/sloodle/classroom/object_config_linker.php";
+string SLOODLE_PING_LINKER = "/mod/sloodle/classroom/active_object_ping_linker.php";
+
+float PING_DELAY = 10800.0; // Number of seconds between pings (does not need to be very frequent)
 
 string SLOODLE_SCRIPT_PREFIX = "sloodle_mod_";
 
@@ -31,6 +34,7 @@ string sloodleserverroot = "";
 string sloodlepwd = ""; // stores the object-specific session key (UUID|pwd)
 string sloodleauthid = ""; // The ID which is passed to Moodle in the URL for the user authorisation step
 key sloodlemyrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
+integer sloodlecontrollerid = 0; // So we know which Controller to access when PING-in the server later
 
 string password = ""; // stores the self-generated part of the password
 
@@ -508,6 +512,7 @@ state configure_object
     state_entry()
     {
         url_shown = FALSE;
+        sloodlecontrollerid = 0;
         
         // Has object configuration been requested?
         if (request_config) {
@@ -626,9 +631,19 @@ state configure_object
             integer linenum = 1;
             string cmd = "";
             integer cmdlen = 0;
+            string curline = "";
             for (; linenum < numlines; linenum++) {
+            	curline = llList2String(lines, linenum);
+            	
+				// If this is a controller ID, then store the value.
+				// (Don't bother checking if we already have a controller id)
+				if (sloodlecontrollerid == 0 && llSubStringIndex(curline, "sloodlecontrollerid") == 0) {
+					list parts = llParseStringKeepNulls(curline, ["|"], []);
+					if (llGetListLength(parts) > 1) sloodlecontrollerid = (integer)llList2String(parts, 1);
+				}
+            
                 // This should be "name|value" format, so just prefix it with "set:"
-                cmd = "set:" + llList2String(lines, linenum) + "\n";
+                cmd = "set:" + curline + "\n";
                 cmdlen = llStringLength(cmd);
                 // Ignore lengths of less than 5
                 if (cmdlen >= 5) {
@@ -662,6 +677,9 @@ state configure_object
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
+    	// Ignore anything from this script
+    	if (sender_num == llGetLinkNumber()) return;
+    	
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Is it a reset command?
@@ -687,6 +705,20 @@ state idle
     {
         // Listen for chat messages from the rezzer
         if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
+        
+        // Regularly ping the server to notify it that this object is still 'alive'.
+        // (But only if we have a valid controller id)
+        llSetTimerEvent(0.0);
+        if (sloodlecontrollerid > 0) llSetTimerEvent(PING_DELAY);
+    }
+    
+    timer()
+    {
+    	// Send our ping request and ignore the response
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodleobjuuid=" + (string)llGetKey();
+        llHTTPRequest(sloodleserverroot + SLOODLE_PING_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
     }
     
     listen(integer channel, string name, key id, string msg)

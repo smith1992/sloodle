@@ -31,6 +31,9 @@ string SLOODLE_CHOICE_SELECT_OPTION = "do:selectoption";
 float MAX_SIZE = 5.0;
 float MIN_SIZE = 0.1;
 
+// This value determines if a number should be shown on this bar to indicate the number of selections so far.
+integer SHOW_SELECTIONS_NUM = FALSE;
+
 
 // The local number of this option
 integer myoptionnum = -1;
@@ -72,7 +75,7 @@ integer process_update_command(list parts)
     
     // Set our attributes
     llSetColor(mycol, ALL_SIDES);
-    if (mycount >= 0) llSetText((string)mycount, mycol, 0.9);
+    if (mycount >= 0 && SHOW_SELECTIONS_NUM) llSetText((string)mycount, mycol, 0.9);
     else llSetText("", mycol, 0.0);
     set_scale(myprop);
     

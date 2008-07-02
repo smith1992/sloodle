@@ -42,7 +42,7 @@ list autorez_rot = []; // Autorez rotations
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
-vector default_rez_pos = <0.0, 1.0, 1.0>; // The default relative position to rez new objects at
+vector default_rez_pos = <0.0, 2.5, 1.0>; // The default relative position to rez new objects at
 rotation default_rez_rot = ZERO_ROTATION; // The default rotation to rez new objects at
 
 vector rez_pos = <0.0,0.0,0.0>; // This is used to store the actual rez position for a rez request
@@ -194,8 +194,8 @@ sloodle_purge_cmd_dialog()
     // Go through each command dialog
     integer i = 0;
     while (i < llGetListLength(cmddialog)) {
-        // Is the current timestamp more than 12 seconds old?
-        if ((curtime - llList2Integer(cmddialog, i + 1)) > 12) {
+        // Is the current timestamp more than 24 seconds old?
+        if ((curtime - llList2Integer(cmddialog, i + 1)) > 24) {
             // Yes - remove it
             cmddialog = llDeleteSubList(cmddialog, i, i + 2);
         } else {
@@ -271,8 +271,7 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return;
     // Attempt to rez the item relative to the root of this object
-    // (position and rotation should be relative to the root of this link set)
-    llRezObject(name, llGetPos() - llGetLocalPos() + (pos * llGetRot()), ZERO_VECTOR, llGetRootRotation() * rot, password);
+    llRezObject(name, llGetRootPosition() + (pos * llGetRootRotation()), ZERO_VECTOR, rot * llGetRootRotation(), password);
 }
 
 
@@ -321,7 +320,8 @@ default
     {
         // Can the user use this object
         if (sloodle_check_access_use(llDetectedKey(0))) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llDetectedName(0)], NULL_KEY, "");
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         } else {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llDetectedName(0)], NULL_KEY, "");
         }
@@ -402,7 +402,7 @@ state ready
                     if (llGetListLength(fields) >= 3) {
                         autorez_names += [llList2String(fields, 0)];
                         autorez_pos += [(vector)llList2String(fields, 1)];
-                        autorez_rot += [(rotation)llList2String(fields, 2)];
+                        autorez_rot += [(vector)llList2String(fields, 2)];
                     }
                 }
                 
@@ -466,8 +466,8 @@ state autorez
         
         // Get the first item
         rez_object = llList2String(autorez_names, 0);
-        rez_pos = llList2Vector(autorez_pos, 0);
-        rez_rot = llList2Rot(autorez_rot, 0));
+        rez_pos = (vector)llList2String(autorez_pos, 0);
+        rez_rot = llEuler2Rot((vector)llList2String(autorez_rot, 0));
         // Remove the data from the lists
         autorez_names = llDeleteSubList(autorez_names, 0, 0);
         autorez_pos = llDeleteSubList(autorez_pos, 0, 0);
@@ -608,3 +608,4 @@ state rezzing
         state ready;
     }
 }
+

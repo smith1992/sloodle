@@ -191,7 +191,7 @@ state ready
         if (layoutname == "") return;
         
         // Calculate the relative position of us compared to the rezzer
-        layoutpos = llGetPos() - rezzerpos;
+        layoutpos = (llGetPos() - rezzerpos) / rezzerrot;
         // If the distance is more than can be rezzed later on, then ignore it
         if (llVecMag(layoutpos) > 10.0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:toofar", [], NULL_KEY, "");
