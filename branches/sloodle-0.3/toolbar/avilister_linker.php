@@ -40,7 +40,8 @@
     // In any mode, the script will return status code 1 on success, and the following on each data line:
     //  "<avatar_name>|<real_name>"
     // Single lookup mode returns 1 entry, whereas multi-lookup and list modes may return many.
-    // Where a search fails, status code -103 will be returned.
+    // If the single lookup fails, then error code -103 is returned.
+    // If the other modes fail (i.e. no matching avatars found), then there are simply no data lines -- the status code is still 1.
     //
     // Note: data will *not* be given for Moodle users who have no avatar, nor avatars not linked to a Moodle user
     
@@ -115,16 +116,13 @@
         // Split up the input array
         $sloodleavnamelist = addslashes(strip_tags($sloodleavnamelist));
         $avnames = explode('|', $sloodleavnamelist);
-        // Get the array of names
+        // Get and output the array of names
         $names = $sloodle->module->find_real_names($avnames);
-        if (!$names || count($names) == 0) {
-            $sloodle->response->quick_output(-103, 'COURSE', 'Failed to find any matching real names', false);
-            exit();
-        }
-        // Output the list of names
-        natcasesort($names);
-        foreach ($names as $avatar_name => $real_name) {
-            $sloodle->response->add_data_line(array($avatar_name, $real_name));
+        if ($names && count($names) > 0) {
+		    natcasesort($names);
+		    foreach ($names as $avatar_name => $real_name) {
+		        $sloodle->response->add_data_line(array($avatar_name, $real_name));
+		    }
         }
         break;
     }

@@ -39,6 +39,7 @@ string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 integer sloodlemoduleid = 0;
 integer sloodlerefreshtime = 600; // Number of seconds between automatic refreshes
+integer sloodlerelative = FALSE; // Should the results be displayed in a relativistic way?
 integer sloodleobjectaccessleveluse = 0; // Who can use this object?
 integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 
@@ -52,6 +53,7 @@ string choicetext = ""; // The choice text... i.e. the question being asked.
 list optionids = []; // List of IDs of available options (integers)
 list optiontexts = []; // List of option texts (strings)
 list optionselections = []; // Number of times each option has been selected (integers)
+integer numunanswered = -1; // Number of people who have not answered yet
 
 // A list of colors for the options (note: after running out of colours, the list will wrap around)
 list optioncolours = [
@@ -126,6 +128,7 @@ integer sloodle_handle_command(string str)
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
     else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
     else if (name == "set:sloodlerefreshtime") sloodlerefreshtime = (integer)value1;
+    else if (name == "set:sloodlerelative") sloodlerelative = (integer)value1;
     else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
@@ -168,15 +171,28 @@ send_update()
     // Update the choice text itself
     llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, SLOODLE_CHOICE_UPDATE_TEXT + "|" + choicetext, NULL_KEY);
     
-    // Determine the maximum number of selections in our list
-    integer maxnumselections = -1;
+    // We want to determine the value that represents a full bar on the graph.
+    // In relative mode, this is the maximum number of selections for a given option (so everything is relative to that).
+    // Otherwise, it is the total number of people who have selected or could have selected.
+    integer fullbar = 0;
     integer num_options = llGetListLength(optionids);
     integer i = 0;
     integer numsels = 0;
-    for (; i < num_options; i++) {
+    for (i = 0; i < num_options; i++) {
+    	// Get the number of selections for this option
         numsels = llList2Integer(optionselections, i);
-        if (numsels > maxnumselections) maxnumselections = numsels;
+        // Relative mode?
+        if (sloodlerelative) {
+        	// Store the maximum
+	        if (numsels > fullbar) fullbar = numsels;
+        } else {
+        	// Add to the total
+        	fullbar += numsels;
+        }
     }
+    
+    // Add the number who have not answered yet, if necessary
+    if (sloodlerelative == 0 && numunanswered > 0) fullbar += numunanswered;
 
     // Go through each option we have
     string data = "";
@@ -187,10 +203,15 @@ send_update()
         data += "|" + llList2String(optiontexts, i);
         data += "|" + (string)get_option_colour(i);
         data += "|" + (string)llList2Integer(optionselections, i);
-        // Only add the proportional value if there is one to be had
+        
+        // Do we have results to add?
         numsels = llList2Integer(optionselections, i);
-        if (numsels >= 0 && maxnumselections > 0) data += "|" + (string)((float)numsels / (float)maxnumselections);
-        else data += "|0.0";
+        if (numsels > 0 && fullbar > 0) {
+        	// At this point, all results are relative to the 'fullbar' value
+        	data += "|" + (string)((float)numsels / (float)fullbar);
+        } else {
+        	data += "|0.0";
+        }
         
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, data, NULL_KEY);
     }
@@ -331,13 +352,14 @@ state ready
             }
             
             // Make sure we have enough body data
-            if (numlines < 4) {
+            if (numlines < 5) {
                 sloodle_debug("Not enough response data.");
                 return;
             }
             
             // Extract the necessary choice data
             choicetext = llList2String(lines, 1) + "\n\"" + llList2String(lines, 2) + "\"";
+            numunanswered = (integer)llList2String(lines, 4);
             // (There is more data provided that we could use later)
             
             // Determine how many options there are.

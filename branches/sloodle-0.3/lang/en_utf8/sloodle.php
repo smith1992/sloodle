@@ -263,6 +263,7 @@ $string['releasenum'] = 'Module release number';
 $string['region'] = 'Region';
 $string['refreshtimeseconds'] = 'Refresh time (seconds)';
 $string['repeatquiz'] = 'Automatically repeat the quiz?';
+$string['relativeresults'] = 'Show relative results?';
 
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';

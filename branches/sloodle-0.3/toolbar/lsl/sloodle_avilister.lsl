@@ -228,7 +228,9 @@ state searching
     {
         llSetTimerEvent(0.0);
         // Build the argument list for our HTTP request
-        string arglist = "sloodlepwd=" + sloodlepwd + "&sloodleavnamelist=";
+        string arglist = "sloodleuuid=" + (string)llGetOwner();
+        arglist += "&sloodlepwd=" + sloodlepwd;
+        arglist += "&sloodleavnamelist=";
         integer i = 0;
         for (; i < total_number; i++) {
             if (i > 0) arglist += "|";

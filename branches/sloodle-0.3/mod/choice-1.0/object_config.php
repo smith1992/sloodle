@@ -69,6 +69,7 @@
         // Setup our default values
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
         $sloodlerefreshtime = (int)sloodle_get_value($settings, 'sloodlerefreshtime', 600);
+        $sloodlerelative = (int)sloodle_get_value($settings, 'sloodlerelative', 0);
     
     ///// GENERAL CONFIGURATION /////
         print_box_start('generalbox boxaligncenter');
@@ -84,11 +85,16 @@
         echo '<input type="text" name="sloodlerefreshtime" value="'.$sloodlerefreshtime.'" size="8" maxlength="8" />';
         echo "<br><br>\n";
         
+        // Show relative results
+        echo get_string('relativeresults','sloodle').': ';
+        choose_from_menu_yesno('sloodlerelative', $sloodlerelative);
+        echo "<br>\n";
+        
         print_box_end();
         
         
     ///// ACCESS LEVELS /////
-        sloodle_print_access_level_options($settings);
+        sloodle_print_access_level_options($settings, true, false, true);
         
     }
     
