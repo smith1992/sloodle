@@ -159,7 +159,7 @@ sloodle_debug(string msg)
 sloodle_reset()
 {
     sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "resetting", [], NULL_KEY, "");
-    llMessageLinked(LINK_SET, SLOODLE_OBJECT_CHANNEL_DIALOG, "do:reset", NULL_KEY);
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
     llMessageLinked(LINK_ALL_CHILDREN,1," ",null_key);
     llMessageLinked(LINK_ALL_CHILDREN,2," ",null_key);
     llResetScript();
@@ -316,7 +316,13 @@ default
     touch_start(integer num)
     {
         if (llDetectedKey(0) == llGetOwner()) {
-            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
+            // Get the name of the prim that was touched
+            string name = llGetLinkName(llDetectedLinkNumber(0));
+            if (name == "reset") {
+                sloodle_reset();
+            } else {
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
+            }
         }
     }
     
@@ -326,9 +332,6 @@ default
     
     link_message(integer sender_num, integer num, string msg, key id)
     {
-        // Ignore self
-        if (sender_num == llGetLinkNumber()) return;
-    
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Split the message into lines
@@ -392,7 +395,7 @@ state error
                 
         // Get the name of the prim that was touched
         string name = llGetLinkName(llDetectedLinkNumber(0));
-        if (name = "reset") {
+        if (name == "reset") {
             sloodle_reset();
         }
     }
@@ -437,7 +440,7 @@ state ready
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
-        } else if (name = "reset") {
+        } else if (name == "reset") {
             sloodle_reset();
         }
     }
@@ -529,7 +532,7 @@ state get_subject
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
-        } else if (name = "reset") {
+        } else if (name == "reset") {
             sloodle_reset();
         }
     }
@@ -642,7 +645,7 @@ state get_body
             show_channel_menu();
         } else if (name == "visibility") {
             show_visibility_menu();
-        } else if (name = "reset") {
+        } else if (name == "reset") {
             sloodle_reset();
         }
     }
@@ -806,7 +809,7 @@ state send
                 
         // Get the name of the prim that was touched
         string name = llGetLinkName(llDetectedLinkNumber(0));
-        if (name = "reset") {
+        if (name == "reset") {
             sloodle_reset();
         }
     }

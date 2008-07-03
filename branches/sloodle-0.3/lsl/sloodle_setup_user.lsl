@@ -69,7 +69,7 @@ sloodle_tell_other_scripts(string msg)
 
 sloodle_debug(string msg)
 {
-    //llWhisper(0,msg);
+    llMessageLinked(LINK_SET, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
 // Generate a random password string
@@ -90,7 +90,6 @@ key sloodle_check_user_auth()
 {
     string body = "sloodleuuid=" + (string)llGetOwner();
     body += "&sloodlepwd=" + sloodlepwd;
-    body += "&sloodledebug=true";
     return llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_CHECKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
@@ -100,6 +99,7 @@ default
 {    
     state_entry()
     {
+        sloodle_debug("Setup user in default state.");
         // Pause for a moment, in case all scripts were reset at the same time
         llSleep(0.2);
         // Reset our data
@@ -184,6 +184,7 @@ state check_moodle
 {
     state_entry()
     {
+        sloodle_debug("Checking Moodle...");
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY, "");
         httpcheckmoodle = llHTTPRequest(sloodleserverroot + SLOODLE_VERSION_LINKER, [HTTP_METHOD, "GET"], "");
     }
@@ -278,6 +279,7 @@ state auth_object
 {
     state_entry()
     {
+        sloodle_debug("Object authorisation...");
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "initobjectauth", [], NULL_KEY, "");
         
         // Generate a random password
@@ -411,9 +413,11 @@ state check_auth
         // Check the statuscode.
         // If it reports that the object hasn't been authorised yet, then keep checking.
         // For any other error, go back to the start of the process.
-        if (statuscode == -214) return;
-        else if (statuscode <= 0) {
-            //sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "servererror", [statuscode], NULL_KEY, "");
+        if (statuscode == -214) {
+            sloodle_debug("Not authorised yet...");
+            return;
+        } else if (statuscode <= 0) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "servererror", [statuscode], NULL_KEY, "");
             state default;
             return;
         }
@@ -458,6 +462,7 @@ state send_config
 {
     state_entry()
     {
+        sloodle_debug("Sending configuration...");
         // Send the configuration data to the other scripts
         string config = "set:sloodleserverroot|" + sloodleserverroot;
         config += "\nset:sloodlepwd|" + sloodlepwd;
@@ -474,6 +479,7 @@ state idle
 {
     state_entry()
     {
+        sloodle_debug("Configuration finished.");
     }
     
     link_message(integer sender_num, integer num, string sval, key kval)
@@ -484,8 +490,10 @@ state idle
             if (sval == "do:reset") {
                 llResetScript();
             } else if (sval == "do:requestconfig") {
+                sloodle_debug("Configuration requested.");
                 state check_auth;
             } else if (sval == "do:reconfigure") {
+                sloodle_debug("Reconfiguration requested.");
                 state default;
             }
             return;

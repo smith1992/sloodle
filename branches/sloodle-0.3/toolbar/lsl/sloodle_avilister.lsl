@@ -142,6 +142,12 @@ default
     {
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+        	// Reset message?
+			if (msg == "do:reset") {
+				llResetScript();
+				return;
+			}
+        
             // Split the message into lines
             list lines = llParseString2List(msg, ["\n"], []);
             integer numlines = llGetListLength(lines);
@@ -196,6 +202,12 @@ state ready
     {
         if (av != NULL_KEY)
             state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+    	if (sender_num == llGetLinkNumber()) return;
+    	if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") llResetScript();
     }
 }
 
@@ -277,7 +289,7 @@ state searching
 
         // Make sure some data was returned
         if (numlines < 2) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "nonrecognised", [], NULL_KEY, "avilister");
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "nonerecognised", [], NULL_KEY, "avilister");
             state ready;
             return;
         }
@@ -310,5 +322,11 @@ state searching
     {
         if (av != NULL_KEY)
             state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+    	if (sender_num == llGetLinkNumber()) return;
+    	if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") llResetScript();
     }
 }
