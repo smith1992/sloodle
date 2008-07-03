@@ -205,6 +205,7 @@ $string['nosloodleassignments'] = 'There are no Sloodle-compatible assignments a
 $string['object:accesschecker'] = 'Access Checker';
 $string['object:accesscheckerdoor'] = 'Access Checker Door';
 $string['object:chat'] = 'WebIntercom';
+$string['object:choice'] = 'Choice';
 $string['object:distributor'] = 'Vending Machine';
 $string['object:enrolbooth'] = 'Enrolment Booth';
 $string['object:glossary'] = 'MetaGloss';
