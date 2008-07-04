@@ -147,7 +147,7 @@
 	// course id: $course->id
 	// course name: $quiz->id
 	// attempts: $quiz->attempts
-	$output[] = array('course',$course->id,$course->fullname);
+	if ($limittoquestion == 0) $output[] = array('course',$course->id,$course->fullname);
 
     $numberofpreviousattempts = count_records_select('quiz_attempts', "quiz = '{$quiz->id}' AND " .
         "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
@@ -438,8 +438,8 @@
 
     if ($finishattempt) {
         // redirect('review.php?attempt='.$attempt->id);
-        $sloodle->response->quick_output(-701, 'QUIZ', 'Got to finishattempt - but do not yet have Sloodle code to handle it.', FALSE);
-        exit();
+        //$sloodle->response->quick_output(-701, 'QUIZ', 'Got to finishattempt - but do not yet have Sloodle code to handle it.', FALSE);
+        //exit();
     }
 
 /// Print the quiz page ////////////////////////////////////////////////////////
@@ -448,15 +448,12 @@
 
 		$pagequestions = explode(',', $pagelist);
 		$lastquestion = count($pagequestions);
-        
-        // Make sure the question number is valid
-        if ($limittoquestion > $lastquestion || $limittoquestion < 0) {
-            $sloodle->response->quick_output(-701, 'QUIZ', "Question number $limittoquestion is invalid. Questions in quiz: $lastquestion.", FALSE);
-            exit();
-        }
 
-		$output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id,$lastquestion);
-		$output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
+		// Only output quiz data if a question has not been requetsed
+		if ($limittoquestion == 0) {
+		    $output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id,$lastquestion);
+		    $output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
+		}
 
         // We will keep track of question numbers local to this quiz
         $localqnum = 0;
@@ -469,7 +466,7 @@
 			$q = $questions[$i];
             $localqnum++;
             
-			if ( ($limittoquestion == 0) || ($limittoquestion == $localqnum) ) { //($limittoquestion == $q->id)
+			if ($limittoquestion == $q->id) {
 			
                 // Make sure the variables exist (avoids warnings!)
                 if (!isset($q->single)) $q->single = 0;
