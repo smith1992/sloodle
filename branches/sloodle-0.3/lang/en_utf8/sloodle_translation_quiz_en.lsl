@@ -34,11 +34,13 @@ string mybatch = "quiz";
 list locstrings = [
 	"invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
     "invalidtype", "Error: this object cannot handle quiz questions of type: {{0}}", // Parameter: question type name
-    "complete", "Quiz Complete",
+    "complete", "Quiz complete {{0}}. Your final score was {{1}}.", // Parameters: avatar name, score
     "repeating", "Repeating...",
     "starting", "Starting quiz for {{0}}", // Parameter: avatar name
     "noquestions", "ERROR: there are no questions available",
-    "noattemptsleft", "Sorry {{0}}. You are not allowed to attempt this quiz again." // Parameter: avatar name
+    "noattemptsleft", "Sorry {{0}}. You are not allowed to attempt this quiz again.", // Parameter: avatar name
+    "fetchingquiz", "Fetching quiz data...",
+    "ready", "Ready to attempt: {{0}}." // Parameter: name of quiz
 ];
 
 ///// ----------- /////
