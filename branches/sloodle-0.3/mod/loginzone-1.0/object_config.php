@@ -7,7 +7,7 @@
     * The "form" tags and submit button are already specified outside.
     * The $auth_obj and $sloodleauthid variables will identify the object being configured.
     *
-    * @package sloodlepwreset
+    * @package sloodleregenrol
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

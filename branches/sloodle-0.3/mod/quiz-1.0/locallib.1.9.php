@@ -1,5 +1,6 @@
 <?php  // $Id: locallib.php,v 1.127.2.10 2008/02/29 16:22:13 tjhunt Exp $
 /**
+ * @ignore
  * Library of functions used by the quiz module.
  *
  * This contains functions that are called from within the quiz module only

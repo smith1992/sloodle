@@ -5,7 +5,7 @@
     * This file defines the "Sloodle Object" assignment sub-type.
     * It allows students to submit 3d objects in Second Life as Moodle assignments.
     *
-    * @package sloodle
+    * @package sloodleprimdrop
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

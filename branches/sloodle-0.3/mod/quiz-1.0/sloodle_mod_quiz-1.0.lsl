@@ -681,6 +681,13 @@ state quizzing
             // Has our 'next' question been loaded?
             if (qloaded_next == active_question) {
                 // Yes
+                // Clear out our current data (a feeble attempt to save memory!)
+                qtext_current = "";
+                qtype_current = "";
+                opids_current = [];
+                optext_current = [];
+                opgrade_current = [];
+                opfeedback_current = [];
                 // Transfer all our 'next' question data into the 'current' question variables
                 qtext_current = qtext_next;
                 qtype_current = qtype_next;
@@ -763,6 +770,9 @@ state quizzing
             return;
         }
         
+        // Save a tiny bit of memory!
+        statusfields = [];
+        
         // Are we loading the current question?
         integer iscurrent = (active_question == requesting_question);
 
@@ -770,7 +780,7 @@ state quizzing
         list thisline = [];
         string rowtype = "";
         integer i = 0;
-        for (i = 0; i < numlines; i++) {
+        for (i = 1; i < numlines; i++) {
 
             // Extract and parse the current line
             list thisline = llParseString2List(llList2String(lines, i),["|"],[]);

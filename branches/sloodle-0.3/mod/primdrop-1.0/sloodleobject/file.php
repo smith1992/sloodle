@@ -4,7 +4,7 @@
     /**
     * Displays summary information about a Sloodle Object assignment submission.
     *
-    * @package sloodle
+    * @package sloodleprimdrop
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

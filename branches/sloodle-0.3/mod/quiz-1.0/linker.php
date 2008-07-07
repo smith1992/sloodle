@@ -4,7 +4,7 @@
     * Allows in-world objects to interact with Moodle quizzes.
     * Part of the Sloodle project (www.sloodle.org).
     *
-    * @package sloodle
+    * @package sloodlequiz
     * @copyright Copyright (c) 2006-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

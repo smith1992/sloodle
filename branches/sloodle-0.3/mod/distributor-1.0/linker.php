@@ -3,7 +3,7 @@
     * Sloodle distributor linker (for Sloodle 0.3).
     * Allows a Sloodle Vending Machine to update its inventory and XMLRPC channel details.
     *
-    * @package sloodle
+    * @package sloodledistributor
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

@@ -6,7 +6,7 @@
     * Allows the use and management of layout profiles from within SL.
     * See comments in source file for further information.
     *
-    * @package sloodle
+    * @package sloodleset
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *

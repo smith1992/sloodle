@@ -3,7 +3,7 @@
     * Sloodle choice linker (for Sloodle 0.3).
     * Allows an SL object to access a Moodle choice instance.
     *
-    * @package sloodle
+    * @package sloodlechoice
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
