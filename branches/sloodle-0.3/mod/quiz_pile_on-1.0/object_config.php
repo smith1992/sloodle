@@ -70,7 +70,6 @@
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
         $sloodlerepeat = (int)sloodle_get_value($settings, 'sloodlerepeat', 0);
         $sloodlerandomize = (int)sloodle_get_value($settings, 'sloodlerandomize', 1);
-        $sloodledialog = (int)sloodle_get_value($settings, 'sloodledialog', 1);
         $sloodleplaysound = (int)sloodle_get_value($settings, 'sloodleplaysound', 0);
     
     ///// GENERAL CONFIGURATION /////
@@ -92,11 +91,6 @@
         choose_from_menu_yesno('sloodlerandomize', $sloodlerandomize);
         echo "<br><br>\n";
     
-        // Use dialogs
-        echo get_string('usedialogs','sloodle').' ';
-        choose_from_menu_yesno('sloodledialog', $sloodledialog);
-        echo "<br><br>\n";
-        
         // Play sounds
         echo get_string('playsounds','sloodle').' ';
         choose_from_menu_yesno('sloodleplaysound', $sloodleplaysound);
@@ -106,7 +100,7 @@
         
         
     ///// ACCESS LEVELS /////
-        sloodle_print_access_level_options($settings, true, false, true);
+        sloodle_print_access_level_options($settings, true, true, true);
         
     }
     
