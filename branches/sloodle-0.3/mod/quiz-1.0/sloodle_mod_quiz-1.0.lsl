@@ -169,14 +169,13 @@ notify_server(string qtype, integer questioncode, integer responsecode)
 {
     string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
     body += "&sloodlepwd=" + sloodlepwd;
-    body += "&q=" + (string)quizid;
+    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
     body += "&sloodleuuid=" + (string)sitter;
     body += "&sloodleavname=" + llEscapeURL(llKey2Name(sitter));
     body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
     body += "&resp" + (string)questioncode + "_=" + (string)responsecode;
+    body += "&resp" + (string)questioncode + "_submit=1";
     body += "&questionids=" + (string)questioncode;
-    body += "&resp" + (string)questioncode+"_submit=Submit";
-    body += "&timeup=" + "0"; //(string)timeup; // Wasn't being initialised anywhere
     body += "&action=notify";
     
     llHTTPRequest(sloodleserverroot + sloodle_quiz_url, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -275,7 +274,7 @@ finish_quiz()
     // Notify the server that the attempt was finished
     string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
     body += "&sloodlepwd=" + sloodlepwd;
-    body += "&q=" + (string)quizid;
+    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
     body += "&sloodleuuid=" + (string)sitter;
     body += "&sloodleavname=" + llEscapeURL(llKey2Name(sitter));
     body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;

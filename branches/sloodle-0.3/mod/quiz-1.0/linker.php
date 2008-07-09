@@ -328,7 +328,7 @@
 
     if ($isnotify) {
 
-		$responses = (object)$_GET; // GET version of data_submitted (see lib/weblib) used in original web version
+		$responses = (object)$_REQUEST; // GET version of data_submitted (see lib/weblib) used in original web version
 
         // set the default event. This can be overruled by individual buttons.
         $event = (array_key_exists('markall', $responses)) ? QUESTION_EVENTSUBMIT :
