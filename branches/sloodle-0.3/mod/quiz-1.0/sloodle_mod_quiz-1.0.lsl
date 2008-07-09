@@ -298,6 +298,7 @@ reinitialise()
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 
 // Translation output methods
+string SLOODLE_TRANSLATE_WHISPER = "whisper";               // 1 output parameter: chat channel number
 string SLOODLE_TRANSLATE_SAY = "say";               // 1 output parameter: chat channel number
 string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
@@ -480,11 +481,11 @@ state check_quiz
         }
         
         // Split the response into several lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        list lines = llParseString2List(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
         body = "";
         list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
-        integer statuscode = llList2Integer(statusfields, 0);
+        integer statuscode = (integer)llStringTrim(llList2String(statusfields, 0), STRING_TRIM);
         
         // Was it an error code?
         if (statuscode == -10301) {
@@ -655,6 +656,8 @@ state quizzing
                     move_vertical(scorechange); // Visual feedback
                     play_sound(scorechange); // Audio feedback
                     if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
+                    else if (scorechange > 0.0) sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "correct", [llKey2Name(sitter)], NULL_KEY, "quiz");
+                    else sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "incorrect", [llKey2Name(sitter)], NULL_KEY, "quiz");
                     totalscore += scorechange;
 
                 } else {

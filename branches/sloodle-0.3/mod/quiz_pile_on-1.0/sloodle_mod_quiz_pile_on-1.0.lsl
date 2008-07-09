@@ -1,7 +1,5 @@
 // Sloodle quiz chair
 // Allows SL users to take Moodle quizzes in-world
-// This version will allow multiple users to jump on the choice of their choice.
-// Does not currently report the results back to Moodle.
 // Part of the Sloodle project (www.sloodle.org)
 //
 // Copyright (c) 2006-8 Sloodle (various contributors)
@@ -46,7 +44,7 @@ integer SLOODLE_CHANNEL_QUIZ_MULTIPLE_CORRECT = -1639270064;
 integer SLOODLE_CHANNEL_QUIZ_MULTIPLE_INCORRECT = -1639270065;
 integer SLOODLE_CHANNEL_QUIZ_MULTIPLE_CHOICE_SELECTED = -1639270066;
 
-list choice_links = [2,3,4,5]; // a list of the link numbers of objects used as choices.
+list choice_links = [2,3,4,5,6,7]; // a list of the link numbers of objects used as choices.
 integer is_waiting_for_answer = 0;
 integer listener_id;
 
@@ -285,6 +283,8 @@ move_to_start()
 // Report completion to the user
 finish_quiz() 
 {
+    llSetText("", <0.0,0.0,0.0>, 0.0);
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete:noscore", [], NULL_KEY, "quiz");
     
     // Clear the big nasty chunks of data
     optext_current = [];
@@ -403,12 +403,12 @@ state ready
         assign_numbers();
     }
     
-    touch(integer c) {
+    touch_start(integer c) {
         
         toucher = llDetectedKey(0);
         
         // Make sure the given avatar is allowed to use this object
-        if (!sloodle_check_access_use(toucher)) {
+        if (toucher != llGetOwner()) {
             
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(toucher)], null_key, "");
             toucher = null_key;
@@ -417,7 +417,7 @@ state ready
         }
         
         listener_id = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG,"",toucher,"");
-        llDialog(toucher,"Start a quiz?",["Start","Cancel"],SLOODLE_CHANNEL_AVATAR_DIALOG);
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "1", "X"], "pileonmenu:start", ["1", "X"], toucher, "quiz");
         
     }
     
@@ -425,21 +425,21 @@ state ready
         
         if (id == toucher) {
             
-            if (message == "Start") {
+            if (message == "1") {
                 
                     // Start the quiz
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "starting", [llKey2Name(toucher)], null_key, "quiz");
+                    
+                    // Make sure it's the owner who is the toucher.
+                    // (Just makes sure nobody else touched the object just before the state change).
+                    toucher = llGetOwner();
+                    
                     state check_quiz;
 
             } 
 
             llListenRemove(listener_id);
 
-        } else {
-            
-            llSay(0,"This object can only be used by its owner.");
-            llSay(0,"owner is "+(string)llGetOwner());
-            llSay(0,"toucher is "+(string)toucher);
         }
 
     }       
@@ -512,11 +512,11 @@ state check_quiz
         }
         
         // Split the response into several lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        list lines = llParseString2List(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
         body = "";
         list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
-        integer statuscode = llList2Integer(statusfields, 0);
+        integer statuscode = (integer)llStringTrim(llList2String(statusfields, 0), STRING_TRIM);
         
         // Was it an error code?
         if (statuscode == -10301) {
@@ -658,28 +658,34 @@ state quizzing
         if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG) return;
         if (id != toucher) return;
         
-        if (message == "Cancel") {
+        if (message == "X") {
             llListenRemove(listener_id);
             return;
         }
         
-        if (message == "Answer") {
+        if (is_waiting_for_answer == 1 && message == "1") { // "Answer"
             llListenRemove(listener_id);
             send_answers();
             return;
         }             
         
-        if (message == "End quiz") {
+        if (message == "2") { // "End quiz"
 
             // Yes - finish off
             finish_quiz();
             // Do we want to repeat the quiz?
-            if (doRepeat) state repeat_quiz;
+            if (doRepeat) {
+                state repeat_quiz;
+            } else {
+                // If we are waiting for an answer then send the current answers before finishing
+                if (is_waiting_for_answer == 1) send_answers();
+                state ready;
+            }
             return;
             
         }
         
-        if (message == "Next") {
+        if (is_waiting_for_answer == 0 && message == "1") { // "Next"
             
             llListenRemove(listener_id);
            
@@ -688,7 +694,13 @@ state quizzing
                 // Yes - finish off
                 finish_quiz();
                 // Do we want to repeat the quiz?
-                if (doRepeat) state repeat_quiz;
+                if (doRepeat) {
+                    state repeat_quiz;
+                } else {
+                    // If we are waiting for an answer then send the current answers before finishing
+                    if (is_waiting_for_answer == 1) send_answers();
+                    state ready;
+                }
                 return;
             }
             
@@ -720,14 +732,7 @@ state quizzing
 
             return;
         }            
-        
-        
-
-llOwnerSay("do not understand message "+message+ " in state quizzing");            
-                
-        
-        
-        
+        sloodle_debug("do not understand message "+message+ " in state quizzing");
     }
     
     timer()
@@ -740,13 +745,13 @@ llOwnerSay("do not understand message "+message+ " in state quizzing");
     touch_start(integer c) {
         
         toucher = llDetectedKey(0);
-        
+
         if (toucher == llGetOwner()) {
             listener_id = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG,"",toucher,"");
             if (is_waiting_for_answer == 1) {
-                llDialog(toucher,"Quiz options",["Answer","End quiz","Cancel"],SLOODLE_CHANNEL_AVATAR_DIALOG);
+                sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "1", "2", "X"], "pileonmenu:answer", ["1", "2", "X"], toucher, "quiz");
             } else {
-                llDialog(toucher,"Quiz options",["Next","End quiz","Cancel"],SLOODLE_CHANNEL_AVATAR_DIALOG); 
+                sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "1", "2", "X"], "pileonmenu:next", ["1", "2", "X"], toucher, "quiz");
             }
         }
         
@@ -891,4 +896,3 @@ llOwnerSay("do not understand message "+message+ " in state quizzing");
     }
     
 }
-

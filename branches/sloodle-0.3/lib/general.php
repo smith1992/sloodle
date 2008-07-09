@@ -581,10 +581,7 @@
         $notification->username = $username;
         $notification->password = $password;
 
-        if (!insert_record('sloodle_login_notifications', $notification)) {
-		echo "failed\n";
-	}
-	echo "succeeded\n";
+        return (bool)insert_record('sloodle_login_notifications', $notification);
     }
     
     /**
