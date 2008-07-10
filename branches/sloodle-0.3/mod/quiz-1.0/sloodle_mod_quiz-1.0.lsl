@@ -84,9 +84,8 @@ key sitter = null_key;
 // The lowest point of the char
 float lowestvector = 0.0; 
 
-// Store's the user's cumulative score on an attempt.
-// (only used for reporting it at the end)
-float totalscore = 0.0;
+// Stores the number of questions the user got correct on a given attempt
+integer num_correct = 0;
 
 
 ///// FUNCTIONS /////
@@ -262,7 +261,7 @@ move_to_start()
 // Report completion to the user
 finish_quiz() 
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete", [llKey2Name(sitter), (string)((integer)(totalscore / (float)num_questions * 100)) + "%"], null_key, "quiz");
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete", [llKey2Name(sitter), (string)num_correct + "/" + (string)num_questions], null_key, "quiz");
     move_to_start();
     
     // Clear the big nasty chunks of data
@@ -597,7 +596,7 @@ state quizzing
     state_entry()
     {
         llSetText("", <0.0,0.0,0.0>, 0.0);
-        totalscore = 0.0;
+        num_correct = 0;
         move_to_start();
         
         // Make sure we have some questions
@@ -656,9 +655,12 @@ state quizzing
                     move_vertical(scorechange); // Visual feedback
                     play_sound(scorechange); // Audio feedback
                     if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
-                    else if (scorechange > 0.0) sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "correct", [llKey2Name(sitter)], NULL_KEY, "quiz");
-                    else sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "incorrect", [llKey2Name(sitter)], NULL_KEY, "quiz");
-                    totalscore += scorechange;
+                    else if (scorechange > 0.0) {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "correct", [llKey2Name(sitter)], NULL_KEY, "quiz");
+                        num_correct += 1;
+                    } else {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "incorrect", [llKey2Name(sitter)], NULL_KEY, "quiz");
+                    }
 
                 } else {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");

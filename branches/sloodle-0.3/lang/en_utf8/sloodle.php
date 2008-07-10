@@ -213,6 +213,7 @@ $string['object:loginzone'] = 'LoginZone';
 $string['object:primdrop'] = 'PrimDrop';
 $string['object:pwreset'] = 'Password Reset';
 $string['object:quiz'] = 'Quiz Chair';
+$string['object:quiz_pile_on'] = 'Quiz Pile-On';
 $string['object:regbooth'] = 'Registration Booth';
 $string['object:set'] = 'Sloodle Set';
 
