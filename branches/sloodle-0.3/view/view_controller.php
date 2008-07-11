@@ -59,7 +59,7 @@
             // Is Prim Password access available?
             if (empty($controller->password)) {
                 // No - display an error message
-                echo '<span style="color:red; font-weight:bold;>'.get_string('objectconfig:noprimpassword','sloodle').'</span>';
+                echo '<span style="color:red; font-weight:bold;">'.get_string('objectconfig:noprimpassword','sloodle').'</span>';
             } else {
                 print_string('objectconfig:select','sloodle');
                 // Go through each installed type to produce our own array of objects.
