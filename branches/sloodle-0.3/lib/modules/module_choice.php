@@ -114,7 +114,7 @@
             
             // Determine how many people on the course have not yet answered
             $users = get_course_users($this->cm->course);
-            if (!is_array($users)) return false;
+            if (!is_array($users)) $users = array();
             $num_users = count($users);
             $numanswers = (int)count_records('choice_answers', 'choiceid', $this->moodle_choice_instance->id);
             $this->numunanswered = max(0, $num_users - $numanswers);

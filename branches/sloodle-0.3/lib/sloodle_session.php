@@ -95,7 +95,7 @@
         * @param string $type The expected type of module - function fails if type is not correctly matched
         * @param bool $db If true then the system will also try to load appropriate data from the database, as specified in the module ID request parameter
         * @param bool $require If true, then if something goes wrong, the script will be terminated with an error message
-        * @param bool $override_access If true, then the user access permissions will be overriden to force access (not implemented yet)
+        * @param bool $override_access If true, then access can be gained to a module on a separate course from the current controller
         * @return bool True if successful, or false otherwise. (Note, if parameter $require was true, then the script will terminate before this function returns if something goes wrong)
         */
         function load_module($type, $db, $require = true, $override_access = false)
@@ -105,20 +105,28 @@
             if ($db) {
                 $db_id = $this->request->get_module_id($require);
                 if ($db_id == null) return false;
-            }
-            
-            // Construct the module
-            $this->module = sloodle_load_module($type, $this, $db_id);
-            if (!$this->module) {
-                if ($require) {
-                    $this->response->quick_output(-601, 'MODULE', 'Failed to construct module object', false);
-                    exit();
+                
+				// Is access being overridden?
+                if (!$override_access) {
+                	// No
+                	// Make sure we have a controller loaded
+                	if (!$this->course->is_loaded() || !$this->course->controller->is_loaded()) {
+                		if ($require) {
+                			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Access has not been authenticated through a Controller. Access prohibited.', false);
+                    		exit();
+                		}
+                		return false;
+                	}
+                	// Does the specified module instance exist in this course?
+                	if (!record_exists('course_modules', 'course', $this->course->get_course_id(), 'module', $db_id)) {
+                		if ($require) {
+                			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Module not found in requested course.', false);
+                    		exit();
+                		}
+                		return false;
+                	}
                 }
-                return false;
             }
-            
-            return true;
-        }
         
         
         /**

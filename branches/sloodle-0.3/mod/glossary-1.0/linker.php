@@ -65,8 +65,10 @@
         exit();
     }
     
-    // For searching, we must authenticate the user
-    $sloodle->validate_user();
+    // If the server access level has been specified, then validate the user
+    $serveraccesslevel = $sloodle->request->get_server_access_level(false);
+    if ($serveraccesslevel !== null && $serveraccesslevel != 0) $sloodle->validate_user();
+    else $sloodle->validate_user(false);
     
     // Get our other parameters
     $sloodleterm = addslashes($sloodleterm);

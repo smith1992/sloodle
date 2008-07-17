@@ -443,7 +443,7 @@ state search
         // Check the statuscode
         if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
-            sloodle_reset();
+            state ready;
             return;
         }
         
