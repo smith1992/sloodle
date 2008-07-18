@@ -1,0 +1,38 @@
+SLOODLE PRIMDROP
+
+(Based on Bulletin Board by Apotheus Silverman)
+
+Primdrop hacks the bulletin board to send object data out to a web database. To see a list of objects loaded, visit: http://www.sloodle.org/mod/sloodle/mod/primdrop/primdrop_report.php
+
+-------------
+
+To post a new bulletin:
+* Create your message/script/object/whatever you want the bulletin contents to be.
+* Say "primdrop"
+* The bulletin title will default to the name of the object you drop onto it. If you wish to set a different title, you can do so by saying "title This is my title".
+* Drag the bulletin contents object onto the bulletin board. Some object types require that you hold CTRL when you drop, otherwise it will not work properly.
+
+To read a bulletin:
+* Simply Touch the note graphic for the bulletin you wish to view.
+* If you are the bulletin creator, you will subsequently be prompted whether or not to remove the bulletin.
+
+To see the web list:
+* go to http://www.sloodle.com/mod/sloodle/mod/primdrop/primdrop_report.php
+
+Change Log
+-------------
+v.2 added web data links (jk)
+
+v1.1 - October 24, 2004
+Fixed SL v1.4 (1.3?) update that changed state handling and broke the llListen()
+Fixed bug where long notecard names could render a bulletin undeletable
+Made voice commands case-insensitive
+*Changed comm channel handling so the channel only has to be hard-coded in the bulletin board script
+Corrected race condition in bulletin item removal functionality that could result in multiple items getting deleted at once
+Corrected possibility of zombie listens in bulletin items
+Made new bulletins rez properly regardless of the board's rotation
+Updated all code to standardized naming and capitalization conventions
+Updated in-code comments.
+Released under GNU General Public License
+
+Initial release

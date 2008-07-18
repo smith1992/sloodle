@@ -1,0 +1,37 @@
+Sloodle
+-------
+
+The Sloodle project is a free, open source mashup between the virtual world "Second Life", and the "Moodle" learning management system.
+
+Official website: http://www.sloodle.org
+
+Sloodle is an activity module for Moodle (www.moodle.org), so you will need a Moodle installation to use it. Currently, Moodle 1.6 and 1.8 are supported (although 1.7 may work as well). You will need to be an administrator on your Moodle site, and have access to the Moodle files (typically via FTP software if your Moodle is hosted on a public server).
+
+
+INSTALLING FOR THE FIRST TIME
+-----------------------------
+
+ 1. Access your Moodle files (e.g. via FTP software, such as FileZilla)
+ 2. Open the "mod" folder
+ 3. Copy/upload the "sloodle" folder
+ 4. Login to your Moodle with your web-browser
+ 5. Visit your administration page (click "Admin" or "Notifications" from the front-page)
+ 6. You will see the installation or error message(s)
+
+WARNING: do *not* have more than one folder containing Sloodle installed in the "mod" folder.
+
+
+
+UPGRADING
+---------
+Upgrading Sloodle is very easy, and is almost exactly the same as installation:
+
+ 1. Access your Moodle files (e.g. via FTP software, such as FileZilla)
+ 2. Open the "mod" folder
+ 3. DELETE the existing "sloodle" folder
+ 4. Copy/upload the new "sloodle" folder
+ 5. Login to your Moodle with your web-browser
+ 6. Visit your administration page (click "Admin" or "Notifications" from the front-page) 
+ 7. You will see the upgrade or error message(s)
+
+WARNING: Step 3 is *crucial*! Renaming an old Sloodle folder will cause conflicts, and overwriting it could cause security problems.
