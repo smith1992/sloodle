@@ -97,7 +97,7 @@
             // Convert it to an array of strings
             $entries = array();
             foreach ($recs as $r) {
-                $entries[] = $recs->name;
+                $entries[] = stripslashes($recs->name);
             }
             
             return $entries;
@@ -120,7 +120,7 @@
                 // Construct the new record
                 $rec = new stdClass();
                 $rec->distributorid = $this->sloodle_distributor_instance->id;
-                $rec->name = $o;
+                $rec->name = addslashes($o);
                 // Insert it
                 if (!insert_record('sloodle_distributor_entry', $rec)) $result = false;
             }
@@ -152,7 +152,7 @@
         function send_object($objname, $uuid)
         {
             // Check that the object exists in this distributor
-            if (!record_exists('sloodle_distributor_entry', 'distributorid', $this->distrib_id, 'name', $objname)) return false;
+            if (!record_exists('sloodle_distributor_entry', 'distributorid', $this->distrib_id, 'name', addslashes($objname))) return false;
             // Send the XMLRPC request
             return sloodle_send_xmlrpc_message($this->sloodle_distributor_instance->channel, 0, "1|OK\\nSENDOBJECT|$uuid|$objname");
         }

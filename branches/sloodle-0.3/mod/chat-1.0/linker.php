@@ -66,7 +66,7 @@
     $messages = $sloodle->module->get_chat_history();
     foreach ($messages as $m) {
         $author = $m->user->get_user_firstname().' '.$m->user->get_user_lastname();
-        $sloodle->response->add_data_line(array($m->id, $author, $m->message));
+        $sloodle->response->add_data_line(array($m->id, $author, html_entity_decode(strip_tags($m->message))));
     }
     
     // Output our response

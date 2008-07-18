@@ -106,7 +106,7 @@
                 $db_id = $this->request->get_module_id($require);
                 if ($db_id == null) return false;
                 
-				// Is access being overridden?
+                // Is access being overridden?
                 if (!$override_access) {
                 	// No
                 	// Make sure we have a controller loaded
@@ -118,7 +118,7 @@
                 		return false;
                 	}
                 	// Does the specified module instance exist in this course?
-                	if (!record_exists('course_modules', 'course', $this->course->get_course_id(), 'module', $db_id)) {
+                	if (!record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
                 		if ($require) {
                 			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Module not found in requested course.', false);
                     		exit();
@@ -127,6 +127,17 @@
                 	}
                 }
             }
+
+            // Construct the module
+            $this->module = sloodle_load_module($type, $this, $db_id);
+            if (!$this->module) {
+                if ($require) {
+                    $this->response->quick_output(-601, 'MODULE', 'Failed to construct module object', false);
+                    exit();
+                }
+                return false;
+            }
+        }
         
         
         /**

@@ -174,7 +174,7 @@ default
             if (eof == TRUE) {
                 if (isconfigured == TRUE) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
-                    state ready;
+                    state check_glossary;
                 } else {
                     // Go all configuration but, it's not complete... request reconfiguration
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");

@@ -333,9 +333,6 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     }
     
     
-    // Display final messages
-    if ($result) echo '<center><b>Thanks for helping us test Sloodle 0.3! :-)</b></center>';
-    
     // Attempted upgrades from previous 0.3 versions should not be warned
     if ($oldversion >= 2008052800 && $oldversion < 2008070301) {
         echo('<center><b>WARNING: you are upgrading from an old test version of Sloodle 0.3. This is not recommended. If you experience difficulties, then uninstall Sloodle, and re-install the new version.</b></center>');

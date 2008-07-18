@@ -92,7 +92,7 @@
         // Go through each result
         foreach ($results as $r) {
             $concept = strip_tags($r->concept);
-            $def = str_replace("\n", "", strip_tags($r->definition));
+            $def = str_replace("\n", "", html_entity_decode(strip_tags($r->definition)));
             $sloodle->response->add_data_line(array($concept, $def));
         }
     } else {

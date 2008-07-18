@@ -49,6 +49,7 @@
         $send_user = optional_param('user', '', PARAM_TEXT);
         $send_object = optional_param('object', '', PARAM_TEXT);
         if (!empty($send_user) && !empty($send_object)) {
+            $send_object = stripslashes(stripslashes(html_entity_decode($send_object))); // Painful... but must be done!
             // Construct and send the request
             $request = "1|OK\\nSENDOBJECT|$send_user|$send_object";
             $ok = sloodle_send_xmlrpc_message($distributor->channel, 0, $request);
@@ -84,7 +85,8 @@
         // Construct the selection box of items
         $selection_items = '<select name="object" size="1">';
         foreach ($entries as $e) {
-            $selection_items .= "<option value=\"{$e->name}\">{$e->name}</option>\n";
+            $escapedname = htmlentities($e->name);
+            $selection_items .= "<option value=\"{$escapedname}\">".stripslashes($escapedname)."</option>\n";
         }
         $selection_items .= '</select>';
         

@@ -619,7 +619,7 @@ state configure_object
             
             // This will be our buffer of configuration commands
             string cmdbuffer = "";
-            integer maxbufferlength = 1024;
+            integer maxbufferlength = 300;
             integer cmdbufferlength = 0;
             
             // Add the server address and password in as the first commands. Also add the rezzer key if we have one
