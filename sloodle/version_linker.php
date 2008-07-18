@@ -31,42 +31,36 @@
 
 
 /** Sloodle/Moodle configuration information. */
-require_once('config.php');
-/** Sloodle debugging. */
-require_once(SLOODLE_DIRROOT.'/sl_debug.php');
-/** Sloodle LSL handling library. */
-require_once(SLOODLE_DIRROOT.'/lib/sl_lsllib.php');
+require_once('sl_config.php');
+/** Sloodle API. */
+require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
 // Process the request
-sloodle_debug_output('Processing request...<br/>');
-$lsl = new SloodleLSLHandler();
-$lsl->request->process_request_data();
+sloodle_debug('Processing request...<br/>');
+$sloodle = new SloodleSession();
 
 // Check the installed Sloodle version
-sloodle_debug_output('Checking for installed Sloodle version...<br/>');
+sloodle_debug('Checking for installed Sloodle version...<br/>');
 $moduleinfo = get_record('modules', 'name', 'sloodle');
 if (!$moduleinfo) {
- sloodle_debug_output('ERROR: Sloodle not installed<br/>');
- $lsl->response->set_status_code(-106);
- $lsl->response->set_status_descriptor('SYSTEM');
- $lsl->response->add_data_line('The Sloodle module is not installed on this Moodle site.');
- $lsl->response->render_to_output();
+ sloodle_debug('ERROR: Sloodle not installed<br/>');
+ $sloodle->response->quick_output(-106, 'SYSTEM', 'The Sloodle module is not installed on this Moodle site.', false);
  exit();
 }
 
 // Extract the module version number
 $moduleversion = (string)$moduleinfo->version;
-sloodle_debug_output('Sloodle version: '.(string)SLOODLE_VERSION.'<br/>');
-sloodle_debug_output("Module version: $moduleversion<br/>");
+sloodle_debug('Sloodle version: '.(string)SLOODLE_VERSION.'<br/>');
+sloodle_debug("Module version: $moduleversion<br/>");
 
 // Construct and render the response
-sloodle_debug_output('Rendering response...<br/>');
-$lsl->response->set_status_code(1);
-$lsl->response->set_status_descriptor('OK');
-$lsl->response->add_data_line(array((string)SLOODLE_VERSION, $moduleversion));
-sloodle_debug_output('<br/><pre>');
-$lsl->response->render_to_output();
-sloodle_debug_output('</pre>');
+sloodle_debug('Rendering response...<br/>');
+$sloodle->response->set_status_code(1);
+$sloodle->response->set_status_descriptor('OK');
+$sloodle->response->add_data_line(array((string)SLOODLE_VERSION, $moduleversion));
+sloodle_debug('<br/><pre>');
+$sloodle->response->render_to_output();
+sloodle_debug('</pre>');
 
 exit();
 
