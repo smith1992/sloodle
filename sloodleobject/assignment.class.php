@@ -28,7 +28,7 @@ require_once($CFG->dirroot.'/mod/assignment/lib.php');
  */
 class assignment_sloodleobject extends assignment_base {
 
-    function assignment_sloodleobject($cmid='staticonly', $assignment=NULL, $cm=NULL, $course=NULL) {
+    function assignment_sloodleobject($cmid=0, $assignment=NULL, $cm=NULL, $course=NULL) {
         parent::assignment_base($cmid, $assignment, $cm, $course);
         $this->type = 'sloodleobject';
     }
