@@ -435,6 +435,7 @@ state ready
         // Get the name of the prim that was touched
         string name = llGetLinkName(llDetectedLinkNumber(0));
         if (name == "start_blog") {
+            llOwnerSay("Blogging to: " + sloodleserverroot);
             state get_subject;
         } else if (name == "channel" || name == "channel_num") {
             show_channel_menu();

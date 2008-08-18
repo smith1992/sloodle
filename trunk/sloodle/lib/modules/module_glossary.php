@@ -98,6 +98,8 @@
         {
             // This array will store the results associatively, ID => SloodleGlossaryDefinition
             $entries = array();
+            // Get the glossary ID
+            $glossaryid = (int)$this->moodle_glossary_instance->id;
             
             // Construct a query
             $sql_like = sql_ilike();
@@ -105,7 +107,7 @@
             if ($matchPartial) $termquery = "$sql_like '%$term%'";
             
             // Search concepts
-            $recs = get_records_select('glossary_entries', 'concept '.$termquery, 'concept');
+            $recs = get_records_select('glossary_entries', "glossaryid = $glossaryid AND concept $termquery", 'concept');
             if (is_array($recs)) {
                 foreach ($recs as $r) {
                     $entries[$r->id] = new SloodleGlossaryEntry($r->id, $r->concept, $r->definition);
@@ -114,7 +116,7 @@
             
             // Search aliases
             if ($searchAliases) {
-                $recs = get_records_select('glossary_alias', 'alias '.$termquery);
+                $recs = get_records_select('glossary_alias', "glossaryid = $glossaryid AND alias $termquery");
                 // Go through each alias found
                 if (is_array($recs)) {
                     foreach ($recs as $r) {
@@ -130,7 +132,7 @@
             
             // Search definitions
             if ($searchDefinitions) {
-                $recs = get_records_select('glossary_entries', "definition $sql_like '%$term%'", 'concept');
+                $recs = get_records_select('glossary_entries', "glossaryid = $glossaryid AND definition $sql_like '%$term%'", 'concept');
                 if (is_array($recs)) {
                     foreach ($recs as $r) {
                         if (!isset($entries[$r->id])) $entries[$r->id] = new SloodleGlossaryEntry($r->id, $r->concept, $r->definition);

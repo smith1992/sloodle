@@ -18,6 +18,9 @@
         if (file_exists($CFG->dataroot.'/'.SITEID.'/maintenance.html')) {
             exit("-111|SYSTEM\nThe Moodle site is in maintenance mode. Please try again later.");
         }
+        
+        // Use Unicode UTF-8 encoding to support non-English alphabets
+        if (!headers_sent()) header('Content-Type: text/plain; charset=UTF-8');
     }
     
     
