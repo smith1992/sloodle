@@ -107,7 +107,7 @@
     // Link to own avatar profile
     echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">".get_string('viewmyavatar', 'sloodle')."</a><br>\n";
     // Link to user management
-    if (has_capability('moodle/user:viewdetails', $course_context)) {
+    if (has_capability('moodle/user:viewhiddendetails', $course_context)) {
         echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$course->id}\">".get_string('sloodleuserprofiles', 'sloodle')."</a><br>\n";
     }
     

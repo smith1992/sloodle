@@ -77,7 +77,11 @@ $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
 $string['confirmdeleteuserobjects'] = 'Are you sure you want to delete all these user objects?';
 $string['controlaccess'] = 'You can control access to your courses by enabling or disabling the Sloodle Controllers';
-$string['controllerinfo'] = 'This page represents a Sloodle Controller. These are used to control communications between Second Life and Moodle, keeping the site secure. This page is primarily for use by teachers and administrators.';
+
+//$string['controllerinfo'] = 'This page represents a Sloodle Controller. These are used to control communications between Second Life and Moodle, keeping the site secure. This page is primarily for use by teachers and administrators.';
+
+$string['controllerinfo'] = 'This course is linked to learning activities in Second Life. This page is provided to allow students to check whether the Second Life interface is currently enabled, and for instructors to configure the interface.';
+
 $string['courseconfig'] = 'Sloodle Course Configuration';
 $string['courseconfig:info'] = 'On this page, you can configure the Sloodle settings which affect your entire course. However, some of the settings may be disabled on your Moodle site by an administrator.<br/><br/><b>Please note:</b> auto-registration and auto-enrolment are not suitable for all Moodle installations. Please read the documentation about each one before enabling them.';
 $string['coursesettings'] = 'Course Settings';
