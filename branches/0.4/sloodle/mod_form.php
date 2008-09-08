@@ -152,6 +152,17 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
             
             break;
+            
+            
+        // // SLIDESHOW // //
+        
+        case SLOODLE_TYPE_SLIDESHOW:
+        
+            // Add the type-specific Header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            
+            break;
         
         }
 
@@ -260,6 +271,11 @@ class mod_sloodle_mod_form extends moodleform_mod {
             
             
         case SLOODLE_TYPE_DISTRIB:
+            // Nothing to error check
+            break;
+         
+        
+        case SLOODLE_TYPE_SLIDESHOW:
             // Nothing to error check
             break;
          
