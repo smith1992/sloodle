@@ -89,6 +89,11 @@
             }        
             break;
             
+        case SLOODLE_TYPE_SLIDESHOW:
+            // Nothing extra to do 
+            $result = TRUE;
+            break;
+            
         // ADD FURTHER MODULE TYPES HERE!
             
         default:
@@ -170,6 +175,10 @@
             // Update the database
             update_record('sloodle_distributor', $distrib);
             
+            break;
+            
+        case SLOODLE_TYPE_SLIDESHOW:
+            // Nothing extra to do 
             break;
             
         // ADD FURTHER MODULE TYPES HERE!

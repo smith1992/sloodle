@@ -26,7 +26,8 @@
     require_once(SLOODLE_DIRROOT.'/view/view_controller.php');
     /** Viewing functionality for the Distributor. */
     require_once(SLOODLE_DIRROOT.'/view/view_distributor.php');    
-    
+    /** Viewing functionality for the Slideshow. */
+    require_once(SLOODLE_DIRROOT.'/view/view_slideshow.php');    
     
 
     // Fetch our request parameters
@@ -184,6 +185,10 @@
         
     case SLOODLE_TYPE_DISTRIB:
         $result = sloodle_view_distributor($cm, $sloodle, $canedit);
+        break;
+        
+    case SLOODLE_TYPE_SLIDESHOW:
+        $result = sloodle_view_slideshow($cm, $sloodle, $canedit);
         break;
         
     default:

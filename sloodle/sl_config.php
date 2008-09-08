@@ -33,7 +33,7 @@
     /** The data path for the root of the Sloodle library folder. */
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', 0.3); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', 0.4); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
@@ -86,12 +86,14 @@
     
     // These are the regular module types
     define('SLOODLE_TYPE_DISTRIB', 'distributor');
+    define('SLOODLE_TYPE_SLIDESHOW', 'slideshow');
     
     // Store the types in an array (used in lists)
     global $SLOODLE_TYPES;
     $SLOODLE_TYPES = array();
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
+    $SLOODLE_TYPES[] = SLOODLE_TYPE_SLIDESHOW;
     
 //---------------------------------------------------------------------
 
