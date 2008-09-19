@@ -19,7 +19,32 @@
     
     /** Include our email functionality. */
     require_once(SLOODLE_LIBROOT.'/mail.php');
-    
+
+
+    /**
+    * Force the user to login, but reject guest logins.
+    * This function exists to workaround some Moodle 1.8 bugs.
+    * @return void
+    */
+    function sloodle_require_login_no_guest()
+    {
+        global $CFG, $SESSION, $FULLME;
+        // Attempt a direct login initially
+        require_login(0, false);
+        // Has the user been logged-in as a guest?
+        if (isguestuser()) {
+            // Make sure we can come back here after login
+            $SESSION->wantsurl = $FULLME;
+            // Redirect to the appropriate login page
+            if (empty($CFG->loginhttps)) {
+                redirect($CFG->wwwroot .'/login/index.php');
+            } else {
+                $wwwroot = str_replace('http:','https:', $CFG->wwwroot);
+                redirect($wwwroot .'/login/index.php');
+            }
+            exit();
+        }
+    }    
     
     /**
     * Sets a Sloodle configuration value.

@@ -37,9 +37,10 @@
     
     /** Include Sloodle/Moodle configuration. */
     require_once('../sl_config.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
-    // Make sure the Moodle user is logged-in
-    require_login();
+    sloodle_require_login_no_guest();
+
     // Make sure the user has permission to register their avatar
     require_capability('mod/sloodle:registeravatar', get_context_instance(CONTEXT_SYSTEM));
     
@@ -49,17 +50,6 @@
     // Display the page header
     print_header_simple(get_string('welcometosloodle', 'sloodle'), "", get_string('welcometosloodle', 'sloodle'), "", "", true);
     
-    // Make sure it's not a guest who is logged in
-    if (isguest()) {
-        ?>
-        <div style="text-align:center;">
-         <h3><?php print_string('error', 'sloodle'); ?></h3>
-         <p><?php print_string('noguestaccess', 'sloodle'); ?></p>
-        </div>
-        <?php
-        print_footer();
-		exit();
-    }
     
     // Process the request data
     $sloodle = new SloodleSession();
@@ -95,8 +85,16 @@
         print_footer();
         exit();
     }
+
+/// /// MOODLE-SPECIFIC /// ///
+
+    // This is a slightly dirty hack, but is needed just now to prevent multiple avatar registrations.
+    // Delete any avatar belonging to this user, which doesn't match the one just registered.
+    delete_records_select('sloodle_users', "userid = {$USER->id} AND uuid <> '{$sloodleuuid}'");
+
+/// /// END MOODLE-SPECIFIC /// ///
     
-    echo "<div style=\"text-align:center\">\n";
+    echo "<div style=\"text-align:center; font-size:140%;\">\n";
     echo get_string('welcometosloodle','sloodle').', '.$pa->avname.'<br /><br />'.get_string('userlinksuccessful','sloodle');
     echo "</div>\n";
     
