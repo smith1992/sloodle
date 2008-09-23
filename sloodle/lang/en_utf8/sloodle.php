@@ -166,6 +166,9 @@ $string['moduletype'] = 'Module Type';
 $string['moduletype:controller'] = 'Sloodle Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:slideshow'] = 'Slideshow';
+$string['moduletype:map'] = 'Sloodle Map';
+
+$string['moduleaction:map'] = 'Add a Sloodle Map';
 
 $string['modulename'] = 'Sloodle Module';
 $string['modulenameplural'] = 'Sloodle Modules';

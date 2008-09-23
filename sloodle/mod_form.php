@@ -89,7 +89,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // Make it raw type (so the HTML isn't filtered out)
 		$mform->setType('intro', PARAM_RAW);
         // Make it required
-		$mform->addRule('intro', get_string('required'), 'required', null, 'client');
+		//$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
         // Provide an HTML editor help button
         $mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
         
@@ -163,6 +163,16 @@ class mod_sloodle_mod_form extends moodleform_mod {
             
             
             break;
+
+
+        // // MAP // //
+
+        case SLOODLE_TYPE_MAP:
+
+            // Add the type-specific header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+
+            break;
         
         }
 
@@ -226,6 +236,12 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
         
             break;
+
+        case SLOODLE_TYPE_SLIDESHOW:
+            break;
+
+        case SLOODLE_TYPE_MAP:
+            break;
             
         default:
             // Nothing to do?
@@ -278,7 +294,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
         case SLOODLE_TYPE_SLIDESHOW:
             // Nothing to error check
             break;
-         
+        
+        case SLOODLE_TYPE_MAP:
+            // Nothing to error check
+            break; 
 
         // ADD FUTURE TYPES HERE
         
