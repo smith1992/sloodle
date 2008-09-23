@@ -93,12 +93,18 @@
             // Nothing extra to do 
             $result = TRUE;
             break;
+
+        case SLOODLE_TYPE_MAP:
+            // Nothing extra to do
+            $result = TRUE;
+            break;
             
         // ADD FURTHER MODULE TYPES HERE!
             
         default:
-            // Type not recognised
-            $errormsg = error(get_string('moduletypeunknown', 'sloodle'));
+            // Type not recognised - this really shouldn't kill the script though... makes development very hard
+            //$errormsg = error(get_string('moduletypeunknown', 'sloodle'));
+            $result = TRUE;
             break;
         }
         
@@ -180,12 +186,16 @@
         case SLOODLE_TYPE_SLIDESHOW:
             // Nothing extra to do 
             break;
+
+        case SLOODLE_TYPE_MAP;
+            // Nothing extra to do
+            break;
             
         // ADD FURTHER MODULE TYPES HERE!
             
         default:
             // Type not recognised
-            error(get_string('moduletypeunknown', 'sloodle'));
+            //error(get_string('moduletypeunknown', 'sloodle'));
             break;
         }
 
@@ -225,6 +235,12 @@
         }
         // Delete all the distributors
         delete_records('sloodle_distributor', 'sloodleid', $id);
+
+        // Delete any slideshow entries
+        delete_records('sloodle_slideshow_image', 'sloodleid', $id);
+
+        // Delete any map entries
+        //delete_records('sloodle_map_data', 'sloodleid', $id);
         
         
         // ADD FURTHER MODULE TYPES HERE!
@@ -385,15 +401,16 @@
 
     /**
     * Gets the different sub-types of Sloodle module available as a list for the "Add Activity..." menu.
+    * Also adds the 'Sloodle Map' resource type.
     *
-    * $return array Entries for the "Add Activity..." sub-menu for Sloodle
+    * $return array Entries for the "Add Activity..." and "Add Resource..." menus.
     */
 
     function sloodle_get_types() {
         global $CFG, $SLOODLE_TYPES;
         $types = array();
 
-        // Start the group
+        // Start the group of activities
         $type = new object();
         $type->modclass = MOD_CLASS_ACTIVITY;
         $type->type = "sloodle_group_start";
@@ -409,11 +426,18 @@
             $types[] = $type;
         }
 
-        // End the group
+        // End the group of activities
         $type = new object();
         $type->modclass = MOD_CLASS_ACTIVITY;
         $type->type = "sloodle_group_end";
         $type->typestr = '--';
+        $types[] = $type;
+
+        // Add the resource
+        $type = new object();
+        $type->modclass = MOD_CLASS_RESOURCE;
+        $type->type = "sloodle&amp;type=map";
+        $type->typestr = get_string("moduleaction:map", "sloodle");
         $types[] = $type;
 
         return $types;
