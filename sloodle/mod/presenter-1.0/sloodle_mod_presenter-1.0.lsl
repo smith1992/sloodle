@@ -1,5 +1,7 @@
-// Sloodle Slideshow (for Sloodle 0.3)
-// Lets the educator display a slideshow of images hosted on the web.
+// STILL NEEDS UPDATED
+
+// Sloodle Presenter (for Sloodle 0.3)
+// Lets the educator display a slideshow of images, videos and pages hosted on the web.
 // Part of the Sloodle project (www.sloodle.org)
 //
 // Copyright (c) 2008 Sloodle
@@ -10,10 +12,10 @@
 //
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-string SLOODLE_SLIDESHOW_LINKER = "/mod/sloodle/mod/slideshow-1.0/linker.php";
+string SLOODLE_SLIDESHOW_LINKER = "/mod/sloodle/mod/presenter-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
-string SLOODLE_OBJECT_TYPE = "slideshow-1.0";
+string SLOODLE_OBJECT_TYPE = "presenter-1.0";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
@@ -30,6 +32,7 @@ integer eof = FALSE; // Have we reached the end of the configuration data?
 
 key httpimageurls = NULL_KEY; // Request for list of image URLs
 list imageurls = []; // List of current image URLs
+list entrytypes = []; // List of current entry types
 integer currentimage = 0; // Array ID identifying which URL in imageurls we are currently on
 
 

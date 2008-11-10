@@ -26,8 +26,8 @@
     require_once(SLOODLE_DIRROOT.'/view/view_controller.php');
     /** Viewing functionality for the Distributor. */
     require_once(SLOODLE_DIRROOT.'/view/view_distributor.php');    
-    /** Viewing functionality for the Slideshow. */
-    require_once(SLOODLE_DIRROOT.'/view/view_slideshow.php');
+    /** Viewing functionality for the Presenter. */
+    require_once(SLOODLE_DIRROOT.'/view/view_presenter.php');
     /** Viewing functionality for the Map. */ 
     require_once(SLOODLE_DIRROOT.'/view/view_map.php');
     
@@ -189,8 +189,8 @@
         $result = sloodle_view_distributor($cm, $sloodle, $canedit);
         break;
         
-    case SLOODLE_TYPE_SLIDESHOW:
-        $result = sloodle_view_slideshow($cm, $sloodle, $canedit);
+    case SLOODLE_TYPE_PRESENTER:
+        $result = sloodle_view_presenter($cm, $sloodle, $canedit);
         break;
 
     case SLOODLE_TYPE_MAP:

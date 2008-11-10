@@ -1,7 +1,7 @@
 <?php
     /**
-    * Sloodle Slideshow linker.
-    * Allows a Sloodle Slideshow object in-world to request a list of images for a slideshow.
+    * Sloodle Presenter linker.
+    * Allows a Sloodle Presenter object in-world to request a list of entries for a presentation.
     *
     * @package sloodle
     * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
@@ -13,7 +13,7 @@
     // This script should be called with the following parameters:
     //  sloodlecontrollerid = ID of a Sloodle Controller through which to access Moodle
     //  sloodlepwd = the prim password or object-specific session key to authenticate the request
-    //  sloodlemoduleid = ID of a chatroom
+    //  sloodlemoduleid = ID of a presenter
     //
     // Status code 1 will be returned on success.
     // The data lines will contain a URL on each line, each URL pointing at an image.
@@ -31,17 +31,17 @@
     // Authenticate the request, and load a slideshow module
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
-    $sloodle->load_module('slideshow', true);
+    $sloodle->load_module(SLOODLE_TYPE_PRESENTER, true);
     
     // Start preparing the response
     $sloodle->response->set_status_code(1);
     $sloodle->response->set_status_descriptor('OK');
     
-    // Output each URL
-    $imageurls = $sloodle->module->get_image_urls();
-    if (is_array($imageurls)) {
-        foreach ($imageurls as $img) {
-            $sloodle->response->add_data_line($img);
+    // Output each URL and entry type
+    $entries = $sloodle->module->get_entry_urls();
+    if (is_array($entries)) {
+        foreach ($entries as $entry) {
+            $sloodle->response->add_data_line($entry);
         }
     }
     

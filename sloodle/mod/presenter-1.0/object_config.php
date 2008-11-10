@@ -1,8 +1,8 @@
 <?php
     /**
-    * Slideshow 1.0 configuration form.
+    * Presenter 1.0 configuration form.
     *
-    * This is a fragment of HTML which gives the form elements for configuration of a slideshow object, v1.0.
+    * This is a fragment of HTML which gives the form elements for configuration of a presenter object, v1.0.
     * ONLY the basic form elements should be included.
     * The "form" tags and submit button are already specified outside.
     * The $auth_obj and $sloodleauthid variables will identify the object being configured.
@@ -34,31 +34,31 @@
         // Determine which course is being accessed
         $courseid = $auth_obj->course->get_course_id();
         
-        // We need to fetch a list of visible slideshows on the course
+        // We need to fetch a list of visible presenters on the course
         // Get the ID of the chat type
         $rec = get_record('modules', 'name', 'sloodle');
         if (!$rec) {
-            sloodle_debug("Failed to get Sloodle Slideshow module type.");
+            sloodle_debug("Failed to get Sloodle module type.");
             exit();
         }
         $sloodlemoduleid = $rec->id;
         
-        // Get all visible slideshows in the current course
+        // Get all visible presenters in the current course
         $recs = get_records_select('course_modules', "course = $courseid AND module = $sloodlemoduleid AND visible = 1");
         if (!$recs) {
-            error(get_string('noslideshows','sloodle'));
+            error(get_string('nopresenters','sloodle'));
             exit();
         }
-        $slideshows = array();
+        $presenters = array();
         foreach ($recs as $cm) {
             // Fetch the Sloodle instance
-            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_SLIDESHOW);
+            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_PRESENTER);
             if (!$inst) continue;
             // Store the Sloodle details
-            $slideshows[$cm->id] = $inst->name;
+            $presenters[$cm->id] = $inst->name;
         }
         // Sort the list by name
-        natcasesort($slideshows);
+        natcasesort($presenters);
         
     //--------------------------------------------------------
     // FORM
@@ -76,8 +76,8 @@
         echo '<h3>'.get_string('generalconfiguration','sloodle').'</h3>';
         
         // Ask the user to select a Slideshow
-        echo get_string('selectslideshow','sloodle').': ';
-        choose_from_menu($slideshows, 'sloodlemoduleid', $sloodlemoduleid, '');
+        echo get_string('selectpresenter','sloodle').': ';
+        choose_from_menu($presenters, 'sloodlemoduleid', $sloodlemoduleid, '');
         echo "<br><br>\n";
         
         print_box_end();

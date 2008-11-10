@@ -89,7 +89,7 @@
             }        
             break;
             
-        case SLOODLE_TYPE_SLIDESHOW:
+        case SLOODLE_TYPE_PRESENTER:
             // Nothing extra to do 
             $result = TRUE;
             break;
@@ -183,7 +183,7 @@
             
             break;
             
-        case SLOODLE_TYPE_SLIDESHOW:
+        case SLOODLE_TYPE_PRESENTER:
             // Nothing extra to do 
             break;
 
@@ -236,8 +236,8 @@
         // Delete all the distributors
         delete_records('sloodle_distributor', 'sloodleid', $id);
 
-        // Delete any slideshow entries
-        delete_records('sloodle_slideshow_image', 'sloodleid', $id);
+        // Delete any presenter entries
+        delete_records('sloodle_presenter_entry', 'sloodleid', $id);
 
         // Delete any map entries
         //delete_records('sloodle_map_data', 'sloodleid', $id);
