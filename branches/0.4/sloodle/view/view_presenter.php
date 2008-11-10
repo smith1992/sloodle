@@ -1,6 +1,6 @@
 <?php
     /**
-    * Defines a function to display information about a particular Sloodle controller module.
+    * Defines a function to display information about a particular Sloodle Presenter module.
     *
     * @package sloodle
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
@@ -23,17 +23,17 @@
     * @param bool $showprotected True if protected data (such as prim password) should be made available
     * @return bool True if successful, or false otherwise (e.g. wrong type of module, or user not logged-in)
     */
-    function sloodle_view_slideshow($cm, $sloodle, $editmode = false)
+    function sloodle_view_presenter($cm, $sloodle, $editmode = false)
     {
         global $CFG;
     
         // Check that there is valid Sloodle data
-        if (empty($cm) || empty($sloodle) || $sloodle->type != SLOODLE_TYPE_SLIDESHOW) return false;
+        if (empty($cm) || empty($sloodle) || $sloodle->type != SLOODLE_TYPE_PRESENTER) return false;
         
         // Construct a dummy session and a Slideshow object
         $session = new SloodleSession(false);
-        $slideshow = new SloodleModuleSlideshow($session);
-        if (!$slideshow->load($cm->id)) return false;
+        $presenter = new SloodleModulePresenter($session);
+        if (!$presenter->load($cm->id)) return false;
         
         // The name, type and description of the module should already be displayed by the main "view.php" script.
         // In edit mode, we will display a form to let the user add/delete URLs.
@@ -49,35 +49,35 @@
             // We need to delete each image that's been requested for deletion.
             // Go through each request parameter that starts with 'sloodledeleteimage'
             foreach ($_REQUEST as $reqname => $reqvalue) {
-                $pos = strpos($reqname, 'sloodledeleteimage');
+                $pos = strpos($reqname, 'sloodledeleteentry');
                 if ($pos === 0) {
-                    echo "Deleting ".substr($reqname, 18)."<hr>";
-                    $slideshow->delete_image((int)substr($reqname, 18));
+                    echo "Deleting entry #".substr($reqname, 18)."<hr>";
+                    $presenter->delete_entry((int)substr($reqname, 18));
                 }
             }
             
             // Has an image been added?
-            if (isset($_REQUEST['sloodleaddimage'])) {
-                $slideshow->add_image($_REQUEST['sloodleimageurl']);
+            if (isset($_REQUEST['sloodleaddentry'])) {
+                $presenter->add_entry($_REQUEST['sloodleentryurl'], $_REQUEST['sloodleentrytype']);
             }
             
             
             // Get an updated list of image URLs
-            $images = $slideshow->get_image_urls();
+            $entries = $presenter->get_entry_urls();
         
             // Start a box containing the form
             print_box_start('generalbox boxaligncenter boxwidthwide');
             echo '<h3>View and delete image links</h3>'; // TODO: use language pack!
             // Any images to display?
-            if ($images === false || count($images) == 0) {
-                echo '<h4 style="color:#ff0000;">No images found</h4>'; // TODO: use language pack!
+            if ($entries === false || count($entries) == 0) {
+                echo '<h4 style="color:#ff0000;">No entries found</h4>'; // TODO: use language pack!
             } else {
                 echo '<form action="" method="get"><fieldset>';
                 echo "<input type=\"hidden\" name=\"id\" value=\"{$cm->id}\" />";
                 echo '<ol>';
                 // Go through each image we have, and display the link along with a delete button
-                foreach ($images as $imageid => $imageurl) {
-                    echo "<li><a href=\"$imageurl\">$imageurl</a> <input type=\"submit\" value=\"Delete\" name=\"sloodledeleteimage{$imageid}\" /></li>\n";
+                foreach ($entries as $entryid => $entry) {
+                    echo "<li><a href=\"{$entry[0]}\">{$entry[0]}</a> <i>(type: {$entry[1]})</i> <input type=\"submit\" value=\"Delete\" name=\"sloodledeleteentry{$entryid}\" /></li>\n";
                 }
                 echo '</ol><br/><br/></fieldset></form>';
             }
@@ -86,12 +86,18 @@
             echo '<h3>Add image link</h3>'; // TODO: use language pack!
             echo '<form action="" method="post">';
             echo "<input type=\"hidden\" name=\"id\" value=\"{$cm->id}\" />";
-            echo '<input type="text" name="sloodleimageurl" value="" /> <input type="submit" value="Add" name="sloodleaddimage" />';
+            echo '<input type="text" name="sloodleentryurl" value="" />'; 
+            echo ' <select name="sloodleentrytype" id="sloodleentrytype" size="1">';
+            echo '<option value="image">Image</option>';
+            echo '<option value="video">Video</option>';
+            echo '<option value="web" selected="selected">Web Page</option>';
+            echo '</select>';
+            echo ' <input type="submit" value="Add" name="sloodleaddentry" />'; 
             echo '</fieldset></form>';
             
             print_box_end();
         } else {
-            echo '<h3>In-browser slidehshow...</h3>';
+            echo '<h3>In-browser presentation...</h3>';
             
         }
         

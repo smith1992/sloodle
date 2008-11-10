@@ -86,7 +86,7 @@
     
     // These are the regular module types
     define('SLOODLE_TYPE_DISTRIB', 'distributor');
-    define('SLOODLE_TYPE_SLIDESHOW', 'slideshow');
+    define('SLOODLE_TYPE_PRESENTER', 'presenter');
     define('SLOODLE_TYPE_MAP', 'map');
     
     // Store the types in an array (used in lists)
@@ -94,7 +94,7 @@
     $SLOODLE_TYPES = array();
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
-    $SLOODLE_TYPES[] = SLOODLE_TYPE_SLIDESHOW;
+    $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_MAP;
     
 //---------------------------------------------------------------------

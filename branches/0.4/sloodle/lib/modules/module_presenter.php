@@ -2,7 +2,7 @@
     // This file is part of the Sloodle project (www.sloodle.org)
     
     /**
-    * This file defines a slideshow module for Sloodle.
+    * This file defines a Presenter module for Sloodle.
     *
     * @package sloodle
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
@@ -17,10 +17,10 @@
     require_once(SLOODLE_LIBROOT.'/general.php');
     
     /**
-    * The Sloodle chat module class.
+    * The Sloodle presenter module class.
     * @package sloodle
     */
-    class SloodleModuleSlideshow extends SloodleModule
+    class SloodleModulePresenter extends SloodleModule
     {
     // DATA //
     
@@ -47,7 +47,7 @@
         /**
         * Constructor
         */
-        function SloodleModuleSlideshow(&$_session)
+        function SloodleModulePresenter(&$_session)
         {
             $constructor = get_parent_class($this);
             parent::$constructor($_session);
@@ -88,47 +88,55 @@
         
         /**
         * Gets an array of absolute URLs to images in this slideshow, all correctly ordered.
-        * @return Numeric array of strings, associating record ID to URL
+        * @return 2d numeric array, each element is a numeric array of URL string and the name of the source type
         */
-        function get_image_urls()
+        function get_entry_urls()
         {
             // Search the database for entries
-            $recs = get_records_select('sloodle_slideshow_image', "sloodle = {$this->sloodle_instance->id}", 'ordering');
+            $recs = get_records_select('sloodle_presenter_entry', "sloodleid = {$this->sloodle_instance->id}", 'ordering');
             if (!$recs) return array();
             // Format it all nicely into a simple array
             $output = array();
             foreach ($recs as $r) {
                 // TODO: Ultimately, we'll determine the type of entry, and construct an absolute URL for any internal Moodle resources.
                 // For now, however, we'll just deal with absolute URLs.
-                $output[$r->id] = $r->image;
+                $output[$r->id] = array($r->source, $r->type);
             }
             return $output;
         }
         
         /**
-        * Adds a new image to the list of slides.
-        * @param string $img A string containing the absolute URL of the image (starting with "http")
+        * Adds a new entry to the presentation.
+        * @param string $source A string containing the source address -- must start with http for absolute URLs
+        * @param string $type Name of the type of source, e.g. "web", "image", or "video"
+        * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
         * @return True if successful, or false on failure.
         */
-        function add_image($img)
+        function add_entry($source, $type, $position = -1)
         {
             // Construct and attempt to insert the new record
             $rec = new stdClass();
-            $rec->sloodle = $this->sloodle_instance->id;
-            $rec->image = $img;
-            $rec->ordering = 0;
-            return (bool)insert_record('sloodle_slideshow_image', $rec, false);
+            $rec->sloodleid = $this->sloodle_instance->id;
+            $rec->source = $source;
+            $rec->type = $type;
+            if ($position < 0) {
+                $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
+                $rec->ordering = (int)$num;
+            } else {
+                $rec->ordering = $position;
+            }
+            return (bool)insert_record('sloodle_presenter_entry', $rec, false);
         }
         
         /**
-        * Deletes the identified image by ID.
-        * Only works if the image is part of this slideshow!
-        * @param int $id The ID of an image record to delete
+        * Deletes the identified entry by ID.
+        * Only works if the entry is part of this presentation.
+        * @param int $id The ID of an entry record to delete
         * @return void
         */
-        function delete_image($id)
+        function delete_entry($id)
         {
-            delete_records('sloodle_slideshow_image', 'id', $id);
+            delete_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
         }
         
         
@@ -186,7 +194,7 @@
         */
         function get_type()
         {
-            return SLOODLE_TYPE_SLIDESHOW;
+            return SLOODLE_TYPE_PRESENTER;
         }
 
         /**
@@ -196,7 +204,7 @@
         */
         function get_type_full()
         {
-            return get_string('sloodleslideshow', 'sloodle');
+            return get_string('moduletype:'.SLOODLE_TYPE_PRESENTER, 'sloodle');
         }
 
     }

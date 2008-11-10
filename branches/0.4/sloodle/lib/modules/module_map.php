@@ -186,7 +186,7 @@ XXXEODXXX;
         */
         function get_type()
         {
-            return SLOODLE_TYPE_SLIDESHOW;
+            return SLOODLE_TYPE_MAP;
         }
 
         /**
@@ -196,7 +196,7 @@ XXXEODXXX;
         */
         function get_type_full()
         {
-            return get_string('sloodleslideshow', 'sloodle');
+            return get_string('moduletype:'.SLOODLE_TYPE_MAP, 'sloodle');
         }
 
     }

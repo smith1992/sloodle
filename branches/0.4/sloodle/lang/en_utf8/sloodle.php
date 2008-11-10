@@ -165,7 +165,7 @@ $string['minutes'] = 'minutes';
 $string['moduletype'] = 'Module Type';
 $string['moduletype:controller'] = 'Sloodle Controller';
 $string['moduletype:distributor'] = 'Distributor';
-$string['moduletype:slideshow'] = 'Slideshow';
+$string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Sloodle Map';
 
 $string['moduleaction:map'] = 'Add a Sloodle Map';
