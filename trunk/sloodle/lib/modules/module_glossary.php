@@ -96,6 +96,8 @@
         */
         function search($term, $matchPartial = true, $searchAliases = false, $searchDefinitions = false)
         {
+            global $CFG;
+        
             // This array will store the results associatively, ID => SloodleGlossaryDefinition
             $entries = array();
             // Get the glossary ID
@@ -116,15 +118,26 @@
             
             // Search aliases
             if ($searchAliases) {
-                $recs = get_records_select('glossary_alias', "glossaryid = $glossaryid AND alias $termquery");
+                //$recs = get_records_select('glossary_alias', "glossaryid = $glossaryid AND alias $termquery");
+                $recs = get_records_sql("
+                    SELECT {$CFG->prefix}glossary_alias.id, entryid, concept, definition
+                    FROM {$CFG->prefix}glossary_alias
+                    LEFT JOIN {$CFG->prefix}glossary_entries
+                    ON {$CFG->prefix}glossary_alias.entryid = {$CFG->prefix}glossary_entries.id
+                    
+                    WHERE glossaryid = $glossaryid AND alias $termquery
+                    ORDER BY concept
+                ");
+                
                 // Go through each alias found
                 if (is_array($recs)) {
                     foreach ($recs as $r) {
                         // Did we already have this entry?
                         if (!isset($entries[$r->entryid])) {
                             // No - fetch the entry and store it
-                            $entry = get_record('glossary_entries', 'id', $r->entryid);
-                            $entries[$entry->id] = new SloodleGlossaryEntry($entry->id, $entry->concept, $entry->definition);
+                            //$entry = get_record('glossary_entries', 'id', $r->entryid);
+                            //$entries[$entry->id] = new SloodleGlossaryEntry($entry->id, $entry->concept, $entry->definition);
+                            $entries[$r->entryid] = new SloodleGlossaryEntry($r->entryid, $r->concept, $r->definition);
                         }
                     }
                 }
