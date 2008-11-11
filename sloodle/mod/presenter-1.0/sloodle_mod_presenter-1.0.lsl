@@ -1,7 +1,5 @@
-// STILL NEEDS UPDATED
-
-// Sloodle Presenter (for Sloodle 0.3)
-// Lets the educator display a slideshow of images, videos and pages hosted on the web.
+// Sloodle Presenter (for Sloodle 0.4)
+// Lets the educator display a presentation of images. videos and webpages hosted on the web.
 // Part of the Sloodle project (www.sloodle.org)
 //
 // Copyright (c) 2008 Sloodle
@@ -30,10 +28,10 @@ integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
-key httpimageurls = NULL_KEY; // Request for list of image URLs
-list imageurls = []; // List of current image URLs
+key httpentries = NULL_KEY; // Request for list of entries
 list entrytypes = []; // List of current entry types
-integer currentimage = 0; // Array ID identifying which URL in imageurls we are currently on
+list entryurls = []; // List of current entry URLs
+integer currententry = 0; // Array ID identifying which entry in the lists (entrytypes and entryurls) we are currently viewing
 
 
 ///// TRANSLATION /////
@@ -116,11 +114,19 @@ integer sloodle_check_access_ctrl(key id)
 // Does nothing if the current image ID is invalid.
 update_image_display()
 {
+    // Figure out what type to use
+    string typename = llList2String(entrytypes, currententry);
+    string type = "";
+    if (typename == "image") type = "image/*";
+    else if (typename == "video") type = "video/*";
+    else if (typename == "audio") type = "audio/*";
+    else type = "text/html";
 
     // Set the parcel media
     llParcelMediaCommandList([
         PARCEL_MEDIA_COMMAND_STOP,
-        PARCEL_MEDIA_COMMAND_URL, llList2String(imageurls, currentimage),
+        PARCEL_MEDIA_COMMAND_TYPE, type, 
+        PARCEL_MEDIA_COMMAND_URL, llList2String(entryurls, currententry),
         PARCEL_MEDIA_COMMAND_PLAY
     ]);
 }
@@ -128,21 +134,24 @@ update_image_display()
 // Move to the next image
 next_image()
 {
-    currentimage = ((currentimage + 1) % llGetListLength(imageurls));
+    currententry = ((currententry + 1) % llGetListLength(entryurls));
     update_image_display();
+    sloodle_update_hover_text();
 }
 
 // Move to the previous image
 previous_image()
 {
-    currentimage = currentimage - 1;
-    if (currentimage < 0) currentimage = llGetListLength(imageurls) - 1;
+    currententry = currententry - 1;
+    if (currententry < 0) currententry = llGetListLength(entryurls) - 1;
+    update_image_display();
+    sloodle_update_hover_text();
 }
 
 // Update the hover text to indicate which image is being displayed
 sloodle_update_hover_text()
 {
-    llSetText("Showing image " + (string)currentimage + " of " + (string)llGetListLength(imageurls), <0.0, 1.0, 0.0>, 1.0);
+    llSetText("Showing image " + (string)(currententry + 1) + " of " + (string)llGetListLength(entryurls), <0.0, 1.0, 0.0>, 1.0);
 }
 
 
@@ -208,7 +217,7 @@ state requestdata
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
         
         llSetText("Requesting list of images...", <0.0, 0.0, 1.0>, 0.8);
-        httpimageurls = llHTTPRequest(sloodleserverroot + SLOODLE_SLIDESHOW_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        httpentries = llHTTPRequest(sloodleserverroot + SLOODLE_SLIDESHOW_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         llSetTimerEvent(8.0);
     }
     
@@ -227,8 +236,8 @@ state requestdata
     http_response(key id, integer status, list meta, string body)
     {
         // Is this the expected data?
-        if (id != httpimageurls) return;
-        httpimageurls = NULL_KEY;
+        if (id != httpentries) return;
+        httpentries = NULL_KEY;
         // Make sure the request worked
         if (status != 200) {
             sloodle_debug("Failed HTTP response. Status: " + (string)status);
@@ -257,13 +266,25 @@ state requestdata
             return;
         }
         
-        // Put each data line into the list of image URLs
+        // Check if we have some more lines
         if (llGetListLength(lines) == 1) {
             llSay(0, "No images to display.");
             state error;
             return;
         }
-        imageurls = llList2List(imageurls, 1, -1);
+        
+        // Add each line to our lists of entries
+        entryurls = [];
+        entrytypes = [];
+        integer i = 0;
+        list fields = [];
+        for (i = 1; i < numlines; i++) {
+            fields = llParseString2List(llList2String(lines, i), ["|"], []);
+            if (llGetListLength(fields) >= 2) {
+                entrytypes += [llList2String(fields, 0)];
+                entryurls += [llList2String(fields, 1)];
+            }
+        }
         
         state running;
     }
@@ -292,7 +313,7 @@ state running
     state_entry()
     {
         // Start from the first image
-        currentimage = 0;
+        currententry = 0;
         sloodle_update_hover_text();
         update_image_display();
     }
@@ -306,16 +327,19 @@ state running
     {
         // Find out what was touched
         string buttonname = llGetLinkName(llDetectedLinkNumber(0));
-        if (buttonname = "next") {
+        if (buttonname == "next") {
             next_image();
-        } else if (buttonname = "previous") {
+        } else if (buttonname == "previous") {
             previous_image();
-        } else if (buttonname = "reset") {
-            currentimage = 0;
+        } else if (buttonname == "reset") {
+            currententry = 0;
             sloodle_update_hover_text();
             update_image_display();
+        } else if (buttonname == "update") {
+            state requestdata;
         }
     }
     
     on_rez(integer par) { llResetScript(); }
 }
+

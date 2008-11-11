@@ -88,7 +88,7 @@
         
         /**
         * Gets an array of absolute URLs to images in this slideshow, all correctly ordered.
-        * @return 2d numeric array, each element is a numeric array of URL string and the name of the source type
+        * @return 2d numeric array, each element associates an entry ID to a numeric array of URL string and the name of the source type
         */
         function get_entry_urls()
         {
@@ -121,7 +121,7 @@
             $rec->type = $type;
             if ($position < 0) {
                 $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
-                $rec->ordering = (int)$num;
+                $rec->ordering = ((int)$num + 1) * 10;
             } else {
                 $rec->ordering = $position;
             }
@@ -138,7 +138,51 @@
         {
             delete_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
         }
+
+        /**
+        * Moves the ID'd entry forward or back in the presentation ordering.
+        * Only works if the entry is part of this presentation.
+        * @param int $id The ID of the entry to move.
+        * @param bool $forward TRUE to move the entry forward (closer to the beginning) or FALSE to push it back (closer to the end)
+        * @return void
+        */
+        function move_entry($id, $forward)
+        {
+            // Start by ensuring uniform ordering, starting at 10.
+            $this->validate_ordering();
+            // Attempt to move the specified entry in the appropriate direction
+            $entry = get_record('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
+            if (!$entry) return;
+            if ($forward) {
+                // Avoid a negative ordering value.
+                if ($entry->ordering >= 20) $entry->ordering -= 15;
+            } else {
+                $entry->ordering += 15;
+            }
+            update_record('sloodle_presenter_entry', $entry);
+            // Re-validate the entry ordering
+            $this->validate_ordering();
+        }
         
+        /**
+        * Validates the ordering value of all entries in the presenter.
+        * Gives each record an ordering value from 10 upwards, incrementing by 10 each time.
+        * @return void
+        */
+        function validate_ordering()
+        {
+            // Get all entries in this presentation
+            $entries = get_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'ordering');
+            if (!$entries || count($entries) <= 1) return;
+
+            // Go through each entry in our array, and give it a valid ordering value.
+            $ordering = 10;
+            foreach ($entries as $entry) {
+                $entry->ordering = $ordering;
+                update_record('sloodle_presenter_entry', $entry);
+                $ordering += 10;
+            }
+        }
         
     // ACCESSORS //
     
