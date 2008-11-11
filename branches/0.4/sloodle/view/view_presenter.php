@@ -20,7 +20,7 @@
     *
     * @param object $cm A coursemodule object for the module being displayed
     * @param object $sloodle A database record object for a Sloodle instance
-    * @param bool $showprotected True if protected data (such as prim password) should be made available
+    * @param bool $editmode True if the user has authority to edit this module
     * @return bool True if successful, or false otherwise (e.g. wrong type of module, or user not logged-in)
     */
     function sloodle_view_presenter($cm, $sloodle, $editmode = false)
@@ -43,15 +43,28 @@
         
         
         
-        // Is edit mode active?
+        // Should we process any incoming editing commands?
         if ($editmode) {
         
-            // We need to delete each image that's been requested for deletion.
-            // Go through each request parameter that starts with 'sloodledeleteimage'
+            // We need to check the incoming request parameters for deletion and re-ordering of entries.
             foreach ($_REQUEST as $reqname => $reqvalue) {
+
+                // Moving up (forward)
+                $pos = strpos($reqname, 'sloodleentryup');
+                if ($pos === 0) {
+                    $presenter->move_entry((int)substr($reqname, 14), true);
+                }
+
+                // Moving down (back)
+                $pos = strpos($reqname, 'sloodleentrydown');
+                if ($pos === 0) {
+                    $presenter->move_entry((int)substr($reqname, 16), false);
+                }
+
+                // Deletion
                 $pos = strpos($reqname, 'sloodledeleteentry');
                 if ($pos === 0) {
-                    echo "Deleting entry #".substr($reqname, 18)."<hr>";
+                    //echo "Deleting entry #".substr($reqname, 18)."<hr>";
                     $presenter->delete_entry((int)substr($reqname, 18));
                 }
             }
@@ -60,34 +73,135 @@
             if (isset($_REQUEST['sloodleaddentry'])) {
                 $presenter->add_entry($_REQUEST['sloodleentryurl'], $_REQUEST['sloodleentrytype']);
             }
+        }            
             
-            
-            // Get an updated list of image URLs
-            $entries = $presenter->get_entry_urls();
+        // Get a list of entry URLs
+        $entries = $presenter->get_entry_urls();
+        if (!is_array($entries)) $entries = array();
+        $numentries = count($entries);
+        // Open the presentation box
+        //print_box_start('generalbox boxaligncenter boxwidthwide');
+
+        // Was a specific entry requested? This is the number of entry within the presentation, NOT entry ID.
+        // They start at 1 and go up from there within each presentation.
+        if (isset($_REQUEST['sloodledisplayentry'])) {
+            $displayentrynum = (int)$_REQUEST['sloodledisplayentry'];
+            if ($displayentrynum < 1 || $displayentrynum > $numentries) $displayentrynum = 1;
+        } else {
+            $displayentrynum = 1;
+        }
         
+        // Do we have any entries to work with?
+        if ($numentries > 0) {
+            // Yes - go through them to figure out which entries to display
+            $currententryid = 0;
+            $currententryurl = '';
+            $currententrytype = '';
+            $entrynum = 1;
+            foreach ($entries as $entryid => $entry) {
+                // Check if this is our current entry
+                if ($entrynum == $displayentrynum) {
+                    $currententryid = $entryid;
+                    $currententryurl = $entry[0];
+                    $currententrytype = $entry[1];
+                }
+
+                $entrynum++;
+            }
+    
+            // Display the entry header
+            echo "<div style=\"text-align:center;\">";
+            echo "<h1>Presenter</h1>\n";
+            
+            // Display the entry itself
+            switch ($currententrytype) {
+            case 'web':
+                // Display web content in an iFrame
+                echo "<iframe src=\"{$currententryurl}\" style=\"width:512px; height:512px;\"></iframe>";
+                break;
+
+            case 'image':
+                echo "<img src=\"{$currententryurl}\" />";
+                break;
+
+            case 'video':
+                echo <<<XXXEODXXX
+    <embed src="{$currententryurl}" align="center" autoplay="true" controller="true" width="512" height="512" scale="aspect" />
+XXXEODXXX;
+                break;
+
+            default:
+                echo '<p style="font-size:150%; font-weight:bold; color:#880000;">Unknown entry type: ', $currententrytype, '</p>';
+                break;
+            }
+
+
+            // Display the presentation controls
+            echo '<p style="font-size:250%; font-weight:bold;">';
+            if ($displayentrynum > 1) echo "<a href=\"?id={$cm->id}&sloodledisplayentry=",$displayentrynum - 1,"\" title=\"View previous entry\">&larr;</a>";
+            else echo "&larr;";
+            echo "&nbsp;{$displayentrynum} of {$numentries}&nbsp;";
+            if ($displayentrynum < $numentries) echo "<a href=\"?id={$cm->id}&sloodledisplayentry=",$displayentrynum + 1,"\" title=\"View next entry\">&rarr;</a>";
+            else echo "&rarr;";
+            echo "</p>\n";
+
+
+            // Display a direct link to the media
+            echo "<p>If you cannot see the above entry, try this <a href=\"{$currententryurl}\">direct link</a> instead.</p>";
+            echo "</div>";
+    
+        } else {
+            echo '<p>No entries in presentation.</p>';
+        }
+
+        //print_box_end();
+        
+        echo '<p>&nbsp;</p>';
+        
+        // Should we display an editing form?
+        if ($editmode) {
             // Start a box containing the form
+            echo '<hr>';
             print_box_start('generalbox boxaligncenter boxwidthwide');
-            echo '<h3>View and delete image links</h3>'; // TODO: use language pack!
+            echo '<h1>Edit Presentation</h1><br/><h3>View and delete entry links</h3>'; // TODO: use language pack!
             // Any images to display?
             if ($entries === false || count($entries) == 0) {
                 echo '<h4 style="color:#ff0000;">No entries found</h4>'; // TODO: use language pack!
             } else {
                 echo '<form action="" method="get"><fieldset>';
                 echo "<input type=\"hidden\" name=\"id\" value=\"{$cm->id}\" />";
-                echo '<ol>';
+                echo '<table style="text-align:left; border-collapse:collapse;">';
                 // Go through each image we have, and display the link along with a delete button
+                $numentries = count($entries);
+                $entrynum = 0;
                 foreach ($entries as $entryid => $entry) {
-                    echo "<li><a href=\"{$entry[0]}\">{$entry[0]}</a> <i>(type: {$entry[1]})</i> <input type=\"submit\" value=\"Delete\" name=\"sloodledeleteentry{$entryid}\" /></li>\n";
+                    echo '<tr><td style="border:solid 1px #000000;">';
+                    echo "<a href=\"{$entry[0]}\">{$entry[0]}</a> ";
+                    echo " <i>(type: {$entry[1]})</i> ";
+                    echo '</td><td style="border:solid 1px #000000;">';
+
+                    echo " <input type=\"submit\" value=\"&uarr;\" name=\"sloodleentryup{$entryid}\" ";
+                    if ($entrynum == 0) echo " disabled=\"true\" ";
+                    echo " /> ";
+
+                    echo " <input type=\"submit\" value=\"&darr;\" name=\"sloodleentrydown{$entryid}\" ";
+                    if (($entrynum + 1) >= $numentries) echo " disabled=\"true\" ";
+                    echo " /> ";
+
+                    echo " <input type=\"submit\" value=\"Delete\" name=\"sloodledeleteentry{$entryid}\" /> ";
+                    echo " </td></tr>\n";
+                    
+                    $entrynum++;
                 }
-                echo '</ol><br/><br/></fieldset></form>';
+                echo '</table><br/><br/></fieldset></form>';
             }
             
             // Display a form for adding an image
-            echo '<h3>Add image link</h3>'; // TODO: use language pack!
+            echo '<h3>Add entry</h3>'; // TODO: use language pack!
             echo '<form action="" method="post">';
             echo "<input type=\"hidden\" name=\"id\" value=\"{$cm->id}\" />";
-            echo '<input type="text" name="sloodleentryurl" value="" />'; 
-            echo ' <select name="sloodleentrytype" id="sloodleentrytype" size="1">';
+            echo '<label for="sloodleentryurl">URL: </label> <input type="text" id="sloodleentryurl" name="sloodleentryurl" value="" size="50" maxlength="255" /><br/>'; 
+            echo '<label for="sloodleentrytype">Type: </label> <select name="sloodleentrytype" id="sloodleentrytype" size="1">';
             echo '<option value="image">Image</option>';
             echo '<option value="video">Video</option>';
             echo '<option value="web" selected="selected">Web Page</option>';
@@ -96,9 +210,6 @@
             echo '</fieldset></form>';
             
             print_box_end();
-        } else {
-            echo '<h3>In-browser presentation...</h3>';
-            
         }
         
         echo "</div>\n";

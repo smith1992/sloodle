@@ -16,7 +16,10 @@
     //  sloodlemoduleid = ID of a presenter
     //
     // Status code 1 will be returned on success.
-    // The data lines will contain a URL on each line, each URL pointing at an image.
+    // Each data line specifies one entry in the presetnation, as follows:
+    //  type|url
+    // The type may be "image", "video" or "web".
+    // In future, scaling values may be applied.
     //
     
 
@@ -41,7 +44,7 @@
     $entries = $sloodle->module->get_entry_urls();
     if (is_array($entries)) {
         foreach ($entries as $entry) {
-            $sloodle->response->add_data_line($entry);
+            $sloodle->response->add_data_line(array($entry[1], $entry[0]));
         }
     }
     
