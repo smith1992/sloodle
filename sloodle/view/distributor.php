@@ -1,38 +1,69 @@
 <?php
+/**
+* Defines a class for viewing the SLOODLE Distributor module in Moodle.
+* Derived from the module view base class.
+*
+* @package sloodle
+* @copyright Copyright (c) 2008 Sloodle (various contributors)
+* @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
+*
+* @contributor Peter R. Bloomfield
+*/
+
+/** The base module view class */
+require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
+
+
+
+/**
+* Class for rendering a view of a Distributor module in Moodle.
+* @package sloodle
+*/
+class sloodle_view_distributor extends sloodle_base_view_module
+{
     /**
-    * Defines a function to display information about a particular Sloodle Distributor module.
-    *
-    * @package sloodle
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
-    *
-    * @contributor Peter R. Bloomfield
-    *
+    * SLOODLE data about a Distributor, retrieved directly from the database (table: sloodle_distributor)
+    * @var object
+    * @access private
     */
-    
-    // This file expects that the core Sloodle/Moodle functionality has already been included.
-    
+    var $distributor = false;
+
+
     /**
-    * Displays information about the given Sloodle Distributor.
-    * Note: the user should already be logged-in, with information in the $USER global.
-    *
-    * @uses $USER
-    * @param object $cm A coursemodule object for the module being displayed
-    * @param object $sloodle A database record object for a Sloodle instance
-    * @param bool $showprotected True if protected data (such as prim password) should be made available
-    * @return bool True if successful, or false otherwise (e.g. wrong type of module, or user not logged-in)
+    * Constructor.
     */
-    function sloodle_view_distributor($cm, $sloodle, $showprotected = false)
+    function sloodle_base_view_module()
     {
-        global $USER;
+    }
+
+    /**
+    * Processes request data to determine which Distributor is being accessed.
+    */
+    function process_request()
+    {
+        // Process the basic data
+        parent::process_request();
+        // Grab the Distributor data
+        if (!$this->distributor = get_record('sloodle_distributor', 'sloodleid', $this->sloodle->id)) error('Failed to get SLOODLE Distributor data.');
+    }
+
+    /**
+    * Process any form data which has been submitted.
+    */
+    function process_form()
+    {
+    }
+
+
+    /**
+    * Render the view of the Distributor.
+    */
+    function render()
+    {
+        global $CFG, $USER;
     
-        // Check that there is valid Sloodle data
-        if (empty($sloodle) || $sloodle->type != SLOODLE_TYPE_DISTRIB) return false;
-        
-        // Fetch the Distributor data
-        if (!$distributor = get_record('sloodle_distributor', 'sloodleid', $sloodle->id)) return false;
         // Fetch a list of all distributor entries
-        $entries = get_records('sloodle_distributor_entry', 'distributorid', $distributor->id, 'name');
+        $entries = get_records('sloodle_distributor_entry', 'distributorid', $this->distributor->id, 'name');
         // If the query failed, then assume there were simply no items available
         if (!is_array($entries)) $entries = array();
         $numitems = count($entries);
@@ -52,19 +83,19 @@
             $send_object = stripslashes(stripslashes(html_entity_decode($send_object))); // Painful... but must be done!
             // Construct and send the request
             $request = "1|OK\\nSENDOBJECT|$send_user|$send_object";
-            $ok = sloodle_send_xmlrpc_message($distributor->channel, 0, $request);
+            $ok = sloodle_send_xmlrpc_message($this->distributor->channel, 0, $request);
             
             // What was the result?
             print_box_start('generalbox boxaligncenter boxwidthnarrow centerpara');
-    		if ($ok) {
+            if ($ok) {
                 print '<h3 style="color:green;text-align:center;">'.get_string('sloodleobjectdistributor:successful','sloodle').'</h3>';
-    		} else {
+            } else {
                 print '<h3 style="color:red;text-align:center;">'.get_string('sloodleobjectdistributor:failed','sloodle').'</h3>';
-    		}
+            }
             print '<p style="text-align:center;">';
                 print get_string('Object','sloodle').': '.$send_object.'<br/>';
                 print get_string('uuid','sloodle').': '.$send_user.'<br/>';
-                print get_string('xmlrpc:channel','sloodle').': '.$distributor->channel.'<br/>';
+                print get_string('xmlrpc:channel','sloodle').': '.$this->distributor->channel.'<br/>';
                 print '</p>';
             print_box_end();
         }
@@ -77,7 +108,7 @@
         //error(get_string('sloodleobjectdistributor:noobjects','sloodle'));
         // If there is no XMLRPC channel specified, then display a warning message
         $disabledattr = '';
-        if (empty($distributor->channel)) {
+        if (empty($this->distributor->channel)) {
             print_box('<span style="font-weight:bold; color:red;">'.get_string('sloodleobjectdistributor:nochannel','sloodle').'</span>', 'generalbox boxaligncenter boxwidthnormal centerpara');
             $disabledattr = 'disabled="true"';
         }
@@ -127,20 +158,20 @@
         $table_sendtoself->align = array('center');
         
         // Fetch the current user's Sloodle info
-        $sloodleuser = get_record('sloodle_users', 'userid', $USER->id);
-        if (!$sloodleuser) {
+        $this->sloodleuser = get_record('sloodle_users', 'userid', $USER->id);
+        if (!$this->sloodleuser) {
             $table_sendtoself->data[] = array('<span style="color:red;">'.get_string('avatarnotlinked','sloodle').'</span>');
         } else {
             // Output the hidden form data
             echo <<<XXXEODXXX
- <input type="hidden" name="s" value="{$sloodle->id}">
- <input type="hidden" name="user" value="{$sloodleuser->uuid}">
+ <input type="hidden" name="s" value="{$this->sloodle->id}">
+ <input type="hidden" name="user" value="{$this->sloodleuser->uuid}">
 XXXEODXXX;
         
             // Object selection box
             $table_sendtoself->data[] = array(get_string('selectobject','sloodle').': '.$selection_items);
             // Submit button
-            $table_sendtoself->data[] = array('<input type="submit" '.$disabledattr.' value="'.get_string('sloodleobjectdistributor:sendtomyavatar','sloodle').' ('.$sloodleuser->avname.')" />');
+            $table_sendtoself->data[] = array('<input type="submit" '.$disabledattr.' value="'.get_string('sloodleobjectdistributor:sendtomyavatar','sloodle').' ('.$this->sloodleuser->avname.')" />');
         }
         
         // Print the table
@@ -150,8 +181,8 @@ XXXEODXXX;
         echo "</form>";
         
         
-        // Only show the other options if protected items are to be shown
-        if ($showprotected) {
+        // Only show the other options if the user has permission to edit stuff
+        if ($this->canedit) {
         // // SEND TO ANOTHER AVATAR // //
             
             // Start the form
@@ -168,7 +199,7 @@ XXXEODXXX;
             } else {
                 // Output the hidden form data
                 echo <<<XXXEODXXX
-     <input type="hidden" name="s" value="{$sloodle->id}">
+     <input type="hidden" name="s" value="{$this->sloodle->id}">
 XXXEODXXX;
                 // Avatar selection box
                 $table->data[] = array(get_string('selectuser','sloodle').': '.$selection_avatars);
@@ -187,7 +218,7 @@ XXXEODXXX;
         // // SEND TO A CUSTOM AVATAR // //
             
             // Start the form
-            echo '<br><form action="" method="POST">';
+            echo '<br><form action="" method="post">';
             
             // Use a table for layout
             $table = new stdClass();
@@ -196,7 +227,7 @@ XXXEODXXX;
             
             // Output the hidden form data
             echo <<<XXXEODXXX
-<input type="hidden" name="s" value="{$sloodle->id}">
+<input type="hidden" name="s" value="{$this->sloodle->id}">
 XXXEODXXX;
         
             // UUID box
@@ -217,9 +248,10 @@ XXXEODXXX;
     
         
         print_box_end();
-        
-        return true;
+    
     }
-    
-    
+
+}
+
+
 ?>
