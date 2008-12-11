@@ -70,7 +70,14 @@ list locstrings = [
     "atmaximum", "Sorry {{0}}. Your blog is already at the maximum length.", // Parameter: avatar name
     "toolong", "Sorry {{0}}. That message would make your blog entry too long. You only have {{1}} characters left", // Parameters: avatar name, number of characters
     "httperror", "ERROR: Failed to update blog due to HTTP request failure. You may try again or cancel.",
-    "autherror", "Failed to update blog due to user authentication error {{0}}."
+    "autherror", "Failed to update blog due to user authentication error {{0}}.",
+    
+    // Email
+    "enteremail", "Please enter the email address to send blog post to. (Chat it on channel {{0}}).",
+    "entervalidemail", "Please enter a valid email address",
+    "usingemail", "Using email address: {{0}}",
+    "targettwitter", "NOTE: target is Twitter. The subject line will be skipped, and the total length of the body cannot exceed {{0}} characters.",
+    "twitterskipsubject", "Using Twitter -- skipping subject line"
 ];
 
 ///// ----------- /////

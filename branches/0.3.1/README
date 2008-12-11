@@ -1,18 +1,17 @@
-Sloodle 0.3
-===========
+SLOODLE 0.3.1
+=============
 
 Project homepage: http://www.sloodle.org
 
-Thanks for downloading Sloodle 0.3!
+Thanks for downloading SLOODLE 0.3.1!
 
-This is the first full release version of Sloodle 0.3.
+This is a minor release which builds on SLOODLE 0.3, first released in August 2008.
 It should be stable and feature-complete on Moodle 1.8 and 1.9.
-Parts of it may work on other versions of Moodle, but it has
-not been fully tested.
+Parts of it may work on other versions of Moodle, but it has not been fully tested.
 
 Please refer to our website and our documentation wiki for
 further information, and you can also visit us in-world,
-at "Sloodleville" in virtuALBA.
+at the "Sloodle" island.
 
 
 If you encounter any problems, you are welcome to get in touch
@@ -28,14 +27,8 @@ http://code.google.com/p/sloodle/issues/list
 INSTALLATION
 ============
 
-Note: if you installed an early test release of Sloodle 0.3, then
-please uninstall it first. Other installations can usually be upgraded
-safely, but it is always wise to backup your data prior to commencing
-any significant changes.
-
-
 There are three parts which you can install. The first is required in
-order to use Sloodle, but the other two are optional, and simply
+order to use SLOODLE, but the other two are optional, and simply
 provide some additional functionality.
 
 -----------------
@@ -55,7 +48,7 @@ Block (optional)
 
 
 -------------------------------------------
-Sloodle Object Assignment plugin (optional)
+SLOODLE Object Assignment plugin (optional)
 -------------------------------------------
 (Enables use of the PrimDrop object)
 
@@ -69,8 +62,8 @@ E.g. if your primary language is English, then the <langcode> is "en_utf8".
 1. Navigate to your Moodle's "lang/<langcode>" folder
 2. Open the "assignment.php" file
 3. Scroll to the bottom and add this line immediately before the last "?>":
-    $string['typesloodleobject'] = 'Sloodle Object';
+    $string['typesloodleobject'] = 'SLOODLE Object';
 
-You can change the 'Sloodle Object' text to suit your needs.
+You can change the 'SLOODLE Object' text to suit your needs.
 You can repeat the process for other languages if necessary.
 
