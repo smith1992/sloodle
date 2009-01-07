@@ -76,6 +76,7 @@ var yellow_plus_icon = new Icon(yellow_dot_plus_image);
 var yellow_plus_markers = [yellow_plus_icon, yellow_plus_icon, yellow_plus_icon, yellow_plus_icon, yellow_plus_icon, yellow_plus_icon];
 
 
+
 var dblClick = function(x,y)
 {
     try {
