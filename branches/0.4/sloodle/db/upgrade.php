@@ -361,8 +361,51 @@ function xmldb_sloodle_upgrade($oldversion=0) {
 
         // Launch create table for sloodle_presentation_entry
         $result = $result && create_table($table);
+    }
+    if ($oldversion < 2009010800) {
+
+    /// Define table sloodle_map to be created
+        $table = new XMLDBTable('sloodle_map');
+
+    /// Adding fields to table sloodle_map
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('initialx', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+        $table->addFieldInfo('initialy', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
+        $table->addFieldInfo('initialzoom', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
+        $table->addFieldInfo('showpan', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '1');
+        $table->addFieldInfo('allowdrag', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
+        $table->addFieldInfo('showzoom', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
+
+    /// Adding keys to table sloodle_map
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKeyInfo('sloodleid', XMLDB_KEY_FOREIGN, array('sloodleid'), 'sloodle', array('id'));
+
+    /// Launch create table for sloodle_map
+        $result = $result && create_table($table);
         
-        // More stuff...
+        
+        
+    /// Define table sloodle_map_location to be created
+        $table = new XMLDBTable('sloodle_map_location');
+
+    /// Adding fields to table sloodle_map_location
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('globalx', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
+        $table->addFieldInfo('globaly', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
+        $table->addFieldInfo('region', XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null);
+        $table->addFieldInfo('localx', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('localy', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('description', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, null, null);
+
+    /// Adding keys to table sloodle_map_location
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKeyInfo('sloodleid', XMLDB_KEY_FOREIGN, array('sloodleid'), 'sloodle', array('id'));
+
+    /// Launch create table for sloodle_map_location
+        $result = $result && create_table($table);
     }
 
 
