@@ -110,6 +110,13 @@ class sloodle_view_user extends sloodle_base_view
     * @access private
     */
     var $canedit = false;
+    
+    /**
+    * The result number to start displaying from
+    * @var integer
+    * @access private
+    */
+    var $start = 0;
 
 
     /**
@@ -124,19 +131,23 @@ class sloodle_view_user extends sloodle_base_view
     */
     function process_request()
     {
-        // Fetch our Moodle and SLOODLE course data
-        $this->courseid = optional_param('course', SITEID, PARAM_INT);
-        if (!$this->course = get_record('course', 'id', $this->courseid)) error('Could not find course.');
-        $this->sloodle_course = new SloodleCourse();
-        if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
-        
-        // Fetch the other parameters
+        // Fetch some parameters
         $this->moodleuserid = required_param('id', PARAM_RAW);
         $this->deletesloodleentry = optional_param('delete', null, PARAM_INT);
         $this->userconfirmed = optional_param('confirm', null, PARAM_RAW);
-        $this->courseid = optional_param('course', 1, PARAM_INT);
+        $this->courseid = optional_param('course', SITEID, PARAM_INT);
         $this->searchstr = addslashes(optional_param('search', '', PARAM_TEXT));
         $this->deleteuserobjects = optional_param('deleteuserobjects', null, PARAM_TEXT);
+        
+        // If we are viewing 'all' avatar entries, then revert to the site course
+        if (strcasecmp($this->moodleuserid, 'all') == 0) $this->courseid = SITEID;
+    
+        // Fetch our Moodle and SLOODLE course data
+        if (!$this->course = get_record('course', 'id', $this->courseid)) error('Could not find course.');
+        $this->sloodle_course = new SloodleCourse();
+        if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
+        $this->start = optional_param('start', 0, PARAM_INT);
+        if ($this->start < 0) $this->start = 0;
     }
 
     /**
@@ -145,12 +156,17 @@ class sloodle_view_user extends sloodle_base_view
     function check_permission()
     {
         global $CFG, $USER;
-    
+        
         // Ensure the user logs in
         require_login();
         if (isguestuser()) error(get_string('noguestaccess', 'sloodle'));
         //add_to_log($this->course->id, 'course', 'view sloodle user', '', "{$this->course->id}");
-
+        
+        // The "all" view should be only available to admins
+        if (strcasecmp($this->moodleuserid, 'all') == 0 && isadmin() == false) {
+            error(get_string('insufficientpermissiontoviewpage', 'sloodle'));
+            exit();
+        }
         
         // We need to establish some permissions here
         $this->course_context = get_context_instance(CONTEXT_COURSE, $this->courseid);
@@ -168,9 +184,11 @@ class sloodle_view_user extends sloodle_base_view
                 // User can edit profiles
                 $this->canedit = true;
             } else if (!(has_capability('moodle/user:viewdetails', $this->system_context) || has_capability('moodle/user:viewdetails', $this->course_context))) {
-                // Cannot view profiles
-                error(get_string('insufficientpermissiontoviewpage','sloodle'));
-                exit();
+                // If this is the site course, then let it through anyway
+                if ($this->courseid != SITEID) {
+                    error(get_string('insufficientpermissiontoviewpage','sloodle'));
+                    exit();
+                }
             }
         }
     }
@@ -202,6 +220,7 @@ class sloodle_view_user extends sloodle_base_view
             $url .= "?_type=user&id={$this->moodleuserid}";
             if (!empty($this->courseid)) $url .= "&course={$this->courseid}";
             if (!empty($this->searchstr)) $url .= "&search={$this->searchstr}";
+            if (!empty($this->start)) $url .= "&start={$this->start}";
             // Reload this page without those parameters
             redirect($url);
             exit();
@@ -293,6 +312,7 @@ class sloodle_view_user extends sloodle_base_view
                 
                 if (!is_null($this->courseid)) $deletemsg .= '<input type="hidden" name="course" value="'.$this->courseid.'" />';
                 $deletemsg .= '<input type="hidden" name="delete" value="'.$this->deletesloodleentry.'" />';
+                $deletemsg .= '<input type="hidden" name="start" value="'.$this->start.'" />';
                 $deletemsg .= '<input style="color:green;" type="submit" value="'.$form_yes.'" name="confirm" />&nbsp;&nbsp;';
                 $deletemsg .= '<input style="color:red;" type="submit" value="'.$form_no.'" name="confirm" />';
                 $deletemsg .= '</form><br/>';
@@ -312,7 +332,18 @@ class sloodle_view_user extends sloodle_base_view
             // Search entries
             $moodleuserdata = null;
             $LIKE = sql_ilike();
-            $sloodleentries = get_records_select('sloodle_users', "avname $LIKE '%{$this->searchstr}%' OR uuid $LIKE '%{$this->searchstr}%'", 'avname');
+            $fullsloodleentries = get_records_select('sloodle_users', "avname $LIKE '%{$this->searchstr}%' OR uuid $LIKE '%{$this->searchstr}%'", 'avname');
+            if (!$fullsloodleentries) $fullsloodleentries = array();
+            $sloodleentries = array();
+            // Eliminate entries belonging to avatars who are not in the current course
+            foreach ($fullsloodleentries as $fse) {
+                // Does the Moodle user have permission?
+                if (has_capability('moodle/course:view', $this->course_context, $fse->userid)) {
+                    // Copy it to our filtered list
+                    $sloodleentries[] = $fse;
+                }
+            }
+            
         } else {
             // Attempt to fetch the Moodle user data
             $moodleuserdata = get_record('user', 'id', $this->moodleuserid);
@@ -332,12 +363,14 @@ class sloodle_view_user extends sloodle_base_view
         // Construct the breadcrumb links
         $navigation = "";
         if ($this->courseid != 1) $navigation .= "<a href=\"$courseurl\">$courseshortname</a> -> ";
-        $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view/view_users.php?course={$this->courseid}\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
+        $navigation .= "<a href=\"".SLOODLE_WWWROOT."/view.php?_type=users&amp;course={$this->courseid}\">".get_string('sloodleuserprofiles', 'sloodle') . '</a> -> ';
         if ($this->moodleuserid > 0) {
             if ($moodleuserdata) $navigation .= $moodleuserdata->firstname.' '.$moodleuserdata->lastname;
             else $navigation .= get_string('unknownuser','sloodle');
+        } else if ($searchentries) {
+            $navigation .= get_string('avatarsearch', 'sloodle');
         } else {
-            $navigation.= get_string('allentries', 'sloodle');
+            $navigation .= get_string('allentries', 'sloodle');
         }
         
         // Display the header
@@ -410,16 +443,14 @@ class sloodle_view_user extends sloodle_base_view
         
         // Construct and display a table of Sloodle entries
         if ($numsloodleentries > 0) {
-            $sloodletable = new stdClass();
-            $sloodletable->head = array(    get_string('ID', 'sloodle'),
-                                            get_string('linkedtomoodleusernum', 'sloodle'),
-                                            get_string('avatarname', 'sloodle'),
+            $sloodletable = new stdClass();            
+            $sloodletable->head = array(    get_string('avatarname', 'sloodle'),
                                             get_string('avataruuid', 'sloodle'),
                                             get_string('lastactive', 'sloodle'),
                                             ''
                                         );
-            $sloodletable->align = array('center', 'center', 'left', 'left', 'left', 'left');
-            $sloodletable->size = array('5%', '5%', '27%', '35%', '20%', '8%');
+            $sloodletable->align = array('left', 'left', 'left', 'left');
+            $sloodletable->size = array('28%', '42%', '20%', '10%');
             
             $deletestr = get_string('delete', 'sloodle');
             
@@ -427,71 +458,105 @@ class sloodle_view_user extends sloodle_base_view
             $userobjects = array();
             // Create a dummy Sloodle Session
             $sloodle = new SloodleSession(false);
+            
+            // Check if our start is past the end of our results
+            if ($this->start >= count($sloodleentries)) $this->start = 0;
                     
             // Go through each Sloodle entry for this user
+            $resultnum = 0;
+            $resultsdisplayed = 0;
+            $maxperpage = 20;
             foreach ($sloodleentries as $su) {
-                
-                // Add this user's Sloodle objects (if we're not in 'all' or search modes)
-                if (!$allentries && !$searchentries) {
-                    if ($sloodle->user->load_avatar($su->uuid, '')) {
-                        $userobjects += $sloodle->user->get_user_objects();
+            
+                // Only display this result if it is after our starting result number
+                if ($resultnum >= $this->start) {
+                    // Add this user's Sloodle objects (if we're not in 'all' or search modes)
+                    if (!$allentries && !$searchentries) {
+                        if ($sloodle->user->load_avatar($su->uuid, '')) {
+                            $userobjects += $sloodle->user->get_user_objects();
+                        }
                     }
-                }
-                
-            
-                // Is this entry being deleted (i.e. is the user being asked to confirm its deletion)?
-                $deletingcurrent = ($confirmingdeletion == true && $su->id == $this->deletesloodleentry);
-                
-                // Reset the line's content
-                $line = array();
-                
-                // Add the ID to the line
-                if ($deletingcurrent) $line[] = '<span style="color:red; font-weight:bold;">'.$su->id.'</span>';
-                else $line[] = $su->id;
-                
-                // Add the Moodle user ID and link
-                $line[] = "<a href=\"{$CFG->wwwroot}/user/view.php?id={$su->userid}&amp;course={$this->courseid}\">{$su->userid}</a>";            
-            
-                // Fetch the avatar name and UUID
-                $curavname = '-';
-                $curuuid = '-';
-                if (!empty($su->avname)) $curavname = $su->avname;
-                if (!empty($su->uuid)) $curuuid = $su->uuid;
-                
-                // If we are in all or searching mode, add a link to the Sloodle user profile
-                if ($allentries || $searchentries) {
-                    $curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$su->userid}&amp;course={$this->courseid}\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
-                }
-                
-                // Add them to the table
-                $line[] = $curavname;
-                $line[] = $curuuid; 
-                
-                // Do we know when the avatar was last active
-                if (!empty($su->lastactive)) {
-                    // Calculate the time difference
-                    $difference = time() - (int)$su->lastactive;
-                    if ($difference < 0) $difference = 0;
-                    // Add it to the table
-                    $line[] = sloodle_describe_approx_time($difference, true);
-                } else {
-                    $line[] = '('.$strunknown.')';
-                }
-                
-                // Display the "delete" action
-                if ($this->canedit) {
-                    if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id=all&amp;course={$this->courseid}&amp;delete={$su->id}";
-                    else if ($searchentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id=search&amp;course={$this->courseid}&amp;search={$this->searchstr}&amp;delete={$su->id}";
-                    else $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id={$this->moodleuserid}&amp;course={$this->courseid}&amp;delete={$su->id}";
-                    $deletecaption = get_string('clicktodeleteentry','sloodle');
-                    $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
                     
-                } else {
-                    $line[] = '<span style="color:#777777;" title="'.get_string('nodeletepermission','sloodle').'">'.get_string('delete','sloodle').'</span>';
+                
+                    // Is this entry being deleted (i.e. is the user being asked to confirm its deletion)?
+                    $deletingcurrent = ($confirmingdeletion == true && $su->id == $this->deletesloodleentry);
+                    
+                    // Reset the line's content
+                    $line = array();
+                
+                    // Fetch the avatar name and UUID
+                    $curavname = '-';
+                    $curuuid = '-';
+                    if (!empty($su->avname)) $curavname = $su->avname;
+                    if (!empty($su->uuid)) $curuuid = $su->uuid;
+                    
+                    // If we are in all or searching mode, add a link to the Sloodle user profile
+                    if ($allentries || $searchentries) {
+                        //$curavname .= " <span style=\"font-size:10pt; color:#444444; font-style:italic;\">(<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$su->userid}&amp;course={$this->courseid}\">".get_string('sloodleuserprofile','sloodle')."</a>)</span>";
+                        $curavname = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$su->userid}&amp;course={$this->courseid}\">{$curavname}</a>";
+                    }
+                    // Add a red cross beside the avatar name if it is being deleted
+                    if ($deletingcurrent) $curavname = '<span style="color:red; font-weight:bold;">X</span> '.$curavname;
+                    
+                    // Add them to the table
+                    $line[] = $curavname;
+                    $line[] = $curuuid; 
+                    
+                    // Do we know when the avatar was last active
+                    if (!empty($su->lastactive)) {
+                        // Calculate the time difference
+                        $difference = time() - (int)$su->lastactive;
+                        if ($difference < 0) $difference = 0;
+                        // Add it to the table
+                        $line[] = sloodle_describe_approx_time($difference, true);
+                    } else {
+                        $line[] = '('.$strunknown.')';
+                    }
+                    
+                    // Display the "delete" action
+                    if ($this->canedit || $su->userid == $USER->id) {
+                        if ($allentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id=all&amp;course={$this->courseid}&amp;delete={$su->id}&amp;start={$this->start}";
+                        else if ($searchentries) $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id=search&amp;course={$this->courseid}&amp;search={$this->searchstr}&amp;delete={$su->id}&amp;start={$this->start}";
+                        else $deleteurl = $CFG->wwwroot."/mod/sloodle/view.php?_type=user&amp;id={$this->moodleuserid}&amp;course={$this->courseid}&amp;delete={$su->id}&amp;start={$this->start}";
+                        $deletecaption = get_string('clicktodeleteentry','sloodle');
+                        $line[] = "<a href=\"$deleteurl\" title=\"$deletecaption\">$deletestr</a>";
+                        
+                    } else {
+                        $line[] = '<span style="color:#777777;" title="'.get_string('nodeletepermission','sloodle').'">'.get_string('delete','sloodle').'</span>';
+                    }
+                    
+                    // Add the line to the table
+                    $sloodletable->data[] = $line;
+                    $resultsdisplayed++;
                 }
                 
-                // Add the line to the table
-                $sloodletable->data[] = $line;
+                // Have we displayed the maximum number of results for this page?
+                $resultnum++;
+                if ($resultsdisplayed >= $maxperpage) break;
+            }
+            
+            // Construct our basic URL to this page
+            $basicurl = SLOODLE_WWWROOT."/view.php?_type=user&amp;course={$this->courseid}";
+            if ($searchentries) $basicurl .= "&amp;id=search&amp;search={$this->searchstr}";
+            else if ($allentries) $basicurl .= "&amp;id=all";
+            else $basicurl .= "&amp;id={$this->moodleuserid}";
+            
+            // Construct the next/previous links
+            $previousstart = max(0, $this->start - $maxperpage);
+            $nextstart = $this->start + $maxperpage;
+            $prevlink = null;
+            $nextlink = null;
+            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\" style=\"color:#0000ff;\">&lt;&lt;</a>&nbsp;&nbsp;";            
+            if ($nextstart < count($sloodleentries)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\" style=\"color:#0000ff;\">&gt;&gt;</a>";
+            
+            // Display the next/previous links, if we have at least one
+            if (!empty($prevlink) || !empty($nextlink)) {
+                echo '<p style="text-align:center; font-size:14pt;">';
+                if (!empty($prevlink)) echo $prevlink;
+                else echo '<span style="color:#777777;">&lt;&lt;</span>&nbsp;&nbsp;';
+                if (!empty($nextlink)) echo $nextlink;
+                else echo '<span style="color:#777777;">&gt;&gt;</span>&nbsp;&nbsp;';
+                echo '</p>';
             }
             
             // Display the table
@@ -506,7 +571,7 @@ class sloodle_view_user extends sloodle_base_view
                 
                 
                 // Have we been asked to delete the user objects?
-                if ($deleteuserobjects == 'true') {
+                if ($this->deleteuserobjects == 'true') {
                     // Yes - display a confirmation form
                     echo '<h4 style="color:red; font-weight:bold;">'.get_string('confirmdeleteuserobjects','sloodle').'</h4>';
                     
@@ -517,6 +582,7 @@ class sloodle_view_user extends sloodle_base_view
                     echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                     if (!empty($courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
                     echo '<input type="hidden" name="deleteuserobjects" value="confirm" >';
+                    echo '<input type="hidden" name="start" value="'.$this->start.'" />';
                     echo '<input type="submit" value="'.get_string('yes').'" title="'.get_string('deleteuserobjects:help','sloodle').'" >';
                     echo '</form>';
                     
@@ -525,12 +591,13 @@ class sloodle_view_user extends sloodle_base_view
                     echo '<form action="view_user.php" method="GET">';
                     echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                     if (!empty($this->courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
+                    echo '<input type="hidden" name="start" value="'.$this->start.'" />';
                     echo '<input type="submit" value="'.get_string('no').'" >';
                     echo '</form>';
                     
                     echo '</td></tr></table><br>';
                     
-                } else if ($deleteuserobjects == 'confirm') {
+                } else if ($this->deleteuserobjects == 'confirm') {
                     // Delete each one
                     $numdeleted = 0;
                     foreach ($userobjects as $obj) {
@@ -587,6 +654,7 @@ class sloodle_view_user extends sloodle_base_view
                         echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                         if (!empty($this->courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
                         echo '<input type="hidden" name="deleteuserobjects" value="true" >';
+                        echo '<input type="hidden" name="start" value="'.$this->start.'" />';
                         echo '<input type="submit" value="'.get_string('deleteuserobjects','sloodle').'" title="'.get_string('deleteuserobjects:help','sloodle').'" >';
                         echo '</form><br>';
                     }
