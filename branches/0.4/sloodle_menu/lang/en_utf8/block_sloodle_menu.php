@@ -3,6 +3,7 @@
 // It is included automatically by the Moodle framework.
 // Retrieve strings using the Moodle get_string or print_string functions.
 
+$string['avatars'] = 'Avatars';
 $string['avatarname'] = 'Avatar name';
 
 $string['blockname'] = 'Sloodle Menu';
