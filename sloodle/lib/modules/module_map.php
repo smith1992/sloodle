@@ -39,7 +39,13 @@
         * @access private
         */
         var $sloodle_instance = null;
-
+        
+        /**
+        * Instance of the extra Map data from the sloodle_map table.
+        * @var object
+        * @access private
+        */
+        var $sloodle_map = null;
                 
         
     // FUNCTIONS //
@@ -72,8 +78,9 @@
             }
             // Make sure the module is visible
             if ($this->cm->visible == 0) {
-                sloodle_debug("Error: course module instance #$id not visible.<br/>");
-                return false;
+                // Ignore visibility - teachers may want to setup map when it's invisible.
+                //sloodle_debug("Error: course module instance #$id not visible.<br/>");
+                //return false;
             }
             
             // Load from the primary table: sloodle instance
@@ -82,55 +89,73 @@
                 return false;
             }
             
+            // Load from the secondary table: sloodle map
+            if (!($this->sloodle_map = get_record('sloodle_map', 'sloodleid', $this->cm->instance))) {
+                sloodle_debug("Failed to load Sloodle map with sloodleid #{$this->cm->instance}.<br/>");
+                return false;
+            }
+            
             return true;
         }
         
-       
         /**
-        * Outputs the client-side script required to setup map viewing.
-        * @return void
+        * Gets the initial coordinates of the map.
+        * @return array Numeric array (or list) containing X and Y floating point components, as global coordinates.
         */
-        function print_script()
+        function get_initial_coordinates()
         {
-            // Include our external script
-            echo '<script src="http://secondlife.com/apps/mapapi/" type="text/javascript"></script>',"\n";
-
-            // Fetch the parameters which affect this map display
-            $startRegion = 'virtuALBA';
-            $startPosX = 128;
-            $startPosY = 128;
-
-            // Output the script load function
-            echo <<<XXXEODXXX
-<script type="text/javascript">
-
-function sloodle_load_map()
-{
-    try {
-        var mapInstance = new SLMap(document.getElementById('map-container'), {hasZoomControls: true});
-        mapInstance.centerAndZoomAtSLCoord(new XYPoint(1000,1000),3);
-        //mapInstance.centerAndZoomAtSLCoord(new SLPoint('{$startRegion}', {$startPosX}, {$startPosY}));
-        setZoom(1);
-    
-    } catch (e) {
-        //alert("An error occurred while trying to load the map: " + e.description);
-    }
-}
-
-</script>
-
-XXXEODXXX;
+            return array((float)$this->sloodle_map->initialx, (float)$this->sloodle_map->initialy);
         }
-
+        
         /**
-        * Outputs the map itself (usually just a 'div' container).
-        * @return void
+        * Gets the initial zoom factor of the map (1 - 6).
+        * @return integer
         */
-        function print_map()
+        function get_initial_zoom()
         {
-            echo '<div id="map-container" style="width:500px; height:500px; margin-left:auto; margin-right:auto;"></div>',"\n";
-            echo '<script type="text/javascript">sloodle_load_map();</script>',"\n";
-        } 
+            return (int)$this->sloodle_map->initialzoom;
+        }
+        
+        /**
+        * Checks if the pan controls should be visible.
+        * @return bool
+        */
+        function check_pan_controls()
+        {
+            return (!empty($this->sloodle_map->showpan));
+        }
+        
+        /**
+        * Checks if map dragging should be enabled.
+        * @return bool
+        */
+        function check_allow_drag()
+        {
+            return (!empty($this->sloodle_map->allowdrag));
+        }
+        
+        /**
+        * Checks if the zoom controls should be visible.
+        * @return bool
+        */
+        function check_zoom_controls()
+        {
+            return (!empty($this->sloodle_map->showzoom));
+        }
+        
+        
+        /**
+        * Returns a numeric array of locations associated with this map. Sorted by name.
+        * Each element is an object direct from the sloodle_map_location table.
+        * @return array
+        */
+        function get_locations()
+        {
+            $results = get_records('sloodle_map_location', 'sloodleid', $this->sloodle_instance->id, 'name');
+            if (!$results) return array();
+            return $result;
+        }
+        
         
     // ACCESSORS //
     
