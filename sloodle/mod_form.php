@@ -161,7 +161,6 @@ class mod_sloodle_mod_form extends moodleform_mod {
             // Add the type-specific Header
             $mform->addElement('header', 'typeheader', $sloodletypefull);
             
-            
             break;
 
 
@@ -171,6 +170,26 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             // Add the type-specific header
             $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            // Add boxes for the initial coordinates of the map
+            $mform->addElement('text', 'map_initialx', 'Initial position (X): ', array('size'=>'10')); $mform->setDefault('map_initialx', '1000.0');
+            $mform->addElement('text', 'map_initialy', 'Initial position (Y): ', array('size'=>'10')); $mform->setDefault('map_initialy', '1000.0');
+            
+            // Add the initial zoom factor
+            $mform->addElement('text', 'map_initialzoom', 'Initial zoom level (1-6): ', array('size'=>'3')); $mform->setDefault('map_initialzoom', '2');
+            $mform->addRule('map_initialzoom', null, 'numeric', null, 'client');
+            
+            // Add a checkbox for showing pan controls
+            $mform->addElement('checkbox', 'map_showpan', 'Pan controls: ', 'If checked, pan controls will be visible on the map.');
+            $mform->setDefault('map_showpan', 1);
+            
+            // Add a checkbox for showing zoom controls
+            $mform->addElement('checkbox', 'map_showzoom', 'Zoom controls: ', 'If checked, zoom controls will be visible on the map.');
+            $mform->setDefault('map_showzoom', 1);
+            
+            // Add a checkbox for allowing dragging of the map
+            $mform->addElement('checkbox', 'map_allowdrag', 'Allow dragging: ', 'If checked, users will be able to click-and-drag the map to pan it.');
+            $mform->setDefault('map_allowdrag', 1);
 
             break;
         
@@ -241,6 +260,18 @@ class mod_sloodle_mod_form extends moodleform_mod {
             break;
 
         case SLOODLE_TYPE_MAP:
+            // Fetch the map record
+            $map = get_record('sloodle_map', 'sloodleid', $this->_instance);
+            if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add in all the values from the database
+            $default_values['map_initialx'] = $map->initialx;
+            $default_values['map_initialy'] = $map->initialy;
+            $default_values['map_initialzoom'] = $map->initialzoom;
+            $default_values['map_showpan'] = $map->showpan;
+            $default_values['map_showzoom'] = $map->showzoom;
+            $default_values['map_allowdrag'] = $map->allowdrag;
+            
             break;
             
         default:

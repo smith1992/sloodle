@@ -95,8 +95,27 @@
             break;
 
         case SLOODLE_TYPE_MAP:
-            // Nothing extra to do
-            $result = TRUE;
+            // Create a new map record from the form data
+/*            $sec_table->initialx = 1000.0;
+            $sec_table->initialy = 1000.0;
+            $sec_table->initialzoom = 2;
+            $sec_table->showpan = 1;
+            $sec_table->allowdrag = 1;
+            $sec_table->showzoom = 1;*/
+            
+            $sec_table->initialx = (float)$sloodle->map_initialx;
+            $sec_table->initialy = (float)$sloodle->map_initialy;
+            $sec_table->initialzoom = (int)$sloodle->map_initialzoom;
+            if (empty($sloodle->map_showpan)) $sec_table->showpan = 0; else $sec_table->showpan = 1;
+            if (empty($sloodle->map_allowdrag)) $sec_table->allowdrag = 0; else $sec_table->allowdrag = 1;
+            if (empty($sloodle->map_showzoom)) $sec_table->showzoom = 0; else $sec_table->showzoom = 1;
+            
+            // Add it to the database
+            if (!insert_record('sloodle_map', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
             break;
             
         // ADD FURTHER MODULE TYPES HERE!
@@ -188,7 +207,21 @@
             break;
 
         case SLOODLE_TYPE_MAP;
-            // Nothing extra to do
+            // Attempt to fetch the map record
+            $map = get_record('sloodle_map', 'sloodleid', $sloodle->id);
+            if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Check for the settings updates
+            $map->initialx = (float)$sloodle->map_initialx;
+            $map->initialy = (float)$sloodle->map_initialy;
+            $map->initialzoom = (int)$sloodle->map_initialzoom;
+            if (empty($sloodle->map_showpan)) $map->showpan = 0; else $map->showpan = 1;
+            if (empty($sloodle->map_allowdrag)) $map->allowdrag = 0; else $map->allowdrag = 1;
+            if (empty($sloodle->map_showzoom)) $map->showzoom = 0; else $map->showzoom = 1;
+            
+            // Update the database
+            update_record('sloodle_map', $map);
+            
             break;
             
         // ADD FURTHER MODULE TYPES HERE!
@@ -240,7 +273,7 @@
         delete_records('sloodle_presenter_entry', 'sloodleid', $id);
 
         // Delete any map entries
-        //delete_records('sloodle_map_data', 'sloodleid', $id);
+        delete_records('sloodle_map_location', 'sloodleid', $id);
         
         
         // ADD FURTHER MODULE TYPES HERE!

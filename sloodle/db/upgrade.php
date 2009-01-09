@@ -397,6 +397,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addFieldInfo('region', XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null);
         $table->addFieldInfo('localx', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
         $table->addFieldInfo('localy', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('localz', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
         $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null);
         $table->addFieldInfo('description', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, null, null);
 
