@@ -90,8 +90,8 @@
             }
             
             // Load from the secondary table: sloodle map
-            if (!($this->sloodle_map = get_record('sloodle_map', 'sloodleid', $this->cm->instance))) {
-                sloodle_debug("Failed to load Sloodle map with sloodleid #{$this->cm->instance}.<br/>");
+            if (!($this->sloodle_map = get_record('sloodle_map', 'sloodleid', $this->sloodle_instance->id))) {
+                sloodle_debug("Failed to load Sloodle map with sloodleid #{$this->sloodle_instance->id}.<br/>");
                 return false;
             }
             
@@ -105,6 +105,23 @@
         function get_initial_coordinates()
         {
             return array((float)$this->sloodle_map->initialx, (float)$this->sloodle_map->initialy);
+        }
+        
+        /**
+        * Sets the initial coordinates of the map.
+        * @par int $x The global X coordinate for the map's initial location
+        * @par int $y The global Y coordinate for the map's initial location
+        * @return bool True if successful, or false if not.
+        */
+        function set_initial_coordinates($x, $y)
+        {
+            // Clean the data
+            $x = (float)$x;
+            $y = (float)$y;
+            // Update the data
+            $this->sloodle_map->initialx = $x;
+            $this->sloodle_map->initialy = $y;
+            return update_record('sloodle_map', $this->sloodle_map);
         }
         
         /**
@@ -153,7 +170,37 @@
         {
             $results = get_records('sloodle_map_location', 'sloodleid', $this->sloodle_instance->id, 'name');
             if (!$results) return array();
-            return $result;
+            return $results;
+        }
+        
+        /**
+        * Adds a new location to this map.
+        * @par float $globalx Global X coordinate for map location.
+        * @par float $globaly Global Y coordinate for map location.
+        * @par string $region Name of the region this location is in.
+        * @par int $localx Local X coordinate for SLurl (local to region).
+        * @par int $localy Local Y coordinate for SLurl (local to region).
+        * @par int $localz Local Z coordinate for SLurl (local to region).
+        * @par string $name Name of the location.
+        * @par string $desc Description of the location (optional).
+        * @return bool True if successful or false if not.
+        */
+        function add_location($globalx, $globaly, $region, $localx, $localy, $localz, $name, $desc = '')
+        {
+            // Prepare a database record
+            $rec = new stdClass();
+            $rec->sloodleid = $this->sloodle_instance->id;
+            // Clean all the data and add it
+            $rec->globalx = (float)$globalx;
+            $rec->globaly = (float)$globaly;
+            $rec->region = clean_text($region, FORMAT_PLAIN);
+            $rec->localx = (int)$localx;
+            $rec->localy = (int)$localy;
+            $rec->localz = (int)$localz;
+            $rec->name = clean_text($name, FORMAT_PLAIN);
+            $rec->description = clean_text($desc, FORMAT_PLAIN);
+            
+            return insert_record('sloodle_map_location', $rec, false);
         }
         
         
