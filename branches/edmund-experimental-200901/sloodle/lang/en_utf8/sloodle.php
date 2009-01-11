@@ -86,6 +86,8 @@ $string['courseconfig'] = 'Sloodle Course Configuration';
 $string['courseconfig:info'] = 'On this page, you can configure the Sloodle settings which affect your entire course. However, some of the settings may be disabled on your Moodle site by an administrator.<br/><br/><b>Please note:</b> auto-registration and auto-enrolment are not suitable for all Moodle installations. Please read the documentation about each one before enabling them.';
 $string['coursesettings'] = 'Course Settings';
 $string['createnotecard'] = 'Create notecard';
+$string['layoutwizard'] = 'Sloodle Layout Wizard';
+$string['layoutwizard:info'] = 'This page will help you create a layout with Sloodle objects for your course.';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
