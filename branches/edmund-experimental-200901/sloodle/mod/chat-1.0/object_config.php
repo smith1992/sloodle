@@ -21,6 +21,8 @@
         exit();
     }
     
+    // Execute everything within a function to ensure we don't mess up the data in the other file
+    sloodle_display_config_form($sloodleauthid, $auth_obj);
     
     
     

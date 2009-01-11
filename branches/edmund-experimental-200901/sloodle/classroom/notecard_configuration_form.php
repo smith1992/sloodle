@@ -109,7 +109,6 @@
         
         // Include the form elements
         require($customconfig);
-        sloodle_display_config_form($sloodleauthid, $auth_obj);
         
     } else {
         // No configuration settings for this object
