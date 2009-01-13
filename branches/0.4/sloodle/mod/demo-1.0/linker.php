@@ -124,8 +124,6 @@
     // The argument gives the name of the parameter to fetch.
     // If the parameter was specified, then it is returned as a raw string (you MUST do proper data cleanup before putting it into a database query, otherwise you'll be vulnerable to SQL injections).
     
-    // You can use a standalone version of the function like this, although the above method is preferable:
-    $requiredmessage = sloodle_required_param('message');
     
     
     // If a particular parameter is optional (i.e. you may or may not receive it), then you can use the following method:
@@ -158,7 +156,7 @@
     // There are several ways to add the data.
     $sloodle->response->add_data_line("Avatar name is: {$avatarname}"); // Just add a string on each line
     $sloodle->response->add_data_line(array('Moodle name', $moodlename)); // Add several fields on a single line
-    $sloodle->response->add_data_line(array( array('module', 'name'), $modulename)); // Add several lines at a time, some can be single strings, some can be arrays of fields.
+    $sloodle->response->add_data_line(array('module', 'name', $modulename));
     
     // Just some more usage of input data
     $sloodle->response->add_data_line("Required message: {$requiredmessage}");

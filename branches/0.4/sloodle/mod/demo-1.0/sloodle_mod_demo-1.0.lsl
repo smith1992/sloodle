@@ -272,8 +272,8 @@ state ready
         // Add our other data
         body += "&sloodleavname=" + llEscapeURL(llDetectedName(0));
         body += "&sloodleuuid=" + (string)llDetectedKey(0);
-        body += "&requiredmessage=testing";
-        body += "&optionalmessage=testing_some_more";
+        body += "&message=testing";
+        body += "&anothermessage=testing_some_more";
         
         // Now send the data
         http = llHTTPRequest(sloodleserverroot + SLOODLE_DEMO_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -307,3 +307,4 @@ state ready
     }
     
 }
+
