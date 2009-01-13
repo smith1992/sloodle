@@ -225,6 +225,7 @@ $string['object:quiz'] = 'Quiz Chair';
 $string['object:quiz_pile_on'] = 'Quiz Pile-On';
 $string['object:regbooth'] = 'Registration Booth';
 $string['object:set'] = 'SLOODLE Set';
+$string['object:demo'] = 'SLOODLE Demo Object';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
