@@ -43,6 +43,7 @@ integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
 // TODO: add other data your script needs
+key http = NULL_KEY;
 
 
 ///// TRANSLATION /////
@@ -253,7 +254,7 @@ state ready
         if (sloodle_check_access_ctrl(llDetectedKey(0))) {
             llSay(0, llDetectedName(0) + " has permission to control this object.");
             
-        } else (sloodle_check_access_use(llDetectedKey(0))) {
+        } else if (sloodle_check_access_use(llDetectedKey(0))) {
             llSay(0, llDetectedName(0) + " has permission to use this object.");
             
         } else {
@@ -270,7 +271,9 @@ state ready
         body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
         // Add our other data
         body += "&sloodleavname=" + llEscapeURL(llDetectedName(0));
-        body += "&sloodleuuid=" + llDetectedKey(0);
+        body += "&sloodleuuid=" + (string)llDetectedKey(0);
+        body += "&requiredmessage=testing";
+        body += "&optionalmessage=testing_some_more";
         
         // Now send the data
         http = llHTTPRequest(sloodleserverroot + SLOODLE_DEMO_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -284,6 +287,7 @@ state ready
         // Ignore anything that's not expected.
         if (id != http) return;
         http = NULL_KEY;
+        llSetTimerEvent(0.0);
         
         // Check the status code
         if (status != 200) {

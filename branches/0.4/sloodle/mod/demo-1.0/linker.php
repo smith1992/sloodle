@@ -158,7 +158,12 @@
     // There are several ways to add the data.
     $sloodle->response->add_data_line("Avatar name is: {$avatarname}"); // Just add a string on each line
     $sloodle->response->add_data_line(array('Moodle name', $moodlename)); // Add several fields on a single line
-    $sloodle->response->add_data_line(array( array('module', 'name'), $modulename); // Add several lines at a time, some can be single strings, some can be arrays of fields.
+    $sloodle->response->add_data_line(array( array('module', 'name'), $modulename)); // Add several lines at a time, some can be single strings, some can be arrays of fields.
+    
+    // Just some more usage of input data
+    $sloodle->response->add_data_line("Required message: {$requiredmessage}");
+    if (empty($optionalmessage)) $sloodle->response->add_data_line("No optional message provided");
+    else $sloodle->response->add_data_line("Optional message: {$optionalmessage}");
 
     
     // Finally, you MUST remember to render the response!
@@ -166,7 +171,7 @@
     
     // Alternatively, you can render the output to a string, like this:
     $output = '';
-    $sloodle->response->render_to_output($output); // Passed in by reference
+    //$sloodle->response->render_to_output($output); // Passed in by reference
     // You can then output that string yourself, or send it by XMLRPC or similar.
     // NOTE: for XMLRPC into SL, you need to replace newlines (\n) with \\n before sending.
     
