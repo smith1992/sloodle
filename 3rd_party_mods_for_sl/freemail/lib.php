@@ -343,5 +343,7 @@ function freemail_scale_used ($freemailid,$scaleid) {
 /// Any other freemail functions go here.  Each of them must have a name that 
 /// starts with freemail_
 
-
+function freemail_get_types() {
+    return array();
+}
 ?>
