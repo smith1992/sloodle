@@ -16,9 +16,8 @@ ini_set("include_path", "$_PATHS[pear]");
 
 require_once 'Mail/IMAPv2.php';
 require_once "sllib.php";   
-//$connection = "pop3://{$CFG->freemail_mail_user_name}:{$CFG->freemail_mail_user_pass}@{$CFG->freemail_mail_box_settinds}";
+$connection = "pop3://{$CFG->freemail_mail_user_name}:{$CFG->freemail_mail_user_pass}@{$CFG->freemail_mail_box_settinds}";
 //use below for gmail and gmail accounts
-$connection = 'imap://moodle@eslteacherlink.co.kr:unicornzebra0795@imap.gmail.com:993/INBOX#ssl';
 $msg =& new Mail_IMAPv2($connection);
 
 $msgcount = $msg->messageCount(); 

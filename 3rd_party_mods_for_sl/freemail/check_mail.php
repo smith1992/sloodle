@@ -12,7 +12,7 @@
 require_once "../../config.php";
 require_once "lib_.php";
 
-error_reporting(0);
+//error_reporting(0);
             
 require_once "readmail.php";
 
