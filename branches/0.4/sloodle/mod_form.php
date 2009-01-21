@@ -34,7 +34,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
     * @uses $CFG
     * @uses $COURSE
     * @uses $SLOODLE_TYPES
-    */
+    */                         
 	function definition() {
 
 		global $CFG, $COURSE, $SLOODLE_TYPES;
@@ -193,6 +193,17 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             break;
         
+        case SLOODLE_TYPE_STIPENDGIVER:
+
+            // Add the type-specific header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            // Add boxes for the initial coordinates of the map
+            $mform->addElement('text', 'stipendgiver_amount', 'Stipend Amount in Lindens', array('size'=>'10')); $mform->setDefault('stipendgiver_amount', '0');
+            $mform->addElement('text', 'stipendgiver_intendedfor', 'What is this stipend intended for?', array('size'=>'40')); $mform->setDefault('stipendgiver_intendedfor', 'Course use');
+            break;
+        
+                                                                           
         }
 
 //-------------------------------------------------------------------------------
@@ -255,7 +266,17 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
         
             break;
-
+        case SLOODLE_TYPE_STIPENDGIVER:
+            // Fetch the controller record
+            $stipend = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
+            if (!$stipend) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add in the 'enabled' value
+            $default_values['stipend_enabled'] = $stipend->enabled;
+            // Add in the prim password value
+            $default_values['stipend_password'] = $stipend->password;
+            
+            break;
         case SLOODLE_TYPE_PRESENTER:
             break;
 
@@ -327,6 +348,11 @@ class mod_sloodle_mod_form extends moodleform_mod {
             break;
         
         case SLOODLE_TYPE_MAP:
+            // Nothing to error check
+            break; 
+
+        // ADD FUTURE TYPES HERE
+              case SLOODLE_TYPE_STIPENDGIVER:
             // Nothing to error check
             break; 
 
