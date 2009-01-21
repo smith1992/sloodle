@@ -168,6 +168,7 @@ $string['moduletype:controller'] = 'SLOODLE Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
+$string['moduletype:stipendgiver'] = 'Stipend Giver'; 
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
@@ -226,6 +227,7 @@ $string['object:quiz_pile_on'] = 'Quiz Pile-On';
 $string['object:regbooth'] = 'Registration Booth';
 $string['object:set'] = 'SLOODLE Set';
 $string['object:demo'] = 'SLOODLE Demo Object';
+$string['object:stipendgiver'] = 'SLOODLE Stipend Giver';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
