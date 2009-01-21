@@ -71,7 +71,6 @@ class sloodle_view_stipendgiver extends sloodle_base_view_module
         if (!is_array($entries)) $entries = array();
         $numitems = count($entries);
         
-                 A
             
             print_box_start('generalbox boxaligncenter boxwidthnarrow centerpara');
             foreach ($entries as $entry)
