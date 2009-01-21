@@ -75,9 +75,17 @@
                 $result = TRUE;
             }
             break;
+
         case SLOODLE_TYPE_STIPENDGIVER:
-        // Nothing extra to do 
-            $result = TRUE;
+            // Create the secondary table for this stipend giver
+            $sec_table->amount = (int)$sloodle->stipendgiver_amount;
+            $sec_table->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+            if (!insert_record('sloodle_stipendgiver', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
+
             break;
                 
         case SLOODLE_TYPE_DISTRIB:
@@ -209,9 +217,19 @@
         case SLOODLE_TYPE_PRESENTER:
             // Nothing extra to do 
             break;
+
         case SLOODLE_TYPE_STIPENDGIVER:
-            // Nothing extra to do 
+            // Attempt to fetch the stipend giver record
+            $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $sloodle->id);
+            if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
+            // Add the updates values from the form
+            $stipendgiver->amount = (int)$sloodle->stipendgiver_amount;
+            $stipendgiver->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+
+            // Update the database
+            update_record('sloodle_stipendgiver', $stipendgiver);
         break;
+
         case SLOODLE_TYPE_MAP;
             // Attempt to fetch the map record
             $map = get_record('sloodle_map', 'sloodleid', $sloodle->id);

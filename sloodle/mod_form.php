@@ -198,8 +198,9 @@ class mod_sloodle_mod_form extends moodleform_mod {
             // Add the type-specific header
             $mform->addElement('header', 'typeheader', $sloodletypefull);
             
-            // Add boxes for the initial coordinates of the map
+            // The stipend needs an amount and a purpose
             $mform->addElement('text', 'stipendgiver_amount', 'Stipend Amount in Lindens', array('size'=>'10')); $mform->setDefault('stipendgiver_amount', '0');
+            $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
             $mform->addElement('text', 'stipendgiver_intendedfor', 'What is this stipend intended for?', array('size'=>'40')); $mform->setDefault('stipendgiver_intendedfor', 'Course use');
             break;
         
@@ -266,17 +267,18 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
         
             break;
+
         case SLOODLE_TYPE_STIPENDGIVER:
             // Fetch the controller record
-            $stipend = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
-            if (!$stipend) error(get_string('secondarytablenotfound', 'sloodle'));
+            $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
+            if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             
-            // Add in the 'enabled' value
-            $default_values['stipend_enabled'] = $stipend->enabled;
-            // Add in the prim password value
-            $default_values['stipend_password'] = $stipend->password;
+            // Add in the amount and purpose of the giver
+            $default_values['stipendgiver_amount'] = $stipendgiver->amount;
+            $default_values['stipendgiver_intendedfor'] = $stipendgiver->purpose;
             
             break;
+
         case SLOODLE_TYPE_PRESENTER:
             break;
 
