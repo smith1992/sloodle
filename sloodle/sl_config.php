@@ -83,19 +83,23 @@
     // Each course needs to have at least one Sloodle Access Controller before it can be accessed from in-world.
     // This is what grants access to the course as a whole, and sets prim passwords.
     define('SLOODLE_TYPE_CTRL', 'controller');
-    
+                                   
     // These are the regular module types
     define('SLOODLE_TYPE_DISTRIB', 'distributor');
     define('SLOODLE_TYPE_PRESENTER', 'presenter');
     define('SLOODLE_TYPE_MAP', 'map');
+    define('SLOODLE_TYPE_STIPENDGIVER', 'stipendgiver');
     
     // Store the types in an array (used in lists)
-    global $SLOODLE_TYPES;
+    global $SLOODLE_TYPES;   
     $SLOODLE_TYPES = array();
+    
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_MAP;
+    $SLOODLE_TYPES[] = SLOODLE_TYPE_STIPENDGIVER;  
+    
     
 //---------------------------------------------------------------------
 
