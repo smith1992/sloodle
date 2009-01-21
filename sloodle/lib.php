@@ -75,7 +75,11 @@
                 $result = TRUE;
             }
             break;
-            
+        case SLOODLE_TYPE_STIPENDGIVER:
+        // Nothing extra to do 
+            $result = TRUE;
+            break;
+                
         case SLOODLE_TYPE_DISTRIB:
             // Add in a default blank channel number and update time
             $sec_table->channel = '';
@@ -205,7 +209,9 @@
         case SLOODLE_TYPE_PRESENTER:
             // Nothing extra to do 
             break;
-
+        case SLOODLE_TYPE_STIPENDGIVER:
+            // Nothing extra to do 
+        break;
         case SLOODLE_TYPE_MAP;
             // Attempt to fetch the map record
             $map = get_record('sloodle_map', 'sloodleid', $sloodle->id);
@@ -277,8 +283,8 @@
         
         
         // ADD FURTHER MODULE TYPES HERE!
-        
-
+        delete_records('sloodle_stipendgiver', 'sloodleid', $id);  
+        delete_records('sloodle_stipendgiver_transactions', 'stipendgiverid', $id);
         return $result;
     }
 
