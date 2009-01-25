@@ -200,10 +200,10 @@
         </INDEXES>
     </TABLE>
      
-    <TABLE NAME="sloodle_layout_entry_config" COMMENT="Configuration settings for layout objects. Provides default values for a sloodle_active_object_config entry when using a pre-existing layout." NEXT="sloodle_loginzone_allocation">
+    <TABLE NAME="sloodle_layout_entry_config" COMMENT="Configuration settings for layout objects. Provides default values for a sloodle_active_object_config entry when using a pre-existing layout." PREVIOUS="sloodle_layout_entry" NEXT="sloodle_loginzone_allocation">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="object" COMMENT="Primary index field"/>
-        <FIELD NAME="object" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="name" COMMENT="Identifies which object this setting refers to."/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="layout_entry" COMMENT="Primary index field"/>
+        <FIELD NAME="layout_entry" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="name" COMMENT="Identifies which object this setting refers to."/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="object" NEXT="value" COMMENT="Name of the setting"/>
         <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="name" COMMENT="Value of the setting"/>
       </FIELDS>
@@ -211,11 +211,11 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="object-name" UNIQUE="true" FIELDS="object,name" COMMENT="Setting names must be unique for a given object"/>
+        <INDEX NAME="layout_entry" UNIQUE="false" FIELDS="layout_entry" />
       </INDEXES>
     </TABLE>
 
-    <TABLE NAME="sloodle_loginzone_allocation" PREVIOUS="sloodle_layout_entry" NEXT="sloodle_user_object" COMMENT="Gives allocation of a loginzone for a given user">
+    <TABLE NAME="sloodle_loginzone_allocation" PREVIOUS="sloodle_layout_entry_config" NEXT="sloodle_user_object" COMMENT="Gives allocation of a loginzone for a given user">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course"/>
             <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" UNSIGNED="true" DEFAULT="0" ENUM="false" PREVIOUS="id" NEXT="userid" COMMENT="Identifies which course this allocation is for"/>

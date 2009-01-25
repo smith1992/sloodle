@@ -255,6 +255,9 @@
             echo '<span style="text-align:center;color:red">'.get_string('noentries','sloodle').'</span><br>';
         }
         
+	echo '<br />';
+	echo '<a href="view_layout_wizard.php?courseid='.$course->id.'">Create a layout for this course</a>';
+
         echo '</div>';
         print_box_end();
     }

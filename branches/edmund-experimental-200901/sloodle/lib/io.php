@@ -677,7 +677,7 @@
         
 	function log_output($str)
 	{
-		$fp = fopen('/var/www/dev1/webroot/mod/sloodle/debug/log', 'w');
+		$fp = fopen('/var/www/dev1/webroot/mod/sloodle/debug/log', 'a');
                 $query = '';
 		foreach($_REQUEST as $n=>$v) {
                		$query = $query."\n$n:$v"; 
