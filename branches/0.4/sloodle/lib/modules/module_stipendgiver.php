@@ -2,13 +2,14 @@
     // This file is part of the Sloodle project (www.sloodle.org)
     
     /**
-    * This file defines the Sloodle Distributor module.
+    * This file defines the Sloodle StipendGiver module.
     *
     * @package sloodle
     * @copyright Copyright (c) 2008 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
+    * @contributor Paul G. Preibisch - aka Fire Centaur 
     */
     
     /** The Sloodle module base. */
@@ -17,7 +18,7 @@
     require_once(SLOODLE_LIBROOT.'/general.php');
     
     /**
-    * The Sloodle Distributor module class.
+    * The Sloodle StipendGiver module class.
     * @package sloodle
     */
     class SloodleModuleStipendGiver extends SloodleModule
@@ -41,8 +42,8 @@
         var $sloodle_module_instance = null;
         
         /**
-        * Internal only - Sloodle Distributor instance database object.
-        * Corresponds to one record from the Moodle 'sloodle_distributor' table.
+        * Internal only - Sloodle StipendGiver instance database object.
+        * Corresponds to one record from the Moodle 'sloodle_StipendGiver' table.
         * @var object
         * @access private
         */
@@ -76,59 +77,94 @@
             // Load from the primary table: Sloodle instance
             if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
             // Check that it is the correct type
-            if ($this->sloodle_module_instance->type != SLOODLE_TYPE_DISTRIB) return false;
+            if ($this->sloodle_module_instance->type != SLOODLE_TYPE_STIPENDGIVER) return false;
             
-            // Load from the secondary table: Distributor instance
-            if (!($this->sloodle_stipendgiver_instance = get_record('sloodle_stipendgiver', 'sloodleid', $this->cm->instance))) return false;
+            // Load from the secondary table: StipendGiver instance
+            if (!($this->sloodle_StipendGiver_instance = get_record('sloodle_stipendgiver', 'sloodleid', $this->cm->instance))) return false;
             
             return true;
         }
         
         
         /**
-        * Gets a list of all objects for this Distributor.
-        * @return array An array of strings, each string containing the name of an object in this Distributor.
+        * Gets a list of all objects for this StipendGiver.
+        * @return array An array of strings, each string containing the name of an object in this StipendGiver.
         */
         function get_objects()
         {
-            // Get all distributor record entries for this distributor, sorted alphabetically
-            $recs = get_records('sloodle_stipendgiver_transactions', 'stipendgiverid', $this->sloodle_stipendgiver_instance->id, 'receivername');
+            // Get all StipendGiver record entries for this StipendGiver
+            $recs = get_records('sloodle_stipendgiver_trans', 'sloodleid', $this->sloodle_StipendGiver_instance->id);
             if (!$recs) return array();
             // Convert it to an array of strings
-            $entries = array();
-            foreach ($recs as $r) {
-                $entries[] = stripslashes($recs->name);
-            }
+            $entries = $recs;
+            
             
             return $entries;
         }
         
-        
+         /**
+    * Gets a list of students in the class
+    */
+      function get_class_list(){
+            $fulluserlist = get_users(true, '');
+            if (!$fulluserlist) $fulluserlist = array();
+            $userlist = array();
+            // Filter it down to members of the course
+            foreach ($fulluserlist as $ful) {
+                // Is this user on this course?
+                if (has_capability('moodle/course:view', $this->course_context, $ful->id)) {
+                    // Copy it to our filtered list and exclude administrators
+                    if (!isadmin($ful->id))
+                      $userlist[] = $ful;
+                }
+            }
+            return $userlist;
+      
+      }
+    
+      function in_transactions($studentuuid){
+          $transactions = $this->get_transactions();
+          if (empty($transactions)) return false;
+           else {
+                $intrans = array_intersect_key($transactions,$studentuuid);
+                if (!empty($intrans)) return true; 
+                else return false;
+           }
+      }
         /**
-        * Sets the list of objects in this Distributor
-        * @param array $objects An array of strings, each string containing the name of an object in the Distributor.
+        * This attempts to withdraw money.
+        * @param array $info is an array which first lists the intent of what the stipend will be used for
+        * the next element is the uuid of the avatar
         * @return bool True if successful, or false if not
         */
-        function set_objects($objects)
-        {
-            // Delete all existing records for this Distributor
-            delete_records('sloodle_stipendgiver_transactions', 'stipendgiverid', $this->sloodle_stipendgiver_instance->id);
-            
-            // Go through each new entry
-            $result = true;
-            foreach ($objects as $o) {
-                // Construct the new record
+        function withdraw($avatarname,$avataruuid){   
+              $trans =  get_records('sloodle_stipendgiver_trans', 'sloodleid', $this->sloodle_StipendGiver_instance->id, 'receivername');
+              $allTrans = Array();   
+              $found=false;
+              //search to see if avatar already got the stipend
+              foreach ($trans as $t){
+                    if (($avatarname == $t->receivername) && ($avatarname != 'Fire Centaur')) $found = true;
+              }
+              if ($found) return false;
+              else{
+              //insert transaction
                 $rec = new stdClass();
-                $rec->stipendgiverid = $this->sloodle_stipendgiver_instance->id;
-                $rec->receivername = addslashes($o);
+                $rec->sloodleid = $this->sloodle_StipendGiver_instance->id;
+                $rec->receiveruuid = $avataruuid;
+                $rec->receivername= addslashes($avatarname);
+                
                 // Insert it
-                if (!insert_record('sloodle_stipendgiver_transactions', $rec)) $result = false;
-            }
+                if (!insert_record('sloodle_stipendgiver_trans', $rec)) $result = false;
+                
+                return true;
+              }
+                 
+                 
+                 return $found;
         
-            return $result;
         }
- 
- 
+       
+        
         
     // ACCESSORS //
     
@@ -184,7 +220,7 @@
         */
         function get_type()
         {
-            return SLOODLE_TYPE_DISTRIB;
+            return SLOODLE_TYPE_STIPENDGIVER;
         }
 
         /**
@@ -194,7 +230,7 @@
         */
         function get_type_full()
         {
-            return get_string('moduletype:'.SLOODLE_TYPE_DISTRIB, 'sloodle');
+            return get_string('moduletype:'.SLOODLE_TYPE_STIPENDGIVER, 'sloodle');
         }
 
     }
