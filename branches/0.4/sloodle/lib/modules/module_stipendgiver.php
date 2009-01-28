@@ -121,46 +121,42 @@
             return $userlist;
       
       }
-    
-      function in_transactions($studentuuid){
-          $transactions = $this->get_transactions();
-          if (empty($transactions)) return false;
-           else {
-                $intrans = array_intersect_key($transactions,$studentuuid);
-                if (!empty($intrans)) return true; 
-                else return false;
-           }
-      }
+      
+      
         /**
         * This attempts to withdraw money.
         * @param array $info is an array which first lists the intent of what the stipend will be used for
         * the next element is the uuid of the avatar
         * @return bool True if successful, or false if not
         */
-        function withdraw($avatarname,$avataruuid){   
-              $trans =  get_records('sloodle_stipendgiver_trans', 'sloodleid', $this->sloodle_StipendGiver_instance->id, 'receivername');
+        
+        function alreadyPaid($avatarname,$avataruuid,$sloodleid){   
+              $trans =  get_records('sloodle_stipendgiver_trans', 'sloodleid', $sloodleid, 'receiveruuid');
               $allTrans = Array();   
-              $found=false;
+              $paid=false;
+              
               //search to see if avatar already got the stipend
               foreach ($trans as $t){
-                    if (($avatarname == $t->receivername) && ($avatarname != 'Fire Centaur')) $found = true;
+                    if ($avataruuid == $t->receiveruuid) $paid = true;
               }
-              if ($found) return false;
+              if ($paid) return true;
               else{
-              //insert transaction
+             
                 $rec = new stdClass();
-                $rec->sloodleid = $this->sloodle_StipendGiver_instance->id;
+                $rec->sloodleid = $sloodleid;
                 $rec->receiveruuid = $avataruuid;
                 $rec->receivername= addslashes($avatarname);
+                $rec->date = time();
+                
                 
                 // Insert it
                 if (!insert_record('sloodle_stipendgiver_trans', $rec)) $result = false;
                 
-                return true;
+                return false;
               }
                  
                  
-                 return $found;
+                 
         
         }
        
@@ -203,6 +199,9 @@
         {
             return $this->sloodle_module_instance->timecreated;
         }
+        function get_amount(){
+          return $this->sloodle_StipendGiver_instance->amount;
+      }
         
         /**
         * Gets the time at which this instance was last modified, or 0 if unknown.

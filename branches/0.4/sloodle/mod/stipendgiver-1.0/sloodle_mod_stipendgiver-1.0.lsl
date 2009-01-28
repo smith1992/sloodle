@@ -19,9 +19,9 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
 // This variable identifies the type of object this is
-string SLOODLE_OBJECT_TYPE = "demo-1.0";
+string SLOODLE_OBJECT_TYPE = "stipendgiver-1.0";
 // This string identifies the location of the linker script relative to this Moodle root
-string SLOODLE_DEMO_LINKER = "/mod/sloodle/mod/demo-1.0/linker.php";
+string SLOODLE_STIPENDGIVER_LINKER = "/mod/sloodle/mod/stipendgiver-1.0/linker.php";
 
 // These are common configuration settings
 string sloodleserverroot = "";
@@ -81,7 +81,39 @@ sloodle_translation_request(string output_method, list output_params, string str
 sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
+    
 }
+//sloodle particle effect when the user gets money
+ StartParticles (key id)
+            {
+                llParticleSystem ([
+                    PSYS_SRC_PATTERN,2,
+                    PSYS_PART_FLAGS,(0|PSYS_PART_INTERP_SCALE_MASK|PSYS_PART_FOLLOW_SRC_MASK),
+      PSYS_PART_START_COLOR, <0.96,0.99,0.95>,
+                    PSYS_PART_END_COLOR, <0.44,0.93,0.06>,
+                    PSYS_PART_START_ALPHA, 0.76,
+                    PSYS_PART_END_ALPHA, 0.00,
+                    PSYS_PART_START_SCALE, <0.75,0.18,0>,
+                    PSYS_PART_END_SCALE, <1.82,1.85,0>,
+                    PSYS_SRC_BURST_SPEED_MIN, 13.10,
+                    PSYS_SRC_BURST_SPEED_MAX, 0.00,
+                    PSYS_SRC_ACCEL, <-1.63,-1.32,-1.65>,
+      PSYS_SRC_OMEGA, <1.17,-0.26,1.06>,
+                    PSYS_SRC_ANGLE_END, 0.00,
+                    PSYS_SRC_ANGLE_BEGIN, 0.03,
+                    PSYS_PART_MAX_AGE, 13.03,
+                    PSYS_SRC_BURST_PART_COUNT, 81,
+                    PSYS_SRC_BURST_RATE, 8.84,
+                    PSYS_SRC_BURST_RADIUS, 14.16,
+                    PSYS_SRC_MAX_AGE, 8.54,
+                    PSYS_SRC_TEXTURE, "c053ac85-c412-0a0e-5a85-774745118c00",
+                    PSYS_SRC_TARGET_KEY, id 
+                    ]);
+    }                
+        StopParticles ()
+                   {
+                    llParticleSystem ([]);
+                   }           
 
 // Configure by receiving a linked message from another script in the object.
 // Returns TRUE if the object has all the data it needs.
@@ -157,10 +189,29 @@ integer sloodle_check_access_use(key id)
 // Default state - waiting for configuration.
 // The first state of your main script should ALWAYS be something like this.
 // However, you'll need to tweak it for each object.
-default
+default{
+     state_entry()
+        {
+        llRequestPermissions(llGetOwner(), PERMISSION_DEBIT );  
+         llParticleSystem ([]);
+        
+        }
+  run_time_permissions (integer perm)
+    {
+        if(perm & PERMISSION_DEBIT)
+        {
+            state go;     
+        }
+    }
+    
+}
+    
+state go
 {
     state_entry()
     {
+        llPlaySound("05dcbbc4-ab44-c7a4-969e-0d2ab6660f6a",1.0);
+         llParticleSystem ([]);
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -175,9 +226,12 @@ default
         sloodleserveraccesslevel = 0;
         $sloodlestipend = "";
         sloodleshowhovertext = 0;
+         
         
         // TODO: Add other custom reset stuff here...
     }
+   
+   
     
     link_message( integer sender_num, integer num, string str, key id)
     {
@@ -219,6 +273,7 @@ default
         if (llDetectedKey(0) == llGetOwner()) {
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         }
+       llPlaySound("50091bcd-d86d-3749-c8a2-055842b33484",1.0);
     }
 }
 
@@ -237,12 +292,15 @@ state ready
         // Should we show hover text?
         // (This is set in object configuration)
         if (sloodleshowhovertext) {
-            llSetText("Random text:\n" + $sloodlestipend, <1.0, 0.0, 0.0>, 1.0);
+            llSetText("Stipend Available:\n" + $sloodlestipend, <1.0, 0.0, 0.0>, 1.0);
         } else {
             llSay(0, "");
         }
+        
+
     }
-    
+     
+
     state_exit()
     {
         llSetTimerEvent(0.0);
@@ -250,6 +308,7 @@ state ready
         
     touch_start( integer total_number)
     {
+       
         // Check to see if the user has permission to control or use this object.
         if (sloodle_check_access_ctrl(llDetectedKey(0))) {
             llSay(0, llDetectedName(0) + " has permission to control this object.");
@@ -260,6 +319,8 @@ state ready
         } else {
             // No permission
             llSay(0, llDetectedName(0) + " does not have permission to control or use this object.");
+llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0); 
+
         }
     
         // We want to communicate with the linker script.
@@ -272,11 +333,12 @@ state ready
         // Add our other data
         body += "&sloodleavname=" + llEscapeURL(llDetectedName(0));
         body += "&sloodleuuid=" + (string)llDetectedKey(0);
-        body += "&message=testing";
-        body += "&anothermessage=testing_some_more";
-        
+        body += "&withdraw=getMoney";
+    
+       
+      
         // Now send the data
-        http = llHTTPRequest(sloodleserverroot + SLOODLE_DEMO_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        http = llHTTPRequest(sloodleserverroot + SLOODLE_STIPENDGIVER_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         
         llSetTimerEvent(10.0);
     }
@@ -296,10 +358,37 @@ state ready
             return;
         }
         
-        // Output the whole response
-        llSay(0, "HTTP response:\n\n" + body);
-    }
+        // Split the response into several lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        key avkey= llList2Key(lines,3);
+        
+        integer amount= llList2Integer(lines,2);
+        list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
+        integer statuscode = llList2Integer(statusfields, 0);
+        
+            // Extract and parse the current line
+            string withdrawStatus = llList2String(lines, 1);
+            if (withdrawStatus=="OKTOWITHDRAW") {
+                
 
+                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:congrats", [], NULL_KEY, "");
+                 llGiveMoney(avkey, amount);
+                 llPlaySound("676bd8f1-a061-72f4-b56c-93408f9cba46",1.0);
+                 //play special particle effect
+                 StartParticles (llGetKey());
+                 state effectsOff;
+            }
+                  else
+            if (withdrawStatus=="ALREADYWITHDREW") {
+                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:alreadywithdrew", [], NULL_KEY, "");
+                 
+                 llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0);
+                }
+}
+
+
+     
     timer()
     {
         llSetTimerEvent(0.0);
@@ -307,4 +396,25 @@ state ready
     }
     
 }
+state effectsOff
+{
+   
+    state_entry()
+    {
+        // Should we show hover text?
+        // (This is set in object configuration)
+        llSetTimerEvent(2.0);
+        
 
+    }
+     state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    timer(){
+        
+        StopParticles ();
+        state ready;
+        
+        }
+    }

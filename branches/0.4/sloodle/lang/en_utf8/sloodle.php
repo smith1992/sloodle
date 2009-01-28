@@ -331,7 +331,7 @@ $string['sloodleuserediting'] = 'Avatar Editing';//'SLOODLE User Editing';
 $string['sloodleuserprofile'] = 'Avatar';//'SLOODLE User Profile';
 $string['sloodleuserprofiles'] = 'Avatars';//'SLOODLE User Profiles';
 $string['specialpages'] = 'Special Pages';
-
+  
 $string['status'] = 'Status';
 $string['storedlayouts'] = 'Stored Layouts';
 $string['submit'] = 'Submit';
@@ -368,5 +368,15 @@ $string['xmlrpc:channel'] = 'XMLRPC Channel';
 $string['year'] = 'year';
 $string['years'] = 'years';
 $string['Yes'] = 'Yes';
-
-?>
+                      
+$string ['sloodleobjectstipendgiver:stipendisfor']= 'This stipend is for: L$';
+$string ['sloodleobjectstipendgiver:purpose']= 'It\'s purpose is: ';
+$string ['sloodleobjectstipendgiver:nostipendsgiven'] = 'No stipends have been taken by anyone yet!';   
+$string ['sloodleobjectstipendgiver:description'] = 'Description';
+$string ['sloodleobjectstipendgiver:transactions'] = 'Cashflow';   
+$string ['stipendgiver:noavatar'] = 'No Avatar Registered'; 
+$string ['stipendgiver:alloted'] = 'Allotted'; 
+$string ['stipendgiver:withdrawn'] = 'Withdrawn'; 
+$string ['stipendgiver:selectstipend'] ="Please select the course stipend this in world object one connects to";
+$string ['stipendgiver:nostpendgivers'] = 'No stipend givers have been added to your moodle course.  Please add a stipend giver activity first.';
+$string ['stipendgiver:date'] = 'Date';
