@@ -408,8 +408,95 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     /// Launch create table for sloodle_map_location
         $result = $result && create_table($table);
     }
+       if ($oldversion < 2009010805) {     
+        echo "Dropping old stipendgiver tables<br/>";
+        $table = new XMLDBTable('sloodle_stipendgiver');
+        drop_table($table);
+        echo "adding new stipendgiver tables<br/>"; 
+    /// Define field id to be added to sloodle_stipendgiver
+        $table = new XMLDBTable('sloodle_stipendgiver');
+        
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+        $table->addField($field);
+        
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+        $table->addField($field);  
+        
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
+        $table->addField($field);  
+        
+        $field = new XMLDBField('amount');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+        $table->addField($field);  
+        
+        $field = new XMLDBField('purpose');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'amount');
+        $table->addField($field);  
+        
+        $field = new XMLDBField('receiveruuid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'purpose');
+        $table->addField($field);  
+        
+        $field = new XMLDBField('date');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'purpose');
 
-
+        $table->addField($field);  
+        
+        $key = new XMLDBKey('primary');
+        $key->setAttributes(XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKey($key);
+        
+        $index = new XMLDBIndex('sloodleid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
+        $table->addIndex($index); 
+        
+       /// Launch create table for sloodle_map_location
+        $result = $result && create_table($table);
+    }
+     if ($oldversion < 2009010805) {
+        echo "Dropping old stipendgiver transaction tables<br/>";
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        drop_table($table);
+        echo "adding new stipendgiver trans tables<br/>"; 
+        /// Define field id to be added to sloodle_stipendgiver_trans
+        
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+        $table->addField($field); 
+        
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $table->addField($field); 
+        
+        $field = new XMLDBField('receiveruuid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
+        $table->addField($field); 
+         
+        $field = new XMLDBField('receivername');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'receiveruuid');
+        $table->addField($field); 
+        
+        $field = new XMLDBField('date');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receivername');
+        $table->addField($field); 
+        
+        $key = new XMLDBKey('primary');
+        $key->setAttributes(XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKey($key);
+        
+        $index = new XMLDBIndex('sloodleid');
+        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
+        $table->addIndex($index); 
+          
+        $result = $result && create_table($table);   
+        
+     }
+     
     return $result;
 }
 
