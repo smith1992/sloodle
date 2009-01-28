@@ -302,7 +302,7 @@
         
         // ADD FURTHER MODULE TYPES HERE!
         delete_records('sloodle_stipendgiver', 'sloodleid', $id);  
-        delete_records('sloodle_stipendgiver_transactions', 'stipendgiverid', $id);
+        delete_records('sloodle_stipendgiver_trans', 'stipendgiverid', $id);
         return $result;
     }
 
