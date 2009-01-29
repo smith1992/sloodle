@@ -45,10 +45,6 @@
         
         // Get all visible presenters in the current course
         $recs = get_records_select('course_modules', "course = $courseid AND module = $sloodlemoduleid AND visible = 1");
-        if (!$recs) {
-            error(get_string('nopresenters','sloodle'));
-            exit();
-        }
         $presenters = array();
         foreach ($recs as $cm) {
             // Fetch the Sloodle instance
@@ -57,6 +53,13 @@
             // Store the Sloodle details
             $presenters[$cm->id] = $inst->name;
         }
+
+        // Make sure there are some presenters to be had        
+        if (count($presenters) < 1) {
+            error(get_string('nopresenters','sloodle'));
+            exit();
+        }
+
         // Sort the list by name
         natcasesort($presenters);
         

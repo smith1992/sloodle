@@ -62,10 +62,13 @@
     if (!$sloodles) $sloodles = array();
     // Go through each module    
     foreach ($sloodles as $s) {
+        // Find out which course module instance this SLOODLE module belongs to
+        $cm = get_coursemodule_from_instance('sloodle', $s->id);
+        if ($cm === false) continue;
+            
         // Prepare this line of data
         $line = array();
-        $line[] = $s->id;
-        $line[] = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?s={$s->id}\">$s->name</a>";
+        $line[] = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$cm->id}\">$s->name</a>";
         $line[] = $s->intro;
         // Insert it into the appropriate table
         $sloodle_tables[$s->type]->data[] = $line;
@@ -75,14 +78,15 @@
     // (cannot use "foreach" on the $sloodle_tables array as PHP4 doesn't support alteration of the original array that way)
     $table_types = array_keys($sloodle_tables);
     foreach ($table_types as $k) {
-        $sloodle_tables[$k]->head = array($strid, $strname, $strdescription);
-        $sloodle_tables[$k]->align = array('center', 'left', 'left');
+        $sloodle_tables[$k]->head = array($strname, $strdescription);
+        $sloodle_tables[$k]->align = array('left', 'left');
+        $sloodle_tables[$k]->size = array('50%', '50%');
     }
 
     // Page header
     if ($course->id != SITEID) {
         print_header("{$course->shortname}: $strsloodles", $course->fullname,
-                    "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> -> $strsloodles",
+                    "<a href=\"../../course/view.php?_type=course&amp;id=$course->id\">$course->shortname</a> -> $strsloodles",
                     "", "", true, "", navmenu($course));
     } else {
         print_header("$course->shortname: $strsloodles", $course->fullname, "$strsloodles",
@@ -91,10 +95,10 @@
     
     
 //-----------------------------------------------------
-    // Quick links (top right of page)
-    
+    // Quick links (top right of page)   
+
     // Open the section
-    echo "<div style=\"text-align:right; font-size:80%;\">\n";
+    /*echo "<div style=\"text-align:right; font-size:80%;\">\n";
     
     // Link to own avatar profile
     echo "<a href=\"\" title=\"\">View my avatar details</a><br>\n";
@@ -113,7 +117,7 @@
     }
     
     
-    echo "</div>\n";
+    echo "</div>\n";*/
     
     
     
