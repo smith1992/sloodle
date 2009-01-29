@@ -132,7 +132,7 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>';
             
             // Make the avatar name a link if the user management page exists
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
             $this->content->text .= '<br/></center>';
             
         } else if (is_string($userresult)) {
@@ -149,7 +149,7 @@ class block_sloodle_menu extends block_base {
 
         // Add the Sloodle profile link
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user.gif\" width=\"16\" height=\"16\"/> ";
-        $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">".get_string('mysloodleprofile', 'block_sloodle_menu')."</a><br/>";
+        $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$USER->id}&amp;course={$COURSE->id}\">".get_string('mysloodleprofile', 'block_sloodle_menu')."</a><br/>";
 
         // Show a link to all Sloodle activities on this course
         //TODO: possibly show number of visible Sloodle activities?
@@ -181,7 +181,7 @@ class block_sloodle_menu extends block_base {
         // Add a link to Sloodle course settings, if the user can update the course
         if (has_capability('moodle/course:update', $course_context)) {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/page.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
         }
         
         // Add a module configuration link if the user has authority to administer the module
