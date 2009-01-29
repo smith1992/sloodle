@@ -23,6 +23,7 @@
     </td>
 </tr>
 
+
 <tr valign=top>
     <td align=right>Mail account name</td>
     <td>
@@ -42,14 +43,33 @@
 </tr>
 
 <tr valign=top>
+    <td align=right></td>
+    <td style="font-size:10px;">
+        <i>(MAILBOX SETTINGS BELOW<br>For GMAIL use:  imap.gmail.com:993/INBOX#ssl)</i>
+    </td>
+    <td>
+    </td>
+</tr>
+<tr valign=top>
     <td align=right>Mailbox settings</td>
     <td>
 <input type="text" name="freemail_mail_box_settinds" size="40" value="<?php p($CFG->freemail_mail_box_settinds); ?>" /> 
     </td>
     <td>
     </td>
+</tr>      
+imap.gmail.com:993/INBOX#ssl
+<tr valign=top>
+    <td align=right>Mail account Type</td>
+    <td>
+<select name="pop3_or_imap">
+  <option value ="pop3" <?php if ($CFG->pop3_or_imap == "pop3") { echo "selected=\"selected\""; }?>>POP3</option>
+  <option value ="imap" <?php if ($CFG->pop3_or_imap == "imap") { echo "selected=\"selected\""; }?>>IMAP</option>
+</select>
+    </td>
+    <td>
+    </td>
 </tr>
-
 <tr valign=top>
     <td align=right>Email address to upload content with FreeMail</td>
     <td>
