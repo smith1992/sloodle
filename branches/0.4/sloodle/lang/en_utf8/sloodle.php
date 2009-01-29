@@ -211,6 +211,7 @@ $string['noquizzes'] = 'There are no quizzes available in this course.';
 $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
 $string['nosloodleassignments'] = 'There are no SLOODLE-compatible assignments available in this course.';
+$string['nopresenters'] = 'There are no SLOODLE Presenters available in this course.';
 
 $string['object:accesschecker'] = 'Access Checker';
 $string['object:accesscheckerdoor'] = 'Access Checker Door';
@@ -227,7 +228,10 @@ $string['object:quiz_pile_on'] = 'Quiz Pile-On';
 $string['object:regbooth'] = 'Registration Booth';
 $string['object:set'] = 'SLOODLE Set';
 $string['object:demo'] = 'SLOODLE Demo Object';
-$string['object:stipendgiver'] = 'SLOODLE Stipend Giver';
+$string['object:stipendgiver'] = 'Stipend Giver';
+$string['object:presenter'] = 'Presenter';
+$string['object:mapmarker'] = 'Map Marker';
+
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
@@ -294,6 +298,8 @@ $string['selectquiz'] = 'Select Quiz';
 $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
+$string['selectpresenter'] = 'Select Presenter';
+
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';
 $string['showavatarsonly'] = 'Only show accounts with avatars';

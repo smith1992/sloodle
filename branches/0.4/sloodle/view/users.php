@@ -356,7 +356,6 @@ class sloodle_view_users extends sloodle_base_view
                     } else {
                         // The query failed - if we are showing only Sloodle-enabled users, then skip the rest
                         if ($this->sloodleonly) continue;
-                        $line[] = '0';
                         $line[] = '-';
                     }
                     
