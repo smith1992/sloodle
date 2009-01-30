@@ -29,9 +29,10 @@
     
     /** Include Sloodle/Moodle configuration. */
     require_once('../sl_config.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Make sure the Moodle user is logged-in
-    require_login();
+    sloodle_require_login_no_guest();
     
     /** Include the Sloodle API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
