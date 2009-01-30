@@ -2,7 +2,7 @@
 // Allows SL users to take Moodle quizzes in-world
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-8 Sloodle (various contributors)
+// Copyright (c) 2006-9 Sloodle (various contributors)
 // Released under the GNU GPL
 //
 // Contributors:
@@ -262,7 +262,7 @@ move_to_start()
 finish_quiz() 
 {
     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete", [llKey2Name(sitter), (string)num_correct + "/" + (string)num_questions], null_key, "quiz");
-    move_to_start();
+    //move_to_start(); // Taking this out here leaves the quiz chair at its final position until the user stands up.
     
     // Clear the big nasty chunks of data
     optext_current = [];
@@ -379,7 +379,8 @@ state ready
 {
     state_entry()
     {
-        llSitTarget(<0,0,.5>, ZERO_ROTATION);
+        // This is now handled by a separate poseball
+        // llSitTarget(<0,0,.5>, ZERO_ROTATION);
     }
     
     changed(integer change)
@@ -864,6 +865,7 @@ state quizzing
     
     changed(integer change)
     {
+        move_to_start();
         reinitialise();
     }
 }

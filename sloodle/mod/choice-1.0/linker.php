@@ -64,10 +64,22 @@
         $isavailable = '0';
         if ($sloodle->module->is_open()) $isavailable = '1';
         $canshowresults = $sloodle->module->can_show_results();
+
+        // Fetch the intro (question) text, but cut everything after the first line
+        $qtext = trim($sloodle->module->get_intro());
+        $qlines = explode("<br />", $qtext);
+        if (is_array($qlines) && count($qlines) > 0) $qtext = stripslashes(strip_tags($qlines[0]));
+        else $qtext = '';
+        // Whatever happens, make sure the question text isn't too long
+        $maxqtextlen = 128;
+        if (strlen($qtext) > $maxqtextlen) {
+            $qlines = str_split($qtext, $maxqtextlen);
+            if (is_array($qlines) && count($qlines) > 0) $qtext = trim($qlines[0]).'...';
+        }
         
         // Add the data to the response
         $sloodle->response->add_data_line($sloodle->module->get_name());
-        $sloodle->response->add_data_line(stripslashes(strip_tags($sloodle->module->get_intro())));
+        $sloodle->response->add_data_line($qtext);
         $sloodle->response->add_data_line(array($isavailable, $sloodle->module->get_opening_time(), $sloodle->module->get_closing_time()));
         if ($canshowresults) $sloodle->response->add_data_line($sloodle->module->get_num_unanswered());
         else $sloodle->response->add_data_line('-1');
@@ -99,8 +111,6 @@
     }
     
     // Output our response
-    sloodle_debug('<pre>'); // For debug mode, lets us see the response in a browser
     $sloodle->response->render_to_output();
-    sloodle_debug('</pre>');
     
 ?>

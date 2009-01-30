@@ -946,6 +946,60 @@
         ksort($mods);        
         return $mods;
     }
-    
+   
+
+    /**
+    * Render a page viewing a particular feature, or a SLOODLE module.
+    * Outputs error text in SLOODLE debug mode.
+    * @param string $feature The name of a feature to view ("course", "user", "users"), or "module" to indicate that we are viewing some kind of module. Note: features should contain only alphanumric characters.
+    * @return bool True if successful, or false if not.
+    */
+    function sloodle_view($feature)
+    {
+        global $CFG, $USER;
+        // Make sure the parameter is safe -- nothing but alphanumeric characters.
+        if (!ctype_alnum($feature)) {
+            sloodle_debug('sloodle_view(..): Invalid characters in view feature, "'.$feature.'"');
+            return false;
+        }
+        if (empty($feature)) {
+            sloodle_debug('sloodle_view(..): No feature name specified.');
+            return false;
+        }
+        $feature = trim($feature);
+
+        // Has a module been requested?
+        if (strcasecmp($feature, 'module') == 0) {
+            // We should have an ID parameter, indicating which module has been requested
+            $id = required_param('id', PARAM_INT);
+            // Query the database for the SLOODLE module sub-type
+            $instanceid = get_field('course_modules', 'instance', 'id', $id);
+            if ($instanceid === false) error('Course module instance '.$id.' not found.');
+            $type = get_field('sloodle', 'type', 'id', $instanceid);
+            if ($type === false) error('SLOODLE module instance '.$instanceid.' not found.');
+            // We will just use the type as a feature name now.
+            // This means the following words are unavailable as module sub-types: course, user, users
+            $feature = $type;
+        }
+
+        // Attempt to include the relevant viewing class
+        $filename = SLOODLE_DIRROOT."/view/{$feature}.php";
+        if (!file_exists($filename)) {
+            error("SLOODLE file not found: view/{$feature}.php");
+            exit();
+        }
+        require_once($filename);
+
+        // Create and execute the viewing instance
+        $classname = 'sloodle_view_'.$feature;
+        if (!class_exists($classname)) {
+            error("SLOODLE class missing: {$classname}");
+            exit();
+        }
+        $viewer = new $classname();
+        $viewer->view();
+
+        return true;
+    } 
 
 ?>

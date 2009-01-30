@@ -17,10 +17,6 @@
     require_once('sl_config.php');
     /** Sloodle core library functionality */
     require_once(SLOODLE_DIRROOT.'/lib.php');
-    /** General Sloodle functions. */
-    require_once(SLOODLE_LIBROOT.'/general.php');
-    /** Sloodle course data. */
-    require_once(SLOODLE_LIBROOT.'/course.php');
     
     // Fetch the course ID from request parameters
     $id = optional_param('id', 0, PARAM_INT);
@@ -37,16 +33,9 @@
             error("Could not find a top-level course!");
         }
     }
-    
-    // Get the Sloodle course data
-    $sloodle_course = new SloodleCourse();
-    if (!$sloodle_course->load($course)) error(get_string('failedcourseload','sloodle'));
 
     // Require that the user logs in
     require_login($course, false);
-    // Ensure that the user is logged-in for this course
-    $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
-    
     // Log this page view
     add_to_log($course->id, "sloodle", "view sloodle modules", "index.php?id=$course->id");
 
@@ -73,10 +62,13 @@
     if (!$sloodles) $sloodles = array();
     // Go through each module    
     foreach ($sloodles as $s) {
+        // Find out which course module instance this SLOODLE module belongs to
+        $cm = get_coursemodule_from_instance('sloodle', $s->id);
+        if ($cm === false) continue;
+            
         // Prepare this line of data
         $line = array();
-        $line[] = $s->id;
-        $line[] = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?s={$s->id}\">$s->name</a>";
+        $line[] = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$cm->id}\">$s->name</a>";
         $line[] = $s->intro;
         // Insert it into the appropriate table
         $sloodle_tables[$s->type]->data[] = $line;
@@ -86,14 +78,15 @@
     // (cannot use "foreach" on the $sloodle_tables array as PHP4 doesn't support alteration of the original array that way)
     $table_types = array_keys($sloodle_tables);
     foreach ($table_types as $k) {
-        $sloodle_tables[$k]->head = array($strid, $strname, $strdescription);
-        $sloodle_tables[$k]->align = array('center', 'left', 'left');
+        $sloodle_tables[$k]->head = array($strname, $strdescription);
+        $sloodle_tables[$k]->align = array('left', 'left');
+        $sloodle_tables[$k]->size = array('50%', '50%');
     }
 
     // Page header
     if ($course->id != SITEID) {
         print_header("{$course->shortname}: $strsloodles", $course->fullname,
-                    "<a href=\"../../course/view.php?id=$course->id\">$course->shortname</a> -> $strsloodles",
+                    "<a href=\"../../course/view.php?_type=course&amp;id=$course->id\">$course->shortname</a> -> $strsloodles",
                     "", "", true, "", navmenu($course));
     } else {
         print_header("$course->shortname: $strsloodles", $course->fullname, "$strsloodles",
@@ -102,43 +95,29 @@
     
     
 //-----------------------------------------------------
-    // Quick links (top right of page)
-    
+    // Quick links (top right of page)   
+
     // Open the section
-    echo "<div style=\"text-align:right; font-size:80%;\">\n";
+    /*echo "<div style=\"text-align:right; font-size:80%;\">\n";
     
     // Link to own avatar profile
-    echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">".get_string('viewmyavatar', 'sloodle')."</a><br>\n";
-    // Link to user management
-    if (has_capability('moodle/user:viewhiddendetails', $course_context)) {
-        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$course->id}\">".get_string('sloodleuserprofiles', 'sloodle')."</a><br>\n";
-    }
+    echo "<a href=\"\" title=\"\">View my avatar details</a><br>\n";
     
-    // Auto-registration status
-    if (!sloodle_autoreg_enabled_site()) {
-        echo '<span style="color:#aa0000;">'.get_string('autoreg:disabled','sloodle')."</span><br>\n";
-    } else if ($sloodle_course->get_autoreg()) {
-        echo '<span style="color:#008800;">'.get_string('autoreg:courseallows','sloodle')."</span><br>\n";
+    // Course information
+    if (empty($sloodlecourse->autoreg)) {
+        echo "This course does not allow auto-registration<br>";
     } else {
-        echo '<span style="color:#aa0000;">'.get_string('autoreg:coursedisallows','sloodle')."</span><br>\n";
-    }
-    
-    // Auto-enrolment status
-    if (!sloodle_autoenrol_enabled_site()) {
-        echo '<span style="color:#aa0000;">'.get_string('autoenrol:disabled','sloodle')."</span><br>\n";
-    } else if ($sloodle_course->get_autoenrol()) {
-        echo '<span style="color:#008800;">'.get_string('autoenrol:courseallows','sloodle')."</span><br>\n";
-    } else {
-        echo '<span style="color:#aa0000;">'.get_string('autoenrol:coursedisallows','sloodle')."</span><br>\n";
+        echo "This course allows auto-registration<br>";
     }
     
     // Display the link for editing course settings
+    $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
     if (has_capability('moodle/course:update', $course_context)) {
-        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$course->id}\">Edit Sloodle course settings</a><br>\n";
+        echo "<a href=\"\" title=\"\">Edit Sloodle course settings</a><br>\n";
     }
     
     
-    echo "</div>\n";
+    echo "</div>\n";*/
     
     
     
