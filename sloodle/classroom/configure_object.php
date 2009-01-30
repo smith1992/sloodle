@@ -34,13 +34,10 @@
     require_once('../sl_config.php');
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
     
     // Make sure the user is logged-in
-    require_login();
-    // Make sure the user is not a guest
-    if (isguestuser()) {
-        exit(get_string('noguestaccess','sloodle'));
-    }
+    sloodle_require_login_no_guest();
     
     // We need to know which object is being authorised and/or configured
     $sloodleauthid = required_param('sloodleauthid', PARAM_INT);
