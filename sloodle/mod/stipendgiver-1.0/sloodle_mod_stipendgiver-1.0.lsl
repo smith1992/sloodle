@@ -7,14 +7,15 @@
 // Released under the GNU GPL
 //
 // Contributors:
-//  Peter R. Bloomfield
+// Peter Bloomfield
+//  Paul Preibisch - aka Fire Centaur
 //
-
+integer startupValue;
 // These are common constants
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_EOF = "sloodleeof";
-integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0; 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
@@ -82,38 +83,7 @@ sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
     
-}
-//sloodle particle effect when the user gets money
- StartParticles (key id)
-            {
-                llParticleSystem ([
-                    PSYS_SRC_PATTERN,2,
-                    PSYS_PART_FLAGS,(0|PSYS_PART_INTERP_SCALE_MASK|PSYS_PART_FOLLOW_SRC_MASK),
-      PSYS_PART_START_COLOR, <0.96,0.99,0.95>,
-                    PSYS_PART_END_COLOR, <0.44,0.93,0.06>,
-                    PSYS_PART_START_ALPHA, 0.76,
-                    PSYS_PART_END_ALPHA, 0.00,
-                    PSYS_PART_START_SCALE, <0.75,0.18,0>,
-                    PSYS_PART_END_SCALE, <1.82,1.85,0>,
-                    PSYS_SRC_BURST_SPEED_MIN, 13.10,
-                    PSYS_SRC_BURST_SPEED_MAX, 0.00,
-                    PSYS_SRC_ACCEL, <-1.63,-1.32,-1.65>,
-      PSYS_SRC_OMEGA, <1.17,-0.26,1.06>,
-                    PSYS_SRC_ANGLE_END, 0.00,
-                    PSYS_SRC_ANGLE_BEGIN, 0.03,
-                    PSYS_PART_MAX_AGE, 13.03,
-                    PSYS_SRC_BURST_PART_COUNT, 81,
-                    PSYS_SRC_BURST_RATE, 8.84,
-                    PSYS_SRC_BURST_RADIUS, 14.16,
-                    PSYS_SRC_MAX_AGE, 8.54,
-                    PSYS_SRC_TEXTURE, "c053ac85-c412-0a0e-5a85-774745118c00",
-                    PSYS_SRC_TARGET_KEY, id 
-                    ]);
-    }                
-        StopParticles ()
-                   {
-                    llParticleSystem ([]);
-                   }           
+}      
 
 // Configure by receiving a linked message from another script in the object.
 // Returns TRUE if the object has all the data it needs.
@@ -170,8 +140,7 @@ integer sloodle_check_access_ctrl(key id)
 // Returns TRUE if so, or FALSE if not.
 // You can leave this out if you don't need to check for usage authority.
 integer sloodle_check_access_use(key id)
-{
-    // Check the access mode
+{    // Check the access mode
     if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
         return llSameGroup(id);
     } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
@@ -203,16 +172,23 @@ default{
             state go;     
         }
     }
+    on_rez(integer start_param){
+        //make nice startup sound
+         llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "playsound:rez|", NULL_KEY);
+        llResetScript();
+        
     
 }
     
+}
 state go
 {
     state_entry()
-    {
-        llPlaySound("05dcbbc4-ab44-c7a4-969e-0d2ab6660f6a",1.0);
-         llParticleSystem ([]);
-        // Starting again with a new configuration
+{
+        //play nice start up sound
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "playsound:startup|", NULL_KEY);
+         
+        // Startig again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
         eof = FALSE;
@@ -273,7 +249,13 @@ state go
         if (llDetectedKey(0) == llGetOwner()) {
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
         }
-       llPlaySound("50091bcd-d86d-3749-c8a2-055842b33484",1.0);
+       llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "playsound:userclick", NULL_KEY);
+
+    }
+    
+    on_rez(integer par)
+    {
+        llResetScript();
     }
 }
 
@@ -282,10 +264,7 @@ state go
 // Common name for the primary state in which the tool operates.
 state ready
 {
-    on_rez( integer param)
-    {
-        state default;
-    }    
+  
     
     state_entry()
     {
@@ -308,20 +287,6 @@ state ready
         
     touch_start( integer total_number)
     {
-       
-        // Check to see if the user has permission to control or use this object.
-        if (sloodle_check_access_ctrl(llDetectedKey(0))) {
-            llSay(0, llDetectedName(0) + " has permission to control this object.");
-            
-        } else if (sloodle_check_access_use(llDetectedKey(0))) {
-            llSay(0, llDetectedName(0) + " has permission to use this object.");
-            
-        } else {
-            // No permission
-            llSay(0, llDetectedName(0) + " does not have permission to control or use this object.");
-llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0); 
-
-        }
     
         // We want to communicate with the linker script.
         // Construct the body of the request, and then send it all as POST parameters.
@@ -372,18 +337,14 @@ llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0);
             if (withdrawStatus=="OKTOWITHDRAW") {
                 
 
-                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:congrats", [], NULL_KEY, "");
-                 llGiveMoney(avkey, amount);
-                 llPlaySound("676bd8f1-a061-72f4-b56c-93408f9cba46",1.0);
-                 //play special particle effect
-                 StartParticles (llGetKey());
-                 state effectsOff;
-            }
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:congrats", [], NULL_KEY, "stipendgiver");
+                llGiveMoney(avkey, amount);
+                llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "poof:money|", NULL_KEY);
+                                                }
                   else
             if (withdrawStatus=="ALREADYWITHDREW") {
-                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:alreadywithdrew", [], NULL_KEY, "");
-                 
-                 llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0);
+                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "stipendgiver:alreadywithdrew", [], NULL_KEY, "stipendgiver");
+                 llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "playsound:nomoney|", NULL_KEY);
                 }
 }
 
@@ -395,26 +356,9 @@ llPlaySound("d5da8d8e-23de-5a07-b4da-ad2ff5ea97e7",1.0);
         llSay(0, "HTTP Timeout");
     }
     
+    on_rez(integer par)
+    {
+        llResetScript();
+    }
+    
 }
-state effectsOff
-{
-   
-    state_entry()
-    {
-        // Should we show hover text?
-        // (This is set in object configuration)
-        llSetTimerEvent(2.0);
-        
-
-    }
-     state_exit()
-    {
-        llSetTimerEvent(0.0);
-    }
-    timer(){
-        
-        StopParticles ();
-        state ready;
-        
-        }
-    }
