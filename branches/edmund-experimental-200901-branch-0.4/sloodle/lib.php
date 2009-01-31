@@ -75,7 +75,19 @@
                 $result = TRUE;
             }
             break;
-            
+
+        case SLOODLE_TYPE_STIPENDGIVER:
+            // Create the secondary table for this stipend giver
+            $sec_table->amount = (int)$sloodle->stipendgiver_amount;
+            $sec_table->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+            if (!insert_record('sloodle_stipendgiver', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
+
+            break;
+                
         case SLOODLE_TYPE_DISTRIB:
             // Add in a default blank channel number and update time
             $sec_table->channel = '';
@@ -89,11 +101,41 @@
             }        
             break;
             
+        case SLOODLE_TYPE_PRESENTER:
+            // Nothing extra to do 
+            $result = TRUE;
+            break;
+
+        case SLOODLE_TYPE_MAP:
+            // Create a new map record from the form data
+/*            $sec_table->initialx = 1000.0;
+            $sec_table->initialy = 1000.0;
+            $sec_table->initialzoom = 2;
+            $sec_table->showpan = 1;
+            $sec_table->allowdrag = 1;
+            $sec_table->showzoom = 1;*/
+            
+            $sec_table->initialx = (float)$sloodle->map_initialx;
+            $sec_table->initialy = (float)$sloodle->map_initialy;
+            $sec_table->initialzoom = (int)$sloodle->map_initialzoom;
+            if (empty($sloodle->map_showpan)) $sec_table->showpan = 0; else $sec_table->showpan = 1;
+            if (empty($sloodle->map_allowdrag)) $sec_table->allowdrag = 0; else $sec_table->allowdrag = 1;
+            if (empty($sloodle->map_showzoom)) $sec_table->showzoom = 0; else $sec_table->showzoom = 1;
+            
+            // Add it to the database
+            if (!insert_record('sloodle_map', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
+            break;
+            
         // ADD FURTHER MODULE TYPES HERE!
             
         default:
-            // Type not recognised
-            $errormsg = error(get_string('moduletypeunknown', 'sloodle'));
+            // Type not recognised - this really shouldn't kill the script though... makes development very hard
+            //$errormsg = error(get_string('moduletypeunknown', 'sloodle'));
+            $result = TRUE;
             break;
         }
         
@@ -172,11 +214,45 @@
             
             break;
             
+        case SLOODLE_TYPE_PRESENTER:
+            // Nothing extra to do 
+            break;
+
+        case SLOODLE_TYPE_STIPENDGIVER:
+            // Attempt to fetch the stipend giver record
+            $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $sloodle->id);
+            if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
+            // Add the updates values from the form
+            $stipendgiver->amount = (int)$sloodle->stipendgiver_amount;
+            $stipendgiver->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+
+            // Update the database
+            update_record('sloodle_stipendgiver', $stipendgiver);
+        break;
+
+        case SLOODLE_TYPE_MAP;
+            // Attempt to fetch the map record
+            $map = get_record('sloodle_map', 'sloodleid', $sloodle->id);
+            if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Check for the settings updates
+            $map->initialx = (float)$sloodle->map_initialx;
+            $map->initialy = (float)$sloodle->map_initialy;
+            $map->initialzoom = (int)$sloodle->map_initialzoom;
+            if (empty($sloodle->map_showpan)) $map->showpan = 0; else $map->showpan = 1;
+            if (empty($sloodle->map_allowdrag)) $map->allowdrag = 0; else $map->allowdrag = 1;
+            if (empty($sloodle->map_showzoom)) $map->showzoom = 0; else $map->showzoom = 1;
+            
+            // Update the database
+            update_record('sloodle_map', $map);
+            
+            break;
+            
         // ADD FURTHER MODULE TYPES HERE!
             
         default:
             // Type not recognised
-            error(get_string('moduletypeunknown', 'sloodle'));
+            //error(get_string('moduletypeunknown', 'sloodle'));
             break;
         }
 
@@ -216,11 +292,17 @@
         }
         // Delete all the distributors
         delete_records('sloodle_distributor', 'sloodleid', $id);
+
+        // Delete any presenter entries
+        delete_records('sloodle_presenter_entry', 'sloodleid', $id);
+
+        // Delete any map entries
+        delete_records('sloodle_map_location', 'sloodleid', $id);
         
         
         // ADD FURTHER MODULE TYPES HERE!
-        
-
+        delete_records('sloodle_stipendgiver', 'sloodleid', $id);  
+        delete_records('sloodle_stipendgiver_trans', 'stipendgiverid', $id);
         return $result;
     }
 
@@ -376,15 +458,16 @@
 
     /**
     * Gets the different sub-types of Sloodle module available as a list for the "Add Activity..." menu.
+    * Also adds the 'Sloodle Map' resource type.
     *
-    * $return array Entries for the "Add Activity..." sub-menu for Sloodle
+    * $return array Entries for the "Add Activity..." and "Add Resource..." menus.
     */
 
     function sloodle_get_types() {
         global $CFG, $SLOODLE_TYPES;
         $types = array();
 
-        // Start the group
+        // Start the group of activities
         $type = new object();
         $type->modclass = MOD_CLASS_ACTIVITY;
         $type->type = "sloodle_group_start";
@@ -400,11 +483,18 @@
             $types[] = $type;
         }
 
-        // End the group
+        // End the group of activities
         $type = new object();
         $type->modclass = MOD_CLASS_ACTIVITY;
         $type->type = "sloodle_group_end";
         $type->typestr = '--';
+        $types[] = $type;
+
+        // Add the resource
+        $type = new object();
+        $type->modclass = MOD_CLASS_RESOURCE;
+        $type->type = "sloodle&amp;type=map";
+        $type->typestr = get_string("moduleaction:map", "sloodle");
         $types[] = $type;
 
         return $types;
