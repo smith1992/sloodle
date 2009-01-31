@@ -23,9 +23,9 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
 string sloodleserverroot = "";
-string sloodlepwd = "";
+string sloodlepwd = ""; 
 integer sloodlecontrollerid = 0;
-
+  
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
@@ -37,6 +37,8 @@ integer layoutspagenum = 0; // Which page of object layouts is being viewed?
 integer menutime = 0; // When was the menu last activated? (expires after a period of time)
 integer loadmenu = FALSE; // Does the menu relate to loading profiles? Otherwise saving.
 list availablelayouts = []; // A list of names of layouts which are available on the current course
+
+
 
 string currentlayout = ""; // Name of the currently loaded layout, if any
 
@@ -54,6 +56,8 @@ string MENU_BUTTON_CANCEL = "X";
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
 
+integer SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_LAYOUT_DIALOG = -1639270094;
+
 // Translation output methods
 string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
 string SLOODLE_TRANSLATE_SAY = "say";               // 1 output parameter: chat channel number
@@ -64,7 +68,10 @@ string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
-string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
+string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters. 
+
+integer SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVE = -1639270101;
+integer SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVING_DONE = -1639270102; 
 
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
@@ -106,7 +113,7 @@ integer sloodle_handle_command(string str)
     else if (name == SLOODLE_EOF) eof = TRUE;
     else if (name == "do:reset") llResetScript();
     
-    return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0);
+    return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0); 
 }
 
 // Checks if the given agent is permitted to control this object
@@ -181,6 +188,7 @@ key sloodle_update_layout_list(key id)
     body += "&sloodleuuid=" + (string)id;
     body += "&sloodleavname=" + llKey2Name(id);
     
+    //llOwnerSay(body);
     return llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
@@ -229,7 +237,7 @@ default
             if (eof == TRUE && isconfigured == TRUE) {
                 state ready;
             }
-        }  
+        } 
     }
     
     touch_start(integer num_detected)
@@ -292,7 +300,12 @@ state ready
         integer statuscode = llList2Integer(statusfields, 0);
         
         // Check the status code
-        if (statuscode == -301) {
+        if (statuscode == -321) {
+            // Avatar is probably not registered
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "nopermission:use", [llKey2Name(llGetOwner())], NULL_KEY, "");
+            return;
+                        
+        } else if (statuscode == -301) {
             // User does not have permission
             sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:nopermission", [llKey2Name(llGetOwner())], NULL_KEY, "set");
             return;
@@ -393,14 +406,25 @@ state ready
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") { 
+            state default;
+        } else if (num == SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_LAYOUT_DIALOG ) {
+            // Can the user use this object
+            if (!sloodle_check_access_use(kval) && !sloodle_check_access_ctrl(kval)) {
+                // Inform the user of the problem
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(kval)], NULL_KEY, "");
+                return;
+            }
+            // Check te user's server access, and get all layouts they are allowed to use
+            httplayoutbrowse = sloodle_update_layout_list(kval);          
+        }
     }
 }
 
 // State in which we get the name of a layout for a "save as" operation
 state save_as
 {
-    state_entry()
+    state_entry() 
     {
         // Listen to the owner's chat
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.0>, 0.8], "layoutcaption:savingas", [], NULL_KEY, "set");
@@ -465,11 +489,11 @@ state save
         body += "&sloodlelayoutname=" + llEscapeURL(currentlayout);
         body += "&sloodlelayoutentries=";
 
-        sloodle_debug("Clearing existing layout...");
-        httplayoutupdate = llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], body);
+        // the sensor stuff and message transmission is offloaded to another script to save memor.
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVE, sloodleserverroot + SLOODLE_LAYOUT_LINKER+"\n"+body, NULL_KEY);
         
         llSetTimerEvent(0.0);
-        llSetTimerEvent(8.0);
+        llSetTimerEvent(30.0); // have to do lots of sensing and things, so it could be a while...
     }
     
     state_exit()
@@ -483,91 +507,21 @@ state save
         sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httptimeout", [], NULL_KEY, "");
     }
     
-    http_response(key id, integer status, list meta, string body)
-    {
-        // Make sure this is the expected HTTP response
-        if (id != httplayoutupdate) return;
-        httplayoutupdate = NULL_KEY;
-        
-        sloodle_debug("HTTP Response ("+(string)status+"): "+body);
-        
-        // Was the HTTP request successful?
-        if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httperror", [status], NULL_KEY, "toolbar");
-            state ready;
-            return;
-        }
-        
-        // Split the response into lines and extract the status fields
-        list lines = llParseStringKeepNulls(body, ["\n"], []);
-        integer numlines = llGetListLength(lines);
-        list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
-        integer statuscode = llList2Integer(statusfields, 0);
-        // We might get an error message on a data line
-        string dataline = "";
-        if (numlines > 1) dataline = llList2String(lines, 1);
-        
-        // Check the status code
-        if (statuscode == -301) {
-            // User does not have permission
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:nopermission", [llKey2Name(llGetOwner())], NULL_KEY, "set");
-            state ready;
-            return;
-            
-        } else if (statuscode == -901) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:savefailed", [], NULL_KEY, "set");
-            state ready;
-            return;
-            
-        } else if (statuscode == -902) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:notexist", [], NULL_KEY, "set");
-            state ready;
-            return;
-            
-        } else if (statuscode == -903) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:alreadyexists", [], NULL_KEY, "set");
-            state ready;
-            return;
-            
-        } else if (statuscode <= 0) {
-            // Don't know what kind of error it was
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "servererror", [(string)statuscode], NULL_KEY, "");
-            sloodle_debug(body);
-            state ready;
-            return;
-        }
-        
-        // Determine the root key of this object
-        key rootkey = llGetKey();
-        if (llGetLinkNumber() > 0) rootkey = llGetLinkKey(1);
-        
-        // Clearing the layout was successful.
-        // Instruct all nearby components to save themselves.
-        // (We will only use regular 'say', since rezzing later can only happen within 10m).
-        // Format of chat message: cmd|rezzer|uuid|pos|rot|layoutname
-        
-        string msg = "do:storelayout";
-        msg += "|" + (string)rootkey; // UUID of the root object
-        msg += "|" + (string)llGetOwner(); // UUID of the user saving the layout
-        msg += "|" + (string)llGetRootPosition(); // Position of the root of this object
-        msg += "|" + (string)llGetRootRotation(); // rotation of the root of this object
-        msg += "|" + currentlayout; // Name of the layout to save
-        
-        sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:saving", [currentlayout], NULL_KEY, "set");
-        llSay(SLOODLE_CHANNEL_OBJECT_LAYOUT, msg);
-        
-        state ready;
-    }
-    
     on_rez(integer par)
     {
         state default;
-    }
+    } 
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
+        if ( (num == SLOODLE_CHANNEL_OBJECT_DIALOG) && (sval == "do:reset") ) {
+            state default;
+        } else if (num == SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVING_DONE) { 
+            llSetTimerEvent(0.0);
+            state ready;
+        } 
     }
+    
 }
 
 // Load a new layout
@@ -589,6 +543,7 @@ state load
         body += "&sloodleuuid=" + (string)llGetOwner();
         body += "&sloodleavname=" + llEscapeURL(llKey2Name(llGetOwner()));
         body += "&sloodlelayoutname=" + llEscapeURL(currentlayout);
+
 
         sloodle_debug("Querying for layout contents...");
         httplayoutquery = llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD,"POST",HTTP_MIMETYPE,"application/x-www-form-urlencoded"], body);
@@ -616,7 +571,6 @@ state load
         httplayoutquery = NULL_KEY;
         
         //sloodle_debug("HTTP Response ("+(string)status+"): "+body);
-        
         // Was the HTTP request successful?
         if (status != 200) {
             sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httperror", [status], NULL_KEY, "");
@@ -664,9 +618,11 @@ state load
         // We can just use all the layout data directly from the HTTP response.
         // All we need to do is replace the first line with an appropriate command.
         lines = llListReplaceList(lines, ["do:rez"], 0, 0);
+        
         body = llDumpList2String(lines, "\n");
         // Send the link message
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, body, NULL_KEY);
+        //llOwnerSay(body);
         
         state ready;
     }
