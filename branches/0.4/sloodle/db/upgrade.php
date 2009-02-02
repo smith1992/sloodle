@@ -495,7 +495,30 @@ function xmldb_sloodle_upgrade($oldversion=0) {
           
         $result = $result && create_table($table);   
         
-     }
+    }
+	
+	if ($result && $oldversion < 2009020201) {
+
+    /// Define table sloodle_presenter_entry to be created
+        $table = new XMLDBTable('sloodle_presenter_entry');
+
+    /// Adding fields to table sloodle_presenter_entry
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('source', XMLDB_TYPE_TEXT, 'medium', null, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('type', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, 'web');
+        $table->addFieldInfo('ordering', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+
+    /// Adding keys to table sloodle_presenter_entry
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+    /// Adding indexes to table sloodle_presenter_entry
+        $table->addIndexInfo('mdl_sloopresentr_slo_ix', XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
+        $table->addIndexInfo('mdl_sloopresentr_typ_ix', XMLDB_INDEX_NOTUNIQUE, array('type'));
+
+    /// Launch create table for sloodle_presenter_entry
+        $result = $result && create_table($table);
+    }
      
     return $result;
 }

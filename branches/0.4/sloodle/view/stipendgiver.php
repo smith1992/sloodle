@@ -205,6 +205,9 @@ class sloodle_view_stipendgiver extends sloodle_base_view_module
         $userlist =$this->get_class_list();  
         //get the list of transactions
         $trans = get_records('sloodle_stipendgiver_trans', 'sloodleid', $this->cm->id, 'receiveruuid,date');
+		
+		if (!$trans) $trans = array(); // THIS IS IMPORTANT - if "get_records" fails, it returns FALSE, so the "foreach" below will fail with an error message -- PRB
+		
         //create new array and only store uuid of transactions
         $alltrans=Array();
         //now create another array which will have an  identical size  and only put the withdrawl dates in it
