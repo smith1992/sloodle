@@ -456,7 +456,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
        /// Launch create table for sloodle_map_location
         $result = $result && create_table($table);
     }
-     if ($oldversion < 2009010805) {
+     if ($oldversion < 2009020203) {
         echo "Dropping old stipendgiver transaction tables<br/>";
         $table = new XMLDBTable('sloodle_stipendgiver_trans');
         drop_table($table);
@@ -479,6 +479,10 @@ function xmldb_sloodle_upgrade($oldversion=0) {
          
         $field = new XMLDBField('receivername');
         $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'receiveruuid');
+        $table->addField($field); 
+        
+        $field = new XMLDBField('userid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
         $table->addField($field); 
         
         $field = new XMLDBField('date');
