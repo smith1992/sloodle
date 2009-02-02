@@ -238,6 +238,8 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addIndexInfo('course-name', XMLDB_INDEX_UNIQUE, array('course', 'name'));
 
         $result = $result && create_table($table);
+        
+        
         if (!$result) echo "error<br/>";
         
         
@@ -456,7 +458,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
        /// Launch create table for sloodle_map_location
         $result = $result && create_table($table);
     }
-     if ($oldversion < 2009020203) {
+     if ($oldversion < 2009010805) {
         echo "Dropping old stipendgiver transaction tables<br/>";
         $table = new XMLDBTable('sloodle_stipendgiver_trans');
         drop_table($table);
@@ -480,11 +482,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field = new XMLDBField('receivername');
         $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'receiveruuid');
         $table->addField($field); 
-        
-        $field = new XMLDBField('userid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
-        $table->addField($field); 
-        
+            
         $field = new XMLDBField('date');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receivername');
         $table->addField($field); 
@@ -524,7 +522,20 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $result = $result && create_table($table);
     }
      
-    return $result;
+      
+  if ($result && $oldversion < 2009020204) {
+        //add extra filed to stipend giver for added security in giving out stipends
+         echo "Adding userid field to stipendgiver transaction tables<br/>";               
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        $field = new XMLDBField('userid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
+        
+    /// Launch add field format
+        $result = $result && add_field($table, $field);
+     
+    
+  }
+  return $result; 
 }
 
 ?>
