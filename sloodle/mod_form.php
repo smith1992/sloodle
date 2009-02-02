@@ -34,7 +34,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
     * @uses $CFG
     * @uses $COURSE
     * @uses $SLOODLE_TYPES
-    */
+    */                         
 	function definition() {
 
 		global $CFG, $COURSE, $SLOODLE_TYPES;
@@ -89,7 +89,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // Make it raw type (so the HTML isn't filtered out)
 		$mform->setType('intro', PARAM_RAW);
         // Make it required
-		$mform->addRule('intro', get_string('required'), 'required', null, 'client');
+		//$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
         // Provide an HTML editor help button
         $mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
         
@@ -152,7 +152,59 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
             
             break;
+            
+            
+        // // SLIDESHOW // //
         
+        case SLOODLE_TYPE_PRESENTER:
+        
+            // Add the type-specific Header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            break;
+
+
+        // // MAP // //
+
+        case SLOODLE_TYPE_MAP:
+
+            // Add the type-specific header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            // Add boxes for the initial coordinates of the map
+            $mform->addElement('text', 'map_initialx', 'Initial position (X): ', array('size'=>'10')); $mform->setDefault('map_initialx', '1000.0');
+            $mform->addElement('text', 'map_initialy', 'Initial position (Y): ', array('size'=>'10')); $mform->setDefault('map_initialy', '1000.0');
+            
+            // Add the initial zoom factor
+            $mform->addElement('text', 'map_initialzoom', 'Initial zoom level (1-6): ', array('size'=>'3')); $mform->setDefault('map_initialzoom', '2');
+            $mform->addRule('map_initialzoom', null, 'numeric', null, 'client');
+            
+            // Add a checkbox for showing pan controls
+            $mform->addElement('checkbox', 'map_showpan', 'Pan controls: ', 'If checked, pan controls will be visible on the map.');
+            $mform->setDefault('map_showpan', 1);
+            
+            // Add a checkbox for showing zoom controls
+            $mform->addElement('checkbox', 'map_showzoom', 'Zoom controls: ', 'If checked, zoom controls will be visible on the map.');
+            $mform->setDefault('map_showzoom', 1);
+            
+            // Add a checkbox for allowing dragging of the map
+            $mform->addElement('checkbox', 'map_allowdrag', 'Allow dragging: ', 'If checked, users will be able to click-and-drag the map to pan it.');
+            $mform->setDefault('map_allowdrag', 1);
+
+            break;
+        
+        case SLOODLE_TYPE_STIPENDGIVER:
+
+            // Add the type-specific header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            // The stipend needs an amount and a purpose
+            $mform->addElement('text', 'stipendgiver_amount', 'Stipend Amount in Lindens', array('size'=>'10')); $mform->setDefault('stipendgiver_amount', '0');
+            $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
+            $mform->addElement('text', 'stipendgiver_intendedfor', 'What is this stipend intended for?', array('size'=>'40')); $mform->setDefault('stipendgiver_intendedfor', 'Course use');
+            break;
+        
+                                                                           
         }
 
 //-------------------------------------------------------------------------------
@@ -215,6 +267,35 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
         
             break;
+
+        case SLOODLE_TYPE_STIPENDGIVER:
+            // Fetch the controller record
+            $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
+            if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add in the amount and purpose of the giver
+            $default_values['stipendgiver_amount'] = $stipendgiver->amount;
+            $default_values['stipendgiver_intendedfor'] = $stipendgiver->purpose;
+            
+            break;
+
+        case SLOODLE_TYPE_PRESENTER:
+            break;
+
+        case SLOODLE_TYPE_MAP:
+            // Fetch the map record
+            $map = get_record('sloodle_map', 'sloodleid', $this->_instance);
+            if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add in all the values from the database
+            $default_values['map_initialx'] = $map->initialx;
+            $default_values['map_initialy'] = $map->initialy;
+            $default_values['map_initialzoom'] = $map->initialzoom;
+            $default_values['map_showpan'] = $map->showpan;
+            $default_values['map_showzoom'] = $map->showzoom;
+            $default_values['map_allowdrag'] = $map->allowdrag;
+            
+            break;
             
         default:
             // Nothing to do?
@@ -263,6 +344,19 @@ class mod_sloodle_mod_form extends moodleform_mod {
             // Nothing to error check
             break;
          
+        
+        case SLOODLE_TYPE_PRESENTER:
+            // Nothing to error check
+            break;
+        
+        case SLOODLE_TYPE_MAP:
+            // Nothing to error check
+            break; 
+
+        // ADD FUTURE TYPES HERE
+              case SLOODLE_TYPE_STIPENDGIVER:
+            // Nothing to error check
+            break; 
 
         // ADD FUTURE TYPES HERE
         
