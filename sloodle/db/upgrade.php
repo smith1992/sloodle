@@ -535,6 +535,20 @@ function xmldb_sloodle_upgrade($oldversion=0) {
      
     
   }
+  if ($result && $oldversion < 2009020204) {
+        //add extra filed to stipend giver for added security in giving out stipends
+         echo "renaming date field to timemodified in stipendgiver transaction tables<br/>";               
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        $field = new XMLDBField('date');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
+      
+    /// Launch add field format
+        $result = $result && rename_field($table, $field, 'timemodified');
+     
+    
+  }
+  
+ 
   return $result; 
 }
 
