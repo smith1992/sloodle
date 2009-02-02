@@ -241,4 +241,6 @@
 <INDEX NAME="sloodleid" UNIQUE="false" FIELDS="sloodleid"/>
 </INDEXES>
 </TABLE>
-    </XMLDB>
+
+	</TABLES>
+</XMLDB>
