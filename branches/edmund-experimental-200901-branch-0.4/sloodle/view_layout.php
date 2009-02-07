@@ -459,6 +459,9 @@
        echo "<td><input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" /></td>";
        echo "<td><input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" /></td>";
        echo "<td><input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" /></td>";
+
+       echo sloodle_return_access_level_options(array(), $accesssettings, $prefix = 'layout_entry_config_', $suffix = '_'.$item, $wrap_start = "<td>", $wrap_end = "</td>");
+
        echo "</tr>";
        $posy++;
        $item++; 
