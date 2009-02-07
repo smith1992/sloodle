@@ -339,7 +339,6 @@
 
 	   $configs = get_records('sloodle_layout_entry_config','layout_entry',$layout_entry_id);
 	   $ok = true;
-fopen("http://dev1.socialminds.jp?found_configs".count($configs),"r");
 	   if (count($configs) > 0) {
 	      foreach($configs as $config) {
 	         $config->id = null;
