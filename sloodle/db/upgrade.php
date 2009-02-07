@@ -521,6 +521,25 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     /// Launch create table for sloodle_presenter_entry
         $result = $result && create_table($table);
     }
+
+    if ($result && $oldversion < 2009020701) {
+
+    /// Define table sloodle_layout_entry_config to be created
+        $table = new XMLDBTable('sloodle_layout_entry_config');
+
+    /// Adding fields to table sloodle_layout_entry_config
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('layout_entry', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+        $table->addFieldInfo('value', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+
+    /// Adding keys to table sloodle_layout_entry_config
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+    /// Launch create table for sloodle_layout_entry_config
+        $result = $result && create_table($table);
+    }
+
      
       
   if ($result && $oldversion < 2009020204) {
