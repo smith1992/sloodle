@@ -13,7 +13,7 @@
 ///// DATA /////
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+integer SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER  = -1639270034 ;
 integer SLOODLE_CHANNEL_OBJECT_LAYOUT = -1639270013;
 string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
@@ -172,8 +172,8 @@ sloodle_show_layout_dialog(key id, integer load)
     if (layoutspagenum < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     
     // Display the appropriate menu
-    if (load) sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:loadmenu", [buttondef], id, "set");
-    else sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "layout:savemenu", [buttondef], id, "set");
+    if (load) sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER ] + buttonlabels, "layout:loadmenu", [buttondef], id, "set");
+    else sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER ] + buttonlabels, "layout:savemenu", [buttondef], id, "set");
 }
 
 // Request an updated list of layouts on behalf of the specified user.
@@ -197,7 +197,7 @@ sloodle_show_command_dialog(key id)
 {
     // Use letters for this menu
     list btns = [MENU_BUTTON_LOAD, MENU_BUTTON_SAVE, MENU_BUTTON_SAVE_AS, MENU_BUTTON_CANCEL];
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + btns, "layout:cmdmenu", btns, id, "set");
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER ] + btns, "layout:cmdmenu", btns, id, "set");
 }
 
 
@@ -263,7 +263,7 @@ state ready
         if (currentlayout == "") llSetText("", <0.0,0.0,0.0>, 0.0);
         else sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.0>, 0.5], "layoutcaption:layout", [currentlayout], NULL_KEY, "set");
         // Listen for owner dialog responses
-        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llGetOwner(), "");
+        llListen(SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER , "", llGetOwner(), "");
     }
     
     touch_start(integer num_detected)
@@ -330,7 +330,7 @@ state ready
     listen(integer channel, string name, key id, string msg)
     {
         // Check the channel
-        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+        if (channel == SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER ) {
             // Ignore anybody but the owner
             if (id != llGetOwner()) return;
             // Make sure the menu has not yet expired
@@ -505,6 +505,7 @@ state save
     {
         llSetTimerEvent(0.0);
         sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "httptimeout", [], NULL_KEY, "");
+        state ready;
     }
     
     on_rez(integer par)
