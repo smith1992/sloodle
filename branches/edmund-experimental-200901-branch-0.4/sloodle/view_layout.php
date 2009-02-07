@@ -227,21 +227,37 @@
     $cmsmodules = $modinfo->cms;
     $instancemodules = $modinfo->instances;
 
-    // TODO: Is this information stored anywhere already or could it be - eg. in the object_config's?
+    $objects_to_configs = array(
+	'SLOODLE Access Checker' => 'accesschecker-1.0',
+	'SLOODLE Access Checker Door' => 'accesscheckerdoor-1.0',
+	'SLOODLE Choice (Horizontal)' => 'choice-1.0',
+	'SLOODLE Choice (Vertical)' => 'choice-1.0',
+	'SLOODLE LoginZone' => 'loginzone-1.0',
+	'SLOODLE MetaGloss' => 'glossary-1.0',
+	'SLOODLE Password Reset' => 'pwreset-1.0',
+	'SLOODLE Presenter (alpha)' => 'presenter-1.0',
+	'SLOODLE PrimDrop' => 'primdrop-1.0',
+	'SLOODLE Quiz Chair' => 'quiz-1.0',
+	'SLOODLE Quiz Pile-On' => 'quiz-1.0',
+	'SLOODLE RegEnrol Booth' => 'regbooth-1.0',
+	'SLOODLE Stipend Giver (alpha)' => 'stipendgiver-1.0',
+	'SLOODLE Vending Machine' => 'distributor-1.0',
+	'SLOODLE WebIntercom' => 'chat-1.0'
+    );
+
     $standardobjects = array(
-        'regbooth-1.0',
-        'enrolbooth-1.0',
-        'accesscheckerdoor-1.0',
-        'distributor-1.0',
-        'loginzone-1.0'
+        'SLOODLE RegEnrol Booth',
+        'SLOODLE Access Checker Door',
+        'SLOODLE Vending Machine',
+        'SLOODLE LoginZone'
     );
     $instanceobjectmappingspercourse = array(
-        'quiz'=>array('quiz-1.0','quiz_pile_on-1.0'),
-        'glossary'=>array('glossary-1.0'),
-        'chat'=>array('chat-1.0') 
+        'quiz'=>array('SLOODLE Quiz Chair','SLOODLE Quiz Pile-On'),
+        'glossary'=>array('SLOODLE MetaGloss'),
+        'chat'=>array('SLOODLE WebIntercom') 
     );
     $instanceobjectmappingsperstudent = array(
-        // TODO 
+        // TODO: Deal with what happens when we want to rez one object per student in the class 
     );
 
     $rezoptions = array();
