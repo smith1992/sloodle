@@ -77,7 +77,7 @@
     require_capability('moodle/course:update', $course_context);
 
     // Display the page header
-    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$course->id}\">".get_string('layoutpage','sloodle')."</a>";
+    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_course.php?id={$course->id}#layouts\">".get_string('courseconfig','sloodle')."</a>";
     print_header_simple(get_string('layoutpage','sloodle'), "", $navigation, "", "", true, '', navmenu($course));
     
     
@@ -166,9 +166,9 @@
           $result = $sloodle_course->save_layout_by_id($layoutid, $layoutname, $entries, $add=false);
 
           if ($result) {
-             $next = 'view_layout.php?courseid='.$courseid;
-             print '<a href="'.$next.'">next</a>';
-             //redirect($next);
+             $next = 'view_course.php?id='.$courseid.'#layouts';
+             //print '<a href="'.$next.'">next</a>';
+             redirect($next);
           } else {
              print "<h3>save failed</h3>";
              exit;
@@ -178,6 +178,8 @@
 
 //------------------------------------------------------    
 
+// Edmund Edgar, 2009-02-07: Killing this stuff for now - we'll use the list on the sloodle course page instead
+/*
     if (count($layout_names) > 0) {
 
         echo "<center>";
@@ -196,6 +198,7 @@
         $layoutid = 0;
 
     }
+*/
 
 //------------------------------------------------------    
 // Fetch current layout
@@ -291,20 +294,20 @@
     echo "<td>";
     echo "Layout name";
     echo "</td>";
-    echo "</tr>";
-    echo "<tr>";
     echo "<td>";
-    echo "<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"20\" value=\"{$layoutname}\" />";
+    echo "<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"40\" value=\"{$layoutname}\" />";
     echo "</td>";
     echo "</tr>";
     echo "</table>";
+
+    echo "<br />";
 
     echo "<table>";
     $item = 0;
     echo "<tr>";
     echo "<td>&nbsp;</td>";
     echo "<td align=\"center\">Object</td>";
-    echo "<td align=\"center\">Module</td>";
+    echo "<td align=\"center\" colspan=\"2\">Module</td>";
     echo "<td align=\"center\">X</td>";
     echo "<td align=\"center\">Y</td>";
     echo "<td align=\"center\">Z</td>";

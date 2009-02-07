@@ -89,6 +89,7 @@ $string['coursesettings'] = 'Course Settings';
 $string['createnotecard'] = 'Create notecard';
 $string['layoutpage'] = 'Sloodle Layout';
 $string['layoutpage:info'] = 'This page will help you create a layout with Sloodle objects for your course.';
+$string['layoutpage:create'] = 'Create a new layout';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';

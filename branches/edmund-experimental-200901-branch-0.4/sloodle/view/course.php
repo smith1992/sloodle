@@ -225,7 +225,7 @@ class sloodle_view_course extends sloodle_base_view
 
             // Start the section
             print_box_start('generalbox boxaligncenter boxwidthnormal');
-            echo '<div style="text-align:center;"><h3>'.get_string('storedlayouts','sloodle').'</h3>';
+            echo '<div style="text-align:center;"><h3><a name="layouts">'.get_string('storedlayouts','sloodle').'</a></h3>';
         
             // Has a delete layouts action been requested, and is it permitted for this user?
             if (isset($_REQUEST['delete_layouts']) && $layouts_can_edit == true) {
@@ -284,6 +284,10 @@ class sloodle_view_course extends sloodle_base_view
             } else {
                 echo '<span style="text-align:center;color:red">'.get_string('noentries','sloodle').'</span><br>';
             }
+
+            echo '<br />';	
+            echo '<div style="text-align:center">'.'<a href="view_layout.php?courseid='.$this->course->id.'&layoutid=0">'.get_string('layoutpage:create','sloodle').'</a>'.'</div>';
+            echo '<br />';	
             
             echo '</div>';
             print_box_end();
