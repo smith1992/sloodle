@@ -12,8 +12,8 @@
 
 ///// DATA /////
 
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343 ;
+integer SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER = -1639270033 ;
 string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -255,7 +255,7 @@ sloodle_show_object_dialog(key id, integer page)
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     
     // Display the basic object menu
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
 }
 
 // Update our inventory list
@@ -381,7 +381,7 @@ state ready
         }
     
         // Listen for dialog commands
-        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
+        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER, "", NULL_KEY, "");
         // Regularly purge expired dialogs
         llSetTimerEvent(12.0);
         
@@ -476,7 +476,7 @@ state ready
     listen(integer channel, string name, key id, string msg)
     {
         // Check what channel it is
-        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER) {
             // Ignore the message if the user is not on our list
             if (llListFindList(cmddialog, [id]) == -1) return;
             // Find out what the current page number is
@@ -670,13 +670,20 @@ state rezzing
         
         // Extract the authorisation ID
         string authid = llList2String(lines, 1);
+        
+        // As of 2009-02 experimental version, the auth linker may also pass an argument saying that the object has already been configured. If it didn't, take it as 0.
+        string is_already_configured = "0";
+        if ( llGetListLength(lines) >= 2 ) {
+            is_already_configured = llList2String(lines,2);
+        }
+        
         // Determine the root key of the object
         key rootkey = llGetKey();
         if (llGetLinkNumber() > 0) rootkey = llGetLinkKey(1);
         
         // Everything must be OK... send the data to the object. Format:
-        //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
-        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
+        //  sloodle_init|<target-uuid>|<moodle-address>|<authid>|<is_already_configured>
+        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid + "|" + is_already_configured);
         
         // If we have more items to autorez, then go back to the autorezzing state.
         if (llGetListLength(autorez_names) > 0) state autorez;

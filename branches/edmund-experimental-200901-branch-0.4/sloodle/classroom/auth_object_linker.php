@@ -71,7 +71,7 @@
 
     // When the set rezzes an item from a layout, it can pass this parameter saying what layout entry the object represented.
     // We'll use that to auto-configure the object based on the layout entry configurations.
-    $sloodlelayoutentryid = $sloodle->request->optional_param('sloodlelayoutentryid','');
+    $sloodlelayoutentryid = $sloodle->request->optional_param('sloodlelayoutentryid',0,PARAM_INT);
     
     // If the request was authenticated, then the object is being fully authorised.
     // Otherwise, it is simply a 'pending' authorisation.
@@ -86,13 +86,19 @@
         
         // Authorise the object on the controller
         $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
-        if ($sloodlelayoutentryid != '') {
-           $sloodle->course->controller->configure_object_from_layout_entry($authid, $sloodlelayoutentryid);
+        $alreadyconfigured = "0";
+        if ($sloodlelayoutentryid > 0) {
+            if ($sloodle->course->controller->configure_object_from_layout_entry($authid, $sloodlelayoutentryid)) {
+                // This flag will tell the rezzer to tell the object that it's already configured
+                // That way the object will know not to tell the user to configure it.
+                $alreadyconfigured = "1";
+            }
         }
         if ($authid) {
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             $sloodle->response->add_data_line($authid);
+            $sloodle->response->add_data_line($alreadyconfigured);
         } else {
             $sloodle->response->set_status_code(-201);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
@@ -105,6 +111,7 @@
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             $sloodle->response->add_data_line($authid);
+            $sloodle->response->add_data_line($alreadyconfigured="0");
         } else {
             $sloodle->response->set_status_code(-201);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
