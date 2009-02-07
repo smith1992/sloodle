@@ -268,7 +268,8 @@ class sloodle_view_course extends sloodle_base_view
                     // Get the number of objects associated with this layout
                     $numobjects = count_records('sloodle_layout_entry', 'layout', $layout->id);
                     $timeupdated = ((int)$layout->timeupdated == 0) ? '('.get_string('unknown','sloodle').')' : date('Y-m-d H:i:s', (int)$layout->timeupdated);
-                    $layouts_table->data[] = array($layout->name, $numobjects, $timeupdated, "<input $disabledattr type=\"checkbox\" name=\"sloodledeletelayout_{$layout->id}\" value=\"true\" /");
+                    $layoutlink = '<a href="view_layout.php?courseid='.$this->course->id.'&layoutid='.$layout->id.'">'.$layout->name.'</a>';
+                    $layouts_table->data[] = array($layoutlink, $numobjects, $timeupdated, "<input $disabledattr type=\"checkbox\" name=\"sloodledeletelayout_{$layout->id}\" value=\"true\" /");
                 }
                 
                 // Display a form and the table

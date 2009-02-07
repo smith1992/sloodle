@@ -10,11 +10,12 @@
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
+    * @contributor Edmund Edgar
     *
     */
 
     /** Sloodle/Moodle configuration script. */
-    require_once('../sl_config.php');
+    require_once('sl_config.php');
     /** Sloodle core library functionality */
     require_once(SLOODLE_DIRROOT.'/lib.php');
     /** General Sloodle functions. */
@@ -70,14 +71,14 @@
     }
        
     // Log the view
-    add_to_log($courseid, 'course', 'view sloodle layout wizard', "mod/sloodle/view/view_layout_wizard.php?courseid={$courseid}", "$course->id");
+    add_to_log($courseid, 'course', 'view sloodle layout page', "mod/sloodle/view_layout.php?courseid={$courseid}", "$course->id");
     
     // Is the user allowed to edit this course?
     require_capability('moodle/course:update', $course_context);
 
     // Display the page header
-    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$course->id}\">".get_string('layoutwizard','sloodle')."</a>";
-    print_header_simple(get_string('layoutwizard','sloodle'), "", $navigation, "", "", true, '', navmenu($course));
+    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$course->id}\">".get_string('layoutpage','sloodle')."</a>";
+    print_header_simple(get_string('layoutpage','sloodle'), "", $navigation, "", "", true, '', navmenu($course));
     
     
 //------------------------------------------------------    
@@ -165,7 +166,7 @@
           $result = $sloodle_course->save_layout_by_id($layoutid, $layoutname, $entries, $add=false);
 
           if ($result) {
-             $next = 'view_layout_wizard.php?courseid='.$courseid;
+             $next = 'view_layout.php?courseid='.$courseid;
              print '<a href="'.$next.'">next</a>';
              //redirect($next);
           } else {
@@ -183,9 +184,9 @@
         echo "<table border=\"1\">";
         foreach($layout_names as $lid=>$ln) {
             $en_cnt = count($sloodle_course->get_layout_entries($ln));
-            echo "<tr><td>$ln</td><td>$en_cnt</td><td><a href=\"view_layout_wizard.php?courseid=".$courseid."&layoutid=".$lid."\">Edit</a></td></tr>";
+            echo "<tr><td>$ln</td><td>$en_cnt</td><td><a href=\"view_layout.php?courseid=".$courseid."&layoutid=".$lid."\">Edit</a></td></tr>";
         }
-        echo "<tr><td colspan=\"2\">&nbsp;</td><td><a href=\"view_layout_wizard.php?courseid=".$courseid."&layoutid=0\">Add</a></td></tr>";
+        echo "<tr><td colspan=\"2\">&nbsp;</td><td><a href=\"view_layout.php?courseid=".$courseid."&layoutid=0\">Add</a></td></tr>";
         echo "</table>";
         echo "<center>";
 
@@ -281,7 +282,7 @@
     echo "<center>";
 
     // Create a form
-    echo "<form action=\"view_layout_wizard.php\" method=\"POST\">\n";
+    echo "<form action=\"view_layout.php\" method=\"POST\">\n";
     echo "<input type=\"hidden\" name=\"courseid\" value=\"{$course->id}\">\n";
     echo "<input type=\"hidden\" name=\"layoutid\" value=\"{$layoutid}\">\n";
 
