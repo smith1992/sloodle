@@ -238,6 +238,8 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addIndexInfo('course-name', XMLDB_INDEX_UNIQUE, array('course', 'name'));
 
         $result = $result && create_table($table);
+        
+        
         if (!$result) echo "error<br/>";
         
         
@@ -480,7 +482,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field = new XMLDBField('receivername');
         $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'receiveruuid');
         $table->addField($field); 
-        
+            
         $field = new XMLDBField('date');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receivername');
         $table->addField($field); 
@@ -495,9 +497,78 @@ function xmldb_sloodle_upgrade($oldversion=0) {
           
         $result = $result && create_table($table);   
         
-     }
+    }
+	
+	if ($result && $oldversion < 2009020201) {
+
+    /// Define table sloodle_presenter_entry to be created
+        $table = new XMLDBTable('sloodle_presenter_entry');
+
+    /// Adding fields to table sloodle_presenter_entry
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('source', XMLDB_TYPE_TEXT, 'medium', null, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('type', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, 'web');
+        $table->addFieldInfo('ordering', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+
+    /// Adding keys to table sloodle_presenter_entry
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+    /// Adding indexes to table sloodle_presenter_entry
+        $table->addIndexInfo('mdl_sloopresentr_slo_ix', XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
+        $table->addIndexInfo('mdl_sloopresentr_typ_ix', XMLDB_INDEX_NOTUNIQUE, array('type'));
+
+    /// Launch create table for sloodle_presenter_entry
+        $result = $result && create_table($table);
+    }
+
+    if ($result && $oldversion < 2009020701) {
+
+    /// Define table sloodle_layout_entry_config to be created
+        $table = new XMLDBTable('sloodle_layout_entry_config');
+
+    /// Adding fields to table sloodle_layout_entry_config
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('layout_entry', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+        $table->addFieldInfo('value', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+
+    /// Adding keys to table sloodle_layout_entry_config
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+    /// Launch create table for sloodle_layout_entry_config
+        $result = $result && create_table($table);
+    }
+
      
-    return $result;
+      
+  if ($result && $oldversion < 2009020204) {
+        //add extra filed to stipend giver for added security in giving out stipends
+         echo "Adding userid field to stipendgiver transaction tables<br/>";               
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        $field = new XMLDBField('userid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
+        
+    /// Launch add field format
+        $result = $result && add_field($table, $field);
+     
+    
+  }
+  if ($result && $oldversion < 2009020204) {
+        //add extra filed to stipend giver for added security in giving out stipends
+         echo "renaming date field to timemodified in stipendgiver transaction tables<br/>";               
+        $table = new XMLDBTable('sloodle_stipendgiver_trans');
+        $field = new XMLDBField('date');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
+      
+    /// Launch add field format
+        $result = $result && rename_field($table, $field, 'timemodified');
+     
+    
+  }
+  
+ 
+  return $result; 
 }
 
 ?>
