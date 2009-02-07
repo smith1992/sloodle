@@ -621,7 +621,7 @@
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
             $lid = 0;
-            if (!$layout) {
+            if ($layout) {
                $lid = $layout->id;
             }
 
