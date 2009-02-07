@@ -117,7 +117,7 @@
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             foreach ($layout_entries as $le) {
-                $sloodle->response->add_data_line(array($le->name, $le->position, $le->rotation));
+                $sloodle->response->add_data_line(array($le->name, $le->position, $le->rotation, $le->id));
             }
         }
         
@@ -146,6 +146,7 @@
             $entryobj->name = $fields[0];
             $entryobj->position = $fields[1];
             $entryobj->rotation = $fields[2];
+            $entryobj->objectuuid = $fields[3];
             $entries[] = $entryobj;
         }
         
@@ -158,6 +159,8 @@
             $sloodle->response->set_status_descriptor('LAYOUT_PROFILE');
             $sloodle->response->add_data_line('Failed to save new layout');
         }
+
+	// TODO: Copy the object settings to the layouts table
         
         break;
         

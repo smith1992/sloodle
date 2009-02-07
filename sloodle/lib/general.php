@@ -753,6 +753,73 @@
     }
 
 
+    // The following was copied from sloodle_print_access_level_options.
+    // This should really be refactored to remove the code duplication.
+    /**
+    * Returns the standard form elements for access levels in object configuration.
+    * Each part can be optionally hidden, and default values can be provided.
+    * (Note: the server access level must be communicated from the object back to Moodle... rubbish implementation, but it works!)
+    * @param array $current_config An associative array of setting names to values, containing defaults. (Ignored if null).
+    * @param bool $show_use_object Determines whether or not the "Use Object" setting is shown
+    * @param bool $show_control_object Determines whether or not the "Control Object" setting is shown
+    * @param bool $show_server Determines whether or not the server access setting is shown
+    * @param string $prefix Sets a prefix to be used in the field names
+    * @param string $suffix Sets a prefix to be used in the field names
+    * @return void
+    */
+    function sloodle_return_access_level_options($current_config, $settings, $prefix = '', $suffix = '', $wrap_start = '', $wrap_end = '')
+    {
+        list($show_use_object, $show_control_object, $show_server) = $settings;
+
+        // Fetch default values from the configuration, if possible
+        $sloodleobjectaccessleveluse = sloodle_get_value($current_config, 'sloodleobjectaccessleveluse', SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC);
+        $sloodleobjectaccesslevelctrl = sloodle_get_value($current_config, 'sloodleobjectaccesslevelctrl', SLOODLE_OBJECT_ACCESS_LEVEL_OWNER);
+        $sloodleserveraccesslevel = sloodle_get_value($current_config, 'sloodleserveraccesslevel', SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC);
+        
+        // Define our object access level array
+        $object_access_levels = array(  SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                        SLOODLE_OBJECT_ACCESS_LEVEL_GROUP => get_string('accesslevel:group','sloodle'),
+                                        SLOODLE_OBJECT_ACCESS_LEVEL_OWNER => get_string('accesslevel:owner','sloodle') );
+        // Define our server access level array
+        $server_access_levels = array(  SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                        SLOODLE_SERVER_ACCESS_LEVEL_COURSE => get_string('accesslevel:course','sloodle'),
+                                        SLOODLE_SERVER_ACCESS_LEVEL_SITE => get_string('accesslevel:site','sloodle'),
+                                        SLOODLE_SERVER_ACCESS_LEVEL_STAFF => get_string('accesslevel:staff','sloodle') );
+    
+
+        $str.=$wrap_start;
+        // Use object
+        if ($show_use_object) {
+            $str.=choose_from_menu($object_access_levels, $prefix.'sloodleobjectaccessleveluse'.$suffix, $sloodleobjectaccessleveluse, '', '', 0, $return = true);
+        } else {
+            $str.='&nbsp;';
+        } 
+
+        $str.=$wrap_end;
+        $str.=$wrap_start;
+        // Control object
+        if ($show_control_object) {
+            $str.=choose_from_menu($object_access_levels, $prefix.'sloodleobjectaccesslevelctrl'.$suffix, $sloodleobjectaccesslevelctrl, '', '', 0, $return = true);
+        } else {
+            $str.='&nbsp;';
+        } 
+
+        $str.=$wrap_end;
+        $str.=$wrap_start;
+        // Print the server settings
+        if ($show_server) {
+            // Server access
+            $str.=choose_from_menu($server_access_levels, $prefix.'sloodleserveraccesslevel'.$suffix, $sloodleserveraccesslevel, '', '', 0, $return = true);
+        } else {
+            $str.='&nbsp;';
+        } 
+        $str.=$wrap_end;
+        
+        return $str;
+    }
+
+
+
     /**
     * Returns a very approximate natural language description of a period of time (in minutes, hours, days, or weeks).
     * Can also be used to describe how long ago something happened, in which case anything less than 1 minute is treated as 'now'.
@@ -946,6 +1013,60 @@
         ksort($mods);        
         return $mods;
     }
-    
+   
+
+    /**
+    * Render a page viewing a particular feature, or a SLOODLE module.
+    * Outputs error text in SLOODLE debug mode.
+    * @param string $feature The name of a feature to view ("course", "user", "users"), or "module" to indicate that we are viewing some kind of module. Note: features should contain only alphanumric characters.
+    * @return bool True if successful, or false if not.
+    */
+    function sloodle_view($feature)
+    {
+        global $CFG, $USER;
+        // Make sure the parameter is safe -- nothing but alphanumeric characters.
+        if (!ctype_alnum($feature)) {
+            sloodle_debug('sloodle_view(..): Invalid characters in view feature, "'.$feature.'"');
+            return false;
+        }
+        if (empty($feature)) {
+            sloodle_debug('sloodle_view(..): No feature name specified.');
+            return false;
+        }
+        $feature = trim($feature);
+
+        // Has a module been requested?
+        if (strcasecmp($feature, 'module') == 0) {
+            // We should have an ID parameter, indicating which module has been requested
+            $id = required_param('id', PARAM_INT);
+            // Query the database for the SLOODLE module sub-type
+            $instanceid = get_field('course_modules', 'instance', 'id', $id);
+            if ($instanceid === false) error('Course module instance '.$id.' not found.');
+            $type = get_field('sloodle', 'type', 'id', $instanceid);
+            if ($type === false) error('SLOODLE module instance '.$instanceid.' not found.');
+            // We will just use the type as a feature name now.
+            // This means the following words are unavailable as module sub-types: course, user, users
+            $feature = $type;
+        }
+
+        // Attempt to include the relevant viewing class
+        $filename = SLOODLE_DIRROOT."/view/{$feature}.php";
+        if (!file_exists($filename)) {
+            error("SLOODLE file not found: view/{$feature}.php");
+            exit();
+        }
+        require_once($filename);
+
+        // Create and execute the viewing instance
+        $classname = 'sloodle_view_'.$feature;
+        if (!class_exists($classname)) {
+            error("SLOODLE class missing: {$classname}");
+            exit();
+        }
+        $viewer = new $classname();
+        $viewer->view();
+
+        return true;
+    } 
 
 ?>
