@@ -408,7 +408,7 @@
            "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
            sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
-           sloodle_access_level_option_choice('sloodleobjectaccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+           sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
        );
        $posy++;
        $item++; 
@@ -444,7 +444,7 @@
            "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
            sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
-           sloodle_access_level_option_choice('sloodleobjectaccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+           sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
        );
        $posy++;
        $item++; 
