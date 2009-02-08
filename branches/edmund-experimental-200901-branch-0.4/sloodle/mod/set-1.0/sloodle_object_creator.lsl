@@ -53,7 +53,7 @@ string autorez_layout_name = ""; // Name of layout being rezzed
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
-vector rez_offset = <0.0, 0.0, -2.2>; // The default distance between the position where we hover and the position where objects get rezzed
+vector rez_offset = <0.0, 0.0, -2.0>; // The default distance between the position where we hover and the position where objects get rezzed
 rotation default_rez_rot = ZERO_ROTATION; // The default rotation to rez new objects at
 
 vector rez_pos = <0.0,0.0,0.0>; // This is used to store the actual rez position for a rez request
@@ -505,6 +505,8 @@ state ready
                     rez_user = id;
                     rez_pos = rez_offset;
                     rez_rot = default_rez_rot;
+                    rez_layout_entry_id = ""; // reset the layout_entry_id in case it's left over from a previous rez using a layout
+            
                     state rezzing;
                     return;
                 }
