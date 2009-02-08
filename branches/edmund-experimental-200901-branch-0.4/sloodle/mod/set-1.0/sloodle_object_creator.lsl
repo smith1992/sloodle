@@ -14,7 +14,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343 ;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER = -1639270033 ;
-string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
+string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php"; 
 string SLOODLE_EOF = "sloodleeof";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
@@ -284,7 +284,8 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return; 
     // Attempt to rez the item relative to the root of this object
-
+    
+    //llOwnerSay("unprocessed rot is "+(string)rot);
     rez_pos = rez_pos * llGetRootRotation();
     rot = rot * llGetRootRotation();
 
@@ -306,6 +307,7 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // So the only position we'll need will be the offset from the rezzer.
     // llRezObject(name, llGetRootPosition() + (pos * llGetRootRotation()), ZERO_VECTOR, rot * llGetRootRotation(), password);
     
+   // llOwnerSay("processed rot is "+(string)rot);
     // TODO: Deal with the situation where the rezzer isn't where we asked it to be...
     llRezObject(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
     llSleep(3);
@@ -445,7 +447,7 @@ state ready
                     if (llGetListLength(fields) >= 3) {
                         autorez_names += [llList2String(fields, 0)];
                         autorez_pos += [(vector)llList2String(fields, 1)];
-                        autorez_rot += [(vector)llList2String(fields, 2)];
+                        autorez_rot += [(rotation)llList2String(fields, 2)];
                         if (llGetListLength(fields) > 3) { // We have a layout ID
                             autorez_layout_entry_id += [(string)llList2String(fields,3)];
                         } else {
@@ -527,6 +529,12 @@ state autorez
             autorez_rot = [];
             autorez_layout_entry_id = [];
             autorez_layout_name = "";
+            
+            rez_object = "";
+            rez_pos = ZERO_VECTOR;
+            rez_rot = ZERO_ROTATION;
+            rez_layout_entry_id = "";
+                        
             state ready;
             return;
         }
@@ -534,7 +542,7 @@ state autorez
         // Get the first item
         rez_object = llList2String(autorez_names, 0);
         rez_pos = (vector)llList2String(autorez_pos, 0);
-        rez_rot = llEuler2Rot((vector)llList2String(autorez_rot, 0));
+        rez_rot = (rotation)llList2String(autorez_rot, 0);
         rez_layout_entry_id = llList2String(autorez_layout_entry_id, 0);
         // Remove the data from the lists
         autorez_names = llDeleteSubList(autorez_names, 0, 0);
@@ -544,6 +552,7 @@ state autorez
         // Rez this item
         state rezzing;
     }
+
 }
 
 
