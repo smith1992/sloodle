@@ -752,70 +752,38 @@
         print_box_end();
     }
 
+    function sloodle_access_level_option_choice($option, $current_config, $show, $prefix = '', $suffix = '') {
 
-    // The following was copied from sloodle_print_access_level_options.
-    // This should really be refactored to remove the code duplication.
-    /**
-    * Returns the standard form elements for access levels in object configuration.
-    * Each part can be optionally hidden, and default values can be provided.
-    * (Note: the server access level must be communicated from the object back to Moodle... rubbish implementation, but it works!)
-    * @param array $current_config An associative array of setting names to values, containing defaults. (Ignored if null).
-    * @param bool $show_use_object Determines whether or not the "Use Object" setting is shown
-    * @param bool $show_control_object Determines whether or not the "Control Object" setting is shown
-    * @param bool $show_server Determines whether or not the server access setting is shown
-    * @param string $prefix Sets a prefix to be used in the field names
-    * @param string $suffix Sets a prefix to be used in the field names
-    * @return void
-    */
-    function sloodle_return_access_level_options($current_config, $settings, $prefix = '', $suffix = '', $wrap_start = '', $wrap_end = '')
-    {
-        list($show_use_object, $show_control_object, $show_server) = $settings;
+	$access_levels = array();
+        if ($option == 'sloodleserveraccesslevel') {
+            $access_levels = array( SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_COURSE => get_string('accesslevel:course','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_SITE => get_string('accesslevel:site','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_STAFF => get_string('accesslevel:staff','sloodle') 
+                                  );
+        } else {
+            $access_levels = array( SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_GROUP => get_string('accesslevel:group','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_OWNER => get_string('accesslevel:owner','sloodle') 
+                                  );
+        }
+
+        $defaults = array(
+            'sloodleobjectaccessleveluse' => SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC,
+            'sloodleobjectaccesslevelctrl' => SLOODLE_OBJECT_ACCESS_LEVEL_OWNER,
+            'sloodleserveraccesslevel' => SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC
+        );
 
         // Fetch default values from the configuration, if possible
-        $sloodleobjectaccessleveluse = sloodle_get_value($current_config, 'sloodleobjectaccessleveluse', SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC);
-        $sloodleobjectaccesslevelctrl = sloodle_get_value($current_config, 'sloodleobjectaccesslevelctrl', SLOODLE_OBJECT_ACCESS_LEVEL_OWNER);
-        $sloodleserveraccesslevel = sloodle_get_value($current_config, 'sloodleserveraccesslevel', SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC);
+        $selected_value = sloodle_get_value($current_config, $option, $defaults[$option]);
         
-        // Define our object access level array
-        $object_access_levels = array(  SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
-                                        SLOODLE_OBJECT_ACCESS_LEVEL_GROUP => get_string('accesslevel:group','sloodle'),
-                                        SLOODLE_OBJECT_ACCESS_LEVEL_OWNER => get_string('accesslevel:owner','sloodle') );
-        // Define our server access level array
-        $server_access_levels = array(  SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
-                                        SLOODLE_SERVER_ACCESS_LEVEL_COURSE => get_string('accesslevel:course','sloodle'),
-                                        SLOODLE_SERVER_ACCESS_LEVEL_SITE => get_string('accesslevel:site','sloodle'),
-                                        SLOODLE_SERVER_ACCESS_LEVEL_STAFF => get_string('accesslevel:staff','sloodle') );
-    
-
-        $str.=$wrap_start;
-        // Use object
-        if ($show_use_object) {
-            $str.=choose_from_menu($object_access_levels, $prefix.'sloodleobjectaccessleveluse'.$suffix, $sloodleobjectaccessleveluse, '', '', 0, $return = true);
+        if ($show) {
+            return choose_from_menu($access_levels, $prefix.$option.$suffix, $selected_value, '', '', 0, $return = true);
         } else {
-            $str.='&nbsp;';
+            return '&nbsp;';
         } 
-
-        $str.=$wrap_end;
-        $str.=$wrap_start;
-        // Control object
-        if ($show_control_object) {
-            $str.=choose_from_menu($object_access_levels, $prefix.'sloodleobjectaccesslevelctrl'.$suffix, $sloodleobjectaccesslevelctrl, '', '', 0, $return = true);
-        } else {
-            $str.='&nbsp;';
-        } 
-
-        $str.=$wrap_end;
-        $str.=$wrap_start;
-        // Print the server settings
-        if ($show_server) {
-            // Server access
-            $str.=choose_from_menu($server_access_levels, $prefix.'sloodleserveraccesslevel'.$suffix, $sloodleserveraccesslevel, '', '', 0, $return = true);
-        } else {
-            $str.='&nbsp;';
-        } 
-        $str.=$wrap_end;
         
-        return $str;
+     
     }
 
 

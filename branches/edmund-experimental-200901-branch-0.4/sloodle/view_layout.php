@@ -320,32 +320,20 @@
     echo "<input type=\"hidden\" name=\"courseid\" value=\"{$course->id}\">\n";
     echo "<input type=\"hidden\" name=\"layoutid\" value=\"{$layoutid}\">\n";
 
-    echo "<table>";
-    echo "<tr>";
-    echo "<td>";
-    echo "Layout name";
-    echo "</td>";
-    echo "<td>";
-    echo "<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"40\" value=\"{$layoutname}\" />";
-    echo "</td>";
-    echo "</tr>";
-    echo "</table>";
+    $name_table = new stdClass();
+    $name_table->head = array('Layout name');
+    $name_table->data[] = array("<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"40\" value=\"{$layoutname}\" />");
 
-    echo "<br />";
+    print '<br />';
+    print_table($name_table);
 
-    echo "<table>";
+    print '<br />';
+
+    $table = new stdClass();
+    $table->head = array('&nbsp;','&nbsp;','Object','Module','X','Y','Z',get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
+
+
     $item = 0;
-    echo "<tr>";
-    echo "<td>&nbsp;</td>";
-    echo "<td align=\"center\">Object</td>";
-    echo "<td align=\"center\" colspan=\"2\">Module</td>";
-    echo "<td align=\"center\">X</td>";
-    echo "<td align=\"center\">Y</td>";
-    echo "<td align=\"center\">Z</td>";
-    echo "<td align=\"center\">".get_string('accesslevelobject:use','sloodle')."</td>";
-    echo "<td align=\"center\">".get_string('accesslevelobject:control','sloodle')."</td>";
-    echo "<td align=\"center\">".get_string('accesslevel','sloodle')."</td>";
-    echo "</tr>";
 
     foreach($currentlayoutentries as $co) {
 
@@ -378,22 +366,23 @@
        echo "<input type=\"hidden\" name=\"layout_entry_rotation_{$item}\" value=\"{$co->rotation}\" />";
        echo $co->get_layout_entry_configs_as_hidden_fields('layout_entry_config_', '_'.$item); 
        echo "\n";
-       echo "<tr>";
-       echo "<tr>";
-       echo "<td bgcolor=\"#000066\"><a href=\"../classroom/configure_layout_entry.php?courseid={$courseid}&layout_entry_id={$co->id}\">{$co->id}</a></td>";
-       echo "<td><input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" /></td>";
-       echo "<td align=\"left\">{$co->name}</td>";
-       echo "<td align=\"center\">{$modname}</td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" /></td>";
 
-       // Expecting 3 options, all in their own cells
-       echo sloodle_return_access_level_options($confighash, $accesssettings, $prefix = 'layout_entry_config_', $suffix = '_'.$item, $wrap_start = "<td>", $wrap_end = "</td>");
+       $table->data[] = array(
+          $co->id,
+          "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" />",
+          $co->name,
+          $modname,
+          "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
+          "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
+          "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+          sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+          sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+          sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
 
-       echo "</tr>";
+       );
        $item++; 
     }
+
 
     $checkedflag = '';
     if ($recommendedon) {
@@ -407,25 +396,20 @@
              $accesssettings = $configs_to_access_options[$linkertype];
           }
        }
-       echo "\n";
        echo "<input type=\"hidden\" name=\"object_type_{$item}\" value=\"{$so}\" />";
        echo "<input type=\"hidden\" name=\"layout_entry_rotation_{$item}\" value=\"<0,0,0>\" />";
-       echo "\n";
-       echo "<tr>";
-       echo "<tr>";
-       echo "<td>&nbsp;</td>";
-       echo "<td><input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" {$checkedflag} /></td>";
-       echo "<td align=\"left\">{$so}</td>";
-       echo "<td align=\"center\">-</td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" /></td>";
-
-       // Expecting 3 options, all in their own cells
-       echo sloodle_return_access_level_options(array(), $accesssettings, $prefix = 'layout_entry_config_', $suffix = '_'.$item, $wrap_start = "<td>", $wrap_end = "</td>");
-
-
-       echo "</tr>";
+       $table->data[] = array(
+           "&nbsp;",
+           "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" {$checkedflag} />",
+           "{$so}",
+           "-",
+           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
+           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
+           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+           sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+           sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+           sloodle_access_level_option_choice('sloodleobjectaccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+       );
        $posy++;
        $item++; 
     }
@@ -446,27 +430,26 @@
        echo "<input type=\"hidden\" name=\"layout_entry_rotation_{$item}\" value=\"<0,0,0>\" />";
        echo "<input type=\"hidden\" name=\"layout_entry_config_sloodlemoduleid_{$item}\" value=\"{$pmo['id']}\" />";
 
-       echo "\n";
-       echo "<tr>";
        $checkedflag = '';
        if ($pmo['isdefault']) {
            $checkedflag = "checked=\"checked\""; 
        }
-       echo "<td>&nbsp;</td>";
-       echo "<td><input type=\"checkbox\" name=\"layout_entry_on_{$item}\" {$checkedflag} /></td>";
-       echo "<td>{$pmo['object']}</td>";
-       echo "<td>{$pmo['name']}</td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" /></td>";
-       echo "<td><input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" /></td>";
-
-       echo sloodle_return_access_level_options(array(), $accesssettings, $prefix = 'layout_entry_config_', $suffix = '_'.$item, $wrap_start = "<td>", $wrap_end = "</td>");
-
-       echo "</tr>";
+       $table->data[] = array(
+           "&nbsp;",
+           "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" {$checkedflag} />",
+           "{$pmo['object']}",
+           "{$pmo['name']}",
+           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
+           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
+           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+           sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+           sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+           sloodle_access_level_option_choice('sloodleobjectaccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+       );
        $posy++;
        $item++; 
     }
-    echo "</table>";
+    print_table($table);
 
     // TODO: localize
     echo '<input type="hidden" name="num_items" value="'.($item-1).'" />';
