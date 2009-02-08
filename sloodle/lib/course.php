@@ -11,14 +11,12 @@
     * @contributor Peter R. Bloomfield
     */
     
-    
     /** Include the general Sloodle library. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     /** Include the Sloodle controller structure. */
     require_once(SLOODLE_LIBROOT.'/controller.php');
     /** Include the layout profile management stuff. */
     require_once(SLOODLE_LIBROOT.'/layout_profile.php');
-    
     
     /**
     * The Sloodle course data class
@@ -541,7 +539,7 @@
             
             return $layout_names;
         }
-        
+
         /**
         * Gets all the entries in the named layout.
         * @param string $name The name of the layout to query
@@ -553,21 +551,45 @@
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
             if (!$layout) return false;
             
+            return $this->get_layout_entries_for_layout_id($layout->id);
+        }
+
+        /**
+        * Gets all the entries in the named layout.
+        * @param string $name The name of the layout to query
+        * @return array|bool A numeric array of {@link SloodleLayoutEntry} objects if successful, or false if the layout does not exist
+        */
+        function get_layout_entries_for_layout_id($id)
+        {
             // Fetch all entries
-            $recs = get_records('sloodle_layout_entry', 'layout', $layout->id);
+            $recs = get_records('sloodle_layout_entry', 'layout', $id);
             if (!$recs) return array();
             
             // Construct the array of SloodleLayoutEntry objects
             $entries = array();
             foreach ($recs as $r) {
-                $entry = new SloodleLayoutEntry();
-                $entry->name = $r->name;
-                $entry->position = $r->position;
-                $entry->rotation = $r->rotation;
+                $entry = new SloodleLayoutEntry($r);
                 $entries[] = $entry;
             }
             
             return $entries;
+        }
+
+        /**
+        * Gets SloodleLayout objects for all the layouts in the course.
+        */
+        function get_layouts() {
+            // Fetch the layout records
+            $layoutrecs = get_records('sloodle_layout', 'course', $this->course_object->id, 'name');
+            $layouts = array();
+
+            if (!$layoutrecs) return array();
+
+            foreach ($layoutrecs as $r) {
+                $layouts[] = new SloodleLayout($r);
+            }
+
+            return $layouts;
         }
         
         /**
@@ -598,23 +620,59 @@
         {
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
-            if (!$layout) {
-                // Does not exist - create it
-                $layout = new stdClass();
+            $lid = 0;
+            if ($layout) {
+               $lid = $layout->id;
+            }
+
+            return $this->save_layout_by_id($lid, $name, $entries, $add);
+        }
+         
+        /**
+        * Save the given entries in the profile specified by id.
+        * @param string $id The id of the layout to query. 0 to add a new layout.
+        * @param string $name The new name of the layout.  
+        * @param array $entries A numeric array of {@link SloodleLayoutEntry} objects to store
+        * @param bool $add (Default: false) If true, then the entries will be added to the layout instead of replacing existing entries
+        * @return bool True if successful, or false otherwise
+        */
+        function save_layout_by_id($id, $name, $entries, $add = false)
+        {
+            // Attempt to find the relevant layout
+            if ($id > 0) {
+
+/*
+		// Delete all existing entries if necessary
+		// This will happen when we save
+		// TODO: make add-only functionality for backwards compatibility
+		if (!$add) {
+			delete_records('sloodle_layout_entry', 'layout', $layout->id);
+		}
+*/
+
+                $layout = $this->get_layout($id);
+                $layout->name = $name;
+                $layout->timeupdated = time();
+                $layout->entries = $entries;
+		$layout->populate_entries_from_active_objects(); // where the records have objectuuids set, copy their settings
+                if (!$layout->update()) {
+                   return false;
+                }
+		$this->layout = $layout;
+            } else {
+                $layout = new SloodleLayout();
                 $layout->name = $name;
                 $layout->course = $this->course_object->id;
                 $layout->timeupdated = time();
-                $layout->id = insert_record('sloodle_layout', $layout);
+                $layout->entries = $entries;
+		$layout->populate_entries_from_active_objects();
+                $layout->id = $layout->insert();  #insert_record('sloodle_layout', $layout);
                 if (!$layout->id) return false;
-                
-            } else {
-                // Change the time updated
-                set_field('sloodle_layout', 'timeupdated', time(), 'course', $this->course_object->id, 'name', $name);
+		$this->layout = $layout;
             }
-            
-            // Delete all existing entries if necessary
-            if (!$add) delete_records('sloodle_layout_entry', 'layout', $layout->id);
-            
+           
+/*
+            // This should have been done by the layout
             // Insert each new entry
             $success = true;
             foreach ($entries as $e) {
@@ -623,13 +681,28 @@
                 $rec->name = $e->name;
                 $rec->position = $e->position;
                 $rec->rotation = $e->rotation;
+
+		// TODO EDE: If there's an objectuuid for the entry, copy the entries from the active object table to the layout config table
+                if ($objectuuid != '') {
+                   $rec->copy_active_object_with_uuid($e->objectuuid);
+                }
                 
-                if (!insert_record('sloodle_layout_entry', $rec)) $success = false;
+                $entry_id = insert_record('sloodle_layout_entry', $rec);
+                
             }
+*/
             
-            return $success;
+            return $layout->id;
+
         }
-        
+
+        function get_layout($layoutid) {
+
+            $rec = get_record('sloodle_layout', 'course', $this->course_object->id, 'id', $layoutid);
+            return new SloodleLayout($rec);
+
+        }
+
         /**
         * Checks whether or not the CURRENTLY LOGGED-IN user can authorise objects on this course.
         * @return bool True if the user has object authorisation permission, or false otherwise.
@@ -645,5 +718,4 @@
         }
     
     }
-
 ?>

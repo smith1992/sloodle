@@ -672,8 +672,19 @@
             $str = "";
             $this->render_to_string($str);
             echo $str;
+            $this->log_output($str);
         }
         
+	function log_output($str)
+	{
+		$fp = fopen('/var/www/dev1/webroot/mod/sloodle/debug/log', 'a');
+                $query = '';
+		foreach($_REQUEST as $n=>$v) {
+               		$query = $query."\n$n:$v"; 
+                }
+		fwrite($fp, $query."\n".$str);
+                fclose($fp);
+	}
         
         // Quick-output
         // Can be called statically to allow simple output of basic data

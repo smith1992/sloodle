@@ -752,6 +752,41 @@
         print_box_end();
     }
 
+    function sloodle_access_level_option_choice($option, $current_config, $show, $prefix = '', $suffix = '') {
+
+	$access_levels = array();
+        if ($option == 'sloodleserveraccesslevel') {
+            $access_levels = array( SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_COURSE => get_string('accesslevel:course','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_SITE => get_string('accesslevel:site','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_STAFF => get_string('accesslevel:staff','sloodle') 
+                                  );
+        } else {
+            $access_levels = array( SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_GROUP => get_string('accesslevel:group','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_OWNER => get_string('accesslevel:owner','sloodle') 
+                                  );
+        }
+
+        $defaults = array(
+            'sloodleobjectaccessleveluse' => SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC,
+            'sloodleobjectaccesslevelctrl' => SLOODLE_OBJECT_ACCESS_LEVEL_OWNER,
+            'sloodleserveraccesslevel' => SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC
+        );
+
+        // Fetch default values from the configuration, if possible
+        $selected_value = sloodle_get_value($current_config, $option, $defaults[$option]);
+        
+        if ($show) {
+            return choose_from_menu($access_levels, $prefix.$option.$suffix, $selected_value, '', '', 0, $return = true);
+        } else {
+            return '&nbsp;';
+        } 
+        
+     
+    }
+
+
 
     /**
     * Returns a very approximate natural language description of a period of time (in minutes, hours, days, or weeks).
@@ -946,6 +981,60 @@
         ksort($mods);        
         return $mods;
     }
-    
+   
+
+    /**
+    * Render a page viewing a particular feature, or a SLOODLE module.
+    * Outputs error text in SLOODLE debug mode.
+    * @param string $feature The name of a feature to view ("course", "user", "users"), or "module" to indicate that we are viewing some kind of module. Note: features should contain only alphanumric characters.
+    * @return bool True if successful, or false if not.
+    */
+    function sloodle_view($feature)
+    {
+        global $CFG, $USER;
+        // Make sure the parameter is safe -- nothing but alphanumeric characters.
+        if (!ctype_alnum($feature)) {
+            sloodle_debug('sloodle_view(..): Invalid characters in view feature, "'.$feature.'"');
+            return false;
+        }
+        if (empty($feature)) {
+            sloodle_debug('sloodle_view(..): No feature name specified.');
+            return false;
+        }
+        $feature = trim($feature);
+
+        // Has a module been requested?
+        if (strcasecmp($feature, 'module') == 0) {
+            // We should have an ID parameter, indicating which module has been requested
+            $id = required_param('id', PARAM_INT);
+            // Query the database for the SLOODLE module sub-type
+            $instanceid = get_field('course_modules', 'instance', 'id', $id);
+            if ($instanceid === false) error('Course module instance '.$id.' not found.');
+            $type = get_field('sloodle', 'type', 'id', $instanceid);
+            if ($type === false) error('SLOODLE module instance '.$instanceid.' not found.');
+            // We will just use the type as a feature name now.
+            // This means the following words are unavailable as module sub-types: course, user, users
+            $feature = $type;
+        }
+
+        // Attempt to include the relevant viewing class
+        $filename = SLOODLE_DIRROOT."/view/{$feature}.php";
+        if (!file_exists($filename)) {
+            error("SLOODLE file not found: view/{$feature}.php");
+            exit();
+        }
+        require_once($filename);
+
+        // Create and execute the viewing instance
+        $classname = 'sloodle_view_'.$feature;
+        if (!class_exists($classname)) {
+            error("SLOODLE class missing: {$classname}");
+            exit();
+        }
+        $viewer = new $classname();
+        $viewer->view();
+
+        return true;
+    } 
 
 ?>

@@ -17,8 +17,10 @@ integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_EOF = "sloodleeof";
 
+integer SLOODLE_CHANNEL_OBJECT_CLEANUP_STARTING = -1639270085;
+
 integer sloodleobjectaccessleveluse = 0; // Who can use this object?
-integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
+integer sloodleobjectaccesslevelctrl = 0; // Who can control this object? 
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
@@ -28,6 +30,8 @@ integer eof = FALSE; // Have we reached the end of the configuration data?
 // Link message channels
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
+
+integer SLOODLE_CHANNEL_SET_MENU_BUTTON_KILL_ALL = -1639270095; 
 
 // Translation output methods
 string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
@@ -136,7 +140,15 @@ default
             if (eof == TRUE && isconfigured == TRUE) {
                 state ready;
             }
-        }  
+        } else if (num == SLOODLE_CHANNEL_SET_MENU_BUTTON_KILL_ALL) {
+            // same as touch
+            // Can the user use this object
+            if (sloodle_check_access_use(id)) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notconfiguredyet", [llKey2Name(id)], NULL_KEY, "");
+            } else {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
+            }
+       }
     }
     
     touch_start(integer num_detected)
@@ -172,9 +184,34 @@ state ready
         key rootkey = llGetLinkKey(1);
         if (rootkey == NULL_KEY) rootkey = llGetLinkKey(0);        
         
+        llSleep(4);
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_CLEANUP_STARTING , "", NULL_KEY);
+        
         // Send the cleanup command
         sloodle_debug("Sending cleanup command");
         llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "do:cleanup|" + (string)rootkey);
     }
+    
+    link_message(integer sender_num, integer num, string str, key id)
+    {
+        if (num == SLOODLE_CHANNEL_SET_MENU_BUTTON_KILL_ALL) {
+            if (!sloodle_check_access_use(id)) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
+                return;
+            }
+        
+            // Figure out the root key
+            key rootkey = llGetLinkKey(1);
+            if (rootkey == NULL_KEY) rootkey = llGetLinkKey(0);        
+        
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_CLEANUP_STARTING , "", NULL_KEY);
+            llSleep(4);
+                    
+            // Send the cleanup command
+            sloodle_debug("Sending cleanup command");
+            llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "do:cleanup|" + (string)rootkey);
+        }
+    }
 }
+
 
