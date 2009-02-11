@@ -12,9 +12,20 @@
 function freemail_upgrade($oldversion) {
     global $CFG;
 
-    if ($oldversion < 2006042900) {
+    if ($oldversion < 2009021100) {
 
-       # Do something ...
+       
+        //add extra field to freemail to fix bug
+        echo "adding course field to freemail<br/>";               
+        $table = new XMLDBTable('freemail');
+        $field = new XMLDBField('course');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');  
+      
+    /// Launch add field format
+       $result = add_field($table, $field); 
+       return $result;
+    
+ 
 
     }
 

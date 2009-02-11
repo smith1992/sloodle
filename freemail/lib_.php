@@ -9,8 +9,10 @@
 * @contributor: Paul G. Preibisch - aka Fire centaur in Second Life 
 *
 */
-  require_once "../../config.php";
-  require_once $CFG->dirroot.'/lib/datalib.php';
+global $CFG;
+require_once $CFG->dirroot . "/config.php";
+require_once $CFG->dirroot ."/lib/datalib.php";
+
   $entrytext ='';
   
   
@@ -71,7 +73,7 @@
         } else {
           freemail_sendmail($CFG->freemail_mess_003, $email);
           $mess = "user login or password";
-          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:{$userpass}");
+          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:*****");
         }
         
     } 
@@ -272,7 +274,7 @@
         } else {
           freemail_sendmail($CFG->freemail_mess_009, $email);
           $mess = "user login or password";
-          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:{$userpass}");
+          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:*******");
         }
         
     } 
@@ -445,7 +447,7 @@
           freemail_sendmail($CFG->freemail_mess_009, $email);
           $mess = "user login or password";
           
-          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:{$userpass}");
+          freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:***********");
         }
 
     if ($mess != "true") { $mess = "ERROR: ".$mess; } 
@@ -584,7 +586,7 @@
         freemail_sendmail($CFG->freemail_mess_009, $email);
         $mess = "user login or password";
         
-        freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:{$userpass}");
+        freemail_setlog("    ERROR: invalide user login or password | login:{$userid} password:********");
     }
     
     if ($mess != "true") { $mess = "ERROR: ".$mess; } 

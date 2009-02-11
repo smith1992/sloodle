@@ -9,6 +9,7 @@
 * @contributor: Paul G. Preibisch - aka Fire centaur in Second Life
 *
 */
+
 require_once "../../config.php";
 require_once "lib_.php";
 
@@ -17,6 +18,7 @@ require_once "lib_.php";
 require_once "readmail.php";
 
 //-----------No Edit------------------//
+
 
 $commands = array("HELP");
 
@@ -43,7 +45,7 @@ echo sizeof($mails)."\r<br /><br />";
 if (is_array($mails)) {
   foreach ($mails as $mail) {
     $datetext = date("F j, Y, g:i a", time());
-    freemail_setlog("{$datetext} PROCESS START | email:{$mail['email']} | subject:{$mail['subject']}");
+    freemail_setlog("{$datetext} PROCESS START | email:{$mail['email']} | subject:*********");
     
     if (!empty($mail['error'])) {
         $mail['subject'] = strtolower($mail['subject']);
@@ -63,7 +65,7 @@ if (is_array($mails)) {
         $mail['messages'] = str_replace("=20", "\r\n", strip_tags($mail['messages']));
          
         if ($CFG->freemail_subjectline == 1) {
-            freemail_setlog("    | check and convert subject line | new subject:{$mail['subject']}");
+            freemail_setlog("    | check and convert subject line | new subject:**********");
     
             $problem = false;
             /*
@@ -184,19 +186,10 @@ if (is_array($mails)) {
         
         if (strstr($result, "ERROR")) {
             echo "<br />Send report to admin: ";
-            if ( $admins = get_admins() ) {
-                foreach ($admins as $admin) {
-                  echo "{$admin->username} ";
-                  if ($admin->emailstop == 0) {
-                      echo ": true <br />";
-                      freemail_sendmail ("Bug report form FreeMail ({$result})\r\n" . "This users email message was not processed\r\nUserEmail: " . $mail['email']."\r\nSubject: " . $mail['subject']."\r\nBody:\r\n".$mail['body'], $admin->email);
-                  }
-                  else
-                  {
-                      echo ": false <br />";
-                  }
-                }
-            }
+            $adminEmail =$CFG->freemail_mail_admin_email;
+            freemail_sendmail ("Bug report form FreeMail ({$result})\r\n" . "This users email message was not processed\r\nUserEmail: " . $mail['email']."\r\nSubject: " . $mail['subject']."\r\nBody:\r\n".$mail['body'], $adminEmail);
+               
+            
         }
     
     }
