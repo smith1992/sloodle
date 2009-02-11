@@ -2,6 +2,7 @@
 
 CREATE TABLE `prefix_freemail` (
   `id` int(10) unsigned NOT NULL auto_increment,
+  `course` int(10) unsigned NULL default '0',
   `name` varchar(255) NOT NULL default '',
   `value` varchar(255) NOT NULL default '',
   `description` text NOT NULL default '',
