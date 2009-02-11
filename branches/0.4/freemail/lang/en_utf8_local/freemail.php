@@ -9,6 +9,9 @@
 * 
 *
 */
+
+$string['blah'] = 'Demo localization string in Freemail.';
+
 $string['modulename'] = 'FreeMail';
 
 $string['freemail_001'] = 'Please change CHMOD to 777 (writable) on \"freemail\" folder in your moodle module directory!';
