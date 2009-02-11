@@ -16,13 +16,15 @@ ini_set("include_path", "$_PATHS[pear]");
 
 require_once 'Mail/IMAPv2.php';
 require_once "sllib.php";   
-$connection = "{$CFG->pop3_or_imap}://{$CFG->freemail_mail_user_name}:{$CFG->freemail_mail_user_pass}@{$CFG->freemail_mail_box_settinds}";
+$connection = $CFG->pop3_or_imap.'://'.$CFG->freemail_mail_user_name.':'.$CFG->freemail_mail_user_pass.'@'.$CFG->freemail_mail_box_settinds;
+
 
 
 
 
 //use below for gmail and gmail accounts
 $msg =& new Mail_IMAPv2($connection);
+$attachments = array();
 
 $msgcount = $msg->messageCount(); 
 
@@ -145,10 +147,13 @@ $msg->expunge();
 $msg->close(); 
 
 function freemail_getcommands($subject, $messages, $commands) {
+    $submail= Array();
+    $mesmail= Array();
     foreach ($commands as $name => $value) {
         if (strpos(strtoupper($subject), $value) === false) { } else { $submail[] = $value; }
         if (strpos(strtoupper($messages), $value) === false) { } else { $mesmail[] = $value; }
     }
+    
     return array($submail, $mesmail);
 }
 
