@@ -19,7 +19,23 @@ require_once "readmail.php";
 //-----------No Edit------------------//
 
 $commands = array("HELP");
-$mails = $usermailcontent;
+
+$noticeTable = new stdClass();
+$noticeTable->head = array('SLOODLE BLOGGER - FREEMAIL FAQ');
+$r = array();
+$r[] = get_string('freemail:cronnotice','freemail');
+
+$courseTable->class="course-view";
+
+$noticeTable->cellpadding=10;
+$noticeTable->cellspacing=10; 
+$noticeTable->data[] = $r;  
+print_table($noticeTable);
+
+if (empty($usermailcontent))
+    error("No mail was found on the server");
+    else $mails = $usermailcontent;
+
 
 echo get_string("freemail_024", "freemail");
 echo sizeof($mails)."\r<br /><br />";
@@ -29,7 +45,7 @@ if (is_array($mails)) {
     $datetext = date("F j, Y, g:i a", time());
     freemail_setlog("{$datetext} PROCESS START | email:{$mail['email']} | subject:{$mail['subject']}");
     
-    if (!$mail['error']) {
+    if (!empty($mail['error'])) {
         $mail['subject'] = strtolower($mail['subject']);
         $mail['subject'] = str_replace(" ", "", $mail['subject']);
         
@@ -186,9 +202,11 @@ if (is_array($mails)) {
     }
     else
     {
-        if ($mail['error'] == 'bigmailsize') {
-            freemail_setlog("    | attachment is too large | result: false");
-            freemail_sendmail("Your attachments is too large.", $mail['email']);
+        if (!empty($mail['error'])) {
+            if ($mail['error'] == 'bigmailsize') {
+                freemail_setlog("    | attachment is too large | result: false");
+                freemail_sendmail("Your attachments is too large.", $mail['email']);
+            }
         }
     }
   }

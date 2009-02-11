@@ -11,11 +11,15 @@
 */
   require_once "../../config.php";
   require_once $CFG->dirroot.'/lib/datalib.php';
+  $entrytext ='';
+  
+  
+  
   
   function freemail_profile($image_name, $email, $subject) 
   {
     global $CFG;
-    
+     
     $dir = "users";
     $subj = explode (":", $subject);
     
@@ -87,7 +91,7 @@
   function freemail_blog($image_name, $email, $subject, $body,$slurl) 
   {
     global $CFG;
-    
+    $entrypablish = '';
     if (!file_exists ($CFG->dataroot."/1/site_mod_files/blog")) {
         make_upload_directory("1/site_mod_files/blog");
     }
@@ -100,9 +104,11 @@
     //-------READ Email Blog text--------------//
     
     $messagetext = explode ("\r", $body);
+    $entrytitle='';   
     foreach ($messagetext as $messagetext) {
       if (strstr(strtoupper($messagetext), "TITLE:")) 
       { 
+        
         $entrytitle = trim(substr(trim($messagetext), 6)); 
       }
       else if (strstr(strtoupper($messagetext), "PUBLISH:"))
@@ -751,7 +757,9 @@
 
       //$mail->From = $datanoreply->value;
       //$mail->From = $CFG->supportemail;
-      $mail->From     = $dataemailadress->value;
+      
+      if (!empty($dataemailadress->value)) 
+        $mail->From     = $dataemailadress->value;
       $mail->FromName = "FreeMail Robot";
       $mail->AddAddress($to, "");
 

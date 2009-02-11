@@ -70,5 +70,14 @@ $string['freemail_029'] = 'Parse mail is ended';
 $string['freemail_030'] = 'upload attached files';
 
 $string['freemail_031'] = 'Email adress (FreeMail)';
+$string['freemail:cronnotice'] = '<b>Welcome to the Freemail module Modified for Second Life</b>';
+$string['freemail:cronnotice'] .= "<br>For more information about this module, please visit: <a href='http://slisweb.sjsu.edu/sl/index.php/Sloodle_Postcard_Blogger_(Freemail)'>The Sloodle Wiki Link for the Postcard Blogger</a>";
+$string['freemail:cronnotice'] .="<br>If you are running this manually, we suggest that you set up a <a href='http://slisweb.sjsu.edu/sl/index.php/Cron'>cron job on your server</a>";    
+$string['freemail:cronnotice'] .='<br>This will enable you to run a mail check automatically.  ';
+$string['freemail:cronnotice'] .='<br><br>In addition, if you are getting no-write errors, you probably forgot to make http://yoursite.com/moodle/mod/freemail/log.php chmod to 777';
+$string['freemail:cronnotice'] .="<br>Good luck! And please join our <a href='http://slisweb.sjsu.edu/sl/index.php/Cron'>";
+$string['freemail:cronnotice'] .='Discussion forums on http://sloodle.org</a>';
+
+
 
 ?>
