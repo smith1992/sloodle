@@ -40,9 +40,12 @@
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->load_module('chat', true);
-    // Attempt to validate the user... but it's not important if we can't
+    // Attempt to validate the user
     // (this will auto-register/enrol users where necessary and allowed)
-    $sloodle->validate_user(false);
+    // If server access level is public, then validation is not essential... otherwise, it is
+    $sloodleserveraccesslevel = $sloodle->request->get_server_access_level(false);
+    if ($sloodleserveraccesslevel == 0) $sloodle->validate_user(false);
+    else $sloodle->validate_user(true);
 
     
     // Has an incoming message been provided?
