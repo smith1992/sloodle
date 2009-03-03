@@ -1,6 +1,6 @@
 <?php
     /**
-    * Demo 1.0 configuration form.
+    * IBank 1.0 configuration form.
     *
     * This is a fragment of HTML which gives the form elements for configuration of the SLOODLE demo object, v1.0.
     * ONLY the basic form elements should be included.
@@ -16,7 +16,7 @@
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
-    *
+    *  @contributor Paul G. Preibisch
     */
     
     // IMPORTANT: make sure this is called from within a Sloodle script
@@ -52,7 +52,7 @@
         $stipendgivers = array();
         foreach ($recs as $cm) {
             // Fetch the stipendgiver instance
-            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_STIPENDGIVER);
+            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_IBANK);
             if (!$inst) continue;
             // Store the stipendgiver details
             $stipendgivers[$cm->id] = $inst->name;
