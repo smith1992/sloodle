@@ -1,4 +1,4 @@
-<?php
+<?php                          
 
     /**
     * Sloodle module core library functionality.
@@ -11,7 +11,7 @@
     *
     * @contributor Peter R. Bloomfield
     *
-    */
+    */                   
     
     require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
     require_once(SLOODLE_LIBROOT.'/general.php');
@@ -76,10 +76,10 @@
             }
             break;
 
-        case SLOODLE_TYPE_STIPENDGIVER:
-            // Create the secondary table for this stipend giver
+        case SLOODLE_TYPE_IBANK:
+            // Create the secondary table for this ibank
             $sec_table->amount = (int)$sloodle->stipendgiver_amount;
-            $sec_table->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+            $sec_table->iCurrency = (string)$sloodle->iCurrency;            
             if (!insert_record('sloodle_stipendgiver', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
@@ -218,13 +218,13 @@
             // Nothing extra to do 
             break;
 
-        case SLOODLE_TYPE_STIPENDGIVER:
+        case SLOODLE_TYPE_IBANK:
             // Attempt to fetch the stipend giver record
             $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $sloodle->id);
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             // Add the updates values from the form
             $stipendgiver->amount = (int)$sloodle->stipendgiver_amount;
-            $stipendgiver->purpose = htmlentities($sloodle->stipendgiver_intendedfor, ENT_QUOTES);
+             $stipendgiver->iCurrency = (string)$sloodle->iCurrency;       
 
             // Update the database
             update_record('sloodle_stipendgiver', $stipendgiver);
@@ -302,7 +302,7 @@
         
         // ADD FURTHER MODULE TYPES HERE!
         delete_records('sloodle_stipendgiver', 'sloodleid', $id);  
-        delete_records('sloodle_stipendgiver_trans', 'stipendgiverid', $id);
+        delete_records('sloodle_iPoint_trans', 'stipendgiverid', $id);
         return $result;
     }
 
