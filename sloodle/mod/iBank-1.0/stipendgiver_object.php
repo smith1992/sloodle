@@ -39,7 +39,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
           parent::__construct($id);
           $this->stipendGiverRec = get_record('sloodle_stipendgiver','sloodleid',$id);
           $this->startingBalance = $this->stipendGiverRec->amount;        
-          $this->iType = $this->stipendGiverRec->icurrency;
+          $this->itype = $this->stipendGiverRec->icurrency;
           $this->icurrency = $this->stipendGiverRec->icurrency;
           $this->sloodleId=$id;
       }
@@ -67,7 +67,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
                     $newStipend = new stdClass();
                     $newStipend->userid = $u->id;
                     $newStipend->sloodleid = $this->sloodleId;
-                    $newStipend->iType="stipend";
+                    $newStipend->itype="stipend";
                     $newStipend->amount=0; //set amount to zero so teacher must manually add stipends for new students
                     $newStipend->timemodified = time();
                     $newStipends[]=$newStipend;
@@ -85,7 +85,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
                 //for a user who is not in the course, remove that stipend allocation
                $tRecs = $this->getTransactionRecords();         
                 foreach ($tRecs as $t){
-                 if ($t->iType=="stipend"){
+                 if ($t->itype=="stipend"){
                      //check if this user is in this class
                      $found = $this->searchUserList($userList, $t->userid);
                      //if user of this stipend is not in the userList, remove this stipend
@@ -163,7 +163,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
             $transRecs = $this->getTransactionRecords($userid);          
           if ($transRecs)   {
             foreach ($transRecs as $t)
-               if ($t->iType=='stipend')                
+               if ($t->itype=='stipend')                
                    $budgetAmount +=$t->amount;
             return $budgetAmount; 
           }
@@ -217,7 +217,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
      * @author Paul Preibisch
      * 
      * getStipendRec returns the stipend record for this user. 
-     * iType in the sloodle_ipoint_trans table must be 'stipend', 
+     * itype in the sloodle_ipoint_trans table must be 'stipend', 
      *       
      * @package sloodle
      * @returns a record from the sloodle_ipoint_trans table
@@ -230,7 +230,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
          global $CFG;
          $userStipendId = null;
          $sql = 'SELECT * FROM '.$CFG->prefix.'sloodle_ipoint_trans'.
-                             ' WHERE iType=\'stipend\' AND sloodleid='.$this->getSloodleId() .
+                             ' WHERE itype=\'stipend\' AND sloodleid='.$this->getSloodleId() .
                              ' AND userid='.$userid;
          $userStipendId = get_record_sql($sql);                     
          return $userStipendId; 
