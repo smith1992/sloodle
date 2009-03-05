@@ -583,6 +583,18 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);                                           
     }
+     if ($result && $oldversion < 2009030420){
+                echo "adding icurrency field to the sloodle_stipendgiver table - and removing purpose field";
+            /// Define field icurrency to be added to sloodle_stipendgiver
+                $table = new XMLDBTable('sloodle_stipendgiver');
+                $field = new XMLDBField('icurrency');
+                $field->setAttributes(XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, null, 'Lindens', 'amount');
+                $result = $result && add_field($table, $field); 
+            /// Launch add field icurrency
+                $field = new XMLDBField('purpose');
+                $result = $result && deleteField($table, $field);
+                
+     }
     
   
    
