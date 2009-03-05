@@ -106,15 +106,15 @@ class sloodle_view_iBank extends sloodle_base_view_module
    var $sCourseObj = null;
    /**
     * @var $iPts are the number of iPoints
-    *  if iPoints were selected as iCurrency
+    *  if iPoints were selected as icurrency
     */
    var $iPts = null;
    
    var $showInitForm = false;
    /**
-    * @var $iCurrency - currency of this stopend - can be Lindens, or iPoints
+    * @var $icurrency - currency of this stopend - can be Lindens, or iPoints
     */
-   var $iCurrency; 
+   var $icurrency; 
    /**
     * @var $stipendGiverObj - a pointer to the stipendGiverObject with useful functions to access the stipendGiver
     */   
@@ -216,8 +216,8 @@ class sloodle_view_iBank extends sloodle_base_view_module
             //get stipendGiver Object (iBank Object)
             $this->stipendGiverObj = new stipendGiverObject($this->sloodleId);
             if ($this->start < 0) $this->start = 0;
-            //get iCurrency type of points
-            $this->iCurrency= $this->stipendGiverObj->getICurrency();
+            //get icurrency type of points
+            $this->icurrency= $this->stipendGiverObj->geticurrency();
             //get users in this course
             $this->userList = $this->sCourseObj->getUserList(); 
 
@@ -246,7 +246,7 @@ class sloodle_view_iBank extends sloodle_base_view_module
                     $iTransaction = new stdClass();
                     $iTransaction->userid       = $u->id;
                     $iTransaction->sloodleid    = $this->stipendGiverObj->getSloodleId();                 
-                    $iTransaction->iCurrency     = $this->stipendGiverObj->getICurrency();
+                    $iTransaction->icurrency     = $this->stipendGiverObj->geticurrency();
                     $iTransaction->amount       = $this->stipendGiverObj->getStartingBalance();
                     $iTransaction->iType = "stipend";
                     $iTransaction->timemodified = time();
@@ -370,9 +370,9 @@ class sloodle_view_iBank extends sloodle_base_view_module
         
         //Create Sloodle Table Column Labels
         //User | Avatar  |  Amount Alloted  |  Balance Remaining
-        if ($this->iCurrency=="Lindens"){      
+        if ($this->icurrency=="Lindens"){      
                          $allotedString = get_string('stipendgiver:alloted', 'sloodle');   
-                     }else if ($this->iCurrency=="iPoints"){
+                     }else if ($this->icurrency=="iPoints"){
                         $allotedString = get_string('stipendgiver:iPoints', 'sloodle');    
                          
                      }
@@ -382,7 +382,7 @@ class sloodle_view_iBank extends sloodle_base_view_module
             $allotedString .=' name="update" ';
             $allotedString .='  value="'.get_string("stipendgiver:update","sloodle") .'">';      
         }
-        if ($this->iCurrency=="Lindens"){
+        if ($this->icurrency=="Lindens"){
         $sloodletable->head = array('',
                                     get_string('stipendgiver:username', 'sloodle'),
                                     get_string('user', 'sloodle'),  
@@ -390,7 +390,7 @@ class sloodle_view_iBank extends sloodle_base_view_module
                                     get_string('stipendgiver:avatars', 'sloodle'),   
                                     get_string('stipendgiver:debits', 'sloodle'),   
                                     get_string('stipendgiver:balance', 'sloodle'));
-        }else if ($this->iCurrency=="iPoints"){
+        }else if ($this->icurrency=="iPoints"){
         $sloodletable->head = array('',
                                     get_string('stipendgiver:username', 'sloodle'),
                                     get_string('user', 'sloodle'),  
@@ -495,7 +495,7 @@ class sloodle_view_iBank extends sloodle_base_view_module
                                              //now place this inner avTable inside the bigger user html table 
                      // the "true" in print_table($table,true) returns the html rather than print it
                      $rowData[]= $avs;
-                     if ($this->iCurrency=="Lindens"){      
+                     if ($this->icurrency=="Lindens"){      
                          $rowData[]= $debits;
                      }           
                      $rowData[]= $this->stipendGiverObj->getStipendBudget($u->id,$this->userList) - $this->stipendGiverObj->getUserDebits($u->id);
@@ -531,24 +531,24 @@ class sloodle_view_iBank extends sloodle_base_view_module
             $iRow = array();            
             //********* PRINT DESCRIPTION
             print('<b style="color:Black;text-align:left;">'.get_string('stipendgiver:description','sloodle').':</b>'.$this->sloodle->intro.'<br> ');             
-            if ($this->iCurrency=="Lindens"){      
+            if ($this->icurrency=="Lindens"){      
                  $iRow[] ='<b style="color:green;text-align:left;">'.get_string('stipendgiver:totalallocations','sloodle').'</b>:';
-                 $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->getICurrency();
-            }else if ($this->iCurrency=="iPoints"){
+                 $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->geticurrency();
+            }else if ($this->icurrency=="iPoints"){
                     $iRow[] ='<b style="color:green;text-align:left;">'.get_string('stipendgiver:totalawarded','sloodle').'</b>:';
-                     $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->getICurrency();
+                     $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->geticurrency();
             }           
             $iTable->data[] = $iRow;
             //********* PRINT TOTAL DEBITS
-            if ($this->iCurrency=="Lindens"){      
+            if ($this->icurrency=="Lindens"){      
                 $iRow = array();            
                             $iRow[] ='<b style="color:red;text-align:left;">'.get_string('stipendgiver:totaldebits','sloodle').'</b>:&nbsp&nbsp';
-                $iRow[] =$this->stipendGiverObj->getUserDebits() . " ".$this->stipendGiverObj->getICurrency();
+                $iRow[] =$this->stipendGiverObj->getUserDebits() . " ".$this->stipendGiverObj->geticurrency();
                 $iTable->data[] = $iRow;    
                 //********* PRINT STARTING BALANCE
                 $iRow = array();                        
                 $iRow[] ='<b style="color:blue;text-align:left;">'.get_string('stipendgiver:startingbalance','sloodle').'</b>:&nbsp&nbsp';
-                $iRow[] =$this->stipendGiverObj->getStartingBalance() ." ". $this->stipendGiverObj->getICurrency();
+                $iRow[] =$this->stipendGiverObj->getStartingBalance() ." ". $this->stipendGiverObj->geticurrency();
                 $iTable->data[] = $iRow;
                 $iRow = array();             
             }    
@@ -567,10 +567,10 @@ class sloodle_view_iBank extends sloodle_base_view_module
        
        //print_box_start('generalbox boxaligncenter boxwidthnarrow leftpara'); 
             //======Print TRANSACTIONS TITLE
-  if ($this->iCurrency=="Lindens"){      
+  if ($this->icurrency=="Lindens"){      
                           print('<h3 style="color:black;text-align:center;">'.get_string('stipendgiver:transactions','sloodle')).'</h3> ';
           
-                     }else if ($this->iCurrency=="iPoints"){
+                     }else if ($this->icurrency=="iPoints"){
             print('<h3 style="color:black;text-align:center;">'.get_string('stipendgiver:scoreboard','sloodle')).'</h3> ';
           
                          
