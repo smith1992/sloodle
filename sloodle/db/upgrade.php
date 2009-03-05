@@ -542,19 +542,8 @@ function xmldb_sloodle_upgrade($oldversion=0) {
 
      
       
-  if ($result && $oldversion < 2009020204) {
-        //add extra filed to stipend giver for added security in giving out stipends
-         echo "Adding userid field to stipendgiver transaction tables<br/>";               
-        $table = new XMLDBTable('sloodle_stipendgiver_trans');
-        $field = new XMLDBField('userid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receiveruuid');  
-        
-    /// Launch add field format
-        $result = $result && add_field($table, $field);
-     
-    
-  }
-  if ($result && $oldversion < 2009030400) {
+
+  if ($result && $oldversion < 2009030420) {
       echo "Dropping old stipendgiver transaction tables<br/>";
         $table = new XMLDBTable('sloodle_stipendgiver_trans');
         drop_table($table);
@@ -562,41 +551,37 @@ function xmldb_sloodle_upgrade($oldversion=0) {
          echo "creating iPoint_trans table for the iBank<br/>";               
     /// Define field id to be added to sloodle_ipoint_trans
         $table = new XMLDBTable('sloodle_ipoint_trans');
+        
+        
         $field = new XMLDBField('id');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
-        $result = $result && add_field($table, $field);
-        
+        $table->addField($field);
         $field = new XMLDBField('sloodleid');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
-        $result = $result && add_field($table, $field);
-        
+        $table->addField($field);
         $field = new XMLDBField('avuuid');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null, 'sloodleid');
-        $result = $result && add_field($table, $field);
-
+        $table->addField($field);
         $field = new XMLDBField('userid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'avuuid');
-        $result = $result && add_field($table, $field);
-        
+        $table->addField($field);
         $field = new XMLDBField('avname');
         $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'userid');
-        $result = $result && add_field($table, $field);
-        
-        $field = new XMLDBField('iType');
+        $table->addField($field);
+        $field = new XMLDBField('itype');
         $field->setAttributes(XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null, null, null, 'avname');
-        $result = $result && add_field($table, $field);
-        
+        $table->addField($field);
         $field = new XMLDBField('amount');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'itype');
-        $result = $result && add_field($table, $field);
-        
-        $field = new XMLDBField('iData');
+        $table->addField($field);
+        $field = new XMLDBField('idata');
         $field->setAttributes(XMLDB_TYPE_CHAR, '80', null, null, null, null, null, null, 'amount');
-        $result = $result && add_field($table, $field);
-        
+        $table->addField($field);
         $field = new XMLDBField('timemodified');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'idata');
-        $result = $result && add_field($table, $field);
+            /// Adding keys to table sloodle_ipointTrans
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);                                           
     }
     
   
