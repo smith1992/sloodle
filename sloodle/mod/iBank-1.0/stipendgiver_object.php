@@ -235,6 +235,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
          $userStipendId = get_record_sql($sql);                     
          return $userStipendId; 
         
+        
         }
   }
 ?>
