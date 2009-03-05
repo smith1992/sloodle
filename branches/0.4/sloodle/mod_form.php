@@ -193,15 +193,17 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             break;
         
-        case SLOODLE_TYPE_STIPENDGIVER:
+        case SLOODLE_TYPE_IBANK:
 
             // Add the type-specific header
             $mform->addElement('header', 'typeheader', $sloodletypefull);
             
             // The stipend needs an amount and a purpose
-            $mform->addElement('text', 'stipendgiver_amount', 'Stipend Amount in Lindens', array('size'=>'10')); $mform->setDefault('stipendgiver_amount', '0');
+            $mform->addElement('text', 'stipendgiver_amount', get_string('stipendgiver:amount','sloodle'), array('size'=>'10')); 
+            $mform->setDefault('stipendgiver_amount', '0');
+            $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
+            $mform->addElement('select', 'iCurrency',get_string('stipendgiver:typeofcurrency','sloodle'),$pTypes);
             $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
-            $mform->addElement('text', 'stipendgiver_intendedfor', 'What is this stipend intended for?', array('size'=>'40')); $mform->setDefault('stipendgiver_intendedfor', 'Course use');
             break;
         
                                                                            
@@ -268,14 +270,15 @@ class mod_sloodle_mod_form extends moodleform_mod {
         
             break;
 
-        case SLOODLE_TYPE_STIPENDGIVER:
+        case SLOODLE_TYPE_IBANK:
             // Fetch the controller record
             $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Add in the amount and purpose of the giver
             $default_values['stipendgiver_amount'] = $stipendgiver->amount;
-            $default_values['stipendgiver_intendedfor'] = $stipendgiver->purpose;
+            $default_values['iCurrency'] = $stipendgiver->iCurrency;
+            
             
             break;
 
@@ -354,7 +357,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             break; 
 
         // ADD FUTURE TYPES HERE
-              case SLOODLE_TYPE_STIPENDGIVER:
+              case SLOODLE_TYPE_IBANK:
             // Nothing to error check
             break; 
 
