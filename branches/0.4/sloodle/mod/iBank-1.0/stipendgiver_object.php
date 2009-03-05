@@ -23,9 +23,9 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
       */
       var $stipendGiverRec = null;      
       /*
-      * @var $iCurrency - can be either iPoints or Lindens - specified by initial config page
+      * @var $icurrency - can be either iPoints or Lindens - specified by initial config page
       */  
-      var $iCurrency = '';
+      var $icurrency = '';
       /*
       * @var $sloodleId - sloodleId of this stipendgiver
       */  
@@ -39,8 +39,8 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
           parent::__construct($id);
           $this->stipendGiverRec = get_record('sloodle_stipendgiver','sloodleid',$id);
           $this->startingBalance = $this->stipendGiverRec->amount;        
-          $this->iType = $this->stipendGiverRec->iCurrency;
-          $this->iCurrency = $this->stipendGiverRec->iCurrency;
+          $this->iType = $this->stipendGiverRec->icurrency;
+          $this->icurrency = $this->stipendGiverRec->icurrency;
           $this->sloodleId=$id;
       }
       /**
@@ -59,11 +59,8 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
      * @staticvar $userId - moodle id of user sought
      */
       function updateUserList($userList){
-          
           //Get the existing users
-           
-           
-           //for each user who doesnt have a stipend allocated, allocate them 0 - because they have just been added
+          //for each user who doesnt have a stipend allocated, allocate them 0 - because they have just been added
            $newStipends = array();
            foreach ($userList as $u){
                 if ($this->getStipendRec($u->id)==false){
@@ -75,7 +72,6 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
                     $newStipend->timemodified = time();
                     $newStipends[]=$newStipend;
                 }
-                
             }
             //now add to iPoint_trans records for the new students who have not been alocated the default stipend.
             foreach ($newStipends as $nS){
@@ -88,7 +84,6 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
                 //compare userlist with all the stipend transactions.  If there is a transactopm 
                 //for a user who is not in the course, remove that stipend allocation
                $tRecs = $this->getTransactionRecords();         
-                
                 foreach ($tRecs as $t){
                  if ($t->iType=="stipend"){
                      //check if this user is in this class
@@ -135,10 +130,10 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
         $this->startingBalance = $newStartingBalance;  
       }
       /*
-      * getICurrency gets the currency property of this object
+      * geticurrency gets the currency property of this object
       */
-      function getICurrency(){
-          return $this->iCurrency;      
+      function geticurrency(){
+          return $this->icurrency;      
       }
 
 
