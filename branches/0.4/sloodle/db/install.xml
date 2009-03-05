@@ -282,7 +282,7 @@
     </KEYS>
     <INDEXES>
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
-    </INDEXES>
+    </INDEXES>                        d
     </TABLE>
     <TABLE NAME="sloodle_presenter_entry" COMMENT="sloodle_presenter_entry table retrofitted from MySQL" PREVIOUS="sloodle_ipoint_trans">
       <FIELDS>
@@ -303,7 +303,6 @@
     </TABLE>
       
   </TABLES>
-  
-  
+              
 
 </XMLDB>
