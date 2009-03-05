@@ -78,7 +78,7 @@ string  SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should 
 string  SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string  SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string  SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
-
+integer ADMIN_CHANNEL =82;  //used for dialog messages during setup
 string ownerKey;
 // *************************************************** LISTS TO HOLD FIELD VALUES OF DATAROW RECORD SETS
 list     moodleIdList             = [];
@@ -355,13 +355,13 @@ state readUserListChunk
         sendCommand("getClassList",(string)(chunk*(CHUNK_SIZE+1)),llGetOwnerKey(llGetKey()));
         debugMessage("in readUserListChunk");             
       //  llSetText("Loading Class List", GREEN, 1.0); 
-      debugMessage("Testing Mode: click to load data into the mem sticks. When ready - type /1 ready to finish loading");
-      llListen(1, "", "", ""); 
+      llListen(ADMIN_CHANNEL,"", llGetOwnerKey(llGetKey()),"");
     }
    
     listen(integer channel, string name, key id, string message) {
-        if (channel==1) 
-            if (message=="ready") state ready;
+            if (channel==ADMIN_CHANNEL){
+                if (message=="Reset") llResetScript();
+       }
     }
     http_response(key request_id, integer status, list metadata, string body) {
          
@@ -387,45 +387,56 @@ state readUserListChunk
        //    8)     iCurrencyType   
        //    9)     update data    
        //    10+)    studentRowData                     
-          
-        //line 1      
-        key origionalSenderUuid = llList2String(lines,1);
-        //llSay(0,"origionalSenderUuid: " + (string)origionalSenderUuid);
-        //line 2      
-        string command = llList2String(lines,2);
-        //llSay(0,"Command: " + (string)command);       
-        //line 3
-        numStudents = llList2Integer(lines,3);
-        fullCourseName = llList2String(lines,4);
-        //llSay(0,"coursefullname: " + (string)fullCourseName);
-        //line 4
-        sloodleName = llList2String(lines,5);
-        //llSay(0,"sloodleName :" + (string)sloodleName);  
-        //line 5
-        sloodleIntro = llList2String(lines,6);
-        //llSay(0,"sloodleIntro :" + (string)sloodleIntro); 
-        //line 6
-        defaultStipend = llList2Integer(lines,7);
-        //llSay(0,"defaultStipend :" + (string)defaultStipend);
-        //line 7
-        totalStipends = llList2Integer(lines,8);
-        //llSay(0,"totalStipends :" + (string)totalStipends);  
-        //line 8+    
-        //send default stats to all memory
-        iCurrencyType = llList2String(lines,9);
-        llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+iCurrencyType+"|"+(string)defaultStipend+"|"+(string)totalStipends+"|"+(string)numStudents+"|"+fullCourseName+"|"+sloodleName+"|"+sloodleIntro, "");
-        userLines =[];        
-        //get body and put each line returned into userLiens
-        userLines= llList2List((lines = []) + lines, 10, llGetListLength(lines)-1);
-        //get stats data
         
-        
-        //llMessageLinked(LINK_THIS, ALL_MEMORY,"CLEAR","");
-        currIndex=0;
-        //now read one line of the userLines        
-        llSetTimerEvent(1.0);
+        integer status = llList2Integer(llParseString2List(llList2String(lines,0),["|"],[""]),0);  
+        if (status == -321) {
+             llSetTimerEvent(0.0);
+            llMessageLinked(LINK_THIS,ALL_MEMORY, "RESET","");
+            llSetText("Owner's avatar needs to be authorized with the Moodle Site!", <0.86456, 1.00618, 0.00000>, 1.0);
+            llDialog(llGetOwnerKey(llGetKey()),"Please rez a RegEnrol booth first, and enrol your avatar to your moodle site",["Reset"],ADMIN_CHANNEL);        
+           
+        }
+        else {
+                //line 1      
+                key origionalSenderUuid = llList2String(lines,1);
+                //llSay(0,"origionalSenderUuid: " + (string)origionalSenderUuid);
+                //line 2      
+                string command = llList2String(lines,2);
+                //llSay(0,"Command: " + (string)command);       
+                //line 3
+                numStudents = llList2Integer(lines,3);
+                fullCourseName = llList2String(lines,4);
+                //llSay(0,"coursefullname: " + (string)fullCourseName);
+                //line 4
+                sloodleName = llList2String(lines,5);
+                //llSay(0,"sloodleName :" + (string)sloodleName);  
+                //line 5
+                sloodleIntro = llList2String(lines,6);
+                //llSay(0,"sloodleIntro :" + (string)sloodleIntro); 
+                //line 6
+                defaultStipend = llList2Integer(lines,7);
+                //llSay(0,"defaultStipend :" + (string)defaultStipend);
+                //line 7
+                totalStipends = llList2Integer(lines,8);
+                //llSay(0,"totalStipends :" + (string)totalStipends);  
+                //line 8+    
+                //send default stats to all memory
+                iCurrencyType = llList2String(lines,9);
+                llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+iCurrencyType+"|"+(string)defaultStipend+"|"+(string)totalStipends+"|"+(string)numStudents+"|"+fullCourseName+"|"+sloodleName+"|"+sloodleIntro, "");
+                userLines =[];        
+                //get body and put each line returned into userLiens
+                userLines= llList2List((lines = []) + lines, 10, llGetListLength(lines)-1);
+                //get stats data
+                
+                
+                //llMessageLinked(LINK_THIS, ALL_MEMORY,"CLEAR","");
+                currIndex=0;
+                //now read one line of the userLines        
+                llSetTimerEvent(1.0);
+        }
     
     }
+
     timer(){
             llSetTimerEvent(0.0);
             state readOneLine;
