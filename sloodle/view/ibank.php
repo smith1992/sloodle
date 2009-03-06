@@ -22,7 +22,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 /** SLOODLE course object data structure */
 require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
 /** SLOODLE stipendgiver object data structure */
-require_once(SLOODLE_DIRROOT.'/mod/iBank-1.0/stipendgiver_object.php');
+require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/stipendgiver_object.php');
 /** Sloodle Session code. */
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
@@ -248,7 +248,7 @@ class sloodle_view_iBank extends sloodle_base_view_module
                     $iTransaction->sloodleid    = $this->stipendGiverObj->getSloodleId();                 
                     $iTransaction->icurrency     = $this->stipendGiverObj->geticurrency();
                     $iTransaction->amount       = $this->stipendGiverObj->getStartingBalance();
-                    $iTransaction->iType = "stipend";
+                    $iTransaction->itype = "stipend";
                     $iTransaction->timemodified = time();
                     $this->stipendGiverObj->makeTransaction($iTransaction);
              }    

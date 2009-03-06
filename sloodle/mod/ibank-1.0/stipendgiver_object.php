@@ -159,8 +159,9 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
           $budgetAmount = 0;
           if ($userid==null)
             $transRecs = $this->getTransactionRecords();
-          else
+          else  {
             $transRecs = $this->getTransactionRecords($userid);          
+          }
           if ($transRecs)   {
             foreach ($transRecs as $t)
                if ($t->itype=='stipend')                

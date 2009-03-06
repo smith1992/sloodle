@@ -68,9 +68,9 @@
             $sql = 'SELECT * FROM '.$CFG->prefix.'sloodle_ipoint_trans'.
             ' WHERE userid='.$userId.' AND sloodleid='.$this->getSloodleId().
             ' ORDER BY timemodified DESC';
-            if ($transRecs = get_records_sql($sql))            
-                return $transRecs;            
-            else return false;
+            $transRecs = get_records_sql($sql);
+            return $transRecs;            
+            
          }
       }
            /**
@@ -88,7 +88,7 @@
      */
      
      function removeTransaction($userId,$iType){
-         if (delete_records("sloodle_ipoint_trans",'sloodleid',$this->sloodleid,'iType',$iType,'userid',$userId))
+         if (delete_records("sloodle_ipoint_trans",'sloodleid',$this->sloodleid,'itype',$iType,'userid',$userId))
             return true;
             else return false;
      }
@@ -116,7 +116,7 @@
           $debits = 0;   
          foreach ($this->getTransactionRecords() as $t){
             if ($t->avuuid == $avuuid)
-               if ($t->iType=='debit')
+               if ($t->itype=='debit')
                     $debits +=$t->amount;
          }
          return $debits; 
@@ -140,7 +140,7 @@
           $transRecs = $this->getTransactionRecords($userid);
           if ($transRecs)
             foreach ($transRecs as $t)
-                   if ($t->iType=='debit')
+                   if ($t->itype=='debit')
                        $debits +=$t->amount;
      return $debits; 
  }

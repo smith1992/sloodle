@@ -579,26 +579,39 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addField($field);
         $field = new XMLDBField('timemodified');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'idata');
+        $table->addField($field);   
             /// Adding keys to table sloodle_ipointTrans
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);                                           
     }
      if ($result && $oldversion < 2009030420){
-                echo "adding icurrency field to the sloodle_stipendgiver table - and removing purpose field";
+              
+                 $table = new XMLDBTable('sloodle_stipendgiver');
+                 drop_table($table);
+                 echo " dropping sloodle_stipendgiver table, creating new one";
             /// Define field icurrency to be added to sloodle_stipendgiver
                 $table = new XMLDBTable('sloodle_stipendgiver');
+                $field = new XMLDBField('id');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+                $table->addField($field);
+                $field = new XMLDBField('sloodleid');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+                $table->addField($field);            
+                $field = new XMLDBField('enabled');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
+                $table->addField($field);            
+                $field = new XMLDBField('amount');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+                $table->addField($field);            
                 $field = new XMLDBField('icurrency');
                 $field->setAttributes(XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, null, 'Lindens', 'amount');
-                $result = $result && add_field($table, $field); 
-            /// Launch add field icurrency
-                $field = new XMLDBField('purpose');
-                $result = $result && deleteField($table, $field);
-                
+                $table->addField($field);            
+                $field = new XMLDBField('timemodified');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'icurrency');
+                $table->addField($field);            
+                $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+                $result = $result && create_table($table);
      }
-    
-  
-   
- 
   return $result; 
 }
 

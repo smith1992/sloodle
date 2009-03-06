@@ -121,7 +121,7 @@
             $sloodle->response->add_data_line($totalStipends); //line 8
             
             //add iCurrencyType
-            $iCurrencyType = $stipendGiverObj->getICurrency();
+            $iCurrencyType = $stipendGiverObj->geticurrency();
             $sloodle->response->add_data_line($iCurrencyType); //line 9
     }
     //load module to get access to the stipend_giver_object and its functions
@@ -145,7 +145,7 @@
                      $trans->amount = $withdrawAmount;
                      $trans->userid =$sloodle->user->get_user_id();
                      $trans->sloodleid=$sloodleid;
-                     $trans->iType="debit";
+                     $trans->itype="debit";
                      $trans->avname=$senderAvatarName; 
                      $trans->avuuid=$senderUuid;
                      
@@ -158,7 +158,7 @@
                         addDefaultStats();                                                     
                         //add data lines
                         //userName|Avatar Name | senderUuid| new balance |iCurrency
-                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->getICurrency() ;
+                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->geticurrency() ;
                         $sloodle->response->add_data_line($data);       //line 9
                        // addUserData();    //lines 10+
                      }
@@ -169,7 +169,7 @@
                         $sloodle->response->add_data_line($senderUuid);//line 1          
                         $sloodle->response->add_data_line("withdrawStipendResponse");//line 2
                         addDefaultStats();                                                  
-                        $data = $userId ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->getICurrency() ;
+                        $data = $userId ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->geticurrency() ;
                         $sloodle->response->add_data_line($data);       //line 10
                       //  addUserData();     
                       }
@@ -183,7 +183,7 @@
                         $sloodle->response->add_data_line($senderUuid);//line 1          
                         $sloodle->response->add_data_line("withdrawStipendResponse");//line 2
                         addDefaultStats();                                                  
-                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->getICurrency() ; 
+                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->geticurrency() ; 
                         $sloodle->response->add_data_line($data);       //line 10
                         $sloodle->response->render_to_output(); 
                  }
@@ -194,7 +194,7 @@
                         $sloodle->response->add_data_line($senderUuid);//line 1          
                         $sloodle->response->add_data_line("withdrawStipendResponse");//line 2
                         addDefaultStats();                                                  
-                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->getICurrency() ; 
+                        $data = $userid ."|". $senderAvatarName ."|".$senderUuid."|".$withdrawAmount ."|". $stipendGiverObj->geticurrency() ; 
                         $sloodle->response->add_data_line($data);       //line 10
                         $sloodle->response->render_to_output(); 
                  
