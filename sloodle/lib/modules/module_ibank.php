@@ -67,7 +67,7 @@
         /**
         * Constructor
         */
-        function SloodleModuleiBank(&$_session)
+        function SloodleModuleibank(&$_session)
         {
             $constructor = get_parent_class($this);
             parent::$constructor($_session);

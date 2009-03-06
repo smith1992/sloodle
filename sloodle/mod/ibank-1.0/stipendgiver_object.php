@@ -195,7 +195,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
             $updatedStipendGiver->id = $this->stipendGiverRec->id;
             $updatedStipendGiver->amount = $amount;
             if (!update_record("sloodle_stipendgiver",$updatedStipendGiver)){
-                $sloodle->response->quick_output(-701, 'STIPENDGIVER', 'Failed to update stipendGiver for default stipend in setStipendBudget function', FALSE);
+                $sloodle->response->quick_output(-701, 'ibank', 'Failed to update stipendGiver for default stipend in setStipendBudget function', FALSE);
                 return false;
             }
         }else{ //modify stipend budget of individual user
@@ -205,7 +205,7 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
             $update->id = $stipendRec->id;
             $update->amount = $amount;
             if (!update_record('sloodle_ipoint_trans', $update)){
-             $sloodle->response->quick_output(-701, 'STIPENDGIVER', 'Failed to update stipendGiver in setStipendBudget function', FALSE);
+             $sloodle->response->quick_output(-701, 'ibank', 'Failed to update stipendGiver in setStipendBudget function', FALSE);
                  return false;
              }
              
