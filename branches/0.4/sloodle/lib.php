@@ -79,7 +79,7 @@
         case SLOODLE_TYPE_IBANK:
             // Create the secondary table for this ibank
             $sec_table->amount = (int)$sloodle->stipendgiver_amount;
-            $sec_table->iCurrency = (string)$sloodle->iCurrency;            
+            $sec_table->icurrency = (string)$sloodle->icurrency;            
             if (!insert_record('sloodle_stipendgiver', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
