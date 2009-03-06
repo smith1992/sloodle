@@ -21,13 +21,13 @@
     /** SLOODLE course object data structure */
     require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
     /** SLOODLE stipendgiver object data structure */
-    require_once(SLOODLE_DIRROOT.'/mod/iBank-1.0/stipendgiver_object.php');
+    require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/stipendgiver_object.php');
     /** Sloodle Session code. */
     /** Grab the Sloodle/Moodle configuration. */
 
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    require_once(SLOODLE_LIBROOT.'/modules/module_iBank.php');
+    require_once(SLOODLE_LIBROOT.'/modules/module_ibank.php');
     
      $sCourseObj = null;
      $stipendGiverObj = null;
@@ -37,7 +37,7 @@
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->validate_user();  
-    $sloodle->load_module('iBank', true); 
+    $sloodle->load_module('ibank', true); 
     //get user data   
     $avatarname = $sloodle->user->get_avatar_name(); 
     $avataruuid= $sloodle->user->get_avatar_uuid();     

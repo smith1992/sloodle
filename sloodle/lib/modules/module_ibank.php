@@ -21,7 +21,7 @@
     require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
     /** SLOODLE stipendgiver object data structure */
-    require_once(SLOODLE_DIRROOT.'/mod/iBank-1.0/stipendgiver_object.php');
+    require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/stipendgiver_object.php');
     /** Sloodle Session code. */
         
     /**
