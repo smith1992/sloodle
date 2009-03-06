@@ -224,7 +224,7 @@
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             // Add the updates values from the form
             $stipendgiver->amount = (int)$sloodle->stipendgiver_amount;
-             $stipendgiver->iCurrency = (string)$sloodle->iCurrency;       
+             $stipendgiver->icurrency = (string)$sloodle->icurrency;       
 
             // Update the database
             update_record('sloodle_stipendgiver', $stipendgiver);

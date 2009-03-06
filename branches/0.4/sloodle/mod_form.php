@@ -202,7 +202,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->addElement('text', 'stipendgiver_amount', get_string('stipendgiver:amount','sloodle'), array('size'=>'10')); 
             $mform->setDefault('stipendgiver_amount', '0');
             $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
-            $mform->addElement('select', 'iCurrency',get_string('stipendgiver:typeofcurrency','sloodle'),$pTypes);
+            $mform->addElement('select', 'icurrency',get_string('stipendgiver:typeofcurrency','sloodle'),$pTypes);
             $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
             break;
         
@@ -275,9 +275,9 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             
-            // Add in the amount and purpose of the giver
+            // Add in the amount and currency of the ibank
             $default_values['stipendgiver_amount'] = $stipendgiver->amount;
-            $default_values['iCurrency'] = $stipendgiver->iCurrency;
+            $default_values['icurrency'] = $stipendgiver->icurrency;
             
             
             break;
@@ -321,7 +321,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         $errors = array();
     
         // Check which type is being used
-        switch ($data['type']) {
+switch ($data['type']) {
         
         case SLOODLE_TYPE_CTRL:
             // Check that the prim password is OK
