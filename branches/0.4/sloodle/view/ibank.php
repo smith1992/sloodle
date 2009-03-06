@@ -33,7 +33,7 @@ require_once(SLOODLE_LIBROOT.'/general.php');
 * Class for rendering a view of a Distributor module in Moodle.
 * @package sloodle
 */
-class sloodle_view_iBank extends sloodle_base_view_module
+class sloodle_view_ibank extends sloodle_base_view_module
 {
     
     /**

@@ -168,7 +168,7 @@ $string['moduletype:controller'] = 'SLOODLE Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
-$string['moduletype:iBank'] = 'iBank'; 
+$string['moduletype:ibank'] = 'iBank'; 
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
