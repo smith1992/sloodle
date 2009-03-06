@@ -412,5 +412,6 @@ $string['stipendgiver:totalipoints']='Total iPoints';
 $string['stipendgiver:totalawarded']='Total Awarded';   
 $string['stipendgiver:iPoints']='iPoints';    
 $string['stipendgiver:scoreboard']='iPoint Scoreboard';                   
+$string['stipendgiver:noneregistered']='No avatars registered in SLOODLE';  
 $string['stipendgiver:alreadywd2']=' You can not choose a lower allotment unless that user\'s avatar pays the stipend giver to credit their account'; 
 

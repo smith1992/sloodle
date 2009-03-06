@@ -486,6 +486,10 @@ class sloodle_view_iBank extends sloodle_base_view_module
                                             }
                                      //print avs that made transactions, but no longer are registered to this user
                                     $avs= $this->addCommas($deletedAvs);
+                                 } else {
+                                     
+                                     $debits = $transAmount;
+                                     $avs = get_string('stipendgiver:noneregistered','sloodle');
                                  }
                                
                                }
