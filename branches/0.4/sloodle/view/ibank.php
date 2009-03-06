@@ -644,31 +644,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
  function getRenderMessage(){
     return $this->renderMessage;
  }
-
-function destroy(){
-    //debugging only
-                      //test file to access db and play with forms
-        $dbtype  = 'mysql';
-        $dbhost    = 'localhost';
-        $dbname    = 'eslteach_moodle';
-        $dbuser    = 'eslteach_moodle';
-        $dbpass    = 'evkingmoodle555';
           
-          //connect to db
-          $con = mysql_connect("localhost",$dbuser,$dbpass);
-        if (!$con)
-          {
-          die('Could not connect: ' . mysql_error());
-          }
-          //use databse
-          mysql_select_db($dbname);
-          
-        $result = mysql_query("TRUNCATE TABLE `mdl_sloodle_stipendgiver_trans`");
-               
-
-        mysql_close($con);    
-    
-    } 
 }
 
           

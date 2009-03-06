@@ -88,7 +88,7 @@
     define('SLOODLE_TYPE_DISTRIB', 'distributor');
     define('SLOODLE_TYPE_PRESENTER', 'presenter');
     define('SLOODLE_TYPE_MAP', 'map');
-    define('SLOODLE_TYPE_IBANK', 'iBank');
+    define('SLOODLE_TYPE_IBANK', 'ibank');
     
     // Store the types in an array (used in lists)
     global $SLOODLE_TYPES;   
