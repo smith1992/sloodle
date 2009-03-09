@@ -925,6 +925,7 @@
         // Go through each object to parse names and version numbers.
         // Object names should have format "name-version" (e.g. "chat-1.0").
         // We will skip anything that does not match this format.
+        // We will also skip anything with a "noshow" file in the folder.
         $mods = array();
         foreach ($dirs as $d) {
             if (empty($d)) continue;
@@ -932,6 +933,9 @@
             // Parse the object identifier
             list($name, $version) = sloodle_parse_object_identifier($d);
             if (empty($name) || empty($version)) continue;
+
+            // Check if there's a noshow file
+            if (file_exists("{$MODPATH}/{$d}/noshow")) continue;
             
             // Check if this object has a configuration script
             $cfgscript = "$MODPATH/$d/object_config.php";
