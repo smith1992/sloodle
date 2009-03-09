@@ -226,9 +226,11 @@ $string['object:pwreset'] = 'Password Reset';
 $string['object:quiz'] = 'Quiz Chair';
 $string['object:quiz_pile_on'] = 'Quiz Pile-On';
 $string['object:regbooth'] = 'Registration Booth';
+$string['object:regenrolbooth'] = 'Registration/Enrolment Booth';
 $string['object:set'] = 'SLOODLE Set';
 $string['object:demo'] = 'SLOODLE Demo Object';
 $string['object:stipendgiver'] = 'Stipend Giver';
+$string['object:ibank'] = 'iBank';
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
 
