@@ -102,8 +102,15 @@
             break;
             
         case SLOODLE_TYPE_PRESENTER:
-            // Nothing extra to do 
-            $result = TRUE;
+            // Add in the dimensions of the frame
+            $sec_table->framewidth = (int)$sloodle->presenter_framewidth;
+            $sec_table->frameheight = (int)$sloodle->presenter_frameheight;
+            // Attempt to add it to the database
+            if (!insert_record('sloodle_presenter', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
             break;
 
         case SLOODLE_TYPE_MAP:
@@ -215,7 +222,17 @@
             break;
             
         case SLOODLE_TYPE_PRESENTER:
-            // Nothing extra to do 
+            // Attempt to fetch the Presenter record
+            $presenter = get_record('sloodle_presenter', 'sloodleid', $sloodle->id);
+            if (!$presenter) error(get_string('secondarytablenotfound', 'sloodle'));
+
+            // Add the updated frame dimensions
+            $presenter->framewidth = (int)$sloodle->presenter_framewidth;
+            $presenter->frameheight = (int)$sloodle->presenter_frameheight;
+
+            // Update the database
+            update_record('sloodle_presenter', $presenter); 
+
             break;
 
         case SLOODLE_TYPE_IBANK:

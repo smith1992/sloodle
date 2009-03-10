@@ -65,7 +65,11 @@ list locstrings = [
     "layoutcaption:saving", "Saving...",
     "layoutcaption:savingas", "Saving As...",
     "layoutcaption:loading", "Loading...",
-    "layoutcaption:layout", "Current Layout:\n{{0}}" // Parameter: name of layout
+    "layoutcaption:layout", "Current Layout:\n{{0}}", // Parameter: name of layout
+
+    
+    // Recycle bin
+    "confirmclearup", "Are you sure you want to delete all the SLOODLE objects you have rezzed?\n\n{{0}} = No\n{{1}} = Yes" // parameters: button labels
     
 ];
 

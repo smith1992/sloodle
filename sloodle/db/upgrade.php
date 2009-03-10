@@ -612,8 +612,55 @@ function xmldb_sloodle_upgrade($oldversion=0) {
                 $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
                 $result = $result && create_table($table);
      }
+
+    // Add a name field to the Presenter entries.
+    if ($result && $oldversion < 2009011002) {
+    /// Define field name to be added to sloodle_presenter_entry
+        $table = new XMLDBTable('sloodle_presenter_entry');
+        $field = new XMLDBField('name');
+        $field->setAttributes(XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null, 'sloodleid');
+
+    /// Launch add field name
+        $result = $result && add_field($table, $field);
+    }
+
+    // Add the SLOODLE Presenter table (we previously only had entries, but no data about the Presenter itself.)
+    if ($result && $oldversion < 2009031003) {
+
+    /// Define table sloodle_presenter to be created
+        $table = new XMLDBTable('sloodle_presenter');
+
+    /// Adding fields to table sloodle_presenter
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, null);
+        $table->addFieldInfo('framewidth', XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, null, null, null, null, '512');
+        $table->addFieldInfo('frameheight', XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, null, null, null, null, '512');
+
+    /// Adding keys to table sloodle_presenter
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKeyInfo('sloodleid', XMLDB_KEY_UNIQUE, array('sloodleid'));
+
+    /// Launch create table for sloodle_presenter
+        $result = $result && create_table($table);
+        if (!$result) return $result;
+
+        // For sake of people who installed a test version of SLOODLE 0.4, we need to automatically create secondary Presenter instances.
+        // These would normally be created when creating an instance of the module, but this table didn't exist during test versions.
+        // Go through all SLOODLE modules with type "Presenter" and add an empty secondary entry on their behalf, with default values.
+        $sloodlerecords = get_records('sloodle', 'type', 'presenter');
+        if (!$sloodlerecords) $sloodlerecords = array();
+        foreach ($sloodlerecords as $sr) {
+            // Construct a default presenter instance for it
+            $presenterrecord = new stdClass();
+            $presenterrecord->sloodleid = $sr->id;
+            insert_record('sloodle_presenter', $presenterrecord);
+        }
+
+    }
+
+
+
   return $result; 
 }
 
 ?>
-

@@ -77,10 +77,13 @@ class sloodle_view_distributor extends sloodle_base_view_module
         // // SEND OBJECT // //
         
         // If the user and object parameters are set, then try to send an object
-        $send_user = optional_param('user', '', PARAM_TEXT);
-        $send_object = optional_param('object', '', PARAM_TEXT);
+        if (isset($_REQUEST['user'])) $send_user = $_REQUEST['user'];
+        if (isset($_REQUEST['object'])) $send_object = $_REQUEST['object'];
         if (!empty($send_user) && !empty($send_object)) {
-            $send_object = stripslashes(stripslashes(html_entity_decode($send_object))); // Painful... but must be done!
+
+            // Convert the HTML entities back again
+            $send_object = htmlentities(stripslashes($send_object));
+
             // Construct and send the request
             $request = "1|OK\\nSENDOBJECT|$send_user|$send_object";
             $ok = sloodle_send_xmlrpc_message($this->distributor->channel, 0, $request);
@@ -116,8 +119,8 @@ class sloodle_view_distributor extends sloodle_base_view_module
         // Construct the selection box of items
         $selection_items = '<select name="object" size="1">';
         foreach ($entries as $e) {
-            $escapedname = htmlentities($e->name);
-            $selection_items .= "<option value=\"{$escapedname}\">".stripslashes($escapedname)."</option>\n";
+            $escapedname = stripslashes($e->name);
+            $selection_items .= "<option value=\"{$e->name}\">{$escapedname}</option>\n";
         }
         $selection_items .= '</select>';
         
@@ -127,18 +130,23 @@ class sloodle_view_distributor extends sloodle_base_view_module
         // Construct the selection box of avatars
         $selection_avatars = '<select name="user" size="1">';
         foreach ($avatars as $a) {
-            if (!empty($a->uuid)) {
-                $sel = '';
-                if ($a->avname == $defaultavatar) $sel = 'selected="true"';
-                $selection_avatars .= "<option value=\"{$a->uuid}\" $sel>{$a->avname}</option>\n";
-            }
+            // Skip avatars who do not have a UUID or associated Moodle account
+            if (empty($a->uuid) || empty($a->userid)) continue;
+            // Make sure the associated Moodle user can view the current course
+            if (!has_capability('moodle/course:view', $this->course_context, $a->userid)) continue;
+            // Make sure the associated Moodle user does not have a guest role
+            if (has_capability('moodle/legacy:guest', $this->course_context, $a->userid, false)) continue;
+
+            $sel = '';
+            if ($a->avname == $defaultavatar) $sel = 'selected="true"';
+            $selection_avatars .= "<option value=\"{$a->uuid}\" $sel>{$a->avname}</option>\n";
         }
         $selection_avatars .= '</select>';
         
 
         // There will be 3 forms:
         //  - send to self
-        //  - send to another avatar on the site
+        //  - send to another avatar on the course
         //  - send to custom UUID
         // The first 1 will be available to any registered user whose avatar is in the database.
         // The other 2 will only be available to those with the activity management capability.

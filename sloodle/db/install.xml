@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/sloodle/db" VERSION="20090207" COMMENT="XMLDB file for Sloodle"
+<XMLDB PATH="mod/sloodle/db" VERSION="20090310" COMMENT="XMLDB file for Sloodle"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -247,48 +247,65 @@
       </INDEXES>
     </TABLE>
     <TABLE NAME="sloodle_stipendgiver" COMMENT="sloodle_stipendgiver table retrofitted from MySQL" PREVIOUS="sloodle_user_object" NEXT="sloodle_ipoint_trans">
-    <FIELDS>
-    <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
-    <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="enabled"/>
-    <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="amount"/>
-    <FIELD NAME="amount" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="icurrency"/>
-    <FIELD NAME="icurrency" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="Lindens" SEQUENCE="false" ENUM="false" PREVIOUS="amount" NEXT="purpose"/>
-    <FIELD NAME="purpose" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="icurrency" NEXT="date"/>
-    <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="purpose"/>
-    </FIELDS>
-
-    <KEYS>
-    <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-    </KEYS>
-
-    <INDEXES>
-    <INDEX NAME="mdl_sloostip_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
-    </INDEXES>
-    </TABLE>
-         <TABLE NAME="sloodle_ipoint_trans" COMMENT="sloodle_ipoint_trans table retrofitted from MySQL" PREVIOUS="sloodle_stipendgiver" NEXT="sloodle_presenter_entry">
-    <FIELDS>
-    <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
-    <FIELD NAME="sloodleid" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avuuid"/>
-    <FIELD NAME="avuuid" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="userid"/>
-    <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="avuuid" NEXT="avname"/>
-    <FIELD NAME="avname" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="itype"/>
-    <FIELD NAME="itype" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avname" NEXT="amount"/>
-    <FIELD NAME="amount" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="itype" NEXT="idata"/>
-    <FIELD NAME="idata" TYPE="char" LENGTH="80" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="amount" NEXT="timemodified"/>
-    <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="idata"/>
-    </FIELDS>
-    <KEYS>
-    <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-    </KEYS>
-    <INDEXES>
-    <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
-    </INDEXES>                        d
-    </TABLE>
-    <TABLE NAME="sloodle_presenter_entry" COMMENT="sloodle_presenter_entry table retrofitted from MySQL" PREVIOUS="sloodle_ipoint_trans">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
-        <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="source"/>
-        <FIELD NAME="source" TYPE="text" LENGTH="medium" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="type"/>
+        <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="enabled"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="amount"/>
+
+        <FIELD NAME="amount" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="icurrency"/>
+        <FIELD NAME="icurrency" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="Lindens" SEQUENCE="false" ENUM="false" PREVIOUS="amount" NEXT="purpose"/>
+        <FIELD NAME="purpose" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="icurrency" NEXT="date"/>
+        <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="purpose"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+
+        <INDEX NAME="mdl_sloostip_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="sloodle_ipoint_trans" COMMENT="sloodle_ipoint_trans table retrofitted from MySQL" PREVIOUS="sloodle_stipendgiver" NEXT="sloodle_presenter">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
+        <FIELD NAME="sloodleid" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avuuid"/>
+        <FIELD NAME="avuuid" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="avuuid" NEXT="avname"/>
+
+        <FIELD NAME="avname" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="itype"/>
+        <FIELD NAME="itype" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="avname" NEXT="amount"/>
+        <FIELD NAME="amount" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="itype" NEXT="idata"/>
+        <FIELD NAME="idata" TYPE="char" LENGTH="80" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="amount" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="idata"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+
+      <INDEXES>
+        <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="sloodle_presenter" COMMENT="Each record stores data about a Presenter instance." PREVIOUS="sloodle_ipoint_trans" NEXT="sloodle_presenter_entry">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
+        <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Indicates which SLOODLE module instance this Presenter information relates to." PREVIOUS="id" NEXT="framewidth"/>
+        <FIELD NAME="framewidth" TYPE="int" LENGTH="4" NOTNULL="false" UNSIGNED="true" DEFAULT="512" SEQUENCE="false" ENUM="false" COMMENT="Indicates the width of the frame for displaying content in Moodle." PREVIOUS="sloodleid" NEXT="frameheight"/>
+
+        <FIELD NAME="frameheight" TYPE="int" LENGTH="4" NOTNULL="false" UNSIGNED="true" DEFAULT="512" SEQUENCE="false" ENUM="false" COMMENT="Indicates the height of the frame for displaying content in Moodle." PREVIOUS="framewidth"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="sloodleid"/>
+        <KEY NAME="sloodleid" TYPE="unique" FIELDS="sloodleid" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="sloodle_presenter_entry" COMMENT="sloodle_presenter_entry table retrofitted from MySQL" PREVIOUS="sloodle_presenter">
+      <FIELDS>
+
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
+        <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="name"/>
+        <FIELD NAME="name" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" ENUM="false" COMMENT="Specifies the name for this entry in the presentation." PREVIOUS="sloodleid" NEXT="source"/>
+        <FIELD NAME="source" TYPE="text" LENGTH="medium" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="name" NEXT="type"/>
         <FIELD NAME="type" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="web" SEQUENCE="false" ENUM="false" PREVIOUS="source" NEXT="ordering"/>
         <FIELD NAME="ordering" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="type"/>
       </FIELDS>
@@ -301,8 +318,6 @@
         <INDEX NAME="mdl_sloopresentr_typ_ix" UNIQUE="false" FIELDS="type" PREVIOUS="mdl_sloopresentr_slo_ix"/>
       </INDEXES>
     </TABLE>
-      
   </TABLES>
-              
-
 </XMLDB>
+
