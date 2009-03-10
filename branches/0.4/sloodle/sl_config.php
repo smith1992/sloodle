@@ -98,7 +98,7 @@
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
     //$SLOODLE_TYPES[] = SLOODLE_TYPE_MAP; // disabled for 0.4
-    $SLOODLE_TYPES[] = SLOODLE_TYPE_IBANK;  
+    //$SLOODLE_TYPES[] = SLOODLE_TYPE_IBANK;  MOVED TO 0.4.1
     
     
 //---------------------------------------------------------------------
