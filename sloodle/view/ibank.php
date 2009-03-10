@@ -233,7 +233,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
         //STEP 1 - HAS THE DEFAULT STIPEND AMOUNT BEEN ALLOCATED TO EVERY USER?       
         //======================== creates initial default stipend records for all users 
         //if no transactions exist        
-
+        $this->userList = $this->sCourseObj->getUserList();
         if (!$this->stipendGiverObj->getTransactionRecords()) {
               //create stipend transactions for each student!
               //get student list
@@ -241,7 +241,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
                //for each user in the class insert a transaction record with following values:
                //avuuid,userid,avname,amount,type,timemodified
              
-             foreach ($this->sCourseObj->getUserList() as $u){ 
+             foreach ($this->userList as $u){ 
              //Ipoints can be various types - ie: real lindens, or just points.                         
                     $iTransaction = new stdClass();
                     $iTransaction->userid       = $u->id;
