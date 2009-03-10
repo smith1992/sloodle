@@ -40,6 +40,14 @@
         */
         var $sloodle_instance = null;
 
+        /**
+        * Internal only - a database objects representing the Presenter itself.
+        * Corresponds to one record from the Moodle 'mdl_sloodle_presenter' table.
+        * @var object
+        * @access private
+        */
+        var $presenter = null;
+
                 
         
     // FUNCTIONS //
@@ -81,6 +89,12 @@
                 sloodle_debug("Failed to load Sloodle module with instance ID #{$cm->instance}.<br/>");
                 return false;
             }
+
+            // Load from the secondary table: sloodle_presenter
+            if (!($this->presenter = get_record('sloodle_presenter', 'sloodleid', $this->cm->instance))) {
+                sloodle_debug("Failed to load secondary module table with instance ID #{$cm->instance}.<br/>");
+                return false;
+            }
             
             return true;
         }
@@ -88,7 +102,7 @@
         
         /**
         * Gets an array of absolute URLs to images in this slideshow, all correctly ordered.
-        * @return 2d numeric array, each element associates an entry ID to a numeric array of URL string and the name of the source type
+        * @return 2d numeric array, each element associates an entry ID to a numeric array of URL string, the name of the source type, and the name of the slide.
         */
         function get_entry_urls()
         {
@@ -100,7 +114,7 @@
             foreach ($recs as $r) {
                 // TODO: Ultimately, we'll determine the type of entry, and construct an absolute URL for any internal Moodle resources.
                 // For now, however, we'll just deal with absolute URLs.
-                $output[$r->id] = array($r->source, $r->type);
+                $output[$r->id] = array($r->source, $r->type, $r->name);
             }
             return $output;
         }
@@ -109,15 +123,17 @@
         * Adds a new entry to the presentation.
         * @param string $source A string containing the source address -- must start with http for absolute URLs
         * @param string $type Name of the type of source, e.g. "web", "image", or "video"
+        * @param string $name Name of the slide
         * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
         * @return True if successful, or false on failure.
         */
-        function add_entry($source, $type, $position = -1)
+        function add_entry($source, $type, $name, $position = -1)
         {
             // Construct and attempt to insert the new record
             $rec = new stdClass();
             $rec->sloodleid = $this->sloodle_instance->id;
             $rec->source = $source;
+            $rec->name = $name;
             $rec->type = $type;
             if ($position < 0) {
                 $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
@@ -182,6 +198,24 @@
                 update_record('sloodle_presenter_entry', $entry);
                 $ordering += 10;
             }
+        }
+
+        /**
+        * Gets the width of the Presenter frame (for viewing in Moodle).
+        * @return int Width of the Presenter frame.
+        */
+        function get_frame_width()
+        {
+            return (int)$this->presenter->framewidth;
+        }
+
+        /**
+        * Gets the height of the Presenter frame (for viewing in Moodle).
+        * @return int Height of the Presenter frame.
+        */
+        function get_frame_height()
+        {
+            return (int)$this->presenter->frameheight;
         }
         
     // ACCESSORS //

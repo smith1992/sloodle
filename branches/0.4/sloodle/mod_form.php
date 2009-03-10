@@ -160,7 +160,16 @@ class mod_sloodle_mod_form extends moodleform_mod {
         
             // Add the type-specific Header
             $mform->addElement('header', 'typeheader', $sloodletypefull);
+
+            // Add boxes to enter the size of the frame
+            $mform->addElement('text', 'presenter_framewidth', get_string('framewidth', 'sloodle').': ', array('size'=>'4'));
+            $mform->addRule('presenter_framewidth', null, 'numeric', null, 'client');
+            $mform->setDefault('presenter_framewidth', 512);
             
+            $mform->addElement('text', 'presenter_frameheight', get_string('frameheight', 'sloodle').': ', array('size'=>'4'));
+            $mform->addRule('presenter_frameheight', null, 'numeric', null, 'client');
+            $mform->setDefault('presenter_frameheight', 512);
+
             break;
 
 
@@ -271,7 +280,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             break;
 
         case SLOODLE_TYPE_IBANK:
-            // Fetch the controller record
+            // Fetch the stipend giver record
             $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             
@@ -283,6 +292,14 @@ class mod_sloodle_mod_form extends moodleform_mod {
             break;
 
         case SLOODLE_TYPE_PRESENTER:
+            // Fetch the Presenter record.
+            $presenter = get_record('sloodle_presenter', 'sloodleid', $this->_instance);
+            if (!$presenter) error(get_string('secondarytablenotfound', 'sloodle'));
+
+            // Add in the dimensions of the frame
+            $default_values['presenter_framewidth'] = (int)$presenter->framewidth;
+            $default_values['presenter_frameheight'] = (int)$presenter->frameheight;
+
             break;
 
         case SLOODLE_TYPE_MAP:

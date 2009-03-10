@@ -448,8 +448,9 @@ state connecting
                 sloodle_show_command_dialog(id);
                 sloodle_add_cmd_dialog(id, 0);
             } else {
-                // Inform the user that they do not have permission
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llKey2Name(id)], NULL_KEY, "");
+                // Simply attempt to re-establish a connection with the server
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "establishingconnection", [llKey2Name(id)], NULL_KEY, "distributor");
+                state reconnect;
             }
         }
     }
@@ -480,7 +481,7 @@ state connecting
     
     timer()
     {
-        sloodle_purge_cmd_dialog();
+        state default;
     }
     
     http_response(key request_id, integer status, list metadata, string body)
@@ -789,4 +790,5 @@ state shutdown
         sloodle_purge_cmd_dialog();
     }
 }
+
 

@@ -1,7 +1,8 @@
-// Sloodle Registration Booth (for Sloodle 0.3)
-// Allows users to touch a panel to do manual registration of their avatar.
+// Sloodle Registration / Enrolment Booth (for Sloodle 0.4)
+// Allows users to touch a panel to do manual registration of their avatar,
+//  and/or enrolment of their Moodle account.
 //
-// Copyright (c) 2007-8 Sloodle
+// Copyright (c) 2007-9 Sloodle
 // Released under the GNU GPL
 //
 // Contributors:
@@ -12,7 +13,7 @@
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_EOF = "sloodleeof";
 
-string SLOODLE_OBJECT_TYPE = "regbooth-1.0";
+string SLOODLE_OBJECT_TYPE = "regenrolbooth-1.0";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
@@ -176,7 +177,7 @@ state ready
             if (sloodle_check_access_use(id)) {
                 // Was it the panel that was touched?
                 touched = llGetLinkName(llDetectedLinkNumber(i));
-                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reg|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
+                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:regenrol|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }

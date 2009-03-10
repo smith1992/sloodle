@@ -359,7 +359,7 @@ state ready
     {
         // Activating this requires access permission
         if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "");
             return;
         }
     
@@ -662,5 +662,6 @@ state logging
         }
     }
 }
+
 
 

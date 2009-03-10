@@ -97,18 +97,25 @@
                 sloodle_debug("Failed to load choice with instance ID #{$cm->instance}.<br/>");
                 return false;
             }
-            
+
             // Fetch options
             $this->options = array();
             if ($options = get_records('choice_options', 'choiceid', $this->moodle_choice_instance->id)) {
+                // Get response data (this uses the standard choice function, in "moodle/mod/choice/lib.php")
+                $allresponses = choice_get_response_data($this->moodle_choice_instance, $this->cm, 0);
+
                 foreach ($options as $opt) {
                     // Create our option object and add our data
                     $this->options[$opt->id] = new SloodleChoiceOption();
                     $this->options[$opt->id]->id = $opt->id;
                     $this->options[$opt->id]->text = $opt->text;
                     $this->options[$opt->id]->maxselections = $opt->maxanswers;
-                    $this->options[$opt->id]->numselections = (int)count_records('choice_answers', 'optionid', $opt->id);
                     $this->options[$opt->id]->timemodified = (int)$opt->timemodified;
+
+                    // Count the number of selections made
+                    $numsels = 0;
+                    if (isset($allresponses[$opt->id])) $numsels = count($allresponses[$opt->id]);
+                    $this->options[$opt->id]->numselections = $numsels;
                 }
             }
             

@@ -144,7 +144,7 @@ class sloodle_base_view_module extends sloodle_base_view
             $editbuttons = update_module_button($this->cm->id, $this->course->id, get_string('modulename', 'sloodle'));
         }
         // Display the header
-        $navigation = "<a href=\"index.php?{$this->course->id}\">".get_string('modulenameplural','sloodle')."</a> ->";
+        $navigation = "<a href=\"index.php?id={$this->course->id}\">".get_string('modulenameplural','sloodle')."</a> ->";
         print_header_simple(format_string($this->sloodle->name), "", "{$navigation} ".format_string($this->sloodle->name), "", "", true, $editbuttons, navmenu($this->course, $this->cm));
 
         // Display the module name

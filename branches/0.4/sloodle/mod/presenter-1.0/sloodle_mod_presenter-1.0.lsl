@@ -23,7 +23,7 @@ string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 integer sloodlemoduleid = 0;
-integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
+integer sloodleobjectaccesslevelctrl = 1; // Who can control this object?
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
@@ -31,6 +31,7 @@ integer eof = FALSE; // Have we reached the end of the configuration data?
 key httpentries = NULL_KEY; // Request for list of entries
 list entrytypes = []; // List of current entry types
 list entryurls = []; // List of current entry URLs
+list entrynames = []; // List of current entry names
 integer currententry = 0; // Array ID identifying which entry in the lists (entrytypes and entryurls) we are currently viewing
 
 
@@ -124,10 +125,8 @@ update_image_display()
 
     // Set the parcel media
     llParcelMediaCommandList([
-        PARCEL_MEDIA_COMMAND_STOP,
-        PARCEL_MEDIA_COMMAND_TYPE, type, 
-        PARCEL_MEDIA_COMMAND_URL, llList2String(entryurls, currententry),
-        PARCEL_MEDIA_COMMAND_PLAY
+        PARCEL_MEDIA_COMMAND_TYPE, type,
+        PARCEL_MEDIA_COMMAND_URL, llList2String(entryurls, currententry)
     ]);
 }
 
@@ -135,8 +134,8 @@ update_image_display()
 next_image()
 {
     currententry = ((currententry + 1) % llGetListLength(entryurls));
-    update_image_display();
     sloodle_update_hover_text();
+    update_image_display();
 }
 
 // Move to the previous image
@@ -144,14 +143,15 @@ previous_image()
 {
     currententry = currententry - 1;
     if (currententry < 0) currententry = llGetListLength(entryurls) - 1;
-    update_image_display();
     sloodle_update_hover_text();
+    update_image_display();
 }
 
 // Update the hover text to indicate which image is being displayed
 sloodle_update_hover_text()
 {
-    llSetText("Showing image " + (string)(currententry + 1) + " of " + (string)llGetListLength(entryurls), <0.0, 1.0, 0.0>, 1.0);
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "showingentryname", [(currententry + 1), llGetListLength(entryurls), llList2String(entrynames, currententry)], NULL_KEY, "presenter");
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "showingentryurl", [(currententry + 1), llGetListLength(entryurls), llList2String(entryurls, currententry)], NULL_KEY, "presenter");
 }
 
 
@@ -216,7 +216,7 @@ state requestdata
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
         
-        llSetText("Requesting list of images...", <0.0, 0.0, 1.0>, 0.8);
+        llSetText("Requesting list of entries...", <0.0, 0.0, 1.0>, 0.8);
         httpentries = llHTTPRequest(sloodleserverroot + SLOODLE_SLIDESHOW_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         llSetTimerEvent(8.0);
     }
@@ -229,7 +229,7 @@ state requestdata
     
     timer()
     {
-        llSay(0, "Timeout waiting for list of images");
+        llSay(0, "Timeout waiting for list of entries");
         state error;
     }
     
@@ -276,13 +276,15 @@ state requestdata
         // Add each line to our lists of entries
         entryurls = [];
         entrytypes = [];
+        entrynames = [];
         integer i = 0;
         list fields = [];
         for (i = 1; i < numlines; i++) {
             fields = llParseString2List(llList2String(lines, i), ["|"], []);
-            if (llGetListLength(fields) >= 2) {
+            if (llGetListLength(fields) >= 3) {
                 entrytypes += [llList2String(fields, 0)];
                 entryurls += [llList2String(fields, 1)];
+                entrynames += [llList2String(fields, 2)];
             }
         }
         
@@ -294,7 +296,8 @@ state error
 {
     state_entry()
     {
-        llSetText("Error state - touch me to reset", <1.0, 0.0, 0.0>, 1.0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.0, 0.0>, 1.0], "errorstate", [], NULL_KEY, "presenter");
+        
     }
     
     state_exit()

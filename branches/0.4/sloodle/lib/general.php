@@ -1006,4 +1006,26 @@
         return true;
     } 
 
+    /**
+    * Returns the given string, 'cleaned' and ready for output to SL as UTF-8.
+    * Removes tags and slash-characters.
+    * @param string str The string to clean.
+    * @return string
+    */
+    function sloodle_clean_for_output($str)
+    {
+        return strip_tags(stripcslashes(html_entity_decode($str, ENT_QUOTES, 'UTF-8')));
+    }
+
+    /**
+    * Returns the given string, 'cleaned' and ready for storage in the database.
+    * Note: removes tags and slash-characters.
+    * @param string str The string to clean.
+    * @return string
+    */
+    function sloodle_clean_for_db($str)
+    {
+        return htmlentities($str, ENT_QUOTES, 'UTF-8');
+    }
+
 ?>

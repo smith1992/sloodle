@@ -97,6 +97,7 @@ $string['deletionsuccessful'] = 'Deletion successful';
 $string['disabled'] = 'Disabled';
 $string['day'] = 'day';
 $string['days'] = 'days';
+$string['directlink'] = 'Click here for a direct link to this entry.';
 
 $string['deleteuserobjects'] = 'Delete User Objects';
 $string['deleteuserobjects:help'] = 'Click this button to delete all the user objects associated with the above avatar(s)';
@@ -116,6 +117,9 @@ $string['failedaddinstance'] = 'Failed to add a new SLOODLE module instance.';
 $string['failedaddsecondarytable'] = 'Failed to add the secondary table for the SLOODLE module instance.';
 $string['failedcourseload'] = 'Failed to load SLOODLE course data.';
 $string['failedauth-trydifferent'] = 'Failed to authorise the object. Please try a different controller.';
+
+$string['framewidth'] = 'Frame Width';
+$string['frameheight'] = 'Frame Height';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
 $string['generalconfiguration'] = 'General Configuration';
@@ -169,6 +173,7 @@ $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
 $string['moduletype:ibank'] = 'iBank'; 
+$string['moduletype:stipendgiver'] = 'Stipend Giver';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
@@ -258,6 +263,7 @@ $string['objectname'] = 'Object Name';
 $string['objectuuid'] = 'Object UUID';
 $string['objecttype'] = 'Object Type';
 
+$string['of'] = 'of';
 $string['or'] = 'or';
 
 $string['postedfromsl'] = 'Posted from Second Life';
@@ -268,6 +274,14 @@ $string['pendingavatars'] = 'Pending Avatars';
 
 $string['playsounds'] = 'Play sounds?';
 $string['position'] = 'Position';
+
+$string['presenter:edit'] = 'Edit Presentation';
+$string['presenter:viewanddelete']  = 'View and delete entries';
+$string['presenter:add'] = 'Add entry';
+
+$string['presenter:type:image'] = 'Image';
+$string['presenter:type:video'] = 'Video';
+$string['presenter:type:web'] = 'Web';
 
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
@@ -345,6 +359,8 @@ $string['storedlayouts'] = 'Stored Layouts';
 $string['submit'] = 'Submit';
 
 $string['timeago'] = '$a ago'; // $a = period of time, e.g. "3 weeks"
+$string['type'] = 'Type';
+$string['trydirectlink'] = 'If you cannot see the above entry, try this <a href=\"$a\">direct link</a> instead.';
 
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
@@ -358,12 +374,16 @@ $string['userobjectlifetime'] = 'User object lifetime (days)';
 $string['userobjectlifetime:info'] = 'The number of days before which a user-centric object (such as the Toolbar) will expire if not used.';
 $string['userobjectauth'] = 'SLOODLE User Object Authorization';
 $string['usedialogs'] = 'Use dialogs (instead of chat)?';
+$string['url']  = 'URL';
+$string['unknowntype'] = 'Unknown type';
 
 $string['uuid'] = 'UUID';
 
 $string['viewpending'] = 'View pending avatars';
 $string['viewall'] = 'View all avatars';
 $string['viewmyavatar'] = 'View my avatar details';
+$string['viewprev'] = 'View previous entry';
+$string['viewnext'] = 'View next entry';
 
 $string['welcometosloodle'] = 'Welcome to SLOODLE';
 $string['week'] = 'week';

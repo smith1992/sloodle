@@ -493,6 +493,8 @@
             }
             // Store it if it is valid
             if ($valid) {
+                // Remove line separators
+                $par = str_replace(array($this->line_separator, "\r"), ' ', $par); // We'll remove carriage returns, as they screw everything up... thanks to Microsoft...
                 $this->data[] = $par;
             }
         }
