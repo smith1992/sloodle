@@ -139,24 +139,29 @@ global $CFG;
       }
       
       function getUserList(){
-       
+          global $COURSE;
            //get all the users from the users table in the moodle database   
            $fullUserList = get_users(true, '');
             
            if (!$fullUserList) $fullUserList = array();
            $uList = array();
           
-           
+             $context = get_record('context','instanceid',$this->cm->id);         
            // Filter it down to members of the course
            foreach ($fullUserList as $ful) {
                 //get context of the course
                 // Is this user on this course?
-                                           
-            
-              $context = get_record('context','instanceid',$this->cm->id); 
+                 $is_enrolled=false;                                           
+                 $my_courses = $courses = get_my_courses($ful->id, 'visible DESC,sortorder ASC', '*', false, 0);
+                 foreach($my_courses as $myc){
+                     if ($myc->id==$COURSE->id) 
+                        $is_enrolled = true;
+                     
+                 }
+             
              
 
-                if (has_capability('moodle/course:view',$context, $ful->id)) {
+                if ($is_enrolled) {
                     
 
                     // Copy it to our filtered list and exclude administrators
