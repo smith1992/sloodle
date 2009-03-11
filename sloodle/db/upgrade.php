@@ -434,7 +434,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     }
 
     // Add a name field to the Presenter entries.
-    if ($result && $oldversion < 2009011002) {
+    if ($result && $oldversion < 2009031002) {
     /// Define field name to be added to sloodle_presenter_entry
         $table = new XMLDBTable('sloodle_presenter_entry');
         $field = new XMLDBField('name');
