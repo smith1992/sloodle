@@ -152,18 +152,16 @@ global $CFG;
                 //get context of the course
                 // Is this user on this course?
                  $is_enrolled=false;                                           
-                 $my_courses = $courses = get_my_courses($ful->id, 'visible DESC,sortorder ASC', '*', false, 0);
-                 foreach($my_courses as $myc){
-                     if ($myc->id==$COURSE->id) 
-                        $is_enrolled = true;
-                     
+                 $my_courses =  get_my_courses($ful->id, 'visible DESC,sortorder ASC', '*', false, 0);
+                 if ($my_courses){
+                     foreach($my_courses as $myc){
+                         if ($myc->id==$COURSE->id) 
+                            $is_enrolled = true;
+                         
+                     }
                  }
-             
-             
 
                 if ($is_enrolled) {
-                    
-
                     // Copy it to our filtered list and exclude administrators
                //  if (!isadmin($ful->id)){     
                  //now add sloodle data to ful array
