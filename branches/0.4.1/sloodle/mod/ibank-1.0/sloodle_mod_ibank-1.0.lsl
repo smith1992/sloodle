@@ -35,7 +35,7 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 string     SLOODLE_OBJECT_TYPE = "iBank-1.0";
 // This string identifies the location of the linker script relative to this Moodle root
-string SLOODLE_IBANK_LINKER = "/mod/sloodle/mod/iBank-1.0/linker.php"; 
+string SLOODLE_IBANK_LINKER = "/mod/sloodle/mod/ibank-1.0/linker.php"; 
 // These are common configuration settings
 string sloodleserverroot = "";
 string sloodlepwd = "";
@@ -113,7 +113,7 @@ integer currentMenuIndex=0;
 // ******************************************************************************************************
 //this is for developers.  set to OFF when finished debugging
 debugMessage(string message){
-  // if (debug==ON) llOwnerSay(" ~~~StipendGiver_mod script debug message ~~~ " + message);
+ if (debug==ON) llOwnerSay(" ~~~StipendGiver_mod script debug message ~~~ " + message);
 }
 integer random_integer( integer min, integer max )
 {
@@ -226,7 +226,7 @@ integer sendCommand(string command, string data,key senderUuid){
         // Now send the data
         
         debugMessage("httpscript: Freemem: " + (string)llGetFreeMemory());
-        debugMessage("HttpScript:  sending this to linker.php\n"+body);
+        debugMessage("HttpScript:  sending this to linker.php\n"+sloodleserverroot + SLOODLE_IBANK_LINKER+ body);
         http = llHTTPRequest(sloodleserverroot + SLOODLE_IBANK_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         llSetTimerEvent(10.0);
         return 0;
