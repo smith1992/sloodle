@@ -1,4 +1,4 @@
-// Sloodle WebIntercom (for Sloodle 0.3)
+// Sloodle WebIntercom (for Sloodle 0.4)
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)
 //
@@ -211,6 +211,17 @@ sloodle_start_recording_agent(key id)
     // Announce the update
     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
+    
+    // Inform the Moodle chatroom
+    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+    body += "&sloodlepwd=" + sloodlepwd;
+    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+    body += "&sloodleuuid=" + (string)llGetKey();
+    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
+    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has entered this chat";
+    
+    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
 // Stop recording the specified agent
@@ -230,6 +241,17 @@ sloodle_stop_recording_agent(key id)
     // Announce the update
     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
+    
+    // Inform the Moodle chatroom
+    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+    body += "&sloodlepwd=" + sloodlepwd;
+    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+    body += "&sloodleuuid=" + (string)llGetKey();
+    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
+    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has left this chat";
+    
+    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
 // Is the specified agent currently being recorded?
@@ -337,7 +359,7 @@ state ready
     {
         // Activating this requires access permission
         if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "");
             return;
         }
     
@@ -404,6 +426,31 @@ state logging
             llSensorRepeat("", NULL_KEY, AGENT, sensorrange, PI, sensorrate);
         }
         nosensorcount = 0;
+        
+        // Inform the Moodle chatroom
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)llGetKey();
+        body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llList2String(recordingnames, 0) + " has activated this WebIntercom";
+        
+        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+    }
+    
+    state_exit()
+    {
+        // Inform the Moodle chatroom
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        body += "&sloodleuuid=" + (string)llGetKey();
+        body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
+        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " WebIntercom deactivated";
+        
+        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
     }
     
     touch_start( integer total_number)
@@ -615,5 +662,6 @@ state logging
         }
     }
 }
+
 
 

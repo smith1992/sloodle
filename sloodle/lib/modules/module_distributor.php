@@ -97,7 +97,7 @@
             // Convert it to an array of strings
             $entries = array();
             foreach ($recs as $r) {
-                $entries[] = stripslashes($recs->name);
+                $entries[] = $recs->name;
             }
             
             return $entries;
@@ -120,7 +120,7 @@
                 // Construct the new record
                 $rec = new stdClass();
                 $rec->distributorid = $this->sloodle_distributor_instance->id;
-                $rec->name = addslashes($o);
+                $rec->name = sloodle_clean_for_db($o);
                 // Insert it
                 if (!insert_record('sloodle_distributor_entry', $rec)) $result = false;
             }

@@ -477,7 +477,7 @@
 					$localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
 					$q->id,
 					$q->parent,
-					strip_tags(stripslashes($q->questiontext)),
+					sloodle_clean_for_output($q->questiontext),
 					$q->defaultgrade,
 					$q->penalty,
 					$q->qtype,
@@ -499,9 +499,9 @@
 						$i,
 						$ov->id,
 						$ov->question,
-						strip_tags(stripslashes($ov->answer)),
+						sloodle_clean_for_output($ov->answer),
 						$ov->fraction,
-						$ov->feedback
+						sloodle_clean_for_output($ov->feedback)
 					  );
 				   }
 				}

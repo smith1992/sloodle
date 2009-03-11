@@ -40,13 +40,16 @@
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->load_module('chat', true);
-    // Attempt to validate the user... but it's not important if we can't
+    // Attempt to validate the user
     // (this will auto-register/enrol users where necessary and allowed)
-    $sloodle->validate_user(false);
+    // If server access level is public, then validation is not essential... otherwise, it is
+    $sloodleserveraccesslevel = $sloodle->request->get_server_access_level(false);
+    if ($sloodleserveraccesslevel == 0) $sloodle->validate_user(false);
+    else $sloodle->validate_user(true);
 
     
     // Has an incoming message been provided?
-    $message = $sloodle->request->optional_param('message', null);
+    $message = sloodle_clean_for_db($sloodle->request->optional_param('message', null));
     if ($message != null) {
         // Add it to the chatroom - if it fails add a negative side effect code to our response.
         // The positive side effect will be added by the function if successful.
@@ -65,8 +68,8 @@
     // Fetch a chat history 
     $messages = $sloodle->module->get_chat_history();
     foreach ($messages as $m) {
-        $author = $m->user->get_user_firstname().' '.$m->user->get_user_lastname();
-        $sloodle->response->add_data_line(array($m->id, $author, html_entity_decode(strip_tags($m->message))));
+        $author = sloodle_clean_for_output($m->user->get_user_firstname().' '.$m->user->get_user_lastname());
+        $sloodle->response->add_data_line(array($m->id, $author, sloodle_clean_for_output($m->message)));
     }
     
     // Output our response
