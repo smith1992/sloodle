@@ -9,7 +9,7 @@
 $string['accesslevel'] = 'Access Level';
 $string['accesslevel:public'] = 'Public';
 $string['accesslevel:owner'] = 'Owner';
-$string['accesslevel:group'] = 'Group';
+$string['accesslevel:group'] = 'Group (SL)';
 $string['accesslevel:course'] = 'Course';
 $string['accesslevel:site'] = 'Site';
 $string['accesslevel:staff'] = 'Staff';

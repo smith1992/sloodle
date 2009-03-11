@@ -725,7 +725,9 @@
         if ($show_use_object || $show_control_object) {
             
             // Object access
-            echo '<b>'.get_string('accesslevelobject','sloodle').'</b><br><i>'.get_string('accesslevelobject:desc','sloodle').'</i><br><br>';
+            echo '<b>'.get_string('accesslevelobject','sloodle').'</b>';
+            helpbutton('object_access_level', get_string('accesslevelobject','sloodle'), 'sloodle');
+            echo '<br><i>'.get_string('accesslevelobject:desc','sloodle').'</i><br><br>';
             // Use object
             if ($show_use_object) {
                 echo get_string('accesslevelobject:use','sloodle').': ';
@@ -743,7 +745,9 @@
         // Print the server settings
         if ($show_server) {
             // Server access
-            echo '<b>'.get_string('accesslevelserver','sloodle').'</b><br><i>'.get_string('accesslevelserver:desc','sloodle').'</i><br><br>';
+            echo '<b>'.get_string('accesslevelserver','sloodle').'</b>';
+            helpbutton('server_access_level', get_string('accesslevelserver','sloodle'), 'sloodle');
+            echo '<br><i>'.get_string('accesslevelserver:desc','sloodle').'</i><br><br>';
             echo get_string('accesslevel','sloodle').': ';
             choose_from_menu($server_access_levels, 'sloodleserveraccesslevel', $sloodleserveraccesslevel, '');
             echo '<br>';
