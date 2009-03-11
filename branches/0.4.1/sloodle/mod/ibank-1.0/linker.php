@@ -28,7 +28,6 @@
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
     require_once(SLOODLE_LIBROOT.'/modules/module_ibank.php');
-    
      $sCourseObj = null;
      $stipendGiverObj = null;
     
@@ -49,6 +48,14 @@
     $sloodleid=$sCourseObj->getSloodleId();
     $stipendGiverObj = new stipendGiverObject((int)$sloodleid);
     $userid = $sloodle->user->get_user_id();
+    //this function will be used in the usort function to sort the avatar list 
+    //alphabeticly
+    function cmp($a, $b){
+        if ($a->avname == $b->avname) {
+            return 0;
+        }
+        return ($a->avname < $b->avname) ? -1 : 1;
+    }
     //this function will add all user stipend data to the output
     function addUserData($index){
         global $sloodle;
@@ -61,13 +68,14 @@
            //  | Avatar Name 
            //  | stipendAllocation 
            //  | user debits
-            $userList = $sCourseObj->userList;
+            $userList = $sCourseObj->getUserList();
             //getAvatarlist returns an array of stdObj  
             //$av->userid 
             //$av->username 
             //$av->avname 
             //$av->uuid             
             $avatarList = $sCourseObj->getAvatarList($userList);
+            
             $sloodleData="";
             $size = count($avatarList);
             $i = 0;
