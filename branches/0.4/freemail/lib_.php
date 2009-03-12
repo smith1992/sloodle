@@ -841,7 +841,13 @@ return $itemId;
 
 function freemail_setlog($text)
 {
-    $fp = fopen("log.php", "a+");
+    global $CFG;
+     if (!file_exists($CFG->dataroot."/freemail_logs")) { 
+                if (!make_upload_directory("freemail_logs")) {
+                    $error = "The site administrator needs to fix the file permissions of the moodle dataroot - so that the freemail script lib_.php  can create a freemail_log forlder to store logs";
+                }
+     }
+    $fp = fopen($CFG->dataroot."/freemail_logs/freemail_log.php", "a+");
     fwrite($fp, $text."\r\n");
     fclose($fp);
 }
