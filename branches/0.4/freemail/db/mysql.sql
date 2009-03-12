@@ -5,7 +5,7 @@ CREATE TABLE `prefix_freemail` (
   `course` int(10) unsigned NULL default '0',
   `name` varchar(255) NOT NULL default '',
   `value` varchar(255) NOT NULL default '',
-  `description` text NOT NULL default '',
+  `description` text NOT NULL,
   `timemodified` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) COMMENT='FreeMail';
