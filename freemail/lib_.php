@@ -13,7 +13,7 @@ global $CFG;
 require_once $CFG->dirroot . "/config.php";
 require_once $CFG->dirroot ."/lib/datalib.php";
 
-  $entrytext ='';
+  
   
   
   
@@ -107,6 +107,7 @@ require_once $CFG->dirroot ."/lib/datalib.php";
     
     $messagetext = explode ("\r", $body);
     $entrytitle='';   
+    $entrytext ='';
     foreach ($messagetext as $messagetext) {
       if (strstr(strtoupper($messagetext), "TITLE:")) 
       { 
