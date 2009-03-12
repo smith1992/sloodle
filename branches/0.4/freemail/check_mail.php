@@ -46,8 +46,9 @@ if (is_array($mails)) {
   foreach ($mails as $mail) {
     $datetext = date("F j, Y, g:i a", time());
     freemail_setlog("{$datetext} PROCESS START | email:{$mail['email']} | subject:*********");
+    $noerrors = empty($mail['error']);
     
-    if (!empty($mail['error'])) {
+    if ($noerrors) {
         $mail['subject'] = strtolower($mail['subject']);
         $mail['subject'] = str_replace(" ", "", $mail['subject']);
         
