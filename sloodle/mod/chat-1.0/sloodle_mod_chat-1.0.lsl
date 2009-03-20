@@ -1,59 +1,49 @@
-// Sloodle WebIntercom (for Sloodle 0.4)
-// Links in-world SL (text) chat with a Moodle chatroom
+// Sloodle web-configuration script
+// In the absence of a configuration notecard, allows an object to be authorised/configured via the web
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-8 Sloodle
+// Copyright (c) 2008 Sloodle
 // Released under the GNU GPL
 //
 // Contributors:
-//  Paul Andrews
-//  Daniel Livingstone
-//  Jeremy Kemp
-//  Edmund Edgar
 //  Peter R. Bloomfield
-//
-
+ 
+  
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
+string SLOODLE_CONFIG_NOTECARD = "sloodle_config";
 string SLOODLE_EOF = "sloodleeof";
+integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 
-string SLOODLE_OBJECT_TYPE = "chat-1.0";
+string SLOODLE_VERSION_LINKER = "/mod/sloodle/version_linker.php";
+string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
+string SLOODLE_CONFIG_INTERFACE = "/mod/sloodle/classroom/configure_object.php";
+string SLOODLE_CONFIG_LINKER = "/mod/sloodle/classroom/object_config_linker.php";
+string SLOODLE_PING_LINKER = "/mod/sloodle/classroom/active_object_ping_linker.php";
 
-integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
+float PING_DELAY = 10800.0; // Number of seconds between pings (does not need to be very frequent)
+
+string SLOODLE_SCRIPT_PREFIX = "sloodle_mod_";
+
+float SLOODLE_VERSION_MIN = 0.3; // Minimum required version of Sloodle
+
+key httpcheckmoodle = NULL_KEY;
+key httpauthobject = NULL_KEY;
+key httpconfig = NULL_KEY;
 
 string sloodleserverroot = "";
-string sloodlepwd = "";
-integer sloodlecontrollerid = 0;
-integer sloodlemoduleid = 0;
-integer sloodlelistentoobjects = 0; // Should this object listen to other objects?
-integer sloodleobjectaccessleveluse = 0; // Who can use this object?
-integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
-integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
-integer sloodleautodeactivate = 1; // Should the WebIntercom auto-deactivate when not in use?
+string sloodlepwd = ""; // stores the object-specific session key (UUID|pwd)
+string sloodleauthid = ""; // The ID which is passed to Moodle in the URL for the user authorisation step
+key sloodlemyrezzer = NULL_KEY; // Stores the UUID of the object that rezzed this one (if applicable)
+integer sloodlecontrollerid = 0; // So we know which Controller to access when PING-in the server later
 
-string SoundFile = ""; // Sound file used for the beep
-string MOODLE_NAME = "(SL)";
-string MOODLE_NAME_OBJECT = "(SL-object)";
+string password = ""; // stores the self-generated part of the password
 
-integer isconfigured = FALSE; // Do we have all the configuration data we need?
-integer eof = FALSE; // Have we reached the end of the configuration data?
+integer request_config = FALSE; // This is used when jumping from the idle state back to a configuration request
+integer show_config_url = TRUE; // By default, we will automatically show the config URL to the owner when config starts
+integer url_shown = FALSE; // At first we simply want to show the URL, but thereafter we can show the menu
+string SLOODLE_OBJECT_TYPE = "";
 
-integer listenctrl = 0; // Listening for initial control... i.e. activation/deactivation
-list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a command dialog (during logging) and when
 
-list recordingkeys = []; // Keys of people we're recording
-list recordingnames = []; // Names of people we're recording
-
-key httpchat = NULL_KEY; // Request used to send/receive chat
-integer message_id = 0; // ID of the last message received from Moodle
-
-float sensorrange = 30.0; // Senses somewhat beyond chat range
-float sensorrate = 60.0; // Scan every minute
-integer nosensorcount = 0; // How many recent sensor sweeps (while logging) have detected no avatars?
-integer nosensormax = 2; // How many failed sensor sweeps should we allow before auto-deactivating?
 
 
 ///// TRANSLATION /////
@@ -70,9 +60,8 @@ string SLOODLE_TRANSLATE_SHOUT = "shout";           // 1 output parameter: chat 
 string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";  // 1 output parameter: chat channel number
 string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
-string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter, containing the URL.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
-string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
@@ -83,237 +72,179 @@ sloodle_translation_request(string output_method, list output_params, string str
 ///// ----------- /////
 
 
-///// FUNCTIONS /////
+sloodle_tell_other_scripts(string msg)
+{
+    sloodle_debug("Web configuration sending message to other scripts: "+msg);
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, msg, NULL_KEY);   
+}
 
 sloodle_debug(string msg)
 {
-    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
+    //llWhisper(0,msg);
 }
 
-// Configure by receiving a linked message from another script in the object
-// Returns TRUE if the object has all the data it needs
-integer sloodle_handle_command(string str) 
+// Determines if the objet has a configuration notecard
+// Returns true if so, or false otherwise
+integer sloodle_has_config_notecard()
 {
-    list bits = llParseString2List(str,["|"],[]);
-    integer numbits = llGetListLength(bits);
-    string name = llList2String(bits,0);
-    string value1 = "";
-    string value2 = "";
+    return (llGetInventoryType(SLOODLE_CONFIG_NOTECARD) == INVENTORY_NOTECARD);
+}
+
+// Generate a random password string
+string sloodle_random_object_password()
+{
+    return (string)(10000 + (integer)llFrand(999989999)); // Gets a random integer between 10000 and 999999999
+}
+
+// Show a menu letting the user choose between configuring the object, and downloading the configuration into SL
+sloodle_show_config_menu(key av)
+{
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webconfigmenu", ["0", "1"], av, "");
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "0");
+    llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", av, "1");
+}
+
+// Load the configuration URL
+sloodle_load_config_url(key av)
+{
+    string url = sloodleserverroot + SLOODLE_CONFIG_INTERFACE + "?sloodleauthid=" + sloodleauthid + "&sloodleobjtype=" + SLOODLE_OBJECT_TYPE;
+    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [url], "configlink", [], av, "");
+}
+
+// Check to see what type this script is to use
+// Returns the type/version identifier as a string, e.g. "chat-1.0"
+string sloodle_check_type()
+{
+    // Find out how many scripts there are
+    integer numscripts = llGetInventoryNumber(INVENTORY_SCRIPT);
+    string type = "";
+    string itemname = "";
     
-    if (numbits > 1) value1 = llList2String(bits,1);
-    if (numbits > 2) value2 = llList2String(bits,2);
-    
-    if (name == "set:sloodleserverroot") sloodleserverroot = value1;
-    else if (name == "set:sloodlepwd") {
-        // The password may be a single prim password, or a UUID and a password
-        if (value2 != "") sloodlepwd = value1 + "|" + value2;
-        else sloodlepwd = value1;
-        
-    } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
-    else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
-    else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
-    else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
-    else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
-    else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
-    else if (name == "set:sloodleautodeactivate") sloodleautodeactivate = (integer)value1;
-    else if (name == SLOODLE_EOF) eof = TRUE;
-    
-    return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
-}
-
-// Checks if the given agent is permitted to control this object
-// Returns TRUE if so, or FALSE if not
-integer sloodle_check_access_ctrl(key id)
-{
-    // Check the access mode
-    if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-        return llSameGroup(id);
-    } else if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-        return TRUE;
-    }
-    
-    // Assume it's owner mode
-    return (id == llGetOwner());
-}
-
-// Checks if the given agent is permitted to user this object
-// Returns TRUE if so, or FALSE if not
-integer sloodle_check_access_use(key id)
-{
-    // Check the access mode
-    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-        return llSameGroup(id);
-    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-        return TRUE;
-    }
-    
-    // Assume it's owner mode
-    return (id == llGetOwner());
-}
-
-// Add the given agent to our command dialog list
-sloodle_add_cmd_dialog(key id)
-{
-    // Does the person already exist?
-    integer pos = llListFindList(cmddialog, [id]);
-    if (pos < 0) {
-        // No - add the agent to the end
-        cmddialog += [id, llGetUnixTime()];
-    } else {
-        // Yes - update the time
-        cmddialog = llListReplaceList(cmddialog, [llGetUnixTime()], pos + 1, pos + 1);
-    }
-}
-
-// Remove the given agent from our command dialog list
-sloodle_remove_cmd_dialog(key id)
-{
-    // Is the person in the list?
-    integer pos = llListFindList(cmddialog, [id]);
-    if (pos >= 0) {
-        // Yes - remove them and their timestamp
-        cmddialog = llDeleteSubList(cmddialog, pos, pos + 1);
-    }
-}
-
-// Purge the command dialog list of old activity
-sloodle_purge_cmd_dialog()
-{
-    // Store the current timestamp
-    integer curtime = llGetUnixTime();
-    // Go through each command dialog
+    // Go through each item
     integer i = 0;
-    while (i < llGetListLength(cmddialog)) {
-        // Is the current timestamp more than 12 seconds old?
-        if ((curtime - llList2Integer(cmddialog, i + 1)) > 12) {
-            // Yes - remove it
-            cmddialog = llDeleteSubList(cmddialog, i, i + 1);
-        } else {
-            // No - advance to the next
-            i += 2;
+    for (i = 0; i < numscripts; i++) {
+        // Get the name of this item
+        itemname = llGetInventoryName(INVENTORY_SCRIPT, i);
+        // Does this have the necessary prefix?
+        if (llSubStringIndex(itemname, SLOODLE_SCRIPT_PREFIX) == 0) {
+            // Ignore the script if it's not running... unless we don't already have a type identified
+            if (llGetScriptState(itemname) == TRUE || type == "") {
+                // Looks like this is our type
+                type = llGetSubString(itemname, llStringLength(SLOODLE_SCRIPT_PREFIX), -1);
+            }
         }
     }
-}
-
-// Start recording the specified agent
-sloodle_start_recording_agent(key id)
-{
-    // Do nothing if the person is already on the list
-    if (llListFindList(recordingkeys, [id]) >= 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:alreadyrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
-        return;
-    }
     
-    // Add the key and name to the lists
-    recordingkeys += [id];
-    recordingnames += [llKey2Name(id)];
-    
-    // Announce the update
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
-    sloodle_update_hover_text();
-    
-    // Inform the Moodle chatroom
-    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-    body += "&sloodlepwd=" + sloodlepwd;
-    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-    body += "&sloodleuuid=" + (string)llGetKey();
-    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has entered this chat";
-    
-    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-}
-
-// Stop recording the specified agent
-sloodle_stop_recording_agent(key id)
-{
-    // Do nothing if the person is not already on the list
-    integer pos = llListFindList(recordingkeys, [id]);
-    if (pos < 0) {
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:notrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
-        return;
-    }
-    
-    // Remove the key and name from the list
-    recordingkeys = llDeleteSubList(recordingkeys, pos, pos);
-    recordingnames = llDeleteSubList(recordingnames, pos, pos);
-    
-    // Announce the update
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
-    sloodle_update_hover_text();
-    
-    // Inform the Moodle chatroom
-    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-    body += "&sloodlepwd=" + sloodlepwd;
-    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-    body += "&sloodleuuid=" + (string)llGetKey();
-    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has left this chat";
-    
-    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-}
-
-// Is the specified agent currently being recorded?
-// Returns TRUE if so, or FALSE otherwise
-integer sloodle_is_recording_agent(key id)
-{
-    return (llListFindList(recordingkeys, [id]) >= 0);
-}
-
-// Update the hover text while logging
-sloodle_update_hover_text()
-{
-    string recordlist = llDumpList2String(recordingnames, "\n");
-    if (recordlist == "") recordlist = "-";
-    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.2, 0.2>, 1.0], "webintercom:recording", [recordlist], NULL_KEY, "webintercom");
+    return type;
 }
 
 
-// Default state - waiting for configuration
 default
-{
-    state_entry()
+{    
+    state_entry() 
     {
-        // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
-        // Starting again with a new configuration
-        llSetText("", <0.0,0.0,0.0>, 0.0);
-        isconfigured = FALSE;
-        eof = FALSE;
-        // Reset our data
+        // Pause for a moment, in case all scripts were reset at the same time
+        llSleep(0.2);
         sloodleserverroot = "";
-        sloodlepwd = "";
-        sloodlecontrollerid = 0;
-        sloodlemoduleid = 0;
-        sloodlelistentoobjects = 0;
-        sloodleobjectaccessleveluse = 0;
-        sloodleobjectaccesslevelctrl = 0;
-        sloodleserveraccesslevel = 0;
+    
+        // Attempt to get the object type if we don't already have it
+        if (SLOODLE_OBJECT_TYPE == "") {
+            SLOODLE_OBJECT_TYPE = sloodle_check_type();
+            if (SLOODLE_OBJECT_TYPE == "") {
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "notypeid", [], NULL_KEY, "");
+                
+            } else {
+                sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "gottype", [SLOODLE_OBJECT_TYPE], NULL_KEY, "");
+            }
+        }
+    
+        // Listen for anything on the object dialog channel
+        llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
+        request_config = FALSE;
+        
+        // Do we have a configuration notecard?
+        if (!sloodle_has_config_notecard()) {
+            // No - if we have no starting parameter, then invite the user to use web-configuration
+            if (llGetStartParameter() == 0) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "touchforwebconfig", [], NULL_KEY, "");
+            }
+        }
     }
     
-    link_message( integer sender_num, integer num, string str, key id)
+    state_exit()
     {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {        
         // Check the channel
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // Split the message into lines
-            list lines = llParseString2List(str, ["\n"], []);
-            integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
-                isconfigured = sloodle_handle_command(llList2String(lines, i));
+        if (channel == 0 || channel == 1) {
+            // Ignore anybody but the owner
+            if (id != llGetOwner()) return;
+            show_config_url = TRUE;
+            // If the message starts with "http" then store it as the Moodle address
+            msg = llStringTrim(msg, STRING_TRIM);
+            if (llSubStringIndex(msg, "http") == 0) {
+                sloodleserverroot = msg;
+                state check_moodle;
+                return;
             }
             
-            // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE) {
-                if (isconfigured == TRUE) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
-                    state ready;
-                } else {
-                    // Go all configuration but, it's not complete... request reconfiguration
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
-                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
-                    eof = FALSE;
+        } else if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+        
+            // Check for standard messages, then for anything else
+            if (msg == "CLEANUP") {
+                // Did it come from the rezzer?
+                if (id == sloodlemyrezzer && id != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                }
+            } else {
+                // Ignore anything not owned by the same person
+                if (llGetOwnerKey(id) != llGetOwner()) return;
+                // This should be a Sloodle initialisation message:
+                //  sloodle_init|<rezzer>|<target-uuid>|<moodle-address>|<authid>
+                // (the last part is optional)
+                list parts = llParseStringKeepNulls(msg, ["|"], []);
+                integer numparts = llGetListLength(parts);
+                string cmd = llList2String(parts, 0);
+                
+                // Check what the command is
+                if (cmd == "sloodle_init") {
+                    // Make sure we have enough parts in the message
+                    if (llGetListLength(parts) < 4) return;
+                    key rezzer = (key)llList2String(parts, 1);
+                    key target = (key)llList2String(parts, 2);
+                    string url = llList2String(parts, 3);
+                    string auth = "";
+                    if (numparts >= 5) auth = llList2String(parts, 4);
+                    
+                    // Make sure the command is correct, the UUIDs are OK, and that the URL looks valid
+                    if (rezzer == NULL_KEY) return;
+                    if (target != llGetKey()) return;
+                    url = llStringTrim(url, STRING_TRIM);
+                    if (llSubStringIndex(url, "http") != 0) return;
+                    
+                    // Store the settings
+                    sloodleserverroot = url;
+                    sloodleauthid = auth;
+                    sloodlemyrezzer = rezzer;
+                    
+                    // Do we have a password *and* an authorisation ID?
+                    if (llGetStartParameter() != 0 && (integer)auth > 0) {
+                        // Store the password
+                        password = (string)llGetStartParameter();
+                        sloodlepwd = (string)llGetKey() + "|" + password;
+                        // Allow the user to configure the object
+                        show_config_url = FALSE;
+                        state configure_object;
+                        return;
+                    }
+                    
+                    // Begin self-authorisation
+                    state check_moodle;
                 }
             }
         }
@@ -321,347 +252,529 @@ default
     
     touch_start(integer num_detected)
     {
-        // Attempt to request a reconfiguration
-        if (llDetectedKey(0) == llGetOwner()) {
-            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
-        }
-    }
-}
-
-state ready
-{
-    on_rez( integer param)
-    {
-        state default;
-    }    
-    
-    state_entry()
-    {
-        llSetTimerEvent(0);
-        // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
-        // Reset the list of recorded keys and names
-        recordingkeys = [];
-        recordingnames = [];
-        cmddialog = [];
-
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "");
-        // Determine our "beep" sound file name
-        SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
-    }
-    
-    state_exit()
-    {
-        llSetTimerEvent(0.0);
-    }
+        // Only pay attention to the object owner
+        if (llDetectedKey(0) != llGetOwner()) return;
+        // Do nothing if there is a configuration script present
+        if (sloodle_has_config_notecard()) return;
         
-    touch_start( integer total_number)
-    {
-        // Activating this requires access permission
-        if (sloodle_check_access_ctrl(llDetectedKey(0)) == FALSE) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:ctrl", [llDetectedName(0)], NULL_KEY, "");
+        // We can do nothing without a server root
+        if (sloodleserverroot == "") {
+            llListen(0, "", llGetOwner(), "");
+            llListen(1, "", llGetOwner(), "");
+            
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "chatserveraddress", [], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "waitingforserveraddress", [], NULL_KEY, "");
             return;
         }
-    
-        llListenRemove(listenctrl);
-        listenctrl = llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", llDetectedKey(0), "");
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:ctrlmenu", ["0", "1"], llDetectedKey(0), "webintercom");
-        llSetTimerEvent(10.0);
+        
+        // Start the configuration process
+        state check_moodle;
     }
     
-    listen( integer channel, string name, key id, string message)
+    link_message(integer sender_num, integer num, string sval, key kval)
     {
         // Check the channel
-        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
-            // Check access to this object
-            if (sloodle_check_access_ctrl(id) == FALSE) return;
-    
-            // Has chat logging been activated?
-            if (message == "1") {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:chatloggingon", [llDetectedName(0)], NULL_KEY, "webintercom");
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:touchtorecord", [], NULL_KEY, "webintercom");
-                
-                // Initially record the one who activated us
-                recordingkeys = [id];
-                recordingnames = [name];
-                
-                state logging;
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
                 return;
             }
         }
     }
-
-    timer()
-    {
-        // Cancel the control listen 
-        llSetTimerEvent(0.0);
-        llListenRemove(listenctrl);
-    }
-    
 }
 
-state logging
+// Check that the Moodle site is valid
+state check_moodle
 {
-    on_rez( integer param)
-    {
-        state default;
-    }
-    
     state_entry()
     {
-        // Udpate the texture on the side to indicate we're logging
-        llSetTexture("d3c9180a-1703-3a84-8dcd-e3aa6306a343",ALL_SIDES);
-        // Listen for chat and commands
-        llListen(0,"",NULL_KEY,"");
-        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
-        
-        // Update our caption indicating whom we're recording
-        sloodle_update_hover_text();
-        // Regularly update the chat history and purge our list of command dialogs
-        llSetTimerEvent(12.0);
-        
-        // Perform a regular scan to see if the WebIntercom has been abandoned
-        if (sloodleautodeactivate != 0) {
-            llSensorRepeat("", NULL_KEY, AGENT, sensorrange, PI, sensorrate);
-        }
-        nosensorcount = 0;
-        
-        // Inform the Moodle chatroom
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-        body += "&sloodleuuid=" + (string)llGetKey();
-        body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llList2String(recordingnames, 0) + " has activated this WebIntercom";
-        
-        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "checkingserverat", [sloodleserverroot], NULL_KEY, "");
+        httpcheckmoodle = llHTTPRequest(sloodleserverroot + SLOODLE_VERSION_LINKER, [HTTP_METHOD, "GET"], "");
+        // Listen for chat messages from the rezzer
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
     state_exit()
     {
-        // Inform the Moodle chatroom
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-        body += "&sloodleuuid=" + (string)llGetKey();
-        body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " WebIntercom deactivated";
-        
-        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-    }
-    
-    touch_start( integer total_number)
-    {
-        key id = llDetectedKey(0);
-        // Determine what this user can do
-        integer canctrl = sloodle_check_access_ctrl(id);
-        integer canuse = sloodle_check_access_use(id);
-        
-        // Can the agent control AND use this item?
-        if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id, "webintercom");
-            sloodle_add_cmd_dialog(id);
-        } else if (canuse) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id, "webintercom");
-            sloodle_add_cmd_dialog(id);
-        } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "webintercom");
-        }
-    }
-    
-    listen( integer channel, string name, key id, string message)
-    {
-        // Check the channel
-        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
-            // Ignore this person if they are not on the list
-            if (llListFindList(cmddialog, [id]) < 0) return;
-            sloodle_remove_cmd_dialog(id);
-            
-            // Find out what the user can do
-            integer canctrl = sloodle_check_access_ctrl(id);
-            integer canuse = sloodle_check_access_use(id);
-            
-            // Check what the command is
-            if (message == "0") {
-                // Make sure the user can use this
-                if (!(canctrl || canuse)) return;
-                // Stop recording the user
-                sloodle_stop_recording_agent(id);
-                
-            } else if (message == "1") {
-                // Make sure the user can use this
-                if (!(canctrl || canuse)) return;
-                // Start recording the user
-                sloodle_start_recording_agent(id);
-                
-            } else if (message == "2") {
-                // Make sure the user can control this 
-                if (!canctrl) return;
-                // Deactivate the WebIntercom
-                state ready;
-            }
-            
-        } else if (channel == 0) {
-            // Is this an avatar?
-            integer isavatar = FALSE;
-            if (llGetOwnerKey(id) == id) {
-                // Yes - check that we are listening to them
-                if (!sloodle_is_recording_agent(id)) return;
-                isavatar = TRUE;
-            } else {
-                // No - it is an object - ignore it if necessary
-                if (sloodlelistentoobjects == 0) return;
-            }
-            
-            // Is this a SLurl command?
-            if(message == "/slurl")     {        
-                string region = llEscapeURL(llGetRegionName());
-                vector vec = llGetPos();
-                string posX = (string)((integer)vec.x);
-                string posY = (string)((integer)vec.y);
-                string posZ = (string)((integer)vec.z);
-                // Replace the message with a SLurl
-                message = "http://slurl.com/secondlife/" + region + "/" + posX + "/" + posY + "/" + posZ + "/?title=" + region;
-            }
-            
-            // Send the request as POST data
-            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-            body += "&sloodlepwd=" + sloodlepwd;
-            body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-            body += "&sloodleuuid=" + (string)id;
-            body += "&sloodleavname=" + llEscapeURL(name);
-            body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-            if (isavatar) body += "&message=" + MOODLE_NAME + " ";
-            else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
-            body += name + ": " + message;
-            
-            httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-        }
-    }
-    
-    timer()
-    {
-        // Get updated chat from Moodle
-        if (httpchat == NULL_KEY) {
-            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-            body += "&sloodlepwd=" + sloodlepwd;
-            body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-            
-            httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-        }
-        
-        // Purge any expired command dialogs
-        sloodle_purge_cmd_dialog();
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        httpcheckmoodle = NULL_KEY;
     }
     
     http_response(key id, integer status, list meta, string body)
     {
-        // Is this the expected data?
-        if (id != httpchat) return;
-        httpchat = NULL_KEY;
-        // Make sure the request worked
+        // Make sure it's the response we're expecting
+        if (id != httpcheckmoodle) return;
+        httpcheckmoodle = NULL_KEY;
+        // Check the status code
         if (status != 200) {
-            sloodle_debug("Failed HTTP response. Status: " + (string)status);
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             return;
         }
-
-        // Make sure there is a body to the request
-        if (llStringLength(body) == 0) return;
-        // Debug output:
-        sloodle_debug("Receiving chat data:\n" + body);
         
-        // Split the data up into lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);  
+        // Split the response into lines and get the status line info
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
-        // Extract all the status fields
-        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
-        // Get the statuscode
-        integer statuscode = llList2Integer(statusfields,0);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
         
-        // Was it an error code?
-        if (statuscode <= 0) {
-            string msg = "ERROR: linker script responded with status code " + (string)statuscode;
-            // Do we have an error message to go with it?
-            if (numlines > 1) {
-                msg += "\n" + llList2String(lines,1);
-            }
-            sloodle_debug(msg);
+        // Make sure the status code was OK
+        if (statuscode == -106) {
+            sloodle_debug("ERROR -106: the Sloodle module is not installed on the specified Moodle site (" + sloodleserverroot + ")");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodlenotinstalled", [], NULL_KEY, "");
+            return;
+        } else if (statuscode <= 0) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "failedcheckcompatibility", [], NULL_KEY, "");
             return;
         }
         
-        // We will use these to store each item of data
-        integer msgnum = 0;
-        string name = "";
-        string text = "";
+        // Make sure we have enough other data
+        if (numlines < 2) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            return;
+        }
         
-        // Every other line should define a chat message "id|name|text"
-        // Start at the line after the status line
-        integer i = 1;
-        for (i = (numlines - 1); i > 0; i--) {
-            // Get all the different fields for this line
-            list fields = llParseStringKeepNulls(llList2String(lines,i),["|"],[]);
-            // Make sure we have enough fields
-            if (llGetListLength(fields) >= 3) {
-                // Extract each item of data
-                msgnum = llList2Integer(fields,0);
-                name = llList2String(fields,1);
-                text = llList2String(fields,2);
-                
-                // Make sure this is a new message
-                if (msgnum > message_id) {
-                    message_id = msgnum;
-                    // Make sure this wasn't an SL message originally
-                    if (llSubStringIndex(text, MOODLE_NAME) != 0 && llSubStringIndex(text, MOODLE_NAME_OBJECT) != 0) {
-                        // Is this a Moodle beep?
-                        if (llSubStringIndex(text, "beep ") == 0) {
-                            // Yes - play a beep sound
-                            llStopSound();
-                            if (SoundFile == "") 
-                            { // There is no sound file in inventory - plsy default
-                                llPlaySound("34b0b9d8-306a-4930-b4cd-0299959bb9f4", 1.0);
-                            } else { // Play the included one
-                                llPlaySound(SoundFile, 1.0);
-                            }
-                        }
-                        // Finally... just an ordinary chat message... output it
-                        llSay(0, name + ": " + text);
-                    }
+        // Extract the Sloodle version number
+        list datafields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
+        float installedversion = (float)llList2String(datafields, 0);
+        
+        // Check compatibility
+        if (installedversion < SLOODLE_VERSION_MIN) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversioninstalled", [installedversion], NULL_KEY, "");
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleversionrequired", [SLOODLE_VERSION_MIN], NULL_KEY, "");
+            return;
+        }
+        
+        // Initiate object authorisation
+        state auth_object_initial;
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Revert to the default state if the owner touched
+        if (llDetectedKey(0) != llGetOwner()) return;
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            }
+        }
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                    return;
                 }
             }
         }
     }
     
-    sensor(integer num_detected)
+    on_rez(integer start_param)
     {
-        // Nearby avatars have been detected
-        nosensorcount = 0;
+        llResetScript();
+    }
+}
+
+// Initial object authorisation (stores details in the database)
+state auth_object_initial
+{
+    state_entry()
+    {
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "initobjectauth", [], NULL_KEY, "");
+        
+        // Generate a random password
+        password = sloodle_random_object_password();
+        sloodlepwd = (string)llGetKey() + "|" + password;
+        // Initiate the object authorisation
+        string body = "sloodleobjuuid="+(string)llGetKey()+"&sloodleobjname="+llGetObjectName()+"&sloodleobjpwd="+password+"&sloodleobjtype="+SLOODLE_OBJECT_TYPE;
+        httpauthobject = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        
+        // Listen for chat messages from the rezzer
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
     }
     
-    no_sensor()
+    state_exit()
     {
-        // Ignore this if auto-deactivation has been disabled
-        if (sloodleautodeactivate == 0) return;
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        httpauthobject = NULL_KEY;
+    }
     
-        // No nearby avatars detected.
-        // Is the object attached to an avatar? (Sensors won't detect the avatar the object is attached to)
-        if (llGetAttached() > 0) {
-            // Yes - treat it as though avatars have been detected
-            nosensorcount = 0;
-        } else {
-            // No  - increment our count of failed scans
-            nosensorcount++;
-            // Is it time to deactivate?
-            if (nosensorcount >= nosensormax) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:autodeactivate", [], NULL_KEY, "webintercom");
-                state ready;
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Make sure this is the response we're expecting
+        if (id != httpauthobject) return;
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            return;
+        }
+        
+        // Split the response into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
+        integer numlines = llGetListLength(lines);
+        list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+        integer statuscode = (integer)llList2String(statusfields, 0);
+        
+        // Check the statuscode
+        if (statuscode <= 0) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
+            return;
+        }
+        
+        // Attempt to get the auth ID
+        if (numlines < 2) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "badresponseformat", [], NULL_KEY, "");
+            return;
+        }
+        sloodleauthid = llList2String(lines, 1);
+        
+        // Start the configuration
+        state configure_object;
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Revert to the default state if the owner touched
+        if (llDetectedKey(0) != llGetOwner()) return;
+        state default;
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
                 return;
+            }
+        }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                    return;
+                }
             }
         }
     }
 }
 
 
+// Send the user to the configuration page on the Moodle site.
+// (That page will present authorisation options as necessary).
+// If touched, ask the user if they want the URL again, or to download the configuration.
+state configure_object
+{
+    state_entry()
+    {
+        url_shown = FALSE;
+        sloodlecontrollerid = 0;
+        
+        // Has object configuration been requested?
+        if (request_config) {
+            request_config = FALSE;
+            llSetText("Requesting configuration...", <0.0,1.0,0.0>, 0.8);
+            httpconfig = llHTTPRequest(sloodleserverroot + SLOODLE_CONFIG_LINKER + "?sloodlepwd="+sloodlepwd+"&sloodleauthid="+sloodleauthid, [HTTP_METHOD, "GET"], "");
+        } else {
+            llSetText("Waiting for configuration.\nTouch me for a URL, or to download the configuration.", <0.0,1.0,0.0>, 0.8);
+            // Load the URL immediately 
+            if (show_config_url) {
+                sloodle_load_config_url(llGetOwner());
+                url_shown = TRUE;
+            }
+        }
+        
+        // Listen for chat messages from the rezzer
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0,0.0,0.0>, 0.0);
+        httpconfig = NULL_KEY;
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Ignore anybody but the owner
+        if (llDetectedKey(0) != llGetOwner()) return;
+        // If the URL has already been shown, then display the menu.
+        // Otherwise, offer the URL
+        if (url_shown) sloodle_show_config_menu(llGetOwner());
+        else {
+            sloodle_load_config_url(llGetOwner());
+            url_shown = TRUE;
+        }
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG)
+        {
+            // Check it's the owner talking to us
+            if (id != llGetOwner()) return;
+            // What was the message?
+            if (msg == "0") {
+                // Load the configuration URL
+                sloodle_load_config_url(llGetOwner());
+            } else if (msg == "1") {
+                // Download the configuration from the site
+                httpconfig = llHTTPRequest(sloodleserverroot + SLOODLE_CONFIG_LINKER + "?sloodlepwd="+sloodlepwd+"&sloodleauthid="+sloodleauthid, [HTTP_METHOD, "GET"], "");
+            }
+            
+        } else if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                    return;
+                }
+            }
+        }
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Is this the response we're expecting?
+        if (id == httpconfig) {
+            httpconfig = NULL_KEY;
+            // Check the return code
+            if (status != 200) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+                return;
+            }
+            
+            // Split the response into lines
+            list lines = llParseStringKeepNulls(body, ["\n"], []);
+            integer numlines = llGetListLength(lines);
+            // Fetch the status line
+            list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
+            integer statuscode = (integer)llList2String(statusfields, 0);
+            if (statuscode == -103) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noconfigavailable", [], NULL_KEY, "");
+                return;
+            } else if (statuscode <= 0) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY, "");
+                state default;
+                return;
+            }
+            
+            // Indicate that we are sending configuration data
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 0.8], "sendingconfig", [], NULL_KEY, "");
+            
+            // This will be our buffer of configuration commands
+            string cmdbuffer = "";
+            integer maxbufferlength = 1024;
+            integer cmdbufferlength = 0;
+            
+            // Add the server address and password in as the first commands. Also add the rezzer key if we have one
+            cmdbuffer = "set:sloodleserverroot|"+sloodleserverroot+"\nset:sloodlepwd|" + sloodlepwd + "\n";
+            if (sloodlemyrezzer != NULL_KEY) cmdbuffer += "set:sloodlemyrezzer|" + (string)sloodlemyrezzer + "\n";
+            cmdbufferlength = llStringLength(cmdbuffer);
+            
+            // Go through each data line
+            integer linenum = 1;
+            string cmd = "";
+            integer cmdlen = 0;
+            string curline = "";
+            for (linenum=1; linenum < numlines; linenum++) {
+                curline = llList2String(lines, linenum);
+                
+                // If this is a controller ID, then store the value.
+                // (Don't bother checking if we already have a controller id)
+                if (sloodlecontrollerid == 0 && llSubStringIndex(curline, "sloodlecontrollerid") == 0) {
+                    list parts = llParseStringKeepNulls(curline, ["|"], []);
+                    if (llGetListLength(parts) > 1) sloodlecontrollerid = (integer)llList2String(parts, 1);
+                }
+            
+                // This should be "name|value" format, so just prefix it with "set:"
+                cmd = "set:" + curline + "\n";
+                cmdlen = llStringLength(cmd);
+                // Ignore lengths of less than 5
+                if (cmdlen >= 5) {
+                    // If the addition of this command will overflow the buffer, then send the buffer first
+                    if ((cmdbufferlength + cmdlen) > maxbufferlength) {
+                        sloodle_tell_other_scripts(cmdbuffer);
+                        cmdbuffer = "";
+                        cmdbufferlength = 0;
+                    }
+                    // Add the current command to the buffer
+                    cmdbuffer += cmd;
+                    cmdbufferlength += cmdlen;
+                }
+            }
+            
+            // If there is anything left in the buffer, then send it
+            if (cmdbufferlength > 0) {
+                sloodle_tell_other_scripts(cmdbuffer);
+                cmdbuffer = "";
+                cmdbufferlength = 0;
+            }
+            
+            // After a brief pause, send the EOF command
+            llSleep(0.15);
+            sloodle_tell_other_scripts(SLOODLE_EOF);
+            
+            // We're now finished
+            state idle;
+        }
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Ignore anything from this script
+        if (sender_num == llGetLinkNumber()) return;
+        
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Is it a reset command?
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            }
+        }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript();
+    }
+}
 
+
+// In this state, the script has either finished, or been instructed not to execute
+// It will only respond to a reset command
+state idle
+{
+    state_entry()
+    {
+        // Listen for chat messages from the rezzer
+        if (sloodlemyrezzer != NULL_KEY) llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", NULL_KEY, "");
+        
+        // Regularly ping the server to notify it that this object is still 'alive'.
+        // (But only if we have a valid controller id)
+        llSetTimerEvent(0.0);
+        if (sloodlecontrollerid > 0) llSetTimerEvent(PING_DELAY);
+    }
+    
+    timer()
+    {
+        // Send our ping request and ignore the response
+        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+        body += "&sloodlepwd=" + sloodlepwd;
+        body += "&sloodleobjuuid=" + (string)llGetKey();
+        llHTTPRequest(sloodleserverroot + SLOODLE_PING_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+    }
+    
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Check the channel
+        if (channel == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Parse the message
+            list parts = llParseStringKeepNulls(msg, ["|"], []);
+            if (llGetListLength(parts) < 2) return;
+            string cmd = llList2String(parts, 0);
+            string val = llList2String(parts, 1);
+        
+            // Is it a recognised command?
+            if (cmd == "do:cleanup") {
+                // Did it come from our rezzer?
+                key kval = (key)val;
+                if (kval == sloodlemyrezzer && kval != NULL_KEY) {
+                    // Delete this object
+                    sloodle_debug("Received CLEANUP command from object \"" + name + "\".");
+                    llDie();
+                    return;
+                }
+            }
+        }
+    }
+    
+    link_message(integer sender_num, integer num, string sval, key kval)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+            // Check the command type
+            if (sval == "do:reset") {
+                llResetScript();
+                return;
+            } else if (sval == "do:requestconfig") {
+                // Send the configuration data again, so long as there isn't a notecard
+                if (sloodle_has_config_notecard() == FALSE) {
+                    request_config = TRUE;
+                    state configure_object;
+                } else {
+                    state default;
+                }
+                return;
+            } else if (sval == "do:reconfigure") {
+                // Let the user re-configure from the start
+                show_config_url = TRUE;
+                state configure_object;
+            }
+        }
+    }
+    
+    on_rez(integer param)
+    {
+        // Temporary measure: request the existing configuration.
+        // (this allows a pre-configured object to be rezzed from inventory, assuming the active object entry has not yet expired)
+        request_config = TRUE;
+        state configure_object;
+    }
+}
