@@ -147,7 +147,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -206,7 +206,7 @@ state running
     {
         // Go through each detected avatar
         integer i = 0;
-        for (; i < num_detected; i++)
+        for (i=0; i < num_detected; i++)
         {
             sloodle_detected_avatar(llDetectedKey(i), llDetectedPos(i));
         }

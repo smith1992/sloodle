@@ -139,7 +139,8 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            // TW init mod
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -193,7 +194,7 @@ state ready
         integer i = 0;
         key id = NULL_KEY;
         string touched = "";
-        for (; i < total_number; i++) {
+        for (i = 0; i < total_number; i++) {
             id = llDetectedKey(i);
             // Only process avatars
             if (id == llGetOwnerKey(id)) {

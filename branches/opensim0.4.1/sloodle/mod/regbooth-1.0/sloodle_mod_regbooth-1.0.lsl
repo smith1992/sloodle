@@ -129,7 +129,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -170,7 +170,7 @@ state ready
         integer i = 0;
         key id = NULL_KEY;
         string touched = "";
-        for (; i < total_number; i++) {
+        for (i=0; i < total_number; i++) {
             id = llDetectedKey(i);
             // Check if this user can use the device
             if (sloodle_check_access_use(id)) {

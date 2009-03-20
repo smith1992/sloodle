@@ -305,7 +305,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -362,7 +362,7 @@ state ready
         // Go through each toucher
         integer i = 0;
         key id = NULL_KEY;
-        for (; i < num_detected; i++) {
+        for (i=0; i < num_detected; i++) {
             id = llDetectedKey(0);
             // Make sure the user is allowed to use this object
             if (sloodle_check_access_use(id) || sloodle_check_access_ctrl(id)) {
@@ -396,7 +396,7 @@ state ready
                 // Go through each other line
                 integer i = 1;
                 list fields = [];
-                for (; i < numlines; i++) {
+                for (i=0; i < numlines; i++) {
                     // Extract the fields
                     fields = llParseString2List(llList2String(lines, i), ["|"], []);
                     if (llGetListLength(fields) >= 3) {

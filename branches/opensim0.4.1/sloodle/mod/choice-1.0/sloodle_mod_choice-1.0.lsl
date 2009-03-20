@@ -261,7 +261,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -377,7 +377,7 @@ state ready
             // Go through each option
             integer i = 5;
             list fields = [];
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 // Parse the option data
                 fields = llParseStringKeepNulls(llList2String(lines, i), ["|"], []);
                 if (llGetListLength(fields) >= 3) {

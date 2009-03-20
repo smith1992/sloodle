@@ -90,7 +90,7 @@ integer sloodle_handle_command_batch(string str)
     // Process each line
     integer i = 0;
     integer ret = FALSE;
-    for (; i < numlines; i++) {
+    for (i=0; i < numlines; i++) {
         ret = sloodle_handle_command(llList2String(lines, i));
     }
     
