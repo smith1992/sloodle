@@ -32,10 +32,9 @@ string mybatch = "quiz";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	"invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
+    "invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
     "invalidtype", "Error: this object cannot handle quiz questions of type: {{0}}", // Parameter: question type name
     "complete", "Quiz complete {{0}}. Your final score was {{1}}.", // Parameters: avatar name, score
-    "complete:noscore", "Quiz complete.",
     "repeating", "Repeating...",
     "starting", "Starting quiz for {{0}}", // Parameter: avatar name
     "noquestions", "ERROR: there are no questions available",
@@ -43,11 +42,7 @@ list locstrings = [
     "fetchingquiz", "Fetching quiz data...",
     "ready", "Ready to attempt: {{0}}.", // Parameter: name of quiz
     "correct", "Correct {{0}}.", // Parameter: name of avatar
-    "incorrect", "Incorrect {{0}}.", // Parameter: name of avatar
-    
-    "pileonmenu:start", "Start a quiz?\n\n{{0}} = Start\n{{1}} = Cancel", // Parameters: button labels
-    "pileonmenu:next", "Quiz Options\n\n{{0}} = Next\n{{1}} = End Quiz\n{{2}} = Cancel", // Parameters: button labels
-    "pileonmenu:answer", "Quiz Options\n\n{{0}} = Answer\n{{1}} = End Quiz\n{{2}} = Cancel" // Parameters: button labels
+    "incorrect", "Incorrect {{0}}." // Parameter: name of avatar
 ];
 
 ///// ----------- /////
@@ -119,8 +114,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
+    
+    for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -150,12 +145,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum = 0;
+    integer curparamnum;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
+    for (curparamnum = 0; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);

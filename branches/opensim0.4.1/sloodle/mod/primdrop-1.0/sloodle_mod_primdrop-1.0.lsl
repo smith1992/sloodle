@@ -73,8 +73,8 @@ string MENU_BUTTON_ONLINE = "3";
 string MENU_BUTTON_TAKE_ALL = "4";
 
 // List of button labels ('cos otherwise the compiler runs out of memory!)
-list teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
-list userbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
+list teacherbuttons; // = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
+list userbuttons; // = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
 
 // The relative position at which items will be rezzed
 vector rez_pos = <0.0, 2.0, 1.0>;
@@ -233,8 +233,8 @@ list get_inventory(integer type)
 {
     list inv = [];
     integer num = llGetInventoryNumber(type);
-    integer i = 0;
-    for (i=0; i < num; i++) {
+    integer i;
+    for (i = 0; i < num; i++) {
         inv += [llGetInventoryName(type, i)];
     }
     
@@ -292,6 +292,9 @@ default
 {
     state_entry()
     {
+        teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
+        userbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
+
         // Starting again with a new configuration
         isconfigured = FALSE;
         eof = FALSE;
@@ -312,8 +315,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -461,10 +464,10 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
         integer level = 0;
-        for (i=0; i < num_detected; i++) {
+        for (i = 0; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Can this avatar use and/or control this item?
             if (sloodle_check_access_ctrl(id)) level = 2;

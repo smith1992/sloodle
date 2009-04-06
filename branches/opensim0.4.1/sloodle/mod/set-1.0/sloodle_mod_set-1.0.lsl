@@ -39,6 +39,8 @@ list cmddialog = []; // Alternating list of keys and timestamps, indicating who 
 
 string MENU_BUTTON_RESET = "0";
 
+integer TEX_SIDE = 2; // The side to apply our texture to for "ready" or otherwise
+
 ///// TRANSLATION /////
 
 // Link message channels
@@ -189,7 +191,7 @@ default
     state_entry()
     {
         // Starting again with a new configuration
-        llSetTexture("touch_to_set_moodle", 0);
+        llSetTexture("sloodle_set_touch_to_configure", TEX_SIDE);
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
         eof = FALSE;
@@ -207,8 +209,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -323,7 +325,7 @@ state ready
     state_entry()
     {
         // Display the site and course info in the hover text
-        llSetTexture("sloodle_ready", 0);
+        llSetTexture("sloodle_set_ready", TEX_SIDE);
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "");
         // Run a regular timer to cancel expired dialogs
         llSetTimerEvent(12.0);
@@ -334,9 +336,9 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
-        for (i=0; i < num_detected; i++) {
+        for (i = 0; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Check the use access level here
             if (sloodle_check_access_use(id)) {

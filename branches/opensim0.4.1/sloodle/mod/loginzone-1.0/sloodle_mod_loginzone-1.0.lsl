@@ -146,8 +146,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -205,8 +205,8 @@ state running
     collision_start(integer num_detected)
     {
         // Go through each detected avatar
-        integer i = 0;
-        for (i=0; i < num_detected; i++)
+        integer i;
+        for (i = 0; i < num_detected; i++)
         {
             sloodle_detected_avatar(llDetectedKey(i), llDetectedPos(i));
         }
@@ -226,6 +226,7 @@ state running
     
     http_response(key id, integer status, list meta, string body)
     {
+        integer statuscode;
         // Was this our update response?
         if (id == httpupdate) {
             httpupdate = NULL_KEY;
@@ -237,14 +238,14 @@ state running
             }
             // Extract the status code of the response
             list bits = llParseString2List(body, ["|"], []);
-            integer statuscode = (integer)llList2String(bits, 0);
+            statuscode = (integer)llList2String(bits, 0);
             if (statuscode <= 0) {
                 sloodle_debug("Update failed with Sloodle status " + (string)statuscode);
                 return;
             }
             return;
         }
-    
+
         // Was this an avatar response?
         integer listpos = llListFindList(httpreqs, [id]);
         if (listpos < 0) return;
@@ -266,7 +267,7 @@ state running
         integer numlines = llGetListLength(lines);
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer numfields = llGetListLength(statusfields);
-        integer statuscode = (integer)llList2String(statusfields, 0);
+        statuscode = (integer)llList2String(statusfields, 0);
         key av = NULL_KEY;
         if (numfields >= 7) av = (key)llList2String(statusfields, 6);
         

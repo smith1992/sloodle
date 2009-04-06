@@ -13,7 +13,6 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-integer SLOODLE_CHANNEL_OBJECT_LAYOUT = -1639270013;
 string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -37,7 +36,6 @@ float DELAY_RANGE = 3.5; // Added to DELAY_MIN gives the maximum delay time befo
 key useruuid = NULL_KEY; // User agent requesting profile storage
 string layoutname = ""; // Name of the layout to save to
 vector layoutpos = <0.0,0.0,0.0>; // Relative position from the rezzer to this object
-rotation layoutrot = ZERO_ROTATION; // Relative rotation from the rezzer's rotation to this object's rotation
 
 
 ///// TRANSLATION /////
@@ -63,6 +61,7 @@ sloodle_translation_request(string output_method, list output_params, string str
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
+
 ///// ----------- /////
 
 
@@ -130,7 +129,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -149,8 +148,8 @@ state ready
         // Reset our data
         useruuid = NULL_KEY;
         layoutname = "";
-        // Listen for chat messages on the layout channel
-        llListen(SLOODLE_CHANNEL_OBJECT_LAYOUT, "", NULL_KEY, "");
+        // Listen for chat messages on the object dialog channel
+        llListen(SLOODLE_CHANNEL_OBJECT_DIALOG, "", sloodlemyrezzer, "");
     }
     
     listen(integer channel, string name, key id, string msg)
@@ -158,49 +157,41 @@ state ready
         // Ignore anything if we don't know who our rezzer is
         if (sloodlemyrezzer == NULL_KEY) return;
         
-        // Ignore anything but layout messages
-        if (channel != SLOODLE_CHANNEL_OBJECT_LAYOUT) return;
+        // Ignore anything but object chat
+        if (channel != SLOODLE_CHANNEL_OBJECT_DIALOG) return;
         // Ignore anything owned by a different agent
         if (llGetOwnerKey(id) != llGetOwner()) return;
         
         // Parse the message
-        // We are expecting: cmd|rezzer|uuid|pos|rot|layoutname
+        // We are expecting: cmd|rezzer|uuid|pos|layoutname
         // "cmd" should be "do:storelayout"
         // "rezzer" is the UUID of the Set whose items should be stored
         // "uuid" is the UUID of the user agent storing the layout
         // "pos" is the vector giving the position of the root of the rezzer
-        // "rot" gives the rotation of the rezzer (as a vector)
         // "layoutname" should be the name of the layout to save to
         list fields = llParseStringKeepNulls(msg, ["|"], []);
         integer numfields = llGetListLength(fields);
-        if (numfields < 6) return;
-        
-        // Extract all the parts
+        if (numfields < 4) return;
+        // Get the command and UUID
         string cmd = llList2String(fields, 0);
-        if (cmd != "do:storelayout") return; // Check the command
-        
         key rezzer = (key)llList2String(fields, 1);
         useruuid = (key)llList2String(fields, 2);
         vector rezzerpos = (vector)llList2String(fields, 3);
-        rotation rezzerrot = llEuler2Rot((vector)llList2String(fields, 4));
-        layoutname = llList2String(fields, 5);
+        layoutname = llList2String(fields, 4);
         
         // Check that everything looks OK
+        if (cmd != "do:storelayout") return;
         if (rezzer != sloodlemyrezzer || sloodlemyrezzer == NULL_KEY) return;
         if (useruuid == NULL_KEY) return;
         if (layoutname == "") return;
         
         // Calculate the relative position of us compared to the rezzer
-        layoutpos = (llGetPos() - rezzerpos) / rezzerrot;
+        layoutpos = llGetPos() - rezzerpos;
         // If the distance is more than can be rezzed later on, then ignore it
         if (llVecMag(layoutpos) > 10.0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layout:toofar", [], NULL_KEY, "");
             return;
         }
-        
-        // Calculate the rotational offset from the rezzer to this object.
-        // (This should let us re-rez later in appropriate orientation compared to the Set).
-        layoutrot = llGetRootRotation() / rezzerrot;
         
         // Attempt to store the layout
         attemptnum = 0;
@@ -287,7 +278,7 @@ state request
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlelayoutname=" + layoutname;
         body += "&sloodleuuid=" + (string)useruuid;
-        body += "&sloodlelayoutentries=" + llGetObjectName() + "|" + (string)layoutpos + "|" + (string)layoutrot;
+        body += "&sloodlelayoutentries=" + llGetObjectName() + "|" + (string)layoutpos + "|" + (string)llGetRot();
         body += "&sloodleadd=true";
         
         httpstore = llHTTPRequest(sloodleserverroot + SLOODLE_LAYOUT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);

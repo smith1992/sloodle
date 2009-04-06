@@ -179,15 +179,15 @@ send_update()
     integer i = 0;
     integer numsels = 0;
     for (i = 0; i < num_options; i++) {
-    	// Get the number of selections for this option
+        // Get the number of selections for this option
         numsels = llList2Integer(optionselections, i);
         // Relative mode?
         if (sloodlerelative) {
-        	// Store the maximum
-	        if (numsels > fullbar) fullbar = numsels;
+            // Store the maximum
+            if (numsels > fullbar) fullbar = numsels;
         } else {
-        	// Add to the total
-        	fullbar += numsels;
+            // Add to the total
+            fullbar += numsels;
         }
     }
     
@@ -207,10 +207,10 @@ send_update()
         // Do we have results to add?
         numsels = llList2Integer(optionselections, i);
         if (numsels > 0 && fullbar > 0) {
-        	// At this point, all results are relative to the 'fullbar' value
-        	data += "|" + (string)((float)numsels / (float)fullbar);
+            // At this point, all results are relative to the 'fullbar' value
+            data += "|" + (string)((float)numsels / (float)fullbar);
         } else {
-        	data += "|0.0";
+            data += "|0.0";
         }
         
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, data, NULL_KEY);
@@ -260,8 +260,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -375,9 +375,9 @@ state ready
             optionselections = [];
             
             // Go through each option
-            integer i = 5;
+            integer i;
             list fields = [];
-            for (i=0; i < numlines; i++) {
+            for (i = 5; i < numlines; i++) {
                 // Parse the option data
                 fields = llParseStringKeepNulls(llList2String(lines, i), ["|"], []);
                 if (llGetListLength(fields) >= 3) {
@@ -478,5 +478,4 @@ state ready
         }
     }
 }
-
 

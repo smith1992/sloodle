@@ -25,7 +25,7 @@ string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 string sloodlecoursename_full = "";
-integer sloodleobjectaccessleveluse = 0; // Who can use this object?
+integer sloodleobjectaccessleveluse = 1; // Who can use this object?
 integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
@@ -139,12 +139,13 @@ integer sloodle_check_access_use(key id)
     // The owner can always use this
     if (id == llGetOwner()) return TRUE;
     
+    // For now, only let the owner use it    
     // Check the access mode
-    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-        return llSameGroup(id);
-    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-        return TRUE;
-    }
+    //if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
+    //    return llSameGroup(id);
+    //} else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
+    //    return TRUE;
+    //}
     return FALSE;
 }
 
@@ -223,7 +224,7 @@ sloodle_show_object_dialog(key id, integer page)
     // How many pages are there?
     integer numpages = (integer)((float)numobjects / 9.0) + 1;
     // If the requested page number is invalid, then cap it
-    if (page < 0) page == 0;
+    if (page < 0) page = 0;
     else if (page >= numpages) page = numpages - 1;
     
     // Build our list of item buttons (up to a maximum of 9)
@@ -304,8 +305,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -360,9 +361,9 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
-        for (i=0; i < num_detected; i++) {
+        for (i = 0; i < num_detected; i++) {
             id = llDetectedKey(0);
             // Make sure the user is allowed to use this object
             if (sloodle_check_access_use(id) || sloodle_check_access_ctrl(id)) {
@@ -394,9 +395,9 @@ state ready
             // Are we being asked to rez items?
             if (cmd == "do:rez") {
                 // Go through each other line
-                integer i = 1;
+                integer i;
                 list fields = [];
-                for (i=0; i < numlines; i++) {
+                for (i = 1; i < numlines; i++) {
                     // Extract the fields
                     fields = llParseString2List(llList2String(lines, i), ["|"], []);
                     if (llGetListLength(fields) >= 3) {
@@ -608,4 +609,3 @@ state rezzing
         state ready;
     }
 }
-

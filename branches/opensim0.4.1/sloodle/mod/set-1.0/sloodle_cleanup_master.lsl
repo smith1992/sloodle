@@ -9,7 +9,7 @@
 //  Edmund Edgar
 //  Peter R. Bloomfield
 
-
+ 
 
 ///// DATA /////
 
@@ -88,12 +88,12 @@ integer sloodle_handle_command_batch(string str)
     list lines = llParseString2List(str, ["\n"], []);
     integer numlines = llGetListLength(lines);
     // Process each line
-    integer i = 0;
+    integer i;
     integer ret = FALSE;
-    for (i=0; i < numlines; i++) {
+    for (i = 0; i < numlines; i++) {
         ret = sloodle_handle_command(llList2String(lines, i));
     }
-    
+
     return ret;
 }
 
@@ -220,5 +220,3 @@ state cancel_listen
         llResetScript();
     }
 }
-
-

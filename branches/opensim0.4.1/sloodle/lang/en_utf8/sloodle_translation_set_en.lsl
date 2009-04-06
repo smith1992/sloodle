@@ -33,25 +33,25 @@ string mybatch = "set"; // Sloodle Set
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Sloodle Set
-	"sloodleset:cmddialog", "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
-	"sloodleset:objectmenu", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-	"rezzingobject", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
-	"reztimeout", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
-	"sloodleset:noobjects", "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
-	"notininventory", "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
-	"notobject", "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
+    //  Sloodle Set
+    "sloodleset:cmddialog", "Sloodle Set Menu\n\n{{0}} = Reset", // Parameter: button label
+    "sloodleset:objectmenu", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
+    "rezzingobject", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
+    "reztimeout", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
+    "sloodleset:noobjects", "Sorry {{0}}. This Sloodle Set does not contain any objects to be rezzed.", // Parameter: avatar name
+    "notininventory", "Unable to rez \"{{0}}\". Item is not in inventory.", // Parameter: name of an object
+    "notobject", "Unable to rez \"{{0}}\". Item is not an object.", // Parameter: name of an object
 
-	//  Layouts
-	"layout:failedretrying", "Failed to store layout position. Retrying...",
-	"layout:failedaborting", "Failed to store layout position. Aborting.",
-	"layout:toofar", "Failed to store layout position - too far from rezzer.",
-	"layout:storedobject", "Object stored in layout.",
-	"layout:noneavailable", "Sorry {{0}}. There are no layouts available.", // Parameter: name of avatar
-	"layout:loadmenu", "Sloodle Set.\nSelect layout to load:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
-	"layout:savemenu", "Sloodle Set.\nSelect layout to save:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
-	"layout:cmdmenu", "Sloodle Set.\nWhat layout action would you like to perform?\n\n{{0}} = Load layout\n{{1}} = Save layout\n{{2}} = Save layout as...\n{{3}} = Cancel", // Parameters: button labels
-	"layout:nolayouttosave", "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first.", // Parameter: avatar name
+    //  Layouts
+    "layout:failedretrying", "Failed to store layout position. Retrying...",
+    "layout:failedaborting", "Failed to store layout position. Aborting.",
+    "layout:toofar", "Failed to store layout position - too far from rezzer.",
+    "layout:storedobject", "Object stored in layout.",
+    "layout:noneavailable", "Sorry {{0}}. There are no layouts available.", // Parameter: name of avatar
+    "layout:loadmenu", "Sloodle Set.\nSelect layout to load:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
+    "layout:savemenu", "Sloodle Set.\nSelect layout to save:\n\n{{0}}", // The parameter should be a set of button labels and layout names, e.g. "1 = blah, 2 = foobar"
+    "layout:cmdmenu", "Sloodle Set.\nWhat layout action would you like to perform?\n\n{{0}} = Load layout\n{{1}} = Save layout\n{{2}} = Save layout as...\n{{3}} = Cancel", // Parameters: button labels
+    "layout:nolayouttosave", "Sorry {{0}}. There is no current layout to save to. Please Save As a new layout or Load an existing layout first.", // Parameter: avatar name
     "layout:chatlayoutname", "Please chat the name of the new layout on channel 0 or 1. Touch the layout manager to cancel the operation.",
     "layout:layoutnametimeout", "Timeout waiting for layout name. Cancelling operation.",
     "layout:cancelsave", "Cancelling save operation.",
@@ -65,11 +65,7 @@ list locstrings = [
     "layoutcaption:saving", "Saving...",
     "layoutcaption:savingas", "Saving As...",
     "layoutcaption:loading", "Loading...",
-    "layoutcaption:layout", "Current Layout:\n{{0}}", // Parameter: name of layout
-
-    
-    // Recycle bin
-    "confirmclearup", "Are you sure you want to delete all the SLOODLE objects you have rezzed?\n\n{{0}} = No\n{{1}} = Yes" // parameters: button labels
+    "layoutcaption:layout", "Current Layout:\n{{0}}" // Parameter: name of layout
     
 ];
 
@@ -142,8 +138,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
+    
+    for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -173,12 +169,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum = 0;
+    integer curparamnum;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
+    for (curparamnum = 0; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);

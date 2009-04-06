@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "distributor"; // Used by the Vending Machine object
+string mybatch = "distributor";
 
 
 // List of string names and translation pairs.
@@ -33,12 +33,12 @@ string mybatch = "distributor"; // Used by the Vending Machine object
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Distributor
-	"openingxmlrpc", "Opening XMLRPC channel...",
-	"establishingconnection", "Establishing connection with outside server...",
-	"dialog:distributorcommandmenu", "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
-	"dialog:distributorobjectmenu", "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-	"dialog:distributorobjectmenu:cmd", "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu" // As above, but the second parameter gives the command menu button label
+    //  Distributor
+    "openingxmlrpc", "Opening XMLRPC channel...",
+    "establishingconnection", "Establishing connection with outside server...",
+    "dialog:distributorcommandmenu", "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
+    "dialog:distributorobjectmenu", "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
+    "dialog:distributorobjectmenu:cmd", "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu" // As above, but the second parameter gives the command menu button label
 ];
 
 ///// ----------- /////
@@ -110,8 +110,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
+    
+    for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -141,12 +141,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum = 0;
+    integer curparamnum;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
+    for (curparamnum = 0; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);

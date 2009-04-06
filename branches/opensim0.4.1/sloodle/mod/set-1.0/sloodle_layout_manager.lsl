@@ -220,8 +220,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (i=0; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -292,7 +292,12 @@ state ready
         integer statuscode = llList2Integer(statusfields, 0);
         
         // Check the status code
-        if (statuscode == -301) {
+        if (statuscode == -321) {
+            // Avatar is probably not registered
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "nopermission:use", [llKey2Name(llGetOwner())], NULL_KEY, "");
+            return;
+                        
+        } else if (statuscode == -301) {
             // User does not have permission
             sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:nopermission", [llKey2Name(llGetOwner())], NULL_KEY, "set");
             return;
@@ -681,4 +686,3 @@ state load
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
     }
 }
-

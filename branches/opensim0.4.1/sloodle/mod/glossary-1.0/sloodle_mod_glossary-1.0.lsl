@@ -244,7 +244,7 @@ state check_glossary
             sloodle_reset();
             return;
         }
-        
+
         // Split the response into lines
         list lines = llParseStringKeepNulls(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
@@ -443,7 +443,7 @@ state search
         // Check the statuscode
         if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
-            state ready;
+            sloodle_reset();
             return;
         }
         
@@ -453,8 +453,7 @@ state search
         // Go through each definition
         integer defnum = 1;
         list fields = [];
-        // TW mod def
-        for (defnum = 1; defnum < numlines; defnum++) {
+        for (defnum=0; defnum < numlines; defnum++) {
             // Split this definition into fields
             fields = llParseStringKeepNulls(llList2String(lines, defnum), ["|"], []);
             if (llGetListLength(fields) >= 2) {

@@ -135,7 +135,6 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            // TW init mod
             for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
@@ -146,7 +145,7 @@ default
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                     state ready;
                 } else {
-                    // Got all configuration but, it's not complete... request reconfiguration
+                    // Go all configuration but, it's not complete... request reconfiguration
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
                     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
                     eof = FALSE;
@@ -192,8 +191,7 @@ state ready
         integer i = 0;
         key id = NULL_KEY;
         string touched = "";
-        // TW init mod
-        for (i = 0; i < total_number; i++) {
+        for (i=0; i < total_number; i++) {
             id = llDetectedKey(i);
             // Only process avatars
             if (id == llGetOwnerKey(id)) {

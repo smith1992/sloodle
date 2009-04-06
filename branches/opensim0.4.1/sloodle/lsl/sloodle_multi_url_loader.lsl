@@ -20,7 +20,7 @@
 
 
 // The maximum number of parallel scripts available (should not be bigger than list below)
-integer NUM_PARALLEL_SCRIPTS = 10;
+integer NUM_PARALLEL_SCRIPTS = 4;
 
 
 

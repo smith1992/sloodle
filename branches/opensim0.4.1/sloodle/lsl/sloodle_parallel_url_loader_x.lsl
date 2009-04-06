@@ -26,7 +26,7 @@
 
 // The index of the channel this script will receive requests on
 // (NOTE: corresponds to indices in the list below)
-integer MY_CHANNEL_INDEX = -1;
+integer MY_CHANNEL_INDEX = 0;
 
 
 // OUTGOING link message numbers for parallel load requests

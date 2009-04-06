@@ -619,7 +619,7 @@ state configure_object
             
             // This will be our buffer of configuration commands
             string cmdbuffer = "";
-            integer maxbufferlength = 300;
+            integer maxbufferlength = 1024;
             integer cmdbufferlength = 0;
             
             // Add the server address and password in as the first commands. Also add the rezzer key if we have one
@@ -632,15 +632,15 @@ state configure_object
             string cmd = "";
             integer cmdlen = 0;
             string curline = "";
-            for (; linenum < numlines; linenum++) {
-            	curline = llList2String(lines, linenum);
-            	
-				// If this is a controller ID, then store the value.
-				// (Don't bother checking if we already have a controller id)
-				if (sloodlecontrollerid == 0 && llSubStringIndex(curline, "sloodlecontrollerid") == 0) {
-					list parts = llParseStringKeepNulls(curline, ["|"], []);
-					if (llGetListLength(parts) > 1) sloodlecontrollerid = (integer)llList2String(parts, 1);
-				}
+            for (linenum=0; linenum < numlines; linenum++) {
+                curline = llList2String(lines, linenum);
+                
+                // If this is a controller ID, then store the value.
+                // (Don't bother checking if we already have a controller id)
+                if (sloodlecontrollerid == 0 && llSubStringIndex(curline, "sloodlecontrollerid") == 0) {
+                    list parts = llParseStringKeepNulls(curline, ["|"], []);
+                    if (llGetListLength(parts) > 1) sloodlecontrollerid = (integer)llList2String(parts, 1);
+                }
             
                 // This should be "name|value" format, so just prefix it with "set:"
                 cmd = "set:" + curline + "\n";
@@ -677,9 +677,9 @@ state configure_object
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
-    	// Ignore anything from this script
-    	if (sender_num == llGetLinkNumber()) return;
-    	
+        // Ignore anything from this script
+        if (sender_num == llGetLinkNumber()) return;
+        
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Is it a reset command?
@@ -714,7 +714,7 @@ state idle
     
     timer()
     {
-    	// Send our ping request and ignore the response
+        // Send our ping request and ignore the response
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodleobjuuid=" + (string)llGetKey();
