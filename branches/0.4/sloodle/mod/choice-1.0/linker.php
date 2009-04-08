@@ -47,6 +47,52 @@
     require_once('../../sl_config.php');
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
+
+    ///// HORRIBLE HACK! /////
+    // I've copied this function from Moodle 1.9.
+    // Adding it here makes it work for Moodle 1.8 too.
+
+    if (!function_exists('choice_get_response_data')) {
+function choice_get_response_data($choice, $cm, $groupmode) {
+    global $CFG, $USER;
+
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+/// Get the current group
+    if ($groupmode > 0) {
+        $currentgroup = groups_get_activity_group($cm);
+    } else {
+        $currentgroup = 0;
+    }
+
+/// Initialise the returned array, which is a matrix:  $allresponses[responseid][userid] = responseobject
+    $allresponses = array();
+
+/// First get all the users who have access here
+/// To start with we assume they are all "unanswered" then move them later
+    $allresponses[0] = get_users_by_capability($context, 'mod/choice:choose', 'u.id, u.picture, u.firstname, u.lastname, u.idnumber', 'u.firstname ASC', '', '', $currentgroup, '', false, true);
+
+/// Get all the recorded responses for this choice
+    $rawresponses = get_records('choice_answers', 'choiceid', $choice->id);
+
+/// Use the responses to move users into the correct column
+
+    if ($rawresponses) {
+        foreach ($rawresponses as $response) {
+            if (isset($allresponses[0][$response->userid])) {   // This person is enrolled and in correct group
+                $allresponses[0][$response->userid]->timemodified = $response->timemodified;
+                $allresponses[$response->optionid][$response->userid] = clone($allresponses[0][$response->userid]);
+                unset($allresponses[0][$response->userid]);   // Remove from unanswered column
+            }
+        }
+    }
+
+    return $allresponses;
+
+}
+}
+
+    ///// END HORRIBLE HACK! /////
     
     // Authenticate the request, and load a choice module
     $sloodle = new SloodleSession();
