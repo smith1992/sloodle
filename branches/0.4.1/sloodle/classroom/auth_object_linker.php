@@ -68,6 +68,10 @@
     $sloodleobjname = $sloodle->request->required_param('sloodleobjname');
     $sloodleobjpwd = $sloodle->request->required_param('sloodleobjpwd');
     $sloodleobjtype = $sloodle->request->optional_param('sloodleobjtype', '');
+
+    // When the set rezzes an item from a layout, it can pass this parameter saying what layout entry the object represented.
+    // We'll use that to auto-configure the object based on the layout entry configurations.
+    $sloodlelayoutentryid = $sloodle->request->optional_param('sloodlelayoutentryid','');
     
     // If the request was authenticated, then the object is being fully authorised.
     // Otherwise, it is simply a 'pending' authorisation.
@@ -82,6 +86,9 @@
         
         // Authorise the object on the controller
         $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
+        if ($sloodlelayoutentryid != '') {
+           $sloodle->course->controller->configure_object_from_layout_entry($authid, $sloodlelayoutentryid);
+        }
         if ($authid) {
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
