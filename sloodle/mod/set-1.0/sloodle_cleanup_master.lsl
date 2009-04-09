@@ -13,11 +13,12 @@
 
 ///// DATA /////
 
+integer SLOODLE_CHANNEL_AVATAR_RECYCLE_BIN_MENU = -1639270031;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_EOF = "sloodleeof";
 
-integer sloodleobjectaccessleveluse = 0; // Who can use this object?
+integer sloodleobjectaccessleveluse = 1; // Who can use this object?
 integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
@@ -159,6 +160,11 @@ state ready
         sloodle_debug("Cleanup: ready state");
     }
     
+    state_exit()
+    {
+        llSetTimerEvent(0.0);
+    }
+    
     touch_start(integer num_detected)
     {
         // Can the toucher use this?
@@ -168,13 +174,51 @@ state ready
             return;
         }
         
-        // Figure out the root key
+        // Listen for the user's response to a dialog (after a set period of time, we'll cancel the listen)
+        llListen(SLOODLE_CHANNEL_AVATAR_RECYCLE_BIN_MENU, "", llDetectedKey(0), "1");
+        llSetTimerEvent(10.0);
+        // Display a confirmation dialog
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_RECYCLE_BIN_MENU, "0", "1"], "confirmclearup", ["0", "1"], llDetectedKey(0), "set");
+    }
+        
+    listen(integer channel, string name, key id, string msg)
+    {
+        // Only listen on the specified channel, for a particular message
+        if (channel != SLOODLE_CHANNEL_AVATAR_RECYCLE_BIN_MENU || msg != "1") return;
+        
+        // Figure out the root key of this object
         key rootkey = llGetLinkKey(1);
         if (rootkey == NULL_KEY) rootkey = llGetLinkKey(0);        
         
         // Send the cleanup command
         sloodle_debug("Sending cleanup command");
         llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "do:cleanup|" + (string)rootkey);
+        
+        // Cancel the listen
+        state cancel_listen;
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        state cancel_listen;
     }
 }
+
+
+// Cancel listen events, and revert to the ready state.
+// (Changing states stops all listens)
+state cancel_listen
+{
+    state_entry()
+    {
+        state ready;
+    }
+    
+    on_rez(integer par)
+    {
+        llResetScript();
+    }
+}
+
 
