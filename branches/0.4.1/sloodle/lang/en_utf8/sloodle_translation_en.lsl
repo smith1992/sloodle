@@ -44,7 +44,7 @@ list locstrings = [
 	//  Web-configuration
 	"webconfigmenu", "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
 	"configlink", "Use this link to configure the object.",
-	"chatserveraddress", "Please chat the address of your Moodle site, without a trailing slash. For example: http://www.yoursite.blah/moodle",
+	"chatserveraddress", "Please chat the address of your Moodle site. For example: http://www.yoursite.blah/moodle",
 	"waitingforserveraddress", "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
 	"checkingserverat", "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
 	"sendingconfig", "Sending configuration data...",

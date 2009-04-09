@@ -187,6 +187,12 @@ default
             // If the message starts with "http" then store it as the Moodle address
             msg = llStringTrim(msg, STRING_TRIM);
             if (llSubStringIndex(msg, "http") == 0) {
+
+                // If the message ends with a slash, remove it.
+                if ( llGetSubString(msg, -1, -1) == "/" ) {
+                    msg = llGetSubString(msg, 0, -2);    
+                }            
+                
                 sloodleserverroot = msg;
                 state check_moodle;
                 return;
