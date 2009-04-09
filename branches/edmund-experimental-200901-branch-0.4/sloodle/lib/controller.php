@@ -352,6 +352,37 @@
 
 	}
         
+	function configure_object_from_parent($authid, $parent_object) {
+
+	   // Fetch the UUID of the current object from the header
+	   // ...then clone its config
+
+           // Check to see if an entry already exists for this object
+           $parententry = get_record('sloodle_active_object', 'uuid', $parent_object);
+/*
+           if (!$parententry) {
+              return false;
+           }
+*/
+
+           $parentconfigs = get_records('sloodle_object_config','object',$parententry->id);
+           $ok = true;
+           if (count($parentconfigs) > 0) {
+              $clonedconfig = new stdClass();
+              foreach($parentconfigs as $config) {
+                 $clonedconfig->object = $authid;
+                 $clonedconfig->name = $config->name;
+                 $clonedconfig->value = $config->value;
+                 if (!insert_record('sloodle_object_config',$clonedconfig)) {
+                    $ok = false;
+                 }
+              }
+           }
+
+           return $ok;
+
+	}
+
         /**
         * Registers a new unauthorised object.
         * (Can be called statically).
