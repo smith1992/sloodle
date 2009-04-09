@@ -68,10 +68,11 @@
     $sloodleobjname = $sloodle->request->required_param('sloodleobjname');
     $sloodleobjpwd = $sloodle->request->required_param('sloodleobjpwd');
     $sloodleobjtype = $sloodle->request->optional_param('sloodleobjtype', '');
+    $sloodlecloneconfig = $sloodle->request->optional_param('sloodlecloneconfig', ''); // uuid of an object whose config we want to clone. combined with a layout id of 0. used for rezzing a mothership from a set
 
     // When the set rezzes an item from a layout, it can pass this parameter saying what layout entry the object represented.
     // We'll use that to auto-configure the object based on the layout entry configurations.
-    $sloodlelayoutentryid = $sloodle->request->optional_param('sloodlelayoutentryid','');
+    $sloodlelayoutentryid = $sloodle->request->optional_param('sloodlelayoutentryid',-1,PARAM_INT);
     
     // If the request was authenticated, then the object is being fully authorised.
     // Otherwise, it is simply a 'pending' authorisation.
@@ -86,13 +87,29 @@
         
         // Authorise the object on the controller
         $authid = $sloodle->course->controller->register_object($sloodleobjuuid, $sloodleobjname, $sloodle->user, $sloodleobjpwd, $sloodleobjtype);
-        if ($sloodlelayoutentryid != '') {
-           $sloodle->course->controller->configure_object_from_layout_entry($authid, $sloodlelayoutentryid);
-        }
+        $alreadyconfigured = "0";
+        if ($sloodlelayoutentryid > 0) {
+            if ($sloodle->course->controller->configure_object_from_layout_entry($authid, $sloodlelayoutentryid)) {
+                // This flag will tell the rezzer to tell the object that it's already configured
+                // That way the object will know not to tell the user to configure it.
+                $alreadyconfigured = "1";
+            }
+        } else if ( ($sloodlelayoutentryid == 0) && ($sloodlecloneconfig != '') ) { // use 0 to mean we want to configure based on the parent who authorized us, rather than on a layout. Doing this to make the mothership worked when rezzed by a Sloodle Set, but we may want to do the same kind of thing with Registration Booths etc.
+            if ($result = $sloodle->course->controller->configure_object_from_parent($authid, $sloodlecloneconfig)) {
+                // This flag will tell the rezzer to tell the object that it's already configured
+                // That way the object will know not to tell the user to configure it.
+$alreadyconfigured = $result;
+                $alreadyconfigured = "1";
+            } else {
+                $alreadyconfigured = "0";
+            }
+
+	}
         if ($authid) {
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             $sloodle->response->add_data_line($authid);
+            $sloodle->response->add_data_line($alreadyconfigured);
         } else {
             $sloodle->response->set_status_code(-201);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
@@ -105,6 +122,7 @@
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             $sloodle->response->add_data_line($authid);
+            $sloodle->response->add_data_line($alreadyconfigured="0");
         } else {
             $sloodle->response->set_status_code(-201);
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
