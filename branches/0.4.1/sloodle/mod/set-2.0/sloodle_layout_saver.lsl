@@ -67,7 +67,6 @@ default {
 
     http_response(key id, integer status, list meta, string body)
     {
-
         // Make sure this is the expected HTTP response
         if (id != httplayoutupdate) return; 
         httplayoutupdate = NULL_KEY;
@@ -120,6 +119,10 @@ default {
             return;
         }
         
+        // positive status code - we're good
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVING_DONE, body, NULL_KEY);
+        return;
+        
     }
     
     link_message( integer sender_num, integer num, string str, key id )
@@ -141,8 +144,8 @@ default {
     
     sensor(integer num_detected) { // should only be one object at a time
         // llOwnerSay("got an object");
-        vector offset_pos = (llDetectedPos(0) - llGetRootPosition());
-        entry_body = entry_body + llDetectedName(0) + "|" + (string)offset_pos + "|" + (string)llDetectedRot(0) + "|" +  (string)llDetectedKey(0) + "\n";
+        vector offset_pos = (llDetectedPos(0) - llGetRootPosition()) * llGetRootRotation();
+        entry_body = entry_body + llDetectedName(0) + "|" + (string)offset_pos + "|" + (string)(llDetectedRot(0) * llGetRootRotation()) + "|" +  (string)llDetectedKey(0) + "\n";
         sense_next_object();
     }
     
