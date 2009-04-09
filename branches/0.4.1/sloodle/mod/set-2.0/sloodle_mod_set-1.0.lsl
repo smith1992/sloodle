@@ -14,7 +14,7 @@
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_SET_LINKER = "/mod/sloodle/mod/set-1.0/linker.php";
+string SLOODLE_SET_LINKER = "/mod/sloodle/mod/set-2.0/linker.php";
 string SLOODLE_COURSEINFO_LINKER = "/mod/sloodle/classroom/course_info_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -23,7 +23,7 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
 
-string SLOODLE_OBJECT_TYPE = "set-1.0";
+string SLOODLE_OBJECT_TYPE = "set-2.0";
 
 string sloodleserverroot = "";
 string sloodlepwd = "";

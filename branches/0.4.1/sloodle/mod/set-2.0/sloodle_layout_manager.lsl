@@ -15,7 +15,7 @@
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 integer SLOODLE_CHANNEL_OBJECT_LAYOUT = -1639270013;
-string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
+string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-2.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
