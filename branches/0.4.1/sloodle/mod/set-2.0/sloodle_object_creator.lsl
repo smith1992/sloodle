@@ -9,12 +9,22 @@
 //  Edmund Edgar
 //  Peter R. Bloomfield
 
+integer SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET = 0;
+integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 1;
+
+vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_BASIC_SET = <0.0, 2.5, 0.0>; // The basic set rezzes things 2 meters in front of it
+vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_MOTHERSHIP = <0.0, 0.0, -2.0>; // The mothership rezzes things 2 meters below it
+
+integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET;
+//integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP;
+
+
 
 ///// DATA /////
 
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php";
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343 ;
+integer SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER = -1639270033 ;
+string SLOODLE_AUTH_LINKER = "/mod/sloodle/classroom/auth_object_linker.php"; 
 string SLOODLE_EOF = "sloodleeof";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
@@ -53,7 +63,10 @@ string autorez_layout_name = ""; // Name of layout being rezzed
 string MENU_BUTTON_PREVIOUS = "<<";
 string MENU_BUTTON_NEXT = ">>";
 
-vector rez_offset = <0.0, 0.0, -2.2>; // The default distance between the position where we hover and the position where objects get rezzed
+// The default distance between the position where we hover and the position where objects get rezzed
+// This will be set according to the object type in default state_entry
+vector rez_offset = ZERO_VECTOR; 
+
 rotation default_rez_rot = ZERO_ROTATION; // The default rotation to rez new objects at
 
 vector rez_pos = <0.0,0.0,0.0>; // This is used to store the actual rez position for a rez request
@@ -162,7 +175,7 @@ integer sloodle_check_access_use(key id)
 }
 
 // Add the given agent to our command dialog list
-sloodle_add_cmd_dialog(key id, integer page)
+sloodle_add_cmd_dialog(key id, integer page) 
 {
     // Does the person already exist?
     integer pos = llListFindList(cmddialog, [id]);
@@ -255,7 +268,7 @@ sloodle_show_object_dialog(key id, integer page)
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     
     // Display the basic object menu
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
+    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
 }
 
 // Update our inventory list
@@ -274,6 +287,7 @@ update_inventory()
         // Make sure it's copyable
         if (llGetInventoryPermMask(itemname, MASK_OWNER) & PERM_COPY) {
             inventory += [itemname];
+            //llOwnerSay("adding inventory");
         }
     }
 }
@@ -284,31 +298,46 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     // Check that the item exists
     if (llGetInventoryType(name) != INVENTORY_OBJECT) return; 
     // Attempt to rez the item relative to the root of this object
-
+    
+    //llOwnerSay("unprocessed rot is "+(string)rot);
     rez_pos = rez_pos * llGetRootRotation();
     rot = rot * llGetRootRotation();
 
-    // In principle the distance between the rezzer and the object being rezzed is fixed
-    // ...so we need to tell the rezzer to move to the right place to do the rezzing.
-    // But unless we're using a layout, we should already be in the right place by definition, so the following shouldn't move it. 
-    vector move_to_pos = rez_pos-rez_offset;
-    if (move_to_pos != <0,0,0>) {
-        llMessageLinked(LINK_SET,SLOODLE_CHANNEL_OBJECT_CREATOR_REZ_FROM_POSITION, (string)(move_to_pos) , NULL_KEY);              
-    }  
-    llSleep(2); // Give the object time to move into position
+    if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP) {
+        // In principle the distance between the rezzer and the object being rezzed is fixed
+        // ...so we need to tell the rezzer to move to the right place to do the rezzing.
+        // But unless we're using a layout, we should already be in the right place by definition, so the following shouldn't move it. 
+        vector move_to_pos = rez_pos-rez_offset;
+        if (move_to_pos != <0,0,0>) {
+            llMessageLinked(LINK_SET,SLOODLE_CHANNEL_OBJECT_CREATOR_REZ_FROM_POSITION, (string)(move_to_pos) , NULL_KEY);              
+        }  
+        llSleep(2); // Give the object time to move into position
+    }   
         
     llMessageLinked(LINK_SET,SLOODLE_CHANNEL_OBJECT_CREATOR_REZZING_STARTED, "", NULL_KEY);
-    llSleep(2); // Give the object time to start the rezzing effects
+    
+    if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP) {    
+        llSleep(2); // Give the object time to start the rezzing effects
+    }
         
     llSetTimerEvent(0);    
-            
-    // We should now have moved to directly above where we want to rez the object.
-    // So the only position we'll need will be the offset from the rezzer.
-    // llRezObject(name, llGetRootPosition() + (pos * llGetRootRotation()), ZERO_VECTOR, rot * llGetRootRotation(), password);
+        
+    if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP) {            
+        // We should now have moved to directly above where we want to rez the object.
+        // So the only position we'll need will be the offset from the rezzer.
+        // llRezObject(name, llGetRootPosition() + (pos * llGetRootRotation()), ZERO_VECTOR, rot * llGetRootRotation(), password);
     
-    // TODO: Deal with the situation where the rezzer isn't where we asked it to be...
-    llRezObject(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
-    llSleep(3);
+        // llOwnerSay("processed rot is "+(string)rot);
+        // TODO: Deal with the situation where the rezzer isn't where we asked it to be...
+        llRezObject(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
+    } else {
+        llRezObject(name, llGetRootPosition() + ( rez_offset * llGetRootRotation() ), ZERO_VECTOR, rot, password);        
+    }
+    
+    if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP) {
+        llSleep(3);
+    }
+    
 }
 
 
@@ -334,6 +363,13 @@ default
         autorez_rot = [];
         autorez_layout_entry_id = [];
         autorez_layout_name = "";
+        
+        if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP) {       
+            rez_offset = SLOODLE_OBJECT_CREATOR_REZ_OFFSET_MOTHERSHIP;
+        } else if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET) {
+            rez_offset = SLOODLE_OBJECT_CREATOR_REZ_OFFSET_BASIC_SET;
+        }
+
     }
     
     link_message(integer sender_num, integer num, string str, key id)
@@ -371,6 +407,9 @@ state ready
 {
     state_entry()
     {
+        
+       // llOwnerSay("in state ready");
+        
         // If we have more items to autorez, then go back to the autorezzing state.
         if (llGetListLength(autorez_names) > 0) {
             state autorez;
@@ -381,7 +420,7 @@ state ready
         }
     
         // Listen for dialog commands
-        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
+        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER, "", NULL_KEY, "");
         // Regularly purge expired dialogs
         llSetTimerEvent(12.0);
         
@@ -401,6 +440,7 @@ state ready
     
     touch_start(integer num_detected)
     {
+       // llOwnerSay("touched in ready state");
         // Go through each toucher
         integer i = 0;
         key id = NULL_KEY;
@@ -409,6 +449,7 @@ state ready
             // Make sure the user is allowed to use this object
             if (sloodle_check_access_use(id) || sloodle_check_access_ctrl(id)) {
                 // Show a menu of objects
+                // llOwnerSay("showing object dialog");
                 sloodle_show_object_dialog(id, 0);
                 sloodle_add_cmd_dialog(id, 0);
             } else {
@@ -445,7 +486,7 @@ state ready
                     if (llGetListLength(fields) >= 3) {
                         autorez_names += [llList2String(fields, 0)];
                         autorez_pos += [(vector)llList2String(fields, 1)];
-                        autorez_rot += [(vector)llList2String(fields, 2)];
+                        autorez_rot += [(rotation)llList2String(fields, 2)];
                         if (llGetListLength(fields) > 3) { // We have a layout ID
                             autorez_layout_entry_id += [(string)llList2String(fields,3)];
                         } else {
@@ -476,7 +517,7 @@ state ready
     listen(integer channel, string name, key id, string msg)
     {
         // Check what channel it is
-        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG) {
+        if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER) {
             // Ignore the message if the user is not on our list
             if (llListFindList(cmddialog, [id]) == -1) return;
             // Find out what the current page number is
@@ -503,6 +544,8 @@ state ready
                     rez_user = id;
                     rez_pos = rez_offset;
                     rez_rot = default_rez_rot;
+                    rez_layout_entry_id = ""; // reset the layout_entry_id in case it's left over from a previous rez using a layout
+            
                     state rezzing;
                     return;
                 }
@@ -527,6 +570,12 @@ state autorez
             autorez_rot = [];
             autorez_layout_entry_id = [];
             autorez_layout_name = "";
+            
+            rez_object = "";
+            rez_pos = ZERO_VECTOR;
+            rez_rot = ZERO_ROTATION;
+            rez_layout_entry_id = "";
+                        
             state ready;
             return;
         }
@@ -534,7 +583,7 @@ state autorez
         // Get the first item
         rez_object = llList2String(autorez_names, 0);
         rez_pos = (vector)llList2String(autorez_pos, 0);
-        rez_rot = llEuler2Rot((vector)llList2String(autorez_rot, 0));
+        rez_rot = (rotation)llList2String(autorez_rot, 0);
         rez_layout_entry_id = llList2String(autorez_layout_entry_id, 0);
         // Remove the data from the lists
         autorez_names = llDeleteSubList(autorez_names, 0, 0);
@@ -544,6 +593,7 @@ state autorez
         // Rez this item
         state rezzing;
     }
+
 }
 
 
@@ -605,6 +655,9 @@ state rezzing
         body += "&sloodleuuid=" + (string)rez_user;
         body += "&sloodleavname=" + llKey2Name(rez_user);
         body += "&sloodlelayoutentryid="+rez_layout_entry_id;
+        if (rez_layout_entry_id == "0") { // means we want to clone the settings of this object - used for rezzer
+            body += "&sloodlecloneconfig="+(string)llGetLinkKey(0); // uuid of root prim
+        }
            
         rez_http = llHTTPRequest(sloodleserverroot + SLOODLE_AUTH_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
  
@@ -670,13 +723,20 @@ state rezzing
         
         // Extract the authorisation ID
         string authid = llList2String(lines, 1);
+        
+        // As of 2009-02 experimental version, the auth linker may also pass an argument saying that the object has already been configured. If it didn't, take it as 0.
+        string is_already_configured = "0";
+        if ( llGetListLength(lines) >= 2 ) {
+            is_already_configured = llList2String(lines,2);
+        }
+        
         // Determine the root key of the object
         key rootkey = llGetKey();
         if (llGetLinkNumber() > 0) rootkey = llGetLinkKey(1);
         
         // Everything must be OK... send the data to the object. Format:
-        //  sloodle_init|<target-uuid>|<moodle-address>|<authid>
-        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid);
+        //  sloodle_init|<target-uuid>|<moodle-address>|<authid>|<is_already_configured>
+        llSay(SLOODLE_CHANNEL_OBJECT_DIALOG, "sloodle_init|" + (string)rootkey + "|" + (string)rez_id + "|" + sloodleserverroot + "|" + authid + "|" + is_already_configured);
         
         // If we have more items to autorez, then go back to the autorezzing state.
         if (llGetListLength(autorez_names) > 0) state autorez;
