@@ -674,7 +674,7 @@
             $str = "";
             $this->render_to_string($str);
             echo $str;
-            //$this->log_output($str);
+            $this->log_output($str);
         }
         
 	function log_output($str)

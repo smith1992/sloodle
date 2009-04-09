@@ -1,6 +1,6 @@
 <?php
     // This file is part of the Sloodle project (www.sloodle.org)
-    
+   
     /**
     * This file defines a structure for Sloodle data about a particular Moodle course.
     *
@@ -10,14 +10,14 @@
     *
     * @contributor Peter R. Bloomfield
     */
-    
+   
     /** Include the general Sloodle library. */
     require_once(SLOODLE_LIBROOT.'/general.php');
     /** Include the Sloodle controller structure. */
     require_once(SLOODLE_LIBROOT.'/controller.php');
     /** Include the layout profile management stuff. */
     require_once(SLOODLE_LIBROOT.'/layout_profile.php');
-    
+   
     /**
     * The Sloodle course data class
     * @package sloodle
@@ -25,7 +25,7 @@
     class SloodleCourse
     {
     // DATA //
-    
+   
         /**
         * The database object of the course to which this object relates.
         * Corresponds to the "course" table in Moodle.
@@ -34,7 +34,7 @@
         * @access private
         */
         var $course_object = null;
-    
+   
         /**
         * The Sloodle course data object, if it exists.
         * Is null if not yet set.
@@ -42,17 +42,17 @@
         * @var private
         */
         var $sloodle_course_data = null;
-        
+       
         /**
         * The {@link SloodleController} object being used to access this course, if available.
         * @var SloodleController
         * @var public
         */
         var $controller = null;
-        
-        
+       
+       
     // FUNCTIONS //
-    
+   
         /**
         * Constructor
         */
@@ -60,7 +60,7 @@
         {
             $this->controller = new SloodleController();
         }
-        
+       
         /**
         * Determines whether or not course data has been loaded.
         * @return bool
@@ -70,7 +70,7 @@
             if (empty($this->course_object) || empty($this->sloodle_course_data)) return false;
             return true;
         }
-        
+       
         /**
         * Gets the identifier of the course in the VLE.
         * @return mixed Course identifier. Type depends on VLE. (In Moodle, it will be an integer).
@@ -79,7 +79,7 @@
         {
             return (int)$this->course_object->id;
         }
-        
+       
         /**
         * Gets the VLE course object.
         * WARNING: this should only be used when ABSOLUTELY necessary.
@@ -90,8 +90,8 @@
         {
             return $this->course_object;
         }
-        
-        
+       
+       
         /**
         * Gets the short name of this course in the VLE.
         * @return string Shortname of this course.
@@ -100,7 +100,7 @@
         {
             return $this->course_object->shortname;
         }
-        
+       
         /**
         * Gets the full name of this course in the VLE.
         * @return string Fullname of this course.
@@ -109,7 +109,7 @@
         {
             return $this->course_object->fullname;
         }
-        
+       
         /**
         * Is auto registration permitted on this site AND course?
         * Takes into account the site-wide setting as well.
@@ -120,7 +120,7 @@
             // Check the site *and* the course value
             return ((bool)sloodle_autoreg_enabled_site() && (bool)$this->get_autoreg());
         }
-        
+       
         /**
         * Gets the autoregistration value for this course only.
         * (Ignores the site setting).
@@ -130,7 +130,7 @@
         {
             return (!empty($this->sloodle_course_data->autoreg));
         }
-        
+       
         /**
         * Enables auto-registration for this course.
         * NOTE: it may still be disabled at site-level.
@@ -140,7 +140,7 @@
         {
             $this->sloodle_course_data->autoreg = 1;
         }
-        
+       
         /**
         * Disables auto-registration for this course.
         * NOTE: does not affect the site setting.
@@ -150,9 +150,9 @@
         {
             $this->sloodle_course_data->autoreg = 0;
         }
-        
-        
-        
+       
+       
+       
         /**
         * Is auto enrolment permitted on this site AND course?
         * Takes into account the site-wide setting as well.
@@ -163,7 +163,7 @@
             // Check the site *and* the course value
             return ((bool)sloodle_autoenrol_enabled_site() && $this->get_autoenrol());
         }
-        
+       
         /**
         * Gets the auto enrolment value for this course only.
         * (Ignores the site setting).
@@ -173,7 +173,7 @@
         {
             return (!empty($this->sloodle_course_data->autoenrol));
         }
-        
+       
         /**
         * Enables auto-enrolment for this course.
         * NOTE: it may still be disabled at site-level.
@@ -183,7 +183,7 @@
         {
             $this->sloodle_course_data->autoenrol = 1;
         }
-        
+       
         /**
         * Disables auto-enrolment for this course.
         * NOTE: does not affect the site setting.
@@ -193,9 +193,9 @@
         {
             $this->sloodle_course_data->autoenrol = 0;
         }
-        
-        
-        
+       
+       
+       
         /**
         * Determines whether or not the course is available.
         * Checks that the course has not been disabled or hidden etc..
@@ -205,11 +205,11 @@
         {
             // Check visbility
             if (empty($this->course_object->visible)) return false;
-            
+           
             return true;
         }
-        
-        
+       
+       
         /**
         * Gets the position of the loginzone as a string vector <x,y,z>
         * @return string
@@ -219,7 +219,7 @@
             if (isset($this->sloodle_course_data->loginzonepos)) return $this->sloodle_course_data->loginzonepos;
             return '';
         }
-        
+       
         /**
         * Sets the position of the loginzone as a string vector <x,y,z>
         * @param string $pos A string position vector <x,y,z>
@@ -230,7 +230,7 @@
         {
             $this->sloodle_course_data->loginzonepos = $pos;
         }
-        
+       
         /**
         * Sets the position of the loginzone as a set of components
         * @param float $x
@@ -242,8 +242,8 @@
         {
             $this->sloodle_course_data->loginzonepos = "<$x,$y,$z>";
         }
-        
-        
+       
+       
         /**
         * Gets the size of the loginzone as a string vector <x,y,z>
         * @return string
@@ -253,7 +253,7 @@
             if (isset($this->sloodle_course_data->loginzonesize)) return $this->sloodle_course_data->loginzonesize;
             return '';
         }
-        
+       
         /**
         * Sets the size of the loginzone as a string vector <x,y,z>
         * @param string $size A string size vector <x,y,z>
@@ -264,7 +264,7 @@
         {
             $this->sloodle_course_data->loginzonesize = $size;
         }
-        
+       
         /**
         * Sets the size of the loginzone as a set of components
         * @param float $x
@@ -276,8 +276,8 @@
         {
             $this->sloodle_course_data->loginzonesize = "<$x,$y,$z>";
         }
-        
-        
+       
+       
         /**
         * Gets the region of the loginzone
         * @return string
@@ -287,7 +287,7 @@
             if (isset($this->sloodle_course_data->loginzoneregion)) return $this->sloodle_course_data->loginzoneregion;
             return '';
         }
-        
+       
         /**
         * Sets the region of the loginzone
         * @param string $region A string naming a region
@@ -297,8 +297,8 @@
         {
             $this->sloodle_course_data->loginzoneregion = $region;
         }
-        
-        
+       
+       
         /**
         * Gets the timestamp of the last time the loginzone was updated
         * @return int
@@ -308,7 +308,7 @@
             if (isset($this->sloodle_course_data->loginzoneupdated)) return $this->sloodle_course_data->loginzoneupdated;
             return 0;
         }
-        
+       
         /**
         * Sets the timestamp of the last time the loginzone was updated
         * @param int $timestamp A unix timestamp. If null, the current timestamp is used
@@ -319,6 +319,7 @@
             if ($timestamp == null) $timestamp = time();
             $this->sloodle_course_data->loginzoneupdated = $timestamp;
         }
+
 
 
         /**
@@ -332,7 +333,7 @@
             if (!(isset($this->sloodle_course_data->loginzonepos) && isset($this->sloodle_course_data->loginzonesize) && isset($this->sloodle_course_data->loginzoneregion))) return false;
             // Delete any existing LoginZone allocation for this user
             delete_records('sloodle_loginzone_allocation', 'userid', $user->get_user_id());
-            
+           
             // We will try up to 10 times to find a new available position
             $loginzonesize = sloodle_vector_to_array($this->sloodle_course_data->loginzonesize);
             $maxtries = 10;
@@ -349,7 +350,7 @@
             }
             // Did we succeed in generating it?
             if (!$success) return false;
-            
+           
             // Create a new one
             $alloc = new stdClass();
             $alloc->course = $this->get_course_id();
@@ -360,7 +361,7 @@
             if (!insert_record('sloodle_loginzone_allocation', $alloc)) return false;
             return true;
         }
-        
+       
         /**
         * Gets the SLurl for the specified user's loginzone alloation
         * @param SloodleUser $user The user whose allocation is to be retrieved
@@ -377,11 +378,11 @@
             // Calculate the absolute position of the allocation
             $loginzonepos= sloodle_vector_to_array($this->sloodle_course_data->loginzonepos);
             $abspos = array('x'=>$loginzonepos['x'] + $relpos['x'], 'y'=>$loginzonepos['y'] + $relpos['y'], 'z'=>$loginzonepos['z'] + $relpos['z']);
-            
+           
             // Construct and return the SLurl
             return "secondlife://{$this->sloodle_course_data->loginzoneregion}/{$abspos['x']}/{$abspos['y']}/{$abspos['z']}";
         }
-        
+       
         /**
         * Finds the user identified by LoginZone allocation, and loads it into the given user object.
         * Note: does not delete the allocation.
@@ -396,14 +397,14 @@
             $loginzonepos= sloodle_vector_to_array($this->sloodle_course_data->loginzonepos);
             $relpos = array('x'=>$abspos['x'] - $loginzonepos['x'], 'y'=>$abspos['y'] - $loginzonepos['y'], 'z'=>$abspos['z'] - $loginzonepos['z']);
             $relpos = sloodle_array_to_vector($relpos);
-        
+       
             // Attempt to find a matching LoginZone position in the database
             $rec = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $relpos);
             if (!$rec) return false;
             // Load the user
             return $user->load_user($rec->userid);
         }
-        
+       
         /**
         * Deletes any loginzone allocations for the given user
         * If there are multiple for the same user (which there should never be) it will delete them all.
@@ -414,7 +415,7 @@
         {
             delete_records('sloodle_loginzone_allocation', 'userid', $user->get_user_id());
         }
-        
+       
         /**
         * Determines whether or not LoginZone data exists for this course.
         * @return bool True if there is complete data, or false otherwise
@@ -423,8 +424,8 @@
         {
             return (!(empty($this->sloodle_course_data->loginzonepos) || empty($this->sloodle_course_data->loginzonesize) || empty($this->sloodle_course_data->loginzoneregion)));
         }
-        
-        
+       
+       
         /**
         * Reads fresh data into the structure from the database.
         * Fetches Moodle and Sloodle data about the course specified.
@@ -438,7 +439,7 @@
             // Reset everything
             $this->course_object = null;
             $this->sloodle_course_data = null;
-        
+       
             // Check what we are dealing with
             if (is_int($course)) {
                 // It is a course ID - make sure it's valid
@@ -457,7 +458,7 @@
                 // Don't know what it is - do nothing
                 return false;
             }
-            
+           
             // Fetch the Sloodle course data
             $this->sloodle_course_data = get_record('sloodle_course', 'course', $this->course_object->id);
             // Did it fail?
@@ -477,10 +478,10 @@
                     return false;
                 }
             }
-            
+           
             return true;
         }
-        
+       
         /**
         * Loads course and controller data by the unqiue site-wide identifier of a Sloodle controller.
         * @param mixed $controllerid The unique site-wide identifier for a Sloodle Controller. (For Moodle, an integer cmi)
@@ -491,23 +492,23 @@
             // Clear out all our data
             $this->course_object = null;
             $this->sloodle_course_data = null;
-            
+           
             // Construct a new controller object, and attempt to load its data
             $this->controller = new SloodleController();
             if (!$this->controller->load($controllerid)) {
                 sloodle_debug("Failed to load controller.<br>");
                 return false;
             }
-            
+           
             // Now attempt to load all the course data
             if (!$this->load($this->controller->get_course_id())) {
                 sloodle_debug("Failed to load course data.<br>");
                 return false;
             }
-            
+           
             return true;
         }
-        
+       
         /**
         * Writes current Sloodle course data back to the database.
         * Requires that a course structure has already been retrieved.
@@ -521,7 +522,7 @@
             // Update the Sloodle data
             return update_record('sloodle_course', $this->sloodle_course_data);
         }
-        
+       
         /**
         * Gets an array associating layout ID's to names
         * @return array
@@ -536,9 +537,10 @@
             foreach ($layouts as $l) {
                 $layout_names[$l->id] = $l->name;
             }
-            
+           
             return $layout_names;
         }
+
 
         /**
         * Gets all the entries in the named layout.
@@ -550,7 +552,7 @@
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
             if (!$layout) return false;
-            
+           
             return $this->get_layout_entries_for_layout_id($layout->id);
         }
 
@@ -564,14 +566,14 @@
             // Fetch all entries
             $recs = get_records('sloodle_layout_entry', 'layout', $id);
             if (!$recs) return array();
-            
+           
             // Construct the array of SloodleLayoutEntry objects
             $entries = array();
             foreach ($recs as $r) {
                 $entry = new SloodleLayoutEntry($r);
                 $entries[] = $entry;
             }
-            
+           
             return $entries;
         }
 
@@ -591,7 +593,7 @@
 
             return $layouts;
         }
-        
+       
         /**
         * Deletes the named layout.
         * @param string $name The name of the layout to delete
@@ -602,13 +604,13 @@
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
             if (!$layout) return;
-            
+           
             // Delete all related entries
             delete_records('sloodle_layout_entry', 'layout', $layout->id);
             // Delete the layout itself
             delete_records('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
         }
-        
+       
         /**
         * Save the given entries in the named profile.
         * @param string $name The name of the layout to query
@@ -621,7 +623,7 @@
             // Attempt to find the relevant layout
             $layout = get_record('sloodle_layout', 'course', $this->course_object->id, 'name', $name);
             $lid = 0;
-            if (!$layout) {
+            if ($layout) {
                $lid = $layout->id;
             }
 
@@ -642,33 +644,33 @@
             if ($id > 0) {
 
 /*
-		// Delete all existing entries if necessary
-		// This will happen when we save
-		// TODO: make add-only functionality for backwards compatibility
-		if (!$add) {
-			delete_records('sloodle_layout_entry', 'layout', $layout->id);
-		}
+                // Delete all existing entries if necessary
+                // This will happen when we save
+                // TODO: make add-only functionality for backwards compatibility
+                if (!$add) {
+                        delete_records('sloodle_layout_entry', 'layout', $layout->id);
+                }
 */
 
                 $layout = $this->get_layout($id);
                 $layout->name = $name;
                 $layout->timeupdated = time();
                 $layout->entries = $entries;
-		$layout->populate_entries_from_active_objects(); // where the records have objectuuids set, copy their settings
+                $layout->populate_entries_from_active_objects(); // where the records have objectuuids set, copy their settings
                 if (!$layout->update()) {
                    return false;
                 }
-		$this->layout = $layout;
+                $this->layout = $layout;
             } else {
                 $layout = new SloodleLayout();
                 $layout->name = $name;
                 $layout->course = $this->course_object->id;
                 $layout->timeupdated = time();
                 $layout->entries = $entries;
-		$layout->populate_entries_from_active_objects();
+                $layout->populate_entries_from_active_objects();
                 $layout->id = $layout->insert();  #insert_record('sloodle_layout', $layout);
                 if (!$layout->id) return false;
-		$this->layout = $layout;
+                $this->layout = $layout;
             }
            
 /*
@@ -682,16 +684,16 @@
                 $rec->position = $e->position;
                 $rec->rotation = $e->rotation;
 
-		// TODO EDE: If there's an objectuuid for the entry, copy the entries from the active object table to the layout config table
+                // TODO EDE: If there's an objectuuid for the entry, copy the entries from the active object table to the layout config table
                 if ($objectuuid != '') {
                    $rec->copy_active_object_with_uuid($e->objectuuid);
                 }
-                
+               
                 $entry_id = insert_record('sloodle_layout_entry', $rec);
-                
+               
             }
 */
-            
+           
             return $layout->id;
 
         }
@@ -712,10 +714,10 @@
             global $USER;
             // Make sure some user data
             if (empty($USER) || $USER->id == 0) return FALSE;
-            
+           
             // Check the capability
             return has_capability('mod/sloodle:objectauth', get_context_instance(CONTEXT_COURSE, $this->get_course_id()));
         }
-    
+   
     }
 ?>

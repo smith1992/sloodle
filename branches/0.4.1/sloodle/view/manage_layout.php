@@ -336,7 +336,7 @@
        echo "\n";
        echo "<tr>";
        echo "<tr>";
-       echo "<td bgcolor=\"#000066\"><a href=\"../classroom/configure_layout_entry.php?courseid={$courseid}&layout_entry_id={$co->id}\">{$co->id}</a></td>";
+       //echo "<td bgcolor=\"#000066\"><a href=\"../classroom/configure_layout_entry.php?courseid={$courseid}&layout_entry_id={$co->id}\">{$co->id}</a></td>";
        echo "<td><input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" /></td>";
        echo "<td align=\"left\">{$co->name}</td>";
        echo "<td align=\"center\">{$modname}</td>";
