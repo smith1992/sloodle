@@ -231,6 +231,7 @@ class sloodle_view_course extends sloodle_base_view
     if ($layouts_can_use) {
 
         // Start the section
+    	echo '<a name="layouts">&nbsp;<a>';
         print_box_start('generalbox boxaligncenter boxwidthnormal');
         echo '<div style="text-align:center;"><h3>'.get_string('storedlayouts','sloodle').'</h3>';
    
@@ -275,7 +276,7 @@ class sloodle_view_course extends sloodle_base_view
                 // Get the number of objects associated with this layout
                 $numobjects = count_records('sloodle_layout_entry', 'layout', $layout->id);
                 $timeupdated = ((int)$layout->timeupdated == 0) ? '('.get_string('unknown','sloodle').')' : date('Y-m-d H:i:s', (int)$layout->timeupdated);
-                $layouts_table->data[] = array($layout->name, $numobjects, $timeupdated, '<a href="view/manage_layout.php?courseid='.$course->id.'&layoutid='.$layout->id.'">Edit</a>',"<input $disabledattr type=\"checkbox\" name=\"sloodledeletelayout_{$layout->id}\" value=\"true\" /");
+                $layouts_table->data[] = array($layout->name, $numobjects, $timeupdated, '<a href="view_layout.php?courseid='.$course->id.'&layoutid='.$layout->id.'">Edit</a>',"<input $disabledattr type=\"checkbox\" name=\"sloodledeletelayout_{$layout->id}\" value=\"true\" /");
             }
            
             // Display a form and the table
@@ -292,7 +293,7 @@ class sloodle_view_course extends sloodle_base_view
         }
        
         echo '<br />';
-        echo '<a href="view/manage_layout.php?courseid='.$course->id.'">Create a layout for this course</a>';
+        echo '<a href="view_layout.php?layoutid=0&courseid='.$course->id.'">Create a layout for this course</a>';
 
 
         echo '</div>';

@@ -752,6 +752,39 @@
         print_box_end();
     }
 
+    function sloodle_access_level_option_choice($option, $current_config, $show, $prefix = '', $suffix = '') {
+
+	$access_levels = array();
+        if ($option == 'sloodleserveraccesslevel') {
+            $access_levels = array( SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_COURSE => get_string('accesslevel:course','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_SITE => get_string('accesslevel:site','sloodle'),
+                                    SLOODLE_SERVER_ACCESS_LEVEL_STAFF => get_string('accesslevel:staff','sloodle') 
+                                  );
+        } else {
+            $access_levels = array( SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC => get_string('accesslevel:public','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_GROUP => get_string('accesslevel:group','sloodle'),
+                                    SLOODLE_OBJECT_ACCESS_LEVEL_OWNER => get_string('accesslevel:owner','sloodle') 
+                                  );
+        }
+
+        $defaults = array(
+            'sloodleobjectaccessleveluse' => SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC,
+            'sloodleobjectaccesslevelctrl' => SLOODLE_OBJECT_ACCESS_LEVEL_OWNER,
+            'sloodleserveraccesslevel' => SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC
+        );
+
+        // Fetch default values from the configuration, if possible
+        $selected_value = sloodle_get_value($current_config, $option, $defaults[$option]);
+        
+        if ($show) {
+            return choose_from_menu($access_levels, $prefix.$option.$suffix, $selected_value, '', '', 0, $return = true);
+        } else {
+            return '&nbsp;';
+        } 
+        
+    }
+
 
     /**
     * Returns a very approximate natural language description of a period of time (in minutes, hours, days, or weeks).
