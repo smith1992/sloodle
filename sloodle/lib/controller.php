@@ -223,7 +223,7 @@
         function is_available()
         {
             //return (bool)($this->cm->visible);
-            return true;
+			return true;
         }
         
         /**

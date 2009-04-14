@@ -69,7 +69,7 @@
     if ($has_avatar) {
         print_box_start('generalbox boxaligncenter boxwidthwide');
         echo get_string('loginzone:alreadyregistered','sloodle').'<br><br>';
-        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&course={$course->id}\">".get_string('viewmyavatar', 'sloodle')."</a><br>\n";
+        echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$USER->id}&course={$course->id}\">".get_string('viewmyavatar', 'sloodle')."</a><br>\n";
         print_box_end();
     }
     
