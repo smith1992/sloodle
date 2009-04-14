@@ -26,7 +26,7 @@ if (!defined('SLOODLE_VERSION')) {
 }
 
 /** Define the Sloodle Menu Block version. */
-define('SLOODLE_MENU_VERSION', 0.3);
+define('SLOODLE_MENU_VERSION', 0.4);
 
 /**
 * Defines the block class.
@@ -43,7 +43,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2008062000;
+        $this->version = 2009010800;
     }
     
     /**
@@ -88,7 +88,7 @@ class block_sloodle_menu extends block_base {
         $course_context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
         
         // This version of the menu isn't compatible with older version of the Sloodle module
-        if (defined('SLOODLE_VERSION') && SLOODLE_VERSION < 0.3) {
+        if (defined('SLOODLE_VERSION') && SLOODLE_VERSION < 0.4) {
             $this->content->text = get_string('oldmodule', 'block_sloodle_menu');
             return $this->content;
         }
@@ -132,7 +132,7 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= '<center><span style="font-size:10pt;font-style:italic;color:#777777;">'.get_string('youravatar', 'block_sloodle_menu').':</span><br/>';
             
             // Make the avatar name a link if the user management page exists
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$USER->id}&amp;course={$COURSE->id}\">$sl_avatar_name</a>";
             $this->content->text .= '<br/></center>';
             
         } else if (is_string($userresult)) {
@@ -149,7 +149,7 @@ class block_sloodle_menu extends block_base {
 
         // Add the Sloodle profile link
         $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user.gif\" width=\"16\" height=\"16\"/> ";
-        $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_user.php?id={$USER->id}&amp;course={$COURSE->id}\">".get_string('mysloodleprofile', 'block_sloodle_menu')."</a><br/>";
+        $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id={$USER->id}&amp;course={$COURSE->id}\">".get_string('mysloodleprofile', 'block_sloodle_menu')."</a><br/>";
 
         // Show a link to all Sloodle activities on this course
         //TODO: possibly show number of visible Sloodle activities?
@@ -165,18 +165,23 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/classroom/loginzone.php?id={$COURSE->id}\" style=\"color:red; text-decoration:line-through;\" title=\"".get_string('courseloginzone:nodata','block_sloodle_menu')."\">".get_string('courseloginzone', 'block_sloodle_menu')."</a><br/>";
         }
         
-        $this->content->text .= '<hr>';
+        //$this->content->text .= '<hr>';
         
+        // Add a link for avatars list
+        $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user_mng.gif\" width=\"16\" height=\"16\"/> ";
+        $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=users&amp;course={$COURSE->id}\">".get_string('avatars', 'block_sloodle_menu')."</a><br/>";            
+        
+        /* OLD AVATARS LIST
         // Add a user management link if the user can view hidden user details
         if (has_capability('moodle/user:viewhiddendetails', $course_context)) {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/user_mng.gif\" width=\"16\" height=\"16\"/> ";
             $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_users.php?course={$COURSE->id}\">".get_string('usermanagement', 'block_sloodle_menu')."</a><br/>";            
-        }
+        }*/
         
         // Add a link to Sloodle course settings, if the user can update the course
         if (has_capability('moodle/course:update', $course_context)) {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/page.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view/view_course.php?id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
+            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
         }
         
         // Add a module configuration link if the user has authority to administer the module

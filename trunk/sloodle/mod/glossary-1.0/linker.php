@@ -91,8 +91,8 @@
         $sloodle->response->set_status_descriptor('OK');
         // Go through each result
         foreach ($results as $r) {
-            $concept = strip_tags($r->concept);
-            $def = str_replace("\n", "", html_entity_decode(strip_tags($r->definition)));
+            $concept = sloodle_clean_for_output($r->concept);
+            $def = sloodle_clean_for_output($r->definition);
             $sloodle->response->add_data_line(array($concept, $def));
         }
     } else {

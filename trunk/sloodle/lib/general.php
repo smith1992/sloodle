@@ -725,7 +725,9 @@
         if ($show_use_object || $show_control_object) {
             
             // Object access
-            echo '<b>'.get_string('accesslevelobject','sloodle').'</b><br><i>'.get_string('accesslevelobject:desc','sloodle').'</i><br><br>';
+            echo '<b>'.get_string('accesslevelobject','sloodle').'</b>';
+            helpbutton('object_access_level', get_string('accesslevelobject','sloodle'), 'sloodle');
+            echo '<br><i>'.get_string('accesslevelobject:desc','sloodle').'</i><br><br>';
             // Use object
             if ($show_use_object) {
                 echo get_string('accesslevelobject:use','sloodle').': ';
@@ -743,7 +745,9 @@
         // Print the server settings
         if ($show_server) {
             // Server access
-            echo '<b>'.get_string('accesslevelserver','sloodle').'</b><br><i>'.get_string('accesslevelserver:desc','sloodle').'</i><br><br>';
+            echo '<b>'.get_string('accesslevelserver','sloodle').'</b>';
+            helpbutton('server_access_level', get_string('accesslevelserver','sloodle'), 'sloodle');
+            echo '<br><i>'.get_string('accesslevelserver:desc','sloodle').'</i><br><br>';
             echo get_string('accesslevel','sloodle').': ';
             choose_from_menu($server_access_levels, 'sloodleserveraccesslevel', $sloodleserveraccesslevel, '');
             echo '<br>';
@@ -925,6 +929,7 @@
         // Go through each object to parse names and version numbers.
         // Object names should have format "name-version" (e.g. "chat-1.0").
         // We will skip anything that does not match this format.
+        // We will also skip anything with a "noshow" file in the folder.
         $mods = array();
         foreach ($dirs as $d) {
             if (empty($d)) continue;
@@ -932,6 +937,9 @@
             // Parse the object identifier
             list($name, $version) = sloodle_parse_object_identifier($d);
             if (empty($name) || empty($version)) continue;
+
+            // Check if there's a noshow file
+            if (file_exists("{$MODPATH}/{$d}/noshow")) continue;
             
             // Check if this object has a configuration script
             $cfgscript = "$MODPATH/$d/object_config.php";
@@ -946,6 +954,82 @@
         ksort($mods);        
         return $mods;
     }
-    
+   
+
+    /**
+    * Render a page viewing a particular feature, or a SLOODLE module.
+    * Outputs error text in SLOODLE debug mode.
+    * @param string $feature The name of a feature to view ("course", "user", "users"), or "module" to indicate that we are viewing some kind of module. Note: features should contain only alphanumric characters.
+    * @return bool True if successful, or false if not.
+    */
+    function sloodle_view($feature)
+    {
+        global $CFG, $USER;
+        // Make sure the parameter is safe -- nothing but alphanumeric characters.
+        if (!ctype_alnum($feature)) {
+            sloodle_debug('sloodle_view(..): Invalid characters in view feature, "'.$feature.'"');
+            return false;
+        }
+        if (empty($feature)) {
+            sloodle_debug('sloodle_view(..): No feature name specified.');
+            return false;
+        }
+        $feature = trim($feature);
+
+        // Has a module been requested?
+        if (strcasecmp($feature, 'module') == 0) {
+            // We should have an ID parameter, indicating which module has been requested
+            $id = required_param('id', PARAM_INT);
+            // Query the database for the SLOODLE module sub-type
+            $instanceid = get_field('course_modules', 'instance', 'id', $id);
+            if ($instanceid === false) error('Course module instance '.$id.' not found.');
+            $type = get_field('sloodle', 'type', 'id', $instanceid);
+            if ($type === false) error('SLOODLE module instance '.$instanceid.' not found.');
+            // We will just use the type as a feature name now.
+            // This means the following words are unavailable as module sub-types: course, user, users
+            $feature = $type;
+        }
+
+        // Attempt to include the relevant viewing class
+        $filename = SLOODLE_DIRROOT."/view/{$feature}.php";
+        if (!file_exists($filename)) {
+            error("SLOODLE file not found: view/{$feature}.php");
+            exit();
+        }
+        require_once($filename);
+
+        // Create and execute the viewing instance
+        $classname = 'sloodle_view_'.$feature;
+        if (!class_exists($classname)) {
+            error("SLOODLE class missing: {$classname}");
+            exit();
+        }
+        $viewer = new $classname();
+        $viewer->view();
+
+        return true;
+    } 
+
+    /**
+    * Returns the given string, 'cleaned' and ready for output to SL as UTF-8.
+    * Removes tags and slash-characters.
+    * @param string str The string to clean.
+    * @return string
+    */
+    function sloodle_clean_for_output($str)
+    {
+        return strip_tags(stripcslashes(html_entity_decode($str, ENT_QUOTES, 'UTF-8')));
+    }
+
+    /**
+    * Returns the given string, 'cleaned' and ready for storage in the database.
+    * Note: removes tags and slash-characters.
+    * @param string str The string to clean.
+    * @return string
+    */
+    function sloodle_clean_for_db($str)
+    {
+        return htmlentities($str, ENT_QUOTES, 'UTF-8');
+    }
 
 ?>
