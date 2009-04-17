@@ -32,8 +32,10 @@
 	define('SLOODLE_DIRROOT', $CFG->dirroot.'/mod/sloodle');
     /** The data path for the root of the Sloodle library folder. */
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
+	
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', 0.4); // This is the release version, not the module version (which is in version.php)
+	// Note: this is 0.41 instead of 0.4.1 because this needs to be a compareable number.
+    define('SLOODLE_VERSION', 0.41); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
