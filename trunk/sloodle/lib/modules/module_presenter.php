@@ -139,9 +139,12 @@
                 $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
                 $rec->ordering = ((int)$num + 1) * 10;
             } else {
-                $rec->ordering = $position;
+                $rec->ordering = ($position * 10) - 1; // Ordering works in multiples of 10, starting at 10.
             }
             return (bool)insert_record('sloodle_presenter_entry', $rec, false);
+			
+			// Make sure our entry ordering is valid
+            $this->validate_ordering();
         }
         
         /**
@@ -179,6 +182,31 @@
             // Re-validate the entry ordering
             $this->validate_ordering();
         }
+		
+		/**
+		* Relocates the identified entry to the specified position in the presentation.
+		* Positions count from 1 upwards. If an entry already exists in that location, then the existing entry is pushed to the next position.
+		* @param int $id The ID of the entry to relocate
+		* @param int $pos The position in the presentation to move the slide to
+		* @return void
+		*/
+		function relocate_entry($id, $pos)
+		{
+			// Start by ensuring uniform ordering, starting at 10.
+            $this->validate_ordering();
+			// Calculate the ordering value for our entry.
+			// The first entry in a presentation has ordering 10, and subsequent entries increment by 10.
+			// Therefore, we can insert an entry before an existing slot by moving it to one BEFORE the appropriate multiple of 10.
+			$newordering = ($pos * 10) - 1;
+			
+			// Write the new ordering to the database, and re-validate the order
+			$entry = get_record('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
+            if (!$entry) return;
+			$entry->ordering = $newordering;
+			update_record('sloodle_presenter_entry', $entry);
+            
+            $this->validate_ordering();
+		}
         
         /**
         * Validates the ordering value of all entries in the presenter.

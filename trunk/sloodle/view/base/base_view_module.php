@@ -156,9 +156,10 @@ class sloodle_base_view_module extends sloodle_base_view
         echo '<h4 style="text-align:center;">'.get_string('moduletype', 'sloodle').': '.$fulltypename;
         echo helpbutton("moduletype_{$this->sloodle->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
         // We'll apply a general introduction to all Controllers, since they seem to confuse lots of people!
-        $generalintro = '';
-        if ($this->sloodle->type == SLOODLE_TYPE_CTRL) $generalintro = '<p style="font-style:italic;">'.get_string('controllerinfo','sloodle').'</p>';
-    print_box($generalintro.$this->sloodle->intro, 'generalbox', 'intro');
+        $intro = $this->sloodle->intro;
+        if ($this->sloodle->type == SLOODLE_TYPE_CTRL) $intro = '<p style="font-style:italic;">'.get_string('controllerinfo','sloodle').'</p>' . $this->sloodle->intro;
+		// Display the intro in a box, if we have an intro
+		if (!empty($intro)) print_box($intro, 'generalbox', 'intro');
     
     }
 

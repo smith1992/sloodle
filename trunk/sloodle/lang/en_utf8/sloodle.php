@@ -22,6 +22,7 @@ $string['accesslevelobject:control'] = 'Control object';
 $string['accesslevelserver'] = 'Server Access Level';
 $string['accesslevelserver:desc'] = 'This determines who may use the server resource';
 
+$string['actions'] = 'Actions';
 $string['activeobjects'] = 'Active objects';
 $string['activeobjectlifetime'] = 'Active object lifetime (days)';
 $string['activeobjectlifetime:info'] = 'The number of days before which an active object will expire if not used.';
@@ -102,6 +103,7 @@ $string['directlink'] = 'Click here for a direct link to this entry.';
 $string['deleteuserobjects'] = 'Delete User Objects';
 $string['deleteuserobjects:help'] = 'Click this button to delete all the user objects associated with the above avatar(s)';
 
+$string['edit'] = 'Edit';
 $string['editcourse'] = 'Edit SLOODLE Course Settings';
 $string['enabled'] = 'Enabled';
 $string['enteravatarname'] = 'Enter avatar name';
@@ -275,9 +277,18 @@ $string['pendingavatars'] = 'Pending Avatars';
 $string['playsounds'] = 'Play sounds?';
 $string['position'] = 'Position';
 
-$string['presenter:edit'] = 'Edit Presentation';
+$string['presenter:viewpresentation']  = 'View the presentation';
+$string['presenter:edit'] = 'Edit the presentation';
+$string['presenter:empty'] = 'This presentation does not have any slides in it yet.';
+$string['presenter:clickedit'] = 'To add slides to this presentation, click the Edit tab above.';
 $string['presenter:viewanddelete']  = 'View and delete entries';
 $string['presenter:add'] = 'Add entry';
+$string['presenter:moveslide'] = 'Move this slide';
+$string['presenter:editslide'] = 'Edit this slide';
+$string['presenter:viewslide'] = 'View this slide';
+$string['presenter:deleteslide'] = 'Delete this slide from the presentation';
+$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
+$string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
 
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
@@ -384,6 +395,7 @@ $string['viewall'] = 'View all avatars';
 $string['viewmyavatar'] = 'View my avatar details';
 $string['viewprev'] = 'View previous entry';
 $string['viewnext'] = 'View next entry';
+$string['view'] = 'View';
 
 $string['welcometosloodle'] = 'Welcome to SLOODLE';
 $string['week'] = 'week';
