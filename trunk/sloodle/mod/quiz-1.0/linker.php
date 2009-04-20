@@ -63,7 +63,7 @@
     $id = $sloodle->request->get_module_id();
     $limittoquestion = optional_param('ltq', 0, PARAM_INT);
 
-	$output = array();
+    $output = array();
 
     $courseid = optional_param('courseid', 0, PARAM_INT);               // Course Module ID
     //$id = optional_param('id', 0, PARAM_INT);               // Course Module ID
@@ -74,7 +74,7 @@
     $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
     $forcenew = optional_param('forcenew', false, PARAM_BOOL); // Teacher has requested new preview
 
-	$isnotify = ( optional_param( 'action', false, PARAM_RAW ) == 'notify' ) ;
+    $isnotify = ( optional_param( 'action', false, PARAM_RAW ) == 'notify' ) ;
 
     // remember the current time as the time any responses were submitted
     // (so as to make sure students don't get penalized for slow processing on this page)
@@ -85,22 +85,22 @@
         $finishattempt = 1;
     }
 
-	if ( ($courseid != 0) && ($id == 0) && ($q == 0) ) {
-		// fetch a quiz with the id for the course
-		 if (! $mod = get_record("modules", "name", "quiz") ) {
-			 $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
-			 exit;
-		 }
+    if ( ($courseid != 0) && ($id == 0) && ($q == 0) ) {
+        // fetch a quiz with the id for the course
+         if (! $mod = get_record("modules", "name", "quiz") ) {
+             $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
+             exit;
+         }
 
-		 //if (! $coursemod = get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
-		 if (! $coursemod = get_record("course_modules", "course", $courseid, "module", $mod->id)) {
-			 $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find course module instance', FALSE);
-			 exit;
-		 }
+         //if (! $coursemod = get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
+         if (! $coursemod = get_record("course_modules", "course", $courseid, "module", $mod->id)) {
+             $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find course module instance', FALSE);
+             exit;
+         }
 
-		 $id = $coursemod->id;
+         $id = $coursemod->id;
 
-	}
+    }
     if ($id) {
         if (! $cm = get_coursemodule_from_id('quiz', $id)) {
             $sloodle->response->quick_output(-701, 'MODULE_INSTANCE', 'Identified module instance is not a quiz', FALSE);
@@ -143,11 +143,11 @@
     $strattemptnum = get_string('attempt', 'quiz', $attemptnumber);
     $strquizzes = get_string("modulenameplural", "quiz");
 
-	// course id: $course->id
-	// course id: $course->id
-	// course name: $quiz->id
-	// attempts: $quiz->attempts
-	if ($limittoquestion == 0) $output[] = array('course',$course->id,$course->fullname);
+    // course id: $course->id
+    // course id: $course->id
+    // course name: $quiz->id
+    // attempts: $quiz->attempts
+    if ($limittoquestion == 0) $output[] = array('course',$course->id,$course->fullname);
 
     $numberofpreviousattempts = count_records_select('quiz_attempts', "quiz = '{$quiz->id}' AND " .
         "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
@@ -166,7 +166,7 @@
     if ($quiz->password) {
         $sloodle->response->quick_output(-10302, 'QUIZ', 'Quiz requires password - not supported by Sloodle', FALSE);
         exit();
-	}
+    }
 
     if ($quiz->delay1 or $quiz->delay2) {
         //quiz enforced time delay
@@ -193,8 +193,8 @@
         }
     }
 
-//	sloodle_prim_render_output($output);
-//	exit;
+//  sloodle_prim_render_output($output);
+//  exit;
 
 /// Load attempt or create a new attempt if there is no unfinished one
 
@@ -213,9 +213,9 @@
             exit();
         }
         // make log entries
-		add_to_log($course->id, 'quiz', 'attempt',
-					   "review.php?attempt=$attempt->id",
-					   "$quiz->id", $cm->id);
+        add_to_log($course->id, 'quiz', 'attempt',
+                       "review.php?attempt=$attempt->id",
+                       "$quiz->id", $cm->id);
     } else {
         // log continuation of attempt only if some time has lapsed
         if (($timestamp - $attempt->timemodified) > 600) { // 10 minutes have elapsed
@@ -328,7 +328,7 @@
 
     if ($isnotify) {
 
-		$responses = (object)$_REQUEST; // GET version of data_submitted (see lib/weblib) used in original web version
+        $responses = (object)$_REQUEST; // GET version of data_submitted (see lib/weblib) used in original web version
 
         // set the default event. This can be overruled by individual buttons.
         $event = (array_key_exists('markall', $responses)) ? QUESTION_EVENTSUBMIT :
@@ -430,7 +430,7 @@
 /// Check access to quiz page
 
     // check the quiz times
-	//TODO: Figure out what this does...
+    //TODO: Figure out what this does...
     if ($timestamp < $quiz->timeopen || ($quiz->timeclose and $timestamp > $quiz->timeclose)) {
         $sloodle->response->quick_output(-701, 'QUIZ', 'Quiz not available.', FALSE);
         exit();
@@ -444,82 +444,91 @@
 
 /// Print the quiz page ////////////////////////////////////////////////////////
 
-	if (!$isnotify) {
+    if (!$isnotify) {
 
-		$pagequestions = explode(',', $pagelist);
-		$lastquestion = count($pagequestions);
+        $pagequestions = explode(',', $pagelist);
+        $lastquestion = count($pagequestions);
 
-		// Only output quiz data if a question has not been requetsed
-		if ($limittoquestion == 0) {
-		    $output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id,$lastquestion);
-		    $output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
-		}
+        // Only output quiz data if a question has not been requetsed
+        if ($limittoquestion == 0) {
+            $output[] = array('quiz',$quiz->attempts,$quiz->name,$quiz->timelimit,$quiz->id,$lastquestion);
+            $output[] = array('quizpages',quiz_number_of_pages($attempt->layout),$page,$pagelist);
+        }
 
         // We will keep track of question numbers local to this quiz
         $localqnum = 0;
-		/// Print all the questions
-		$number = quiz_first_questionnumber($attempt->layout, $pagelist);
-		foreach ($pagequestions as $i) {
-			$options = quiz_get_renderoptions($quiz->review, $states[$i]);
-			// Print the question
-			// var_dump($questions[$i]);
-			$q = $questions[$i];
+        /// Print all the questions
+        $number = quiz_first_questionnumber($attempt->layout, $pagelist);
+        foreach ($pagequestions as $i) {
+            $options = quiz_get_renderoptions($quiz->review, $states[$i]);
+            // Print the question
+            // var_dump($questions[$i]);
+            $q = $questions[$i];
             $localqnum++;
             
-			if ($limittoquestion == $q->id) {
-			
+            if ($limittoquestion == $q->id) {
+                //echo "<hr>"; print_r($q); echo "<hr>";                
+ 
                 // Make sure the variables exist (avoids warnings!)
                 if (!isset($q->single)) $q->single = 0;
-                if (!isset($q->shuffleanswers)) $q->shuffleanswers = 0;
+                $shuffleanswers = 0;
+                if (isset($q->options->shuffleanswers) && $q->options->shuffleanswers) $shuffleanswers = 1;
             
-				$output[] = array(
-					'question',
-					$localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
-					$q->id,
-					$q->parent,
-					sloodle_clean_for_output($q->questiontext),
-					$q->defaultgrade,
-					$q->penalty,
-					$q->qtype,
-					$q->hidden,
-					$q->maxgrade,
-					$q->single,
-					$q->shuffleanswers,
-					0 //$deferred	// This variable doesn't seem to be mentioned anywhere else in the file
-				);
+                $output[] = array(
+                    'question',
+                    $localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
+                    $q->id,
+                    $q->parent,
+                    sloodle_clean_for_output($q->questiontext),
+                    $q->defaultgrade,
+                    $q->penalty,
+                    $q->qtype,
+                    $q->hidden,
+                    $q->maxgrade,
+                    $q->single,
+                    $shuffleanswers,
+                    0 //$deferred   // This variable doesn't seem to be mentioned anywhere else in the file
+                );
 
-				$ops = $q->options;
-				foreach($ops as $opkey=>$op) {
+                // Create an output array for our options (available answers) so that we can shuffle them later if necessary
+                $outputoptions = array();
+                // Go through each option
+                $ops = $q->options;             
+                foreach($ops as $opkey=>$op) {
                    
                    if (!is_array($op)) continue; // Ignore this if there are no options (Prevents nasty PHP notices!)
+                   foreach($op as $ok=>$ov) {
+                      $outputoptions[] = array(
+                        'questionoption',
+                        $i,
+                        $ov->id,
+                        $ov->question,
+                        sloodle_clean_for_output($ov->answer),
+                        $ov->fraction,
+                        sloodle_clean_for_output($ov->feedback)
+                      );
+                   }
+                }
                 
-				   foreach($op as $ok=>$ov) {
-					  $output[] = array(
-						'questionoption',
-						$i,
-						$ov->id,
-						$ov->question,
-						sloodle_clean_for_output($ov->answer),
-						$ov->fraction,
-						sloodle_clean_for_output($ov->feedback)
-					  );
-				   }
-				}
-			}
-			//print_question($questions[$i], $states[$i], $number, $quiz, $options);
-			save_question_session($questions[$i], $states[$i]);
-			$number += $questions[$i]->length;
-		}
+                // Shuffle the options if necessary
+                if ($shuffleanswers) shuffle($outputoptions);
+                // Append our options to the main output array
+                $output = array_merge($output, $outputoptions);
+            }
+            //print_question($questions[$i], $states[$i], $number, $quiz, $options);
+            save_question_session($questions[$i], $states[$i]);
+            $number += $questions[$i]->length;
+        }
 
-		$secondsleft = ($quiz->timeclose ? $quiz->timeclose : 999999999999) - time();
-		//if ($isteacher) {
-		//	// For teachers ignore the quiz closing time
-		//	$secondsleft = 999999999999;
-		//}
-		// If time limit is set include floating timer.
-		if ($quiz->timelimit > 0) {
-			$output[] = array('seconds left',$secondsleft);
-		}
+        $secondsleft = ($quiz->timeclose ? $quiz->timeclose : 999999999999) - time();
+        //if ($isteacher) {
+        //  // For teachers ignore the quiz closing time
+        //  $secondsleft = 999999999999;
+        //}
+        // If time limit is set include floating timer.
+        if ($quiz->timelimit > 0) {
+            $output[] = array('seconds left',$secondsleft);
+        }
     }
 
     $sloodle->response->set_status_code(1);
@@ -530,6 +539,6 @@
     $sloodle->response->render_to_output();
     sloodle_debug('</pre>');
     
-	exit;
+    exit;
 
 ?>
