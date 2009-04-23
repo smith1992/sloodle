@@ -337,8 +337,9 @@ default
             // Split the message into lines
             list lines = llParseString2List(msg, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            // TW inits for Opensim 6 Apr 09
+            integer i;
+            for ( i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
