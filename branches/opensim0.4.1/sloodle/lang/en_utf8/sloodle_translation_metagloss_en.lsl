@@ -33,13 +33,13 @@ string mybatch = "metagloss";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-    //  MetaGloss
-    "metagloss:ready", "Sloodle MetaGloss: {{0}}\nChat \"{{1}}\" then a term to search glossary", // Parameters: glossary name, and chat prefix command
-    "metagloss:idle", "Sloodle MetaGloss: {{0}}\nDEACTIVATED: touch me to re-activate", // Parameter: name of glossary
-    "metagloss:checking", "Checking Moodle glossary...",
-    "metagloss:checkok", "Successfully checked glossary: \"{{0}}\"", // Parameter: glossary name
-    "metagloss:searching", "Sloodle MetaGloss: {{0}}\nSearching...", // Parameter: glossary name
-    "metagloss:numdefs", "Number of definitions found for \"{{0}}\": {{1}}" // Parameters: search term, and number of occurrences
+	//  MetaGloss
+	"metagloss:ready", "Sloodle MetaGloss: {{0}}\nChat \"{{1}}\" then a term to search glossary", // Parameters: glossary name, and chat prefix command
+	"metagloss:idle", "Sloodle MetaGloss: {{0}}\nDEACTIVATED: touch me to re-activate", // Parameter: name of glossary
+	"metagloss:checking", "Checking Moodle glossary...",
+	"metagloss:checkok", "Successfully checked glossary: \"{{0}}\"", // Parameter: glossary name
+	"metagloss:searching", "Sloodle MetaGloss: {{0}}\nSearching...", // Parameter: glossary name
+	"metagloss:numdefs", "Number of definitions found for \"{{0}}\": {{1}}" // Parameters: search term, and number of occurrences
 ];
 
 ///// ----------- /////
@@ -111,8 +111,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (pos=0; pos < numstrings; pos += 2) {
+    //pos += 1; TW modified to fit with main trunk code - had been changed to pos=0 for opensim
+    for (pos +=1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it

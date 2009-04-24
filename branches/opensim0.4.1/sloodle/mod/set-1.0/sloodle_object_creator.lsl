@@ -25,7 +25,7 @@ string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
 string sloodlecoursename_full = "";
-integer sloodleobjectaccessleveluse = 1; // Who can use this object?
+integer sloodleobjectaccessleveluse = 0; // Who can use this object?
 integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
@@ -139,13 +139,12 @@ integer sloodle_check_access_use(key id)
     // The owner can always use this
     if (id == llGetOwner()) return TRUE;
     
-    // For now, only let the owner use it    
     // Check the access mode
-    //if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-    //    return llSameGroup(id);
-    //} else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-    //    return TRUE;
-    //}
+    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
+        return llSameGroup(id);
+    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -224,7 +223,7 @@ sloodle_show_object_dialog(key id, integer page)
     // How many pages are there?
     integer numpages = (integer)((float)numobjects / 9.0) + 1;
     // If the requested page number is invalid, then cap it
-    if (page < 0) page = 0;
+    if (page < 0) page == 0;
     else if (page >= numpages) page = numpages - 1;
     
     // Build our list of item buttons (up to a maximum of 9)
@@ -609,3 +608,4 @@ state rezzing
         state ready;
     }
 }
+

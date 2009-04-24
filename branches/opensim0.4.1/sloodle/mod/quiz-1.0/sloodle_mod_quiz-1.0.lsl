@@ -43,7 +43,7 @@ string SLOODLE_EOF = "sloodleeof";
 
 string sloodle_quiz_url = "/mod/sloodle/mod/quiz-1.0/linker.php";
 
-key httpquizquery = NULL_KEY;
+key httpquizquery = null_key;
 
 float request_timeout = 20.0;
 
@@ -80,7 +80,7 @@ list opgrade_next = []; // Grades
 list opfeedback_next = []; // Feedback if this option is selected
 
 // Avatar currently using this cahir
-key sitter = NULL_KEY;
+key sitter = null_key;
 // The lowest point of the char
 float lowestvector = 0.0; 
 
@@ -788,8 +788,8 @@ state quizzing
         for (i = 1; i < numlines; i++) {
 
             // Extract and parse the current line
-            thisline = llParseString2List(llList2String(lines, i),["|"],[]);
-            rowtype = llList2String( thisline, 0 );
+            list thisline = llParseString2List(llList2String(lines, i),["|"],[]);
+            string rowtype = llList2String( thisline, 0 );
 
             // Check what type of line this is
             if ( rowtype == "question" ) {

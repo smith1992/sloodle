@@ -32,9 +32,10 @@ string mybatch = "quiz";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-    "invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
+	"invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
     "invalidtype", "Error: this object cannot handle quiz questions of type: {{0}}", // Parameter: question type name
     "complete", "Quiz complete {{0}}. Your final score was {{1}}.", // Parameters: avatar name, score
+    "complete:noscore", "Quiz complete.",
     "repeating", "Repeating...",
     "starting", "Starting quiz for {{0}}", // Parameter: avatar name
     "noquestions", "ERROR: there are no questions available",
@@ -42,7 +43,11 @@ list locstrings = [
     "fetchingquiz", "Fetching quiz data...",
     "ready", "Ready to attempt: {{0}}.", // Parameter: name of quiz
     "correct", "Correct {{0}}.", // Parameter: name of avatar
-    "incorrect", "Incorrect {{0}}." // Parameter: name of avatar
+    "incorrect", "Incorrect {{0}}.", // Parameter: name of avatar
+    
+    "pileonmenu:start", "Start a quiz?\n\n{{0}} = Start\n{{1}} = Cancel", // Parameters: button labels
+    "pileonmenu:next", "Quiz Options\n\n{{0}} = Next\n{{1}} = End Quiz\n{{2}} = Cancel", // Parameters: button labels
+    "pileonmenu:answer", "Quiz Options\n\n{{0}} = Answer\n{{1}} = End Quiz\n{{2}} = Cancel" // Parameters: button labels
 ];
 
 ///// ----------- /////

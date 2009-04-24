@@ -33,16 +33,16 @@ string mybatch = "regenrol"; // General registration/enrolment stuff
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-    //  User registration / enrolment
-    "userauthenticated", "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
-    "alreadyauthenticated", "Thank you {{0}}. Your avatar was already authenticated.", // Parameter: avatar name
-    "alreadyenrolled", "Thank you {{0}}. Your account was already enrolled.", // Parameter: avatar name
-    "userauthenticationfailed:code", "Sorry {{0}}. Authentication of your avatar failed with code {{1}}.", // Parameters: avatar name, error code
-    "attemptingreg", "Attempting to register your avatar...",
-    "attemptingenrol", "Attempting to enrol your avatar...",
-    "attemptingregenrol", "Attempting to register and enrol your avatar...",
-    "enrolfailed:notreg", "Enrolment failed. Your avatar is not registered yet.",
-    "regenrolurl", "Please use this URL to complete the registration/enrolment process.",
+	//  User registration / enrolment
+	"userauthenticated", "Thank you {{0}}. Your avatar has been successfully authenticated.", // Parameter: avatar name
+	"alreadyauthenticated", "Thank you {{0}}. Your avatar was already authenticated.", // Parameter: avatar name
+	"alreadyenrolled", "Thank you {{0}}. Your account was already enrolled.", // Parameter: avatar name
+	"userauthenticationfailed:code", "Sorry {{0}}. Authentication of your avatar failed with code {{1}}.", // Parameters: avatar name, error code
+	"attemptingreg", "Attempting to register your avatar...",
+	"attemptingenrol", "Attempting to enrol your avatar...",
+	"attemptingregenrol", "Attempting to register and enrol your avatar...",
+	"enrolfailed:notreg", "Enrolment failed. Your avatar is not registered yet.",
+	"regenrolurl", "Please use this URL to complete the registration/enrolment process.",
     "accessgranted", "Access is granted to {{0}}." // Parameter: avatar name
 ];
 
@@ -115,8 +115,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (pos=0; pos < numstrings; pos += 2) {
+    // pos += 1; // TW 23 Apr 09 modified to remove pos +1 from beforew old opensim mode  was pos=0
+    for (pos +=1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it

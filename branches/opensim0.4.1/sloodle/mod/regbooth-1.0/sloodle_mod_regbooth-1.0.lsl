@@ -167,7 +167,7 @@ state ready
     touch_start( integer total_number)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
         string touched = "";
         for (i=0; i < total_number; i++) {

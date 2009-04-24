@@ -39,8 +39,6 @@ list cmddialog = []; // Alternating list of keys and timestamps, indicating who 
 
 string MENU_BUTTON_RESET = "0";
 
-integer TEX_SIDE = 2; // The side to apply our texture to for "ready" or otherwise
-
 ///// TRANSLATION /////
 
 // Link message channels
@@ -191,7 +189,7 @@ default
     state_entry()
     {
         // Starting again with a new configuration
-        llSetTexture("sloodle_set_touch_to_configure", TEX_SIDE);
+        llSetTexture("touch_to_set_moodle", 0);
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
         eof = FALSE;
@@ -325,7 +323,7 @@ state ready
     state_entry()
     {
         // Display the site and course info in the hover text
-        llSetTexture("sloodle_set_ready", TEX_SIDE);
+        llSetTexture("sloodle_ready", 0);
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "");
         // Run a regular timer to cancel expired dialogs
         llSetTimerEvent(12.0);

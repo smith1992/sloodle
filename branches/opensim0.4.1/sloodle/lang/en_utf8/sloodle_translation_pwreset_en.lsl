@@ -33,13 +33,13 @@ string mybatch = "pwreset";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-    //  Password reset
-    "pwresetready:site", "Password Reset\nSite: {{0}}", // Parameter gives address of site
-    "pwresetready:course", "Password Reset\nSite: {{0}}\nCourse: {{1}}", // Address of site and name of course
-    "pwresetready:staff", "Password Reset\nSite: {{0}}\nCourse: {{1}}\nSTAFF ONLY", // Address of site and name of course
-    "pwreseterror:hasemail", "Sorry {{0}}. There is an email address associated with your Moodle account at {{1}}. Please use Moodle to reset your password.", // Parameter 0 should be an avatar name, and 1 should be a site address.
-    "pwreseterror:failed:code", "Sorry {{0}}. Error {{1}} occured while trying to reset your password.", // Parameters: avatar name and error code
-    "pwreset:success", "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}} \nUsername: {{2}} \nPassword: {{3}}" // Parameters: avatar name, site address, username, password
+	//  Password reset
+	"pwresetready:site", "Password Reset\nSite: {{0}}", // Parameter gives address of site
+	"pwresetready:course", "Password Reset\nSite: {{0}}\nCourse: {{1}}", // Address of site and name of course
+	"pwresetready:staff", "Password Reset\nSite: {{0}}\nCourse: {{1}}\nSTAFF ONLY", // Address of site and name of course
+	"pwreseterror:hasemail", "Sorry {{0}}. There is an email address associated with your Moodle account at {{1}}. Please use Moodle to reset your password.", // Parameter 0 should be an avatar name, and 1 should be a site address.
+	"pwreseterror:failed:code", "Sorry {{0}}. Error {{1}} occured while trying to reset your password.", // Parameters: avatar name and error code
+	"pwreset:success", "Thank you {{0}}. Your password has been successfully reset.\nSite: {{1}} \nUsername: {{2}} \nPassword: {{3}}" // Parameters: avatar name, site address, username, password
 ];
 
 ///// ----------- /////
@@ -111,7 +111,7 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
+    // pos += 1; remove pos +=1 mod 23 apr TW
     for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {

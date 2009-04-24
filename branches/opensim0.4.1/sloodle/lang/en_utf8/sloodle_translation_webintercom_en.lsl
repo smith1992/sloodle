@@ -33,19 +33,19 @@ string mybatch = "webintercom";
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-    //  WebIntercom
-    "webintercom:startedrecording", "Started recording {{0}}", // Parameter: name of an avatar
-    "webintercom:stoppedrecording", "Stopped recording {{0}}",
-    "webintercom:alreadyrecording", "Already recording {{0}}",
-    "webintercom:notrecording", "Not recording {{0}}",
-    "webintercom:recording", "Recording:\n{{0}}",
-    "webintercom:chatloggingon", "Chat logging is on!",
-    "webintercom:joinchat", "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
-    "webintercom:touchtorecord", "Touch logger to record your chat",
-    "webintercom:ctrlmenu", "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
-    "webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
-    "webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom", // Parameters: stop, start, and deactivate button labels
-    "webintercom:autodeactivate", "Deactivating due to lack of nearby users"
+	//  WebIntercom
+	"webintercom:startedrecording", "Started recording {{0}}", // Parameter: name of an avatar
+	"webintercom:stoppedrecording", "Stopped recording {{0}}",
+	"webintercom:alreadyrecording", "Already recording {{0}}",
+	"webintercom:notrecording", "Not recording {{0}}",
+	"webintercom:recording", "Recording:\n{{0}}",
+	"webintercom:chatloggingon", "Chat logging is on!",
+	"webintercom:joinchat", "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
+	"webintercom:touchtorecord", "Touch logger to record your chat",
+	"webintercom:ctrlmenu", "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
+	"webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
+	"webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom", // Parameters: stop, start, and deactivate button labels
+	"webintercom:autodeactivate", "Deactivating due to lack of nearby users"
 ];
 
 ///// ----------- /////

@@ -12,7 +12,8 @@
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_SLIDESHOW_LINKER = "/mod/sloodle/mod/presenter-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
-
+list parcelInfo; //var for parcel owner 
+integer MENU_CHANNEL;
 string SLOODLE_OBJECT_TYPE = "presenter-1.0";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
@@ -63,6 +64,10 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
+//just returns a random integer - used for setting channels
+integer random_integer( integer min, integer max ){
+  return min + (integer)( llFrand( max - min + 1 ) );
+}
 
 sloodle_debug(string msg)
 {
@@ -188,7 +193,7 @@ default
             if (eof == TRUE) {
                 if (isconfigured == TRUE) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
-                    state requestdata;
+                    state checkParcelOwner;
                 } else {
                     // Go all configuration but, it's not complete... request reconfiguration
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
@@ -207,7 +212,68 @@ default
         }
     }
 }
+state checkParcelOwner
+{
+    state_entry() {
+        MENU_CHANNEL = random_integer(10000,20000); //set channel for config menu
+        parcelInfo = llGetParcelDetails(llGetPos(), [PARCEL_DETAILS_OWNER]);
+        if (llList2Key(parcelInfo,0) != llGetOwner()){
+            string errorMessage ="This Presenter MUST be deeded to the Parcel Owner for it to display your presentation";
+            llSetText(errorMessage, <0.92748, 0.00000, 0.42705>,100 );
+            llDialog(llGetOwner(),errorMessage, ["help"], MENU_CHANNEL);
+        } else {
+            llSay(0,"Presenter Parcel Settings are Correct! Retreiving Slides..");
+            state setMediaTexture;
+        }
+        llListen(MENU_CHANNEL, "", llGetOwner(), "");
+        llSetTimerEvent(300);
+        
+    }
+    listen(integer channel, string name, key id, string message) {
+        if (channel == MENU_CHANNEL){
+            if (message=="help"){
+                llGiveInventory(id,"Presenter Help");
 
+            }
+        }
+    
+    }
+    touch_start(integer num_detected) {
+        parcelInfo = llGetParcelDetails(llGetPos(), [PARCEL_DETAILS_OWNER]);
+        if (llList2Key(parcelInfo,0) != llGetOwner()){
+            llDialog(llGetOwner(),"This Presenter MUST be deeded to the Parcel Owner for it to display your presentation", ["help"], MENU_CHANNEL);
+        } else {
+            llSay(0,"Presenter Parcel Settings are Correct! Retreiving Slides..");
+            state setMediaTexture;
+        }
+    }
+    timer() {
+        state checkParcelOwnerAgain;
+    }
+    state_exit() {
+    llSetText("",<0.92748, 0.00000, 0.42705>, 100);
+    }
+
+
+}
+
+state checkParcelOwnerAgain
+{
+    state_entry() {
+        state checkParcelOwner;
+    }
+
+}
+
+state setMediaTexture
+{
+    state_entry() {
+                
+                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
+                llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
+                state requestdata;                
+    }
+}
 state requestdata
 {
     state_entry()
@@ -281,10 +347,9 @@ state requestdata
         list fields = [];
         for (i = 1; i < numlines; i++) {
             fields = llParseString2List(llList2String(lines, i), ["|"], []);
-            if (llGetListLength(fields) >= 3) {
+            if (llGetListLength(fields) >= 2) {
                 entrytypes += [llList2String(fields, 0)];
-                entryurls += [llList2String(fields, 1)];
-                entrynames += [llList2String(fields, 2)];
+                entryurls += [llList2String(fields, 1)];        
             }
         }
         
@@ -345,3 +410,4 @@ state running
     
     on_rez(integer par) { llResetScript(); }
 }
+

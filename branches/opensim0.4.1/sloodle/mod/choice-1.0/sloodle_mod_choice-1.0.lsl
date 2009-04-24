@@ -183,11 +183,11 @@ send_update()
         numsels = llList2Integer(optionselections, i);
         // Relative mode?
         if (sloodlerelative) {
-            // Store the maximum
-            if (numsels > fullbar) fullbar = numsels;
+        	// Store the maximum
+	        if (numsels > fullbar) fullbar = numsels;
         } else {
-            // Add to the total
-            fullbar += numsels;
+        	// Add to the total
+        	fullbar += numsels;
         }
     }
     
@@ -207,10 +207,10 @@ send_update()
         // Do we have results to add?
         numsels = llList2Integer(optionselections, i);
         if (numsels > 0 && fullbar > 0) {
-            // At this point, all results are relative to the 'fullbar' value
-            data += "|" + (string)((float)numsels / (float)fullbar);
+        	// At this point, all results are relative to the 'fullbar' value
+        	data += "|" + (string)((float)numsels / (float)fullbar);
         } else {
-            data += "|0.0";
+        	data += "|0.0";
         }
         
         llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, data, NULL_KEY);
@@ -478,4 +478,5 @@ state ready
         }
     }
 }
+
 

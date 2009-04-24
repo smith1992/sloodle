@@ -73,8 +73,8 @@ string MENU_BUTTON_ONLINE = "3";
 string MENU_BUTTON_TAKE_ALL = "4";
 
 // List of button labels ('cos otherwise the compiler runs out of memory!)
-list teacherbuttons; // = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
-list userbuttons; // = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
+list teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
+list userbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
 
 // The relative position at which items will be rezzed
 vector rez_pos = <0.0, 2.0, 1.0>;
@@ -292,9 +292,6 @@ default
 {
     state_entry()
     {
-        teacherbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,     MENU_BUTTON_TAKE_ALL];
-        userbuttons = [MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE];
-
         // Starting again with a new configuration
         isconfigured = FALSE;
         eof = FALSE;

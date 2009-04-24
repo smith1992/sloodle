@@ -287,7 +287,7 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     // How many pages are there?
     integer numpages = (integer)((float)numobjects / 9.0) + 1;
     // If the requested page number is invalid, then cap it
-    if (page < 0) page = 0;
+    if (page < 0) page == 0;
     else if (page >= numpages) page = numpages - 1;
     
     // Build our list of item buttons (up to a maximum of 9)
@@ -790,4 +790,5 @@ state shutdown
         sloodle_purge_cmd_dialog();
     }
 }
+
 

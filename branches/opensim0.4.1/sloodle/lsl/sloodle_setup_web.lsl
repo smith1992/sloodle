@@ -619,7 +619,7 @@ state configure_object
             
             // This will be our buffer of configuration commands
             string cmdbuffer = "";
-            integer maxbufferlength = 1024;
+            integer maxbufferlength = 300;
             integer cmdbufferlength = 0;
             
             // Add the server address and password in as the first commands. Also add the rezzer key if we have one
@@ -628,11 +628,11 @@ state configure_object
             cmdbufferlength = llStringLength(cmdbuffer);
             
             // Go through each data line
-            integer linenum = 1;
+            integer linenum;
             string cmd = "";
             integer cmdlen = 0;
             string curline = "";
-            for (linenum=0; linenum < numlines; linenum++) {
+            for (linenum = 1; linenum < numlines; linenum++) {
                 curline = llList2String(lines, linenum);
                 
                 // If this is a controller ID, then store the value.
@@ -714,7 +714,7 @@ state idle
     
     timer()
     {
-        // Send our ping request and ignore the response
+    	// Send our ping request and ignore the response
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodleobjuuid=" + (string)llGetKey();

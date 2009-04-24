@@ -244,7 +244,7 @@ state check_glossary
             sloodle_reset();
             return;
         }
-
+        
         // Split the response into lines
         list lines = llParseStringKeepNulls(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
@@ -443,7 +443,7 @@ state search
         // Check the statuscode
         if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
-            sloodle_reset();
+            state ready;
             return;
         }
         

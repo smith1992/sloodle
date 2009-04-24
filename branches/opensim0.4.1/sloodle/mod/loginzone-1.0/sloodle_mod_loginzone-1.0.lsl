@@ -238,7 +238,7 @@ state running
             }
             // Extract the status code of the response
             list bits = llParseString2List(body, ["|"], []);
-            statuscode = (integer)llList2String(bits, 0);
+            integer statuscode = (integer)llList2String(bits, 0);
             if (statuscode <= 0) {
                 sloodle_debug("Update failed with Sloodle status " + (string)statuscode);
                 return;
@@ -267,7 +267,7 @@ state running
         integer numlines = llGetListLength(lines);
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer numfields = llGetListLength(statusfields);
-        statuscode = (integer)llList2String(statusfields, 0);
+        integer statuscode = (integer)llList2String(statusfields, 0);
         key av = NULL_KEY;
         if (numfields >= 7) av = (key)llList2String(statusfields, 6);
         
