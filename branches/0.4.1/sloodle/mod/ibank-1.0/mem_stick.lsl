@@ -34,9 +34,11 @@ list       tempList1;
 list       statusData;
 list       transactionData=[];
 integer avNameListLen;
+integer u;
 integer channelListLen;
 integer userIndex;
 integer result;
+integer SCOREBOARD_CHANNEL;
 integer change;
 integer newAmount;
 integer oldAmount;
@@ -130,7 +132,7 @@ integer ALL_MEMORY               = 9000;
 integer STIPEND_GIVER_CHANNEL  = -7888;
 
 debugMessage(string message){
- //llSay(0,"~----- " + (string)myNum+" --- FreeMem: "+(string)llGetFreeMemory()+"-~ "+message);
+// llSay(0,"~----- " + (string)myNum+" --- FreeMem: "+(string)llGetFreeMemory()+"-~ "+message);
 }
 //sets the text after config has been received or new data arrives
 setHoverText(){
@@ -213,6 +215,7 @@ stipendHandleResponse(string body){
     string command = llList2String(lines,2);
     if (command == "updateStipendResponse") {
         //format expeCted: moodleId|avName|avUuid|modifyAmount
+        
         updateData = (updateData=[])+llParseString2List(llList2String(lines,10),["|"],[""]);        
         llMessageLinked(LINK_SET,MY_SCRIPT_CHANNEL,"UPDATE CONFIRMED|"+llList2String(updateData,1)+"|"+llList2String(updateData,2),"");
          llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+llList2String(lines,9)+"|"+llList2String(lines,7)+"|"+llList2String(lines,8)+"|"+llList2String(lines,3)+"|"+llList2String(lines,4)+"|"+llList2String(lines,5)+"|"+llList2String(lines,6), "");
@@ -310,6 +313,7 @@ integer sendCommand(string command, string data,key senderUuid){
         body += "&command=" +command;
         body += "&data=" +data;
         // Now send the data
+        
         debugMessage("mem stick: Freemem: " + (string)llGetFreeMemory());
         debugMessage("HttpScript:  sending this to linker.php\n"+sloodleserverroot + SLOODLE_STIPENDGIVER_LINKER+"?"+body);
         http = llHTTPRequest(sloodleserverroot + SLOODLE_STIPENDGIVER_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -325,6 +329,7 @@ saveDefaultAmountModification(key senderUuid){
     debugMessage("******* newAmount: "+ (string)newAmount); 
     //data:  userid,new amount
     //send command will send an http request to the server. Response will be upDateStipend    
+
     sendCommand("setDefaultStipend", (string)defaultStipend,senderUuid);   
 }
 // ****************************************************************************************************
@@ -520,6 +525,7 @@ setDefaultStipendDialog(key avuuid){
 default{  
     state_entry() {
         myKey=llGetKey();
+        SCOREBOARD_CHANNEL=(integer)llGetObjectDesc();
         ownerKey = llGetOwnerKey(llGetKey());       
         myName = llGetScriptName();
         myNum = (integer)llDeleteSubString(myName, 0, 13);
@@ -549,6 +555,8 @@ default{
                     channelListLen = llGetListLength(channelList);
                     newChannel = USER_CHANNELS+ channelListLen+1;//store a unique channel id for this user
                     channelList += newChannel;
+                    //send message to the scoreboard if one is attached
+                   
                     llListen(channelListLen+2, "", "", "");
                     modifiedStipendAmounts += 0;
                     debugMessage((string)memStickNumStudents++ +"-----------------> mem stick #"+(string)myNum+" READ: "+llList2String(linkMessageList,2) + " FreeMem is: " + (string)llGetFreeMemory());
@@ -562,7 +570,7 @@ default{
         if (script_channel==ALL_MEMORY){
             //main script sends loading done message after every student has been downloaded 
             if (linkCommand =="LOADING DONE"){                             
-                if (MY_SCRIPT_CHANNEL==BASE_MEMORY) state active;
+                 if (MY_SCRIPT_CHANNEL==BASE_MEMORY) state active;
                 else state waiting;
             }else if (linkCommand =="STATS"){
                 //llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+iCurrencyType+"|"+(string)defaultStipend+"|"+(string)totalStipends+"|"+(string)numStudents+"|"+fullCourseName+"|"+sloodleName+"|"+sloodleIntro, "");
@@ -607,6 +615,7 @@ default{
        
 }
 }
+
 // ****************************************************************************************************
 //This Memory Stick goes into waiting when it is not the current active menu.
 //It will change to the active state if the active script wakes it up
@@ -630,7 +639,10 @@ state waiting{
             }
         }
         else if (num== ALL_MEMORY){
-           if (linkCommand=="RESET") llResetScript();
+           if (linkCommand=="RESET") {
+                   llResetScript();
+                   
+           }
             else if (linkCommand =="STATS"){               
                 iCurrencyType= llList2String(linkMessageList,1);
                 defaultStipend=llList2Integer(linkMessageList,2);
@@ -663,7 +675,7 @@ state waiting{
                     userIndex = llListFindList(avatarNameList, [llList2String(linkMessageList,2)]);
                     if (userIndex!=-1) {
                             llMessageLinked(LINK_SET,ALL_MEMORY,"FOUND USER|"+llList2String(linkMessageList,1)+"|"+llList2String(linkMessageList,2)+"|"+llList2String(avatarAllocationList,userIndex),llGetKey());
-                            llSay(0,"Found user");
+                            
                     }
                     else debugMessage("User "+llList2String(linkMessageList,2)+" Not found");
             }
@@ -702,15 +714,18 @@ state active{
                 
                 if (linkCommand=="SLEEP") state waiting;
                 else if (linkCommand =="UPDATE CONFIRMED"){
-                                  
                        string avName = llList2String(linkMessageList,1);
                        string modifyAmount = llList2String(linkMessageList,2);
-                         //llSay(0,"--------Updating " + avName + "'s allocation");      
+                         //llSay(0,"--------Updating " + avName + "'s allocation");
+                           
                        integer userIndex = findUser(avName);
                        avatarAllocationList = (avatarAllocationList = []) +llListReplaceList( (avatarAllocationList = []) + avatarAllocationList, [modifyAmount], userIndex, userIndex);
+                       //send to scoreboard
+                      llSay(SCOREBOARD_CHANNEL,"addPoints|"+avName+"|"+modifyAmount);  
                        displayClassListMenu(ownerKey);
                 }
             }else 
+           
             if (num==ALL_MEMORY)
                 if (linkCommand=="RESET") llResetScript();
                 else
@@ -760,8 +775,10 @@ state active{
                         setDefaultStipendDialog(avuuid);
                     }else if (command=="Reload Class"){
                            llMessageLinked(LINK_SET,STIPEND_GIVER_CHANNEL,"RELOAD|","");
+                           llSay(SCOREBOARD_CHANNEL,"Reset");
                     }else if (command=="Reset"){
                             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", "");
+                            llSay(SCOREBOARD_CHANNEL,"Reset");
                     }else if (command=="(~~ SAVE ~~)"){
                             //now apply saved modification
                             saveDefaultAmountModification(avuuid);
@@ -867,6 +884,7 @@ state active{
                     }
                 else {//***********  message is a number so change modification
                     debugMessage("listen from menu in HTTP Script - ready state - command: " + command);
+                  
                     integer amount = (integer)command;
 
                     //this will change the usersModification to the amount sent in the menu
@@ -893,6 +911,7 @@ state active{
             debugMessage(("HTTP request failed with status code " + ((string)status)));
             return;
         }
+        
         stipendHandleResponse(body);               
     }
     timer() {
