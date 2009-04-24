@@ -53,8 +53,10 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should b
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
-
+//requestConfigData = 0 this is set to 1 after the presenter has been deeded - afterwhich if "update" is 
+//selected, the presenter will go back into the default state and re-request config data.  This is necessary since the teacher may change prentations the presenter is pointing to via the web.  
 // Send a translation request link message
+integer requestConfigData=0; 
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
@@ -175,6 +177,10 @@ default
         sloodlecontrollerid = 0;
         sloodlemoduleid = 0;
         sloodleobjectaccesslevelctrl = 0;
+        if (requestConfigData==1){
+         llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);                 
+        }
+        requestConfigData=1;
     }
     
     link_message( integer sender_num, integer num, string str, key id)
@@ -404,7 +410,9 @@ state running
             sloodle_update_hover_text();
             update_image_display();
         } else if (buttonname == "update") {
-            state requestdata;
+            requestConfigData=1; // in default data state request config data to ensure
+            //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the web
+            state default;
         }
     }
     
