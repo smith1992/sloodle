@@ -105,7 +105,9 @@ $string['deleteuserobjects:help'] = 'Click this button to delete all the user ob
 
 $string['edit'] = 'Edit';
 $string['editcourse'] = 'Edit SLOODLE Course Settings';
+$string['editslide'] = 'Edit Slide';
 $string['enabled'] = 'Enabled';
+$string['end'] = 'end';
 $string['enteravatarname'] = 'Enter avatar name';
 $string['error'] = 'Error';
 $string['errorlinkedsloodleuser'] = 'An error occurred while trying to find SLOODLE user data linked to your Moodle account.';
@@ -192,6 +194,7 @@ $string['multipleentries'] = 'Warning: there are multiple SLOODLE entries associ
 
 $string['month'] = 'month';
 $string['months'] = 'months';
+$string['moving'] = 'moving';
 
 $string['name'] = 'Name';
 $string['needadmin'] = 'You need administrator privileges to continue.';
@@ -282,7 +285,9 @@ $string['presenter:edit'] = 'Edit the presentation';
 $string['presenter:empty'] = 'This presentation does not have any slides in it yet.';
 $string['presenter:clickedit'] = 'To add slides to this presentation, click the Edit tab above.';
 $string['presenter:viewanddelete']  = 'View and delete entries';
-$string['presenter:add'] = 'Add entry';
+$string['presenter:add'] = 'Add slide';
+$string['presenter:addatend'] = 'Add a new slide at the end of this presentation';
+$string['presenter:addbefore'] = 'Add a new slide before this slide';
 $string['presenter:moveslide'] = 'Move this slide';
 $string['presenter:editslide'] = 'Edit this slide';
 $string['presenter:viewslide'] = 'View this slide';
@@ -310,6 +315,7 @@ $string['refreshtimeseconds'] = 'Refresh time (seconds)';
 $string['repeatquiz'] = 'Automatically repeat the quiz?';
 $string['relativeresults'] = 'Show relative results?';
 
+$string['save'] = 'Save';
 $string['second'] = 'second';
 $string['seconds'] = 'seconds';
 $string['secondarytablenotfound'] = 'Secondary SLOODLE module table not found. Module instance may need to be created again.';

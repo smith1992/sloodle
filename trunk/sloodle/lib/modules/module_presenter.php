@@ -112,39 +112,76 @@
             // Format it all nicely into a simple array
             $output = array();
             foreach ($recs as $r) {
-                // TODO: Ultimately, we'll determine the type of entry, and construct an absolute URL for any internal Moodle resources.
-                // For now, however, we'll just deal with absolute URLs.
-                $output[$r->id] = array($r->source, $r->type, $r->name);
+                // Substitute the URL for the name if the name has been left blank (this can particularly happen on Presenters upgraded from an alpha version)
+                $name = $r->name;
+                if (empty($name)) $name = $r->source;
+                $output[$r->id] = array($r->source, $r->type, $name);
             }
             return $output;
         }
-        
+       
+       /**
+       * Adds a new entry to the presentation.
+       * @param string $source A string containing the source address -- must start with http for absolute URLs
+       * @param string $type Name of the type of source, e.g. "web", "image", or "video"
+       * @param string $name Name of the slide
+       * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
+       * @return True if successful, or false on failure.
+       */
+       function add_entry($source, $type, $name, $position = -1)
+       {
+           // Construct and attempt to insert the new record
+           $rec = new stdClass();
+           $rec->sloodleid = $this->sloodle_instance->id;
+           $rec->source = $source;
+           $rec->name = $name;
+           $rec->type = $type;
+           if ($position < 0) {
+               $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
+               $rec->ordering = ((int)$num + 1) * 10;
+           } else {
+               $rec->ordering = ($position * 10) - 1; // Ordering works in multiples of 10, starting at 10.
+           }
+           $result = (bool)insert_record('sloodle_presenter_entry', $rec, false);
+           
+           // Make sure our entry ordering is valid
+           $this->validate_ordering();
+           return $result;
+       }
+       
+ 
         /**
-        * Adds a new entry to the presentation.
+        * Edits an existing entry in the presentation.
+        * @param int $id The ID of the entry in the database.
         * @param string $source A string containing the source address -- must start with http for absolute URLs
         * @param string $type Name of the type of source, e.g. "web", "image", or "video"
         * @param string $name Name of the slide
-        * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
+        * @param integer $position Integer indicating the desired position of the entry. If negative, then its position is left unchanged.
         * @return True if successful, or false on failure.
         */
-        function add_entry($source, $type, $name, $position = -1)
+        function edit_entry($id, $source, $type, $name, $position = -1)
         {
-            // Construct and attempt to insert the new record
-            $rec = new stdClass();
-            $rec->sloodleid = $this->sloodle_instance->id;
+            // Ensure we have valid ordering to begin with
+            $this->validate_ordering();
+
+            // Attempt to fetch the existing entry from the database
+            $id = (int)$id;
+            $rec = get_record('sloodle_presenter_entry', 'id', $id, 'sloodleid', $this->sloodle_instance->id);
+            if (!$rec) return false;
+
+            // Apply the changes to the record
             $rec->source = $source;
             $rec->name = $name;
             $rec->type = $type;
-            if ($position < 0) {
-                $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
-                $rec->ordering = ((int)$num + 1) * 10;
-            } else {
+            if ($position > 0) {
                 $rec->ordering = ($position * 10) - 1; // Ordering works in multiples of 10, starting at 10.
             }
-            return (bool)insert_record('sloodle_presenter_entry', $rec, false);
+            // Update the database
+            $result = (bool)update_record('sloodle_presenter_entry', $rec);
 			
 			// Make sure our entry ordering is valid
             $this->validate_ordering();
+            return $result;
         }
         
         /**
