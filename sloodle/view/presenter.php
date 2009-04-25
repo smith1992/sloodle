@@ -129,6 +129,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $sloodleentryname = sloodle_clean_for_db($_REQUEST['sloodleentryname']);
                 $sloodleentryposition = (int)$_REQUEST['sloodleentryposition'];
 
+                // Store the type in session data for next time we're adding a slide
+                $_SESSION['sloodle_presenter_add_type'] = $sloodleentrytype;
+
                 $this->presenter->add_entry($sloodleentryurl, $sloodleentrytype, $sloodleentryname, $sloodleentryposition);
                 $redirect = true;
             }
@@ -453,6 +456,9 @@ XXXEODXXX;
         if ($this->presenter_mode == 'addslide') {
             // Adding a new slide
             $newslide = true;
+            // Grab the last added type from session data
+            if (isset($_SESSION['sloodle_presenter_add_type'])) $entrytype = $_SESSION['sloodle_presenter_add_type'];
+
         } else {
             // Editing an existing slide
             $entryid = (int)required_param('entry', PARAM_INT);
