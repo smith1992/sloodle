@@ -7,8 +7,12 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
+//  Paul G. Preibisch (Fire Centaur)
+//  dz questi - youtube contrib
 //
-
+string mediaurl;
+string vidid;
+integer index;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_SLIDESHOW_LINKER = "/mod/sloodle/mod/presenter-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
@@ -126,7 +130,16 @@ update_image_display()
     string typename = llList2String(entrytypes, currententry);
     string type = "";
     if (typename == "image") type = "image/*";
-    else if (typename == "video") type = "video/*";
+    else if (typename == "video") {
+        if (~llSubStringIndex(llList2String(entryurls, currententry), "http://www.youtube.com") || ~llSubStringIndex(llList2String(entryurls, currententry), "http://youtube.com"))
+        {
+            //turn the data into a vidid
+            index = llSubStringIndex(llList2String(entryurls, currententry), "v=");
+            vidid = llGetSubString(llList2String(entryurls, currententry), index + 2, index + 12);;
+            mediaurl = "http://www.youtubemp4.com/video/"+vidid+".mp4";
+            type = "video/mp4";
+        }else type = "video/*";
+    }
     else if (typename == "audio") type = "audio/*";
     else type = "text/html";
 
