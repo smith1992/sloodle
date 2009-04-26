@@ -130,6 +130,9 @@
        */
        function add_entry($source, $type, $name, $position = -1)
        {
+           // Make sure our entry ordering is valid before we start
+           $this->validate_ordering();
+
            // Construct and attempt to insert the new record
            $rec = new stdClass();
            $rec->sloodleid = $this->sloodle_instance->id;
@@ -144,7 +147,7 @@
            }
            $result = (bool)insert_record('sloodle_presenter_entry', $rec, false);
            
-           // Make sure our entry ordering is valid
+           // Make sure our entry ordering is valid again now
            $this->validate_ordering();
            return $result;
        }
@@ -193,6 +196,8 @@
         function delete_entry($id)
         {
             delete_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
+           // Fix the ordering
+           $this->validate_ordering();
         }
 
         /**
