@@ -628,11 +628,11 @@ state configure_object
             cmdbufferlength = llStringLength(cmdbuffer);
             
             // Go through each data line
-            integer linenum;
+            integer linenum = 1;
             string cmd = "";
             integer cmdlen = 0;
             string curline = "";
-            for (linenum = 1; linenum < numlines; linenum++) {
+            for (linenum=0; linenum < numlines; linenum++) {
                 curline = llList2String(lines, linenum);
                 
                 // If this is a controller ID, then store the value.
@@ -677,9 +677,9 @@ state configure_object
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
-        // Ignore anything from this script
-        if (sender_num == llGetLinkNumber()) return;
-        
+    	// Ignore anything from this script
+    	if (sender_num == llGetLinkNumber()) return;
+    	
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Is it a reset command?

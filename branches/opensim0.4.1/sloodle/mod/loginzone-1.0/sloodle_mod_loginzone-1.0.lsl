@@ -226,7 +226,6 @@ state running
     
     http_response(key id, integer status, list meta, string body)
     {
-        integer statuscode;
         // Was this our update response?
         if (id == httpupdate) {
             httpupdate = NULL_KEY;
@@ -245,7 +244,7 @@ state running
             }
             return;
         }
-
+    
         // Was this an avatar response?
         integer listpos = llListFindList(httpreqs, [id]);
         if (listpos < 0) return;
