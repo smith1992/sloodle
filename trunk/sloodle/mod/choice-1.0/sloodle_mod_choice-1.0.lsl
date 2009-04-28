@@ -179,7 +179,7 @@ send_update()
     integer i = 0;
     integer numsels = 0;
     for (i = 0; i < num_options; i++) {
-    	// Get the number of selections for this option
+        // Get the number of selections for this option
         numsels = llList2Integer(optionselections, i);
         // Relative mode?
         if (sloodlerelative) {
@@ -260,8 +260,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -375,9 +375,9 @@ state ready
             optionselections = [];
             
             // Go through each option
-            integer i = 5;
+            integer i;
             list fields = [];
-            for (; i < numlines; i++) {
+            for (i = 5; i < numlines; i++) {
                 // Parse the option data
                 fields = llParseStringKeepNulls(llList2String(lines, i), ["|"], []);
                 if (llGetListLength(fields) >= 3) {

@@ -32,8 +32,8 @@ list get_inventory(integer type)
 {
     list inv = [];
     integer num = llGetInventoryNumber(type);
-    integer i = 0;
-    for (; i < num; i++) {
+    integer i;
+    for (i = 0; i < num; i++) {
         inv += [llGetInventoryName(type, i)];
     }
     
