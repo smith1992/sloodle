@@ -30,12 +30,15 @@ list       menuButs1;
 list       parseList;
 list       menuButs;
 list       tempList;
+list       tempList1;
 list       statusData;
 list       transactionData=[];
 integer avNameListLen;
+integer u;
 integer channelListLen;
 integer userIndex;
 integer result;
+integer SCOREBOARD_CHANNEL;
 integer change;
 integer newAmount;
 integer oldAmount;
@@ -59,7 +62,7 @@ integer prevMenuButtons=0;
 integer masterMenuIndex=0;//this is a index which points to the current student in the menu, this will be sent to all menus
 integer wakeUpMenu=FALSE; //this is just a boolean to display the student menu if another mem stick wakes this script up when the admin is browsing students
 integer eof= FALSE;
-string  SLOODLE_STIPENDGIVER_LINKER = "/mod/sloodle/mod/stipendgiver-1.0/linker.php";
+string  SLOODLE_STIPENDGIVER_LINKER = "/mod/sloodle/mod/ibank-1.0/linker.php";
 integer isconfigured= FALSE;
 integer myNum;
 key     http = NULL_KEY;
@@ -129,7 +132,7 @@ integer ALL_MEMORY               = 9000;
 integer STIPEND_GIVER_CHANNEL  = -7888;
 
 debugMessage(string message){
-   //llSay(0,"~----- " + (string)myNum+" --- FreeMem: "+(string)llGetFreeMemory()+"-~ "+message);
+// llSay(0,"~----- " + (string)myNum+" --- FreeMem: "+(string)llGetFreeMemory()+"-~ "+message);
 }
 //sets the text after config has been received or new data arrives
 setHoverText(){
@@ -212,6 +215,7 @@ stipendHandleResponse(string body){
     string command = llList2String(lines,2);
     if (command == "updateStipendResponse") {
         //format expeCted: moodleId|avName|avUuid|modifyAmount
+        
         updateData = (updateData=[])+llParseString2List(llList2String(lines,10),["|"],[""]);        
         llMessageLinked(LINK_SET,MY_SCRIPT_CHANNEL,"UPDATE CONFIRMED|"+llList2String(updateData,1)+"|"+llList2String(updateData,2),"");
          llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+llList2String(lines,9)+"|"+llList2String(lines,7)+"|"+llList2String(lines,8)+"|"+llList2String(lines,3)+"|"+llList2String(lines,4)+"|"+llList2String(lines,5)+"|"+llList2String(lines,6), "");
@@ -309,8 +313,9 @@ integer sendCommand(string command, string data,key senderUuid){
         body += "&command=" +command;
         body += "&data=" +data;
         // Now send the data
+        
         debugMessage("mem stick: Freemem: " + (string)llGetFreeMemory());
-        debugMessage("HttpScript:  sending this to linker.php\n"+body);
+        debugMessage("HttpScript:  sending this to linker.php\n"+sloodleserverroot + SLOODLE_STIPENDGIVER_LINKER+"?"+body);
         http = llHTTPRequest(sloodleserverroot + SLOODLE_STIPENDGIVER_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         llSetTimerEvent(10.0);
         return 0;
@@ -324,6 +329,7 @@ saveDefaultAmountModification(key senderUuid){
     debugMessage("******* newAmount: "+ (string)newAmount); 
     //data:  userid,new amount
     //send command will send an http request to the server. Response will be upDateStipend    
+
     sendCommand("setDefaultStipend", (string)defaultStipend,senderUuid);   
 }
 // ****************************************************************************************************
@@ -345,7 +351,7 @@ integer random_integer( integer min, integer max ){
   return min + (integer)( llFrand( max - min + 1 ) );
 }
 //****************************************************************************************************
-//This function returns a list of 5 menu buttons of a list of students, based on an index
+//This function returns a list of 6 menu buttons of a list of students, based on an index
 //Output: 
 //        list of buttons
 //        index button
@@ -353,20 +359,29 @@ integer random_integer( integer min, integer max ){
 list getMenu(integer cIndex){
     tempIntA = cIndex;
     menuButs1=[];
+    tempList=[];
+    tempList1=[];
+    tempIntB=0;
     numMenuButtons=0;
     //add buttons from student list to menu
     while ((tempIntA< cIndex+MAX_BUTTONS) && (tempIntA < memStickNumStudents)){
+        tempIntB++;//used to split lists into two
         numMenuButtons++;
-        menuButs1 += llGetSubString(llList2String(avatarNameList,tempIntA), 0, 11);
-        tempIntA++;
+        if (tempIntB<=3)
+           menuButs1 += llGetSubString(llList2String(avatarNameList,tempIntA), 0, 11);
+        else tempList +=llGetSubString(llList2String(avatarNameList,tempIntA), 0, 11);
+        tempIntA++; //used to count current pointer
     }
+    
+    //menuButs1 = llListSort(menuButs1, 0, FALSE);//put into decending order 
+    
    //show previous button only if we are not on the first page, or if we are in a memory stick other than the first memory stick
     if (((0 + MAX_BUTTONS) <= cIndex)|| (myNum > 0))
-        menuButs1 += "<<";
+        tempList1 += "<<";
     if (((masterMenuIndex + MAX_BUTTONS) < numStudents))       
-            menuButs1 += ">>";
-    menuButs1 += "(-~ MENU ~-)";
-    return menuButs1;
+            tempList1 += ">>";
+    tempList1 += "(-~ MENU ~-)";
+    return tempList + menuButs1 + tempList1;
 
 }
 //****************************************************************************************************
@@ -450,7 +465,7 @@ displayMainMenuDialog(key userClickedKey){
     ADMIN_MENU_TEXT+= sloodleName;
     
     string amountAllocated;
-      if (userClickedKey ==ownerKey){
+  if (userClickedKey ==ownerKey){
            if (iCurrencyType=="Lindens") {
                menuButs=["Withdraw","Set Stipends", "Configure"];
                ADMIN_MENU_TEXT+= "\nTotal Stipends: " + (string)totalStipends + " " + iCurrencyType;
@@ -471,10 +486,9 @@ displayMainMenuDialog(key userClickedKey){
                 }else {
                     STUDENT_MENU_TEXT="-~~~ iPoint Balance ~~~-";
                     STUDENT_MENU_TEXT="\nClick below to view your Points!";
-                    menuButs = ["Points"];
-                
+                    menuButs = ["Points"];                
                 }
-       
+   
        llDialog(userClickedKey,STUDENT_MENU_TEXT,menuButs,MENU_CHANNEL);
                 
             }
@@ -511,6 +525,7 @@ setDefaultStipendDialog(key avuuid){
 default{  
     state_entry() {
         myKey=llGetKey();
+        SCOREBOARD_CHANNEL=(integer)llGetObjectDesc();
         ownerKey = llGetOwnerKey(llGetKey());       
         myName = llGetScriptName();
         myNum = (integer)llDeleteSubString(myName, 0, 13);
@@ -540,6 +555,8 @@ default{
                     channelListLen = llGetListLength(channelList);
                     newChannel = USER_CHANNELS+ channelListLen+1;//store a unique channel id for this user
                     channelList += newChannel;
+                    //send message to the scoreboard if one is attached
+                   
                     llListen(channelListLen+2, "", "", "");
                     modifiedStipendAmounts += 0;
                     debugMessage((string)memStickNumStudents++ +"-----------------> mem stick #"+(string)myNum+" READ: "+llList2String(linkMessageList,2) + " FreeMem is: " + (string)llGetFreeMemory());
@@ -553,7 +570,7 @@ default{
         if (script_channel==ALL_MEMORY){
             //main script sends loading done message after every student has been downloaded 
             if (linkCommand =="LOADING DONE"){                             
-                if (MY_SCRIPT_CHANNEL==BASE_MEMORY) state active;
+                 if (MY_SCRIPT_CHANNEL==BASE_MEMORY) state active;
                 else state waiting;
             }else if (linkCommand =="STATS"){
                 //llMessageLinked(LINK_THIS, ALL_MEMORY, "STATS|"+iCurrencyType+"|"+(string)defaultStipend+"|"+(string)totalStipends+"|"+(string)numStudents+"|"+fullCourseName+"|"+sloodleName+"|"+sloodleIntro, "");
@@ -598,6 +615,7 @@ default{
        
 }
 }
+
 // ****************************************************************************************************
 //This Memory Stick goes into waiting when it is not the current active menu.
 //It will change to the active state if the active script wakes it up
@@ -610,6 +628,7 @@ state waiting{
 
     }
     link_message(integer sender_num, integer num, string str, key id) {
+        debugMessage(str);
        linkMessageList = llParseString2List(str, ["|"],[]);
        linkCommand = llList2String(linkMessageList,0);
         if (num == MY_SCRIPT_CHANNEL){
@@ -620,7 +639,10 @@ state waiting{
             }
         }
         else if (num== ALL_MEMORY){
-           if (linkCommand=="RESET") llResetScript();
+           if (linkCommand=="RESET") {
+                   llResetScript();
+                   
+           }
             else if (linkCommand =="STATS"){               
                 iCurrencyType= llList2String(linkMessageList,1);
                 defaultStipend=llList2Integer(linkMessageList,2);
@@ -634,8 +656,8 @@ state waiting{
                      // A Withdraw attempt happens after a user has pressed withdraw on the menu, and the script
                      // received an http response with a status=OK message meaning - the user is authorized to withdraw the cash
                      // search this memory sticks moodleIdList to see if this user is stored here.    
-                    result = llListFindList(moodleIdList, [llList2Integer(linkMessageList,1)]);
-                    if (result!=-1) {
+                     result = llListFindList(moodleIdList, [llList2Integer(linkMessageList,1)]);
+                     if (result!=-1) {
                         //linkMessage 3 = senderUuid
                         //linkMessage 4 = amount
                         if (iCurrencyType=="Lindens"){
@@ -645,12 +667,21 @@ state waiting{
                        // searchIndex = llListFindList(moodleIdList,[llList2Integer(linkMessageList,0)]);
                         //update amount
                         userDebitsList = (userDebitsList=[])+llListReplaceList( (userDebitsList=[])+userDebitsList, [llList2Integer(linkMessageList,3)], result, result);
-                        
+                        debugMessage("withdraw attempt: " + str + " searching for moodle id: "+llList2String(linkMessageList,1)+" result is: "+ (string)result);     
                     }
-                    debugMessage("withdraw attempt: " + str + " searching for moodle id: "+llList2String(linkMessageList,1)+" result is: "+ (string)result);
+                   
+            }else if (linkCommand=="GET POINTS"){
+                //message is in format: GET POINTS|avuuid|avname
+                    userIndex = llListFindList(avatarNameList, [llList2String(linkMessageList,2)]);
+                    if (userIndex!=-1) {
+                            llMessageLinked(LINK_SET,ALL_MEMORY,"FOUND USER|"+llList2String(linkMessageList,1)+"|"+llList2String(linkMessageList,2)+"|"+llList2String(avatarAllocationList,userIndex),llGetKey());
+                            
+                    }
+                    else debugMessage("User "+llList2String(linkMessageList,2)+" Not found");
             }
-}
+        }
     }
+    
 }
 // ****************************************************************************************************
 state active{
@@ -672,6 +703,7 @@ state active{
 
         }
         link_message(integer sender_num, integer num, string str, key id) {
+            debugMessage(str);
             if (llGetFreeMemory()<500) {
                 llSay(0,"Memory too low in Memory Stick#:"+(string)myNum+".  Rebooting Stipendgiver... Please wait...");    
                 llMessageLinked(LINK_SET,STIPEND_GIVER_CHANNEL,"RELOAD|","");
@@ -682,15 +714,18 @@ state active{
                 
                 if (linkCommand=="SLEEP") state waiting;
                 else if (linkCommand =="UPDATE CONFIRMED"){
-                                  
                        string avName = llList2String(linkMessageList,1);
                        string modifyAmount = llList2String(linkMessageList,2);
-                         //llSay(0,"--------Updating " + avName + "'s allocation");      
+                         //llSay(0,"--------Updating " + avName + "'s allocation");
+                           
                        integer userIndex = findUser(avName);
                        avatarAllocationList = (avatarAllocationList = []) +llListReplaceList( (avatarAllocationList = []) + avatarAllocationList, [modifyAmount], userIndex, userIndex);
+                       //send to scoreboard
+                      llSay(SCOREBOARD_CHANNEL,"addPoints|"+avName+"|"+modifyAmount);  
                        displayClassListMenu(ownerKey);
                 }
             }else 
+           
             if (num==ALL_MEMORY)
                 if (linkCommand=="RESET") llResetScript();
                 else
@@ -710,9 +745,14 @@ state active{
                         
                         }
                     debugMessage("withdraw attempt: " + str + " searching for moodle id: "+llList2String(linkMessageList,1)+" result is: "+ (string)result);
-            }
+            
+            }else if  (linkCommand=="FOUND USER") 
+            //message is in format  FOUND USER|avuuid|avname|points
+                llDialog(llList2Key(linkMessageList,1),llList2String(linkMessageList,2) + ", you have "+llList2String(linkMessageList,3) + " points!",[],MENU_CHANNEL);
+        }
         
-    }
+    
+
         touch_start( integer total_number)
         {
 
@@ -735,8 +775,10 @@ state active{
                         setDefaultStipendDialog(avuuid);
                     }else if (command=="Reload Class"){
                            llMessageLinked(LINK_SET,STIPEND_GIVER_CHANNEL,"RELOAD|","");
+                           llSay(SCOREBOARD_CHANNEL,"Reset");
                     }else if (command=="Reset"){
                             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", "");
+                            llSay(SCOREBOARD_CHANNEL,"Reset");
                     }else if (command=="(~~ SAVE ~~)"){
                             //now apply saved modification
                             saveDefaultAmountModification(avuuid);
@@ -764,22 +806,19 @@ state active{
                         sendCommand("WITHDRAW","none&senderavatarname="+llKey2Name(avuuid),avuuid);
                 }
                 if ((command=="Set Stipends")||(command=="Set iPoints")){
-                    //retreive Student List
-                    //send command to linker.php
-
-                    displayClassListMenu(avuuid);
+                         displayClassListMenu(avuuid);
                 }else
                 if (command=="Configure")
-                    //retreive Student List
-                    //send command to linker.php
                     displayConfigureMenu(avuuid);
                     else
                 if (command=="Points"){
-                    //retreive Student List
-                    //send command to linker.php
-                    debugMessage("Searching list for moodle id: " + llList2String(moodleIdList,userIndex));
-                    userIndex = llListFindList(avatarNameList,[ llKey2Name(avuuid)]);
-                     llMessageLinked(LINK_SET, ALL_MEMORY, "GET POINTS|" +(string)userIndex , llGetKey());
+                    debugMessage("Searching list for user: " + llKey2Name(avuuid));
+                    userIndex = llListFindList(avatarNameList, [llKey2Name(avuuid)]);
+                    if (userIndex!=-1) llDialog(avuuid,"You have "+llList2String(avatarAllocationList,userIndex)+ " points!",[],MENU_CHANNEL);
+                    else {
+                        llMessageLinked(LINK_SET, ALL_MEMORY, "GET POINTS|" +(string)avuuid+"|"+llKey2Name(avuuid) , llGetKey());
+                        
+                    }
                     
                     
                 }else if (command=="Help")
@@ -792,8 +831,10 @@ state active{
             {
 
                 if (command==">>"){
+                    
                     prevMenuButtons=numMenuButtons;
                     masterMenuIndex+=numMenuButtons;
+                    debugMessage("masterMenuIndex: "+(string)masterMenuIndex+ " currentMenuIndex: "+(string)currentMenuIndex +" prevMenuButtons: "+(string)prevMenuButtons);
                     //if the next button is available, that means there are more students to be seen
                     //but if those students arent loaded in this mem stick
                     //we must wake up the next memory stick
@@ -806,7 +847,9 @@ state active{
                         displayClassListMenu(avuuid);
                     }
                 }else if (command=="<<"){
-                    masterMenuIndex-=prevMenuButtons;
+                    masterMenuIndex-=MAX_BUTTONS;
+                    debugMessage("masterMenuIndex: "+(string)masterMenuIndex+ " currentMenuIndex: "+(string)currentMenuIndex +" prevMenuButtons: "+(string)prevMenuButtons);
+
                     //if the previous button is available, that means there are more students to be seen
                     //but if those students arent loaded in this mem stick
                     //we must wake up the previous memory stick
@@ -841,6 +884,7 @@ state active{
                     }
                 else {//***********  message is a number so change modification
                     debugMessage("listen from menu in HTTP Script - ready state - command: " + command);
+                  
                     integer amount = (integer)command;
 
                     //this will change the usersModification to the amount sent in the menu
@@ -867,6 +911,7 @@ state active{
             debugMessage(("HTTP request failed with status code " + ((string)status)));
             return;
         }
+        
         stipendHandleResponse(body);               
     }
     timer() {

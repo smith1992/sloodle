@@ -9,7 +9,7 @@
 //  Peter R. Bloomfield
 //
 //
-// TW 06 Apr 09 - inits for Opensim
+
 
 ///// CONSTANTS /////
 // Timeout values
@@ -151,7 +151,7 @@ default
             // Split the message into lines
             list lines = llParseString2List(msg, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
+           integer i;
             for ( i=0 ; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }

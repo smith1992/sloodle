@@ -292,12 +292,7 @@ state ready
         integer statuscode = llList2Integer(statusfields, 0);
         
         // Check the status code
-        if (statuscode == -321) {
-            // Avatar is probably not registered
-            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "nopermission:use", [llKey2Name(llGetOwner())], NULL_KEY, "");
-            return;
-                        
-        } else if (statuscode == -301) {
+        if (statuscode == -301) {
             // User does not have permission
             sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "layout:nopermission", [llKey2Name(llGetOwner())], NULL_KEY, "set");
             return;

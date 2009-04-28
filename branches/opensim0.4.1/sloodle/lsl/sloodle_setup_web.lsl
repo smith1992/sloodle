@@ -7,6 +7,7 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
+//  Edmund Edgar
 
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
@@ -186,6 +187,12 @@ default
             // If the message starts with "http" then store it as the Moodle address
             msg = llStringTrim(msg, STRING_TRIM);
             if (llSubStringIndex(msg, "http") == 0) {
+
+                // If the message ends with a slash, remove it.
+                if ( llGetSubString(msg, -1, -1) == "/" ) {
+                    msg = llGetSubString(msg, 0, -2);    
+                }            
+                
                 sloodleserverroot = msg;
                 state check_moodle;
                 return;
@@ -219,8 +226,10 @@ default
                     key target = (key)llList2String(parts, 2);
                     string url = llList2String(parts, 3);
                     string auth = "";
+                    string isconfigured = "0";
                     if (numparts >= 5) auth = llList2String(parts, 4);
-                    
+                    if (numparts >= 6) isconfigured = llList2String(parts, 5);
+                                        
                     // Make sure the command is correct, the UUIDs are OK, and that the URL looks valid
                     if (rezzer == NULL_KEY) return;
                     if (target != llGetKey()) return;
@@ -237,9 +246,15 @@ default
                         // Store the password
                         password = (string)llGetStartParameter();
                         sloodlepwd = (string)llGetKey() + "|" + password;
+                        
+                        if (isconfigured == "1") {
+                            request_config = TRUE; // we're already configured by a layout, so we can go right ahead and get our config off the server
+                        } 
+                        
                         // Allow the user to configure the object
                         show_config_url = FALSE;
                         state configure_object;
+                    
                         return;
                     }
                     
@@ -677,9 +692,9 @@ state configure_object
     
     link_message(integer sender_num, integer num, string sval, key kval)
     {
-    	// Ignore anything from this script
-    	if (sender_num == llGetLinkNumber()) return;
-    	
+        // Ignore anything from this script
+        if (sender_num == llGetLinkNumber()) return;
+        
         // Check the channel
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
             // Is it a reset command?
@@ -714,7 +729,7 @@ state idle
     
     timer()
     {
-    	// Send our ping request and ignore the response
+        // Send our ping request and ignore the response
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodleobjuuid=" + (string)llGetKey();
@@ -778,3 +793,4 @@ state idle
         state configure_object;
     }
 }
+
