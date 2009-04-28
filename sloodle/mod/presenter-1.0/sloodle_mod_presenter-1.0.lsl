@@ -9,7 +9,8 @@
 //  Peter R. Bloomfield
 //  Paul G. Preibisch (Fire Centaur)
 //  dz questi - youtube contrib
-//
+//  
+
 string mediaurl;
 string vidid;
 integer index;
@@ -203,8 +204,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -367,8 +368,7 @@ state requestdata
         for (i = 1; i < numlines; i++) {
             fields = llParseString2List(llList2String(lines, i), ["|"], []);
             if (llGetListLength(fields) >= 2) {
-                entrytypes += [llList2String(fields, 0)];
-                entryurls += [llList2String(fields, 1)];        
+                        entryurls += [llList2String(fields, 1)];        
             }
         }
         
@@ -424,6 +424,7 @@ state running
             update_image_display();
         } else if (buttonname == "update") {
             requestConfigData=1; // in default data state request config data to ensure
+            //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the             requestConfigData=1; // in default data state request config data to ensure
             //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the web
             state default;
         }

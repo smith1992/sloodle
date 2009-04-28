@@ -233,8 +233,8 @@ list get_inventory(integer type)
 {
     list inv = [];
     integer num = llGetInventoryNumber(type);
-    integer i = 0;
-    for (; i < num; i++) {
+    integer i;
+    for (i = 0; i < num; i++) {
         inv += [llGetInventoryName(type, i)];
     }
     
@@ -312,8 +312,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -461,10 +461,10 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
         integer level = 0;
-        for (; i < num_detected; i++) {
+        for (i = 0; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Can this avatar use and/or control this item?
             if (sloodle_check_access_ctrl(id)) level = 2;

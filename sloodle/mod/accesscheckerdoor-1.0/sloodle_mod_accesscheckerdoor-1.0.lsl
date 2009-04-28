@@ -138,8 +138,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -190,10 +190,10 @@ state ready
     touch_start(integer total_number)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
         string touched = "";
-        for (; i < total_number; i++) {
+        for (i = 0; i < total_number; i++) {
             id = llDetectedKey(i);
             // Only process avatars
             if (id == llGetOwnerKey(id)) {

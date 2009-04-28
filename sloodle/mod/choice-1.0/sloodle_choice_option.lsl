@@ -142,8 +142,8 @@ state ready
     touch_start(integer num)
     {
         // Go through each toucher, and notify the choice
-        integer i = 0;
-        for (; i < num; i++) {
+        integer i;
+        for (i = 0; i < num; i++) {
             llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, SLOODLE_CHOICE_SELECT_OPTION + "|" + (string)myoptionnum, llDetectedKey(i));
         }
     }

@@ -146,8 +146,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
+            integer i;
+            for (i = 0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -205,8 +205,8 @@ state running
     collision_start(integer num_detected)
     {
         // Go through each detected avatar
-        integer i = 0;
-        for (; i < num_detected; i++)
+        integer i;
+        for (i = 0; i < num_detected; i++)
         {
             sloodle_detected_avatar(llDetectedKey(i), llDetectedPos(i));
         }
