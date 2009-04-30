@@ -176,8 +176,8 @@ $string['moduletype:controller'] = 'SLOODLE Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
-$string['moduletype:ibank'] = 'iBank'; 
-$string['moduletype:stipendgiver'] = 'Stipend Giver';
+$string['moduletype:ibank'] = 'ibank'; 
+
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
@@ -438,12 +438,12 @@ $string['stipendgiver:teachers']='Teachers';
 $string['stipendgiver:balance']='Remaining Balance';
 $string['stipendgiver:debits']='Debits';
 $string['stipendgiver:avatars']='Avatars';
-$string['stipendgiver:username']='Username';
+$string['stipendgiver:username']='First/Last name';
 $string['stipendgiver:update']='Update';  
 $string['stipendgiver:cantupdate']='Error Can\'t update transaction record';
 $string['stipendgiver:successfullupdate']='Updated the following users: ';
 $string['stipendgiver:typeofcurrency']='Type of Currency';
-$string['stipendgiver:amount']='Stipend Amount';
+$string['stipendgiver:amount']='Amount';
 $string['stipendgiver:totalallocations']='Total Allocated';
 $string['stipendgiver:totaldebits']='Total Debits';
 $string['stipendgiver:startingbalance']='Default Amount';
