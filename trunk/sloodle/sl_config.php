@@ -1,4 +1,4 @@
-F<?php
+<?php
     /**
     * Sloodle core script.
     *
