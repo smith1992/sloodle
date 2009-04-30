@@ -201,7 +201,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->setDefault('map_allowdrag', 1);
 
             break;
-           /*
+        
         case SLOODLE_TYPE_IBANK:
 
             // Add the type-specific header
@@ -217,7 +217,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         
                                                                            
        
-        */ //MOVED TO 0.41
+        
          } 
 //-------------------------------------------------------------------------------
         // Add the standard course module elements, except the group stuff (as Sloodle doesn't support it)
@@ -279,7 +279,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             }
         
             break;
-                /*
+                
         case SLOODLE_TYPE_IBANK:
             // Fetch the stipend giver record
             $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $this->_instance);
@@ -291,7 +291,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             
             
             break;
-           */ //MOVED TO 0.41
+  
         case SLOODLE_TYPE_PRESENTER:
             // Fetch the Presenter record.
             $presenter = get_record('sloodle_presenter', 'sloodleid', $this->_instance);
@@ -375,9 +375,9 @@ switch ($data['type']) {
             break; 
 
         // ADD FUTURE TYPES HERE
-           //   case SLOODLE_TYPE_IBANK:           //MOVED TO 0.41
+           case SLOODLE_TYPE_IBANK:           //MOVED TO 0.41
             // Nothing to error check
-         //MOVED TO 0.41   break; 
+           break; 
 
         // ADD FUTURE TYPES HERE
         

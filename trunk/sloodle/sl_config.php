@@ -1,4 +1,4 @@
-<?php
+F<?php
     /**
     * Sloodle core script.
     *
@@ -34,8 +34,7 @@
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
     /** The Sloodle version number. */
-	// Note: this is 0.41 instead of 0.4.1 because this needs to be a compareable number.
-    define('SLOODLE_VERSION', 0.41); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', 0.4); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
@@ -95,12 +94,13 @@
     // Store the types in an array (used in lists)
     global $SLOODLE_TYPES;   
     $SLOODLE_TYPES = array();
-    
+      
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
-    //$SLOODLE_TYPES[] = SLOODLE_TYPE_MAP; // disabled for 0.4
-    //$SLOODLE_TYPES[] = SLOODLE_TYPE_IBANK;  MOVED TO 0.4.1
+    $SLOODLE_TYPES[] = SLOODLE_TYPE_IBANK; 
+   // $SLOODLE_TYPES[] = SLOODLE_TYPE_MAP;
+    
     
     
 //---------------------------------------------------------------------
