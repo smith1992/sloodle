@@ -371,12 +371,18 @@ XXXEODXXX;
 				if (empty($entryname)) $entryname = $entryurl;
                 // Construct the link to the entry source
                 $entrylink = "<a href=\"{$entryurl}\" title=\"{$entryurl}\">{$entryname}</a>";
-				
+			
+                // If this is the slide being moved, then completely ignore it
+                if ($this->movingentryid == $entryid) {
+                    $entrynum++;
+                    continue;
+                }
+	
 				// If we are in move mode, then add a 'move here' row before this slide
-				if ($this->presenter_mode == 'moveslide') {
-					$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entrynum}";
-					$movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
-					$entriesTable->data[] = array('', $movebutton, '', '', '');
+				if ($this->presenter_mode == 'moveslide') { 
+	    			$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entrynum}";
+    				$movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
+    				$entriesTable->data[] = array('', $movebutton, '', '', '');
 
                     // If the current row belongs to the slide being moved, then emphasise it, and append (moving) to the end
                     if ($entryid == $this->movingentryid) $entrylink = "<strong>{$entrylink}</strong> <em>(".get_string('moving','sloodle').')</em>';
