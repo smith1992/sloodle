@@ -22,7 +22,7 @@ define('SLOODLE_PRESENTER_TAB_EDIT', 2);
 /** ID of the 'edit slide' tab for the Presenter */
 define('SLOODLE_PRESENTER_TAB_EDIT_SLIDE', 3);
 /** ID of the 'add slide' tab for the Presenter */
-define('SLOODLE_PRESENTER_TAB_ADD_SLIDE', 3);
+define('SLOODLE_PRESENTER_TAB_ADD_SLIDE', 4);
 
 
 /**
@@ -260,8 +260,8 @@ XXXEODXXX;
             echo "</div>";
     
         } else {
-            echo '<p>'.get_string('presenter:empty', 'sloodle').'</p>';
-			if ($this->canedit) echo '<p>'.get_string('presenter:clickedit', 'sloodle').'</p>';
+            echo '<h4>'.get_string('presenter:empty', 'sloodle').'</h4>';
+			if ($this->canedit) echo '<p>'.get_string('presenter:clickaddslide', 'sloodle').'</p>';
         }
 
         //print_box_end();
@@ -278,6 +278,7 @@ XXXEODXXX;
 		$streditpresenter = get_string('presenter:edit', 'sloodle');
 		$strviewanddelete = get_string('presenter:viewanddelete', 'sloodle');
 		$strnoentries = get_string('noentries', 'sloodle');
+        $strnoslides = get_string('presenter:empty', 'sloodle');
 		$strdelete = get_string('delete', 'sloodle');
 		$stradd = get_string('presenter:add', 'sloodle');
         $straddatend = get_string('presenter:addatend', 'sloodle');
@@ -305,7 +306,8 @@ XXXEODXXX;
         $numentries = count($entries);
 		// Any images to display?
 		if ($entries === false || count($entries) == 0) {
-			echo '<h4 style="color:#ff0000;">'.$strnoentries.'</h4>';
+			echo '<h4>'.$strnoslides.'</h4>';
+            echo '<h4><a href="'.SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addslide\">{$stradd}</a></h4>\n";
 		} else {
 		
 			// Are we being asked to confirm the deletion of a slide?
@@ -567,16 +569,15 @@ XXXEODXXX;
 		$presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_VIEW, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=view", get_string('view', 'sloodle'), get_string('presenter:viewpresentation', 'sloodle'), true);
 		// Does the user have authority to edit this module?
 		if ($this->canedit) {
-			// Add the protected tab(s)
+			// Add the 'Edit' tab, for editing the presentation as a whole
 			$presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_EDIT, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=edit", get_string('edit', 'sloodle'), get_string('presenter:edit', 'sloodle'), true);
+
+            // Add the 'Add Slide' tab
+            $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_SLIDE, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addslide", get_string('presenter:add', 'sloodle'), get_string('presenter:add', 'sloodle'), true);
 
             // If we are editing a slide, then add the 'Edit Slide' tab
             if ($this->presenter_mode == 'editslide') {
                 $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_EDIT_SLIDE, '', get_string('editslide', 'sloodle'), '', false);
-            }
-            // If we are adding a slide, then add the 'Add Slide' tab
-            if ($this->presenter_mode == 'addslide') {
-                $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_SLIDE, '', get_string('presenter:add', 'sloodle'), '', false);
             }
 		}
 		// Determine which tab should be active
