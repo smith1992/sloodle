@@ -23,6 +23,8 @@
     require_once(SLOODLE_LIBROOT.'/controller.php');
     /** Module functionality. */
     require_once(SLOODLE_LIBROOT.'/modules.php');
+    /** Plugin management. */
+    require_once(SLOODLE_LIBROOT.'/plugins.php');
     
     
     /**
@@ -68,6 +70,13 @@
         * @access public
         */
         var $module = null;
+
+        /**
+        * A plugin manager to help give access to plugins for various features.
+        * @var SloodlePluginManager
+        * @access public
+        */
+        var $plugins = null;
         
         
     // FUNCTIONS //
@@ -83,6 +92,7 @@
             $this->response = new SloodleResponse();
             $this->request = new SloodleRequest($this);
             $this->course = new SloodleCourse();
+            $this->plugins = new SloodlePluginManager($this);
             
             // Process the basic request data
             if ($process) $this->request->process_request_data();

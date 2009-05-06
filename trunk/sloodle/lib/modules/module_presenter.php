@@ -119,38 +119,62 @@
             }
             return $output;
         }
-       
-       /**
-       * Adds a new entry to the presentation.
-       * @param string $source A string containing the source address -- must start with http for absolute URLs
-       * @param string $type Name of the type of source, e.g. "web", "image", or "video"
-       * @param string $name Name of the slide
-       * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
-       * @return True if successful, or false on failure.
-       */
-       function add_entry($source, $type, $name, $position = -1)
-       {
-           // Make sure our entry ordering is valid before we start
-           $this->validate_ordering();
 
-           // Construct and attempt to insert the new record
-           $rec = new stdClass();
-           $rec->sloodleid = $this->sloodle_instance->id;
-           $rec->source = $source;
-           $rec->name = $name;
-           $rec->type = $type;
-           if ($position < 0) {
-               $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
-               $rec->ordering = ((int)$num + 1) * 10;
-           } else {
-               $rec->ordering = ($position * 10) - 1; // Ordering works in multiples of 10, starting at 10.
-           }
-           $result = (bool)insert_record('sloodle_presenter_entry', $rec, false);
-           
-           // Make sure our entry ordering is valid again now
-           $this->validate_ordering();
-           return $result;
-       }
+        /**
+        * Gets an ordered associative array of slides in presentation order.
+        * @return Array associating slide IDs to SloodlePresenterSlide objects if successful, or false if not.
+        */
+        function get_slides()
+        {
+            // Make sure we have valid ordering
+            $this->validate_ordering();
+            // Fetch the database records
+            $recs = get_records_select('sloodle_presenter_entry', "sloodleid = {$this->sloodle_instance->id}", 'ordering');
+            if (!$recs) return array();
+            // Construct the array of objects
+            $output = array();
+            $slideposition = 1;
+            foreach ($recs as $r) {
+                // Substitute the source data for the name if no name is given.
+                $name = $r->name;
+                if (empty($name)) $name = $r->source;
+                $output[$r->id] = new SloodlePresenterSlide($r->id, $this, $name, $r->source, $r->type, $r->ordering, $slideposition);
+                $slideposition++;
+            }
+            return $output;
+        }
+       
+        /**
+        * Adds a new entry to the presentation.
+        * @param string $source A string containing the source address -- must start with http for absolute URLs
+        * @param string $type Name of the type of source, e.g. "web", "image", or "video"
+        * @param string $name Name of the slide
+        * @param integer $position Integer indicating the position of the new entry. If negative, then it is placed last in the presentation.
+        * @return True if successful, or false on failure.
+        */
+        function add_entry($source, $type, $name, $position = -1)
+        {
+            // Make sure our entry ordering is valid before we start
+            $this->validate_ordering();
+ 
+            // Construct and attempt to insert the new record
+            $rec = new stdClass();
+            $rec->sloodleid = $this->sloodle_instance->id;
+            $rec->source = $source;
+            $rec->name = $name;
+            $rec->type = $type;
+            if ($position < 0) {
+                $num = count_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id);
+                $rec->ordering = ((int)$num + 1) * 10;
+            } else {
+                $rec->ordering = ($position * 10) - 1; // Ordering works in multiples of 10, starting at 10.
+            }
+            $result = (bool)insert_record('sloodle_presenter_entry', $rec, false);
+            
+            // Make sure our entry ordering is valid again now
+            $this->validate_ordering();
+            return $result;
+        }
        
  
         /**
@@ -356,4 +380,83 @@
         }
 
     }
+
+    /**
+    * Defines a single slide from a presentation, containing raw data.
+    * The data will usually need to interpreted by a slide plugin.
+    * @package sloodle
+    */
+    class SloodlePresenterSlide
+    {
+    // FUNCTIONS //
+
+        // Constructor
+        function SloodlePresenterSlide($id=0, $presenter=null, $name='', $source='', $type='', $ordering=0, $slideposition=0)
+        {
+            $this->id = $id;
+            $this->presenter = $presenter;
+            $this->name = $name;
+            $this->source = $source;
+            $this->type = $type;
+            $this->ordering = $ordering;
+            $this->slideposition = $slideposition;
+        }
+
+    // DATA //
+
+        /**
+        * The ID of this slide in the DB table of slides.
+        * @access public
+        * @var int
+        */
+        var $id = 0;
+    
+        /**
+        * The SloodleModulePresenter object relating the presentation this slide is in
+        * @access public
+        * @var SloodleModulePresenter
+        */
+        var $presenter = null;
+
+        /**
+        * The name of this slide
+        * @access public
+        * @var string
+        */
+        var $name = '';
+
+        /**
+        * The source data for this slide. Normally this would be an absolute url (starting with a protocol specifier like HTTP),
+        *  or a relative path, in which case it is treated as an internal Moodle file.
+        * Plugins may alternatively use this to store data which is to be rendered.
+        * @access public
+        * @var string
+        */
+        var $source = '';
+
+        /**
+        * The type of this slide. This will be the ID of a plugin, or it may be a legacy type, 'web', 'image', or 'video'.
+        * @access public
+        * @var string
+        */
+        var $type = '';
+
+        /**
+        * The ordering value for this slide. This should not generally be used. Refer to 'slideposition' instead.
+        * @access public
+        * @var integer
+        */
+        var $ordering = 0;
+
+        /**
+        * The position of this slide in the presentation. This is a 1-based count.
+        * @access public
+        * @var integer
+        */
+        var $slideposition = 0;
+
+    }
+
+
+
 ?>
