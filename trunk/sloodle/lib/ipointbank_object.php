@@ -16,7 +16,7 @@
       
       var $transactionRecords = null;
       
-      function __construct($id){
+      function iPointBank($id){
           $this->sloodleid = $id;                    
           $this->transactionRecords = $this->getTransactionRecords();          
       
