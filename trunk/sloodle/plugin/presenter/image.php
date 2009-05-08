@@ -49,7 +49,7 @@ class SloodlePluginPresenterSlideImage extends SloodlePluginBasePresenterSlide
     function render_slide_for_browser($slide)
     {
         $url = $this->get_absolute_url($slide->source);
-        $output = "<img src=\"{$url}\" alt=\"{$slide->title}\" />";
+        $output = "<img src=\"{$url}\" alt=\"{$slide->name}\" />";
         return $output;
     }
 
