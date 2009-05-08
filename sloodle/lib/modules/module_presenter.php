@@ -138,7 +138,20 @@
                 // Substitute the source data for the name if no name is given.
                 $name = $r->name;
                 if (empty($name)) $name = $r->source;
-                $output[$r->id] = new SloodlePresenterSlide($r->id, $this, $name, $r->source, $r->type, $r->ordering, $slideposition);
+                
+                // Update legacy slide types
+                $type = $r->type;
+                switch ($r->type)
+                {
+                case 'image': $type = 'PresenterSlideImage'; break;
+                case 'web': $type = 'PresenterSlideWeb'; break;
+                case 'video': $type = 'PresenterSlideVideo'; break;
+                }
+                // Remove the 'SloodlePlugin' prefix if necessary
+                $type = str_replace('SloodlePlugin', '', $type);
+
+                // Add the slide to our list
+                $output[$r->id] = new SloodlePresenterSlide($r->id, $this, $name, $r->source, $type, $r->ordering, $slideposition);
                 $slideposition++;
             }
             return $output;

@@ -25,23 +25,6 @@ define('SLOODLE_PRESENTER_TAB_EDIT_SLIDE', 3);
 define('SLOODLE_PRESENTER_TAB_ADD_SLIDE', 4);
 
 
-/**
-* Updates legacy slide type names ('image', 'web', and 'video') to their new plugin type names.
-* Has no effect on new plugin type names.
-* @param string $name The type name to update.
-* @return string The updated type name where possible, or the original type name if no update was necessary.
-*/
-function sloodle_presenter_update_legacy_type($name)
-{
-    switch ($name)
-    {
-    case 'image': return 'PresenterSlideImage';
-    case 'web': return 'PresenterSlideWeb';
-    case 'video': return 'PresenterSlideVideo';
-    }
-    return $name;
-}
-
 
 /**
 * Class for rendering a view of a Presenter module in Moodle.
@@ -246,7 +229,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $frameheight = $this->presenter->get_frame_height();
 
             // Get the plugin for this slide
-            $slideplugin = $this->_session->plugins->get_plugin(sloodle_presenter_update_legacy_type($currententry->type));
+            $slideplugin = $this->_session->plugins->get_plugin($currententry->type);
             if ($slideplugin) {
                 // Render the content for the web
                 echo $slideplugin->render_slide_for_browser($currententry);
@@ -356,7 +339,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
 				$row = array();
 				
 				// Extract the entry data
-                $slideplugin = $this->_session->plugins->get_plugin(sloodle_presenter_update_legacy_type($entry->type));
+                $slideplugin = $this->_session->plugins->get_plugin($entry->type);
                 if ($slideplugin) $entrytypename = $slideplugin->get_plugin_name();
                 else $entrytypename = '(unknown type)';
                 // Construct the link to the entry source
@@ -465,7 +448,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 exit();
             }
             $entryurl = $entries[$entryid]->source;
-            $entrytype = sloodle_presenter_update_legacy_type($entries[$entryid]->type);
+            $entrytype = $entries[$entryid]->type;
             $entryname = $entries[$entryid]->name;
         }
 
