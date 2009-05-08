@@ -44,7 +44,16 @@
     $entries = $sloodle->module->get_entry_urls();
     if (is_array($entries)) {
         foreach ($entries as $entry) {
-            $sloodle->response->add_data_line(array($entry[1], $entry[0], $entry[2]));
+            // Convert our type back to a legacy type for sake of old Presenters
+            $type = $entry[1];
+            switch ($entry[1])
+            {
+            case 'PresenterSlideImage': case 'SloodlePluginPresenterSlideImage': $type = 'image'; break;
+            case 'PresenterSlideWeb': case 'SloodlePluginPresenterSlideWeb': $type = 'web'; break;
+            case 'PresenterSlideVideo': case 'SloodlePluginPresenterSlideVideo': $type = 'video'; break;
+            }
+
+            $sloodle->response->add_data_line(array($type, $entry[0], $entry[2]));
         }
     }
     
