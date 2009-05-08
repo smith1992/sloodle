@@ -26,6 +26,24 @@ define('SLOODLE_PRESENTER_TAB_ADD_SLIDE', 4);
 
 
 /**
+* Updates legacy slide type names ('image', 'web', and 'video') to their new plugin type names.
+* Has no effect on new plugin type names.
+* @param string $name The type name to update.
+* @return string The updated type name where possible, or the original type name if no update was necessary.
+*/
+function sloodle_presenter_update_legacy_type($name)
+{
+    switch ($name)
+    {
+    case 'image': return 'PresenterSlideImage';
+    case 'web': return 'PresenterSlideWeb';
+    case 'video': return 'PresenterSlideVideo';
+    }
+    return $name;
+}
+
+
+/**
 * Class for rendering a view of a Presenter module in Moodle.
 * @package sloodle
 */
@@ -54,6 +72,13 @@ class sloodle_view_presenter extends sloodle_base_view_module
 	*/
 	var $movingentryid = 0;
 
+    /**
+    * A SLOODLE session object to give us access to plugins and other functionality.
+    * @var SloodleSession
+    * @access private
+    */
+    var $_session = null;
+
 
     /**
     * Constructor.
@@ -69,10 +94,18 @@ class sloodle_view_presenter extends sloodle_base_view_module
     {
         // Process the basic data
         parent::process_request();
-        // Construct a dummy session and load the Presenter object
-        $session = new SloodleSession(false);
-        $this->presenter = new SloodleModulePresenter($session);
+        
+        // Construct a SLOODLE Session and load a module
+        $this->_session = new SloodleSession(false);
+        $this->presenter = new SloodleModulePresenter($this->_session);
         if (!$this->presenter->load($this->cm->id)) return false;
+        $this->_session->module = $this->presenter;
+
+        // Load available Presenter plugins
+        if (!$this->_session->plugins->load_plugins('presenter')) {
+            error('Failed to load Presenter plugins.');
+            return false;
+        }
     }
 
     /**
@@ -164,8 +197,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
 	*/
 	function render_view()
 	{        
-        // Get a list of entry URLs
-        $entries = $this->presenter->get_entry_urls();
+        // Get a list of entry slides in this presenter
+        $entries = $this->presenter->get_slides();
         if (!is_array($entries)) $entries = array();
         $numentries = count($entries);
         // Open the presentation box
@@ -182,37 +215,18 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
         // Do we have any entries to work with?
         if ($numentries > 0) {
-            // Yes - go through them to figure out which entries to display
-            $currententryid = 0;
-            $currententryurl = '';
-            $currententrytype = '';
-            $currententryname = '';
-            $entrynum = 1;
+            // Yes - go through them to figure out which entry to display
+            $currententry = null;
             foreach ($entries as $entryid => $entry) {
                 // Check if this is our current entry
-                if ($entrynum == $displayentrynum) {
-                    $currententryid = $entryid;
-                    $currententryurl = $entry[0];
-                    $currententrytype = $entry[1];
-                    $currententryname = $entry[2];
+                if ($displayentrynum == $entry->slideposition) {
+                    $currententry = $entry;
                 }
-
-                $entrynum++;
-            }
-
-            // If the entry name is empty, then take it from the URL
-            if (empty($currententryname)) {
-                // Take everything after the final forward slash from the URL (unless it's at the end).
-                // This should give us the filename if there is one, or the domain name otherwise.
-                $tempurl = trim($currententryurl);
-                $slashpos = strrpos($tempurl, '/', 1);
-                if ($slashpos === false) $currententryname = $tempurl;
-                else $currententryname = substr($tempurl, $slashpos + 1);
             }
     
             // Display the entry header
             echo "<div style=\"text-align:center;\">";
-            echo "<h2 id=\"slide\">\"<a href=\"{$currententryurl}\" title=\"".get_string('directlink', 'sloodle')."\">{$currententryname}</a>\"</h2>\n";
+            echo "<h2 id=\"slide\">\"<a href=\"{$currententry->source}\" title=\"".get_string('directlink', 'sloodle')."\">{$currententry->name}</a>\"</h2>\n";
 
             // Display the presentation controls
             $strof = get_string('of', 'sloodle');
@@ -229,33 +243,20 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
             // Get the frame dimensions for this Presenter
             $framewidth = $this->presenter->get_frame_width();
-            $frameheight = $this->presenter->get_frame_height();            
+            $frameheight = $this->presenter->get_frame_height();
 
-            // Display the entry itself
-            switch ($currententrytype) {
-            case 'web':
-                // Display web content in an iFrame
-                echo "<iframe src=\"{$currententryurl}\" style=\"width:{$framewidth}px; height:{$frameheight}px;\"></iframe>";
-                break;
-
-            case 'image':
-                echo "<img src=\"{$currententryurl}\" />";
-                break;
-
-            case 'video':
-                echo <<<XXXEODXXX
-    <embed src="{$currententryurl}" align="center" autoplay="true" controller="true" width="{$framewidth}" height="{$frameheight}" scale="aspect" />
-XXXEODXXX;
-                break;
-
-            default:
-                echo '<p style="font-size:150%; font-weight:bold; color:#880000;">',get_string('unknowntype','sloodle'),': ', $currententrytype, '</p>';
-                break;
+            // Get the plugin for this slide
+            $slideplugin = $this->_session->plugins->get_plugin(sloodle_presenter_update_legacy_type($currententry->type));
+            if ($slideplugin) {
+                // Render the content for the web
+                echo $slideplugin->render_slide_for_browser($currententry);
+            } else {
+                echo '<p style="font-size:150%; font-weight:bold; color:#880000;">',get_string('unknowntype','sloodle'),': ', $currententry->type, '</p>';
             }
 
             // Display a direct link to the media
             echo "<p>";
-            print_string('trydirectlink', 'sloodle', $currententryurl);
+            print_string('trydirectlink', 'sloodle', $currententry->source);
             echo "</p>\n";
             echo "</div>";
     
@@ -264,7 +265,6 @@ XXXEODXXX;
 			if ($this->canedit) echo '<p>'.get_string('presenter:clickaddslide', 'sloodle').'</p>';
         }
 
-        //print_box_end();
 	}
 	
 	/**
@@ -301,7 +301,7 @@ XXXEODXXX;
 		$strdeleteslide = get_string('presenter:deleteslide', 'sloodle');
 		
 		 // Get a list of entry URLs
-        $entries = $this->presenter->get_entry_urls();
+        $entries = $this->presenter->get_slides();
         if (!is_array($entries)) $entries = array();
         $numentries = count($entries);
 		// Any images to display?
@@ -325,27 +325,20 @@ XXXEODXXX;
 					// Construct our links
 					$linkYes = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=deleteslide&amp;entry={$entryid}&amp;sesskey=".sesskey();
 					$linkNo = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=edit";
-					// Check the name of the entry
-					$entryname = $entries[$entryid][2];
-                    if (empty($entryname)) $entryname = $entries[$entryid][0];
 					
 					// Output our confirmation form
-					notice_yesno(get_string('presenter:confirmdelete', 'sloodle', $entryname), $linkYes, $linkNo);
+					notice_yesno(get_string('presenter:confirmdelete', 'sloodle', $entries[$entryid]->name), $linkYes, $linkNo);
 					echo "<br/>";
 				}
 			}
 			
 			// Are we currently moving a slide?
 			if ($this->presenter_mode == 'moveslide') {
-				// Determine which slide is being moved
-				$entryname = $entries[$this->movingentryid][2];
-                if (empty($entryname)) $entryname = $entries[$this->movingentryid][0];
-
 				$linkCancel = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=edit";
 				$strcancel = get_string('cancel');
 				// Display a message and an optional 'cancel' link
 				print_box_start('generalbox', 'notice');
-				echo "<p>", get_string('presenter:movingslide', 'sloodle', $entryname), "</p>\n";
+				echo "<p>", get_string('presenter:movingslide', 'sloodle', $entries[$this->movingentryid]->name), "</p>\n";
 				echo "<p>(<a href=\"{$linkCancel}\">{$strcancel}</a>)</p>\n";
 				print_box_end();
 			}
@@ -358,29 +351,25 @@ XXXEODXXX;
 			
 			// Go through each entry
 			$numentries = count($entries);
-			$entrynum = 1;
 			foreach ($entries as $entryid => $entry) {
 				// Create a new row for the table
 				$row = array();
 				
 				// Extract the entry data
-				$entryurl = $entry[0];
-				$entrytype = $entry[1];
-				$entrytypename = get_string("presenter:type:{$entrytype}", 'sloodle');
-				$entryname = $entry[2];
-				if (empty($entryname)) $entryname = $entryurl;
+                $slideplugin = $this->_session->plugins->get_plugin(sloodle_presenter_update_legacy_type($entry->type));
+                if ($slideplugin) $entrytypename = $slideplugin->get_plugin_name();
+                else $entrytypename = '(unknown type)';
                 // Construct the link to the entry source
-                $entrylink = "<a href=\"{$entryurl}\" title=\"{$entryurl}\">{$entryname}</a>";
+                $entrylink = "<a href=\"{$entry->source}\" title=\"{$entry->source}\">{$entry->name}</a>";
 			
                 // If this is the slide being moved, then completely ignore it
                 if ($this->movingentryid == $entryid) {
-                    $entrynum++;
                     continue;
                 }
 	
 				// If we are in move mode, then add a 'move here' row before this slide
 				if ($this->presenter_mode == 'moveslide') { 
-	    			$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entrynum}";
+	    			$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entry->slideposition}";
     				$movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
     				$entriesTable->data[] = array('', $movebutton, '', '', '');
 
@@ -392,7 +381,7 @@ XXXEODXXX;
 				$actionBaseLink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}";
 				$actionLinkMove = $actionBaseLink."&amp;mode=moveslide&amp;entry={$entryid}";
 				$actionLinkEdit = $actionBaseLink."&amp;mode=editslide&amp;entry={$entryid}";
-				$actionLinkView = $actionBaseLink."&amp;mode=view&amp;sloodledisplayentry={$entrynum}#slide";
+				$actionLinkView = $actionBaseLink."&amp;mode=view&amp;sloodledisplayentry={$entry->slideposition}#slide";
 				$actionLinkDelete = $actionBaseLink."&amp;mode=confirmdeleteslide&amp;entry={$entryid}&amp;sesskey=".sesskey();
 				
 				// Construct our list of action buttons
@@ -404,14 +393,14 @@ XXXEODXXX;
                 
 
                 // Prepare the add buttons separately
-                $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entrynum}";
+                $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entry->slideposition}";
                 $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddbefore}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
 				
 				// Add each item of data to our table row.
 				// The first items are the position and the name of the entry, hyperlinked to the resource.
 				// The next is the name of the entry type.
 				// The last is a list of action buttons -- move, edit, view, and delete.
-                $row[] = $entrynum;
+                $row[] = $entry->slideposition;
 				$row[] = $entrylink;
 				$row[] = $entrytypename;
 				$row[] = $actionButtons;
@@ -419,19 +408,19 @@ XXXEODXXX;
 				
 				// Add the row to our table
 				$entriesTable->data[] = $row;
-				$entrynum++;
 			}
 			
 			// If we are in move mode, then add a final 'move here' row at the bottom
 
             // We need to add a final row at the bottom
             // Prepare the action link for this row
-            $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entrynum}";
+            $endentrynum = $entry->slideposition + 1;
+            $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$endentrynum}";
             $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddatend}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
             // It will contain a last 'add' button, and possibly a 'move here' button too (if we are in move mode)
             $movebutton = '';
 			if ($this->presenter_mode == 'moveslide') {
-				$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entrynum}";
+				$movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$endentrynum}";
 				$movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
 			}
             $entriesTable->data[] = array('', $movebutton, '', '', $addButtons);
@@ -454,7 +443,7 @@ XXXEODXXX;
         $entrytype = '';
 
         // Fetch a list of existing slides
-        $entries = $this->presenter->get_entry_urls();
+        $entries = $this->presenter->get_slides();
         // Check what position we are adding the new slide to
         // (default to negative, which puts it at the end)
         $position = (int)optional_param('sloodleentryposition', '-1', PARAM_INT);
@@ -475,9 +464,9 @@ XXXEODXXX;
                 error("Cannot find entry {$entryid} in the database.");
                 exit();
             }
-            $entryurl = $entries[$entryid][0];
-            $entrytype = $entries[$entryid][1];
-            $entryname = $entries[$entryid][2];
+            $entryurl = $entries[$entryid]->source;
+            $entrytype = sloodle_presenter_update_legacy_type($entries[$entryid]->type);
+            $entryname = $entries[$entryid]->name;
         }
 
         // Fetch our translation strings
@@ -502,12 +491,15 @@ XXXEODXXX;
 		$strview = get_string('view', 'sloodle');
 		$strdelete = get_string('delete');
 
-        // Construct an array of available entry types, associating the identifier to the humand-readable name.
-        // In future, this will be built from a list of plugins, but for now we'll hard code it.
+        // Construct an array of available entry types, associating the identifier to the human-readable name.
         $availabletypes = array();
-        $availabletypes['image'] = get_string('presenter:type:image','sloodle');
-        $availabletypes['video'] = get_string('presenter:type:video','sloodle');
-        $availabletypes['web'] = get_string('presenter:type:web','sloodle');
+        $pluginnames = $this->_session->plugins->get_plugin_names('SloodlePluginBasePresenterSlide');
+        if (!$pluginnames) exit('Failed to query for SLOODLE Presenter slide plugins.');
+        foreach ($pluginnames as $pluginname) {
+            // Fetch the plugin and store its human-readable name
+            $plugin = $this->_session->plugins->get_plugin($pluginname);
+            $availabletypes[$pluginname] = $plugin->get_plugin_name();
+        }
 
         // We'll post the data straight back to this page
 		echo '<form action="" method="post"><fieldset style="border-style:none;">';
@@ -529,20 +521,19 @@ XXXEODXXX;
 
         // Add a selection box to let the user change the position of the entry
         echo '<label for="sloodleentryposition">'.$strposition.': </label> <select name="sloodleentryposition" id="sloodleentryposition" size="1">'."\n";
-        $entrynum = 1;
         $selected = false;
         foreach ($entries as $curentryid => $curentry) {
             // Add this entry to the list
-            echo "<option value=\"{$entrynum}\"";
-            if ($entrynum == $position || $curentryid == $entryid) {
+            echo "<option value=\"{$curentry->slideposition}\"";
+            if ($curentry->slideposition == $position || $curentryid == $entryid) {
                 echo ' selected="selected"';
                 $selected = true;
             }
-            echo ">{$entrynum}: {$curentry[2]}</option>\n";
-            $entrynum++;
+            echo ">{$curentry->slideposition}: {$curentry->name}</option>\n";
         }
         // Add an 'end' option so that the entry can be placed at the end of the presentation
-        echo "<option value=\"{$entrynum}\"";
+        $endentrynum = $curentry->slideposition + 1;
+        echo "<option value=\"{$endentrynum}\"";
         if (!$selected) echo " selected=\"selected\"";
         echo ">--{$strend}--</option>\n";
         echo "</select><br/><br/>\n";
