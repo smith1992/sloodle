@@ -9,8 +9,7 @@
 //  Peter R. Bloomfield
 //  Paul G. Preibisch (Fire Centaur)
 //  dz questi - youtube contrib
-//  
-
+//
 string mediaurl;
 string vidid;
 integer index;
@@ -20,7 +19,7 @@ string SLOODLE_EOF = "sloodleeof";
 list parcelInfo; //var for parcel owner 
 integer MENU_CHANNEL;
 string SLOODLE_OBJECT_TYPE = "presenter-1.0";
-
+integer deedNoticeCount=0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
@@ -62,6 +61,9 @@ string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should b
 //selected, the presenter will go back into the default state and re-request config data.  This is necessary since the teacher may change prentations the presenter is pointing to via the web.  
 // Send a translation request link message
 integer requestConfigData=0; 
+key myOwnerKey;
+
+
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
@@ -120,7 +122,8 @@ integer sloodle_check_access_ctrl(key id)
     }
     
     // Assume it's owner mode
-    return (id == llGetOwner());
+    
+    return (id == myOwnerKey);
 }
 
 // Update the image display (change the parcel media URL).
@@ -139,6 +142,13 @@ update_image_display()
             vidid = llGetSubString(llList2String(entryurls, currententry), index + 2, index + 12);;
             mediaurl = "http://www.youtubemp4.com/video/"+vidid+".mp4";
             type = "video/mp4";
+            // Set the parcel media
+            llParcelMediaCommandList([
+             PARCEL_MEDIA_COMMAND_TYPE, type,
+             PARCEL_MEDIA_COMMAND_URL, mediaurl
+            ]);
+            return;
+                        
         }else type = "video/*";
     }
     else if (typename == "audio") type = "audio/*";
@@ -179,8 +189,14 @@ sloodle_update_hover_text()
 // Default state - waiting for configuration
 default
 {
+    
+    on_rez(integer start_param) {    
+        myOwnerKey = llGetOwner();            
+    }
+    
     state_entry()
     {
+        myOwnerKey = llGetOwner();        
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -204,8 +220,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -234,6 +250,8 @@ default
 }
 state checkParcelOwner
 {
+    
+    
     state_entry() {
         MENU_CHANNEL = random_integer(10000,20000); //set channel for config menu
         parcelInfo = llGetParcelDetails(llGetPos(), [PARCEL_DETAILS_OWNER]);
@@ -263,7 +281,11 @@ state checkParcelOwner
         if (llList2Key(parcelInfo,0) != llGetOwner()){
             llDialog(llGetOwner(),"This Presenter MUST be deeded to the Parcel Owner for it to display your presentation", ["help"], MENU_CHANNEL);
         } else {
-            llSay(0,"Presenter Parcel Settings are Correct! Retreiving Slides..");
+            //only send a dialog notice 3 times so we don't annoy the owner!
+            if (deedNoticeCount<3){
+                llSay(0,"Presenter Parcel Settings are Correct! Retreiving Slides..");
+                deedNoticeCount++;
+            }
             state setMediaTexture;
         }
     }
@@ -296,6 +318,7 @@ state setMediaTexture
 }
 state requestdata
 {
+  
     state_entry()
     {
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -368,7 +391,8 @@ state requestdata
         for (i = 1; i < numlines; i++) {
             fields = llParseString2List(llList2String(lines, i), ["|"], []);
             if (llGetListLength(fields) >= 2) {
-                        entryurls += [llList2String(fields, 1)];        
+                entrytypes += [llList2String(fields, 0)];
+                entryurls += [llList2String(fields, 1)];        
             }
         }
         
@@ -411,7 +435,8 @@ state running
     }
     
     touch_start(integer num)
-    {
+    {       
+        if (!sloodle_check_access_ctrl(llDetectedKey(0))) return;
         // Find out what was touched
         string buttonname = llGetLinkName(llDetectedLinkNumber(0));
         if (buttonname == "next") {
@@ -424,7 +449,6 @@ state running
             update_image_display();
         } else if (buttonname == "update") {
             requestConfigData=1; // in default data state request config data to ensure
-            //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the             requestConfigData=1; // in default data state request config data to ensure
             //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the web
             state default;
         }
