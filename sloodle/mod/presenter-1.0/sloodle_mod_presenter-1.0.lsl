@@ -187,16 +187,25 @@ sloodle_update_hover_text()
 
 
 // Default state - waiting for configuration
-default
-{
-    
-    on_rez(integer start_param) {    
+default{
+ on_rez(integer start_param) {    
         myOwnerKey = llGetOwner();            
     }
+ state_entry() {
+         myOwnerKey = llGetOwner();
+         state initialize; 
+ }
+
+}
+
+state initialize
+{
+    
+   
     
     state_entry()
     {
-        myOwnerKey = llGetOwner();        
+                
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -450,7 +459,7 @@ state running
         } else if (buttonname == "update") {
             requestConfigData=1; // in default data state request config data to ensure
             //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the web
-            state default;
+            state initialize;
         }
     }
     
