@@ -314,7 +314,7 @@
     </KEYS>
     <INDEXES>
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
-    </INDEXES>                        d
+    </INDEXES>
     </TABLE>
 
   </TABLES>
