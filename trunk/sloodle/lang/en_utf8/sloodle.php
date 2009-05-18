@@ -177,7 +177,7 @@ $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
 $string['moduletype:ibank'] = 'ibank'; 
-
+$string['moduletype:tracker'] = 'tracker';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
@@ -287,6 +287,8 @@ $string['presenter:clickedit'] = 'To edit this presentation, click the Edit tab 
 $string['presenter:clickaddslide'] = 'To add slides to this presentation, click the Add Slide tab above.';
 $string['presenter:viewanddelete']  = 'View and delete entries';
 $string['presenter:add'] = 'Add slide';
+$string['presenter:addfiles'] = 'Add the above files to the presentation'; 
+$string['presenter:bulkupload'] = 'Bulk upload';  
 $string['presenter:addatend'] = 'Add a new slide at the end of this presentation';
 $string['presenter:addbefore'] = 'Add a new slide before this slide';
 $string['presenter:moveslide'] = 'Move this slide';
@@ -299,7 +301,7 @@ $string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
 $string['presenter:type:web'] = 'Web';
-
+$string['presenter:uploadInstructions'] ="To Bulk Upload, first click the button below, then to select multiple files, hold down the control or shift key while selecting files";
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long (or leave field blank to disable it).';
@@ -455,4 +457,16 @@ $string['stipendgiver:iPoints']='iPoints';
 $string['stipendgiver:scoreboard']='iPoint Scoreboard';                   
 $string['stipendgiver:noneregistered']='No avatars registered in SLOODLE';  
 $string['stipendgiver:alreadywd2']=' You can not choose a lower allotment unless that user\'s avatar pays the stipend giver to credit their account'; 
+$string ['secondlifetracker:noavatar'] = 'No avatar registered yet'; 
+$string ['secondlifetracker:activity'] = 'ACTIVITY IN SECOND LIFE';
 
+$string ['secondlifetracker:noavatar'] = 'No avatar registered yet';
+$string ['secondlifetracker:nousers'] = 'No users registered yet';
+$string ['secondlifetasks'] = 'Assignment';
+$string ['secondlifeobjdesc'] = 'Task Description';
+$string ['secondlifelevelcompl'] = 'Level of Completion';
+$string ['secondlifetracker:completed'] = 'Completed';
+$string ['secondlifetracker:notcompleted'] = 'Not Completed';
+$string ['secondlifetracker:time'] = 'Time';
+$string ['secondlifetracker:selecttracker'] = 'Select Tracker';
+$string ['secondlifetracker:notrackers'] = 'No trackers in your course';
