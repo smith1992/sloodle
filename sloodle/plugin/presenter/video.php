@@ -72,7 +72,7 @@ class SloodlePluginPresenterSlideVideo extends SloodlePluginBasePresenterSlide
 XXXEODXXX;
         } else {
             // Just embed the video normally
-            $output = "<embed src=\"{$currententryurl}\" align=\"center\" autoplay=\"true\" controller=\"true\" width=\"{$framewidth}\" height=\"{$frameheight}\" scale=\"aspect\" />";
+            $output = "<embed src=\"{$url}\" align=\"center\" autoplay=\"true\" controller=\"true\" width=\"{$framewidth}\" height=\"{$frameheight}\" scale=\"aspect\" />";
         }
 
         return $output;
