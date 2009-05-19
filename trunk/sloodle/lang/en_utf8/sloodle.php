@@ -404,6 +404,8 @@ $string['viewall'] = 'View all avatars';
 $string['viewmyavatar'] = 'View my avatar details';
 $string['viewprev'] = 'View previous entry';
 $string['viewnext'] = 'View next entry';
+$string['jumpback'] = 'Jump back';
+$string['jumpforward'] = 'Jump Forward';
 $string['view'] = 'View';
 
 $string['welcometosloodle'] = 'Welcome to SLOODLE';

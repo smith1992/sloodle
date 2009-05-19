@@ -230,7 +230,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
              $currententry = null;
           foreach ($entries as $entryid => $entry) {
                 // Check if this is our current entry
-              if ($displayentrynum == $entry->slideposition) {
+              if ($displayentrynum == $entry->slideposition) {                  
                     $currententry = $entry;
                 }
 
@@ -245,20 +245,51 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $strof = get_string('of', 'sloodle');
             $strviewprev = get_string('viewprev', 'sloodle');
             $strviewnext = get_string('viewnext', 'sloodle');
-
+            $strviewjumpforward = get_string('jumpforward', 'sloodle');
+            $strviewjumpback = get_string('jumpback', 'sloodle');
             echo '<p style="font-size:200%; font-weight:bold;">';
-            if ($displayentrynum > 1) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=",$displayentrynum - 1,"#slide\" title=\"{$strviewprev}\">&larr;</a>";
-            else echo "<span style=\"color:#bbbbbb;\">&larr;</span>";
-            echo "&nbsp;{$displayentrynum} {$strof} {$numentries}&nbsp;";
-            if ($displayentrynum < $numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=",$displayentrynum + 1,"#slide\" title=\"{$strviewnext}\">&rarr;</a>";
-            else echo "<span style=\"color:#bbbbbb;\">&rarr;</span>";
+           // if ($displayentrynum > 1) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=",$displayentrynum - 1,"#slide\" title=\"{$strviewprev}\">&larr;</a>";
+           // else echo "<span style=\"color:#bbbbbb;\">&larr;</span>";
+           // echo "&nbsp;{$displayentrynum} {$strof} {$numentries}&nbsp;";
+           //  if ($displayentrynum < $numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=",$displayentrynum + 1,"#slide\" title=\"{$strviewnext}\">&rarr;</a>";
+
+            //else echo "<span style=\"color:#bbbbbb;\">&rarr;</span>";            
             echo "</p>\n";
+            
+            $entrynumcounter=1;            
+            $jumpNumber=5;
+            //display >>
+            $start = $displayentrynum - $jumpNumber-1;
+            if ($start>=0) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_rewind.png\" width=\"50\" height=\"50\"></a>"; 
+            $prev=$displayentrynum-1;
+            if ($displayentrynum>=2) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_prev.png\" width=\"40\" height=\"40\"></a>  "; 
+            // display hyperlinks for each slide
+            foreach ($entries as $entryid => $entry) {
+                //get start and end slides                 
+                $start = $displayentrynum - $jumpNumber;
+                if ($start<0) $start =0;
+                $end = $displayentrynum + $jumpNumber;
+                if ($end>$numentries) $end =$numentries;
+                if (($entrynumcounter >= $start)&& ($entrynumcounter<=$end)){
+                    if ($entrynumcounter==$displayentrynum) echo "<span style=\"font-weight:bold; font-size:larger;\">";
+                    echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$entrynumcounter."#slide\" title=\"{$entry->name}\">{$entrynumcounter}</a>  ";
+                    if ($entrynumcounter==$displayentrynum) echo "</span>";
+                }
+                $entrynumcounter++;
+            }
+            $end = $displayentrynum + $jumpNumber+1;
+            $next=$displayentrynum+1;
+            
+            if ($displayentrynum+1 <=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_next.png\" width=\"40\" height=\"40\"></a>  "; 
+            if ($end<=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_fastforward.png\" width=\"50\" height=\"50\"></a>  "; 
+            // display hyperlinks for each slide
+            echo "<br><br>";
 
             // Get the frame dimensions for this Presenter
             $framewidth = $this->presenter->get_frame_width();
             $frameheight = $this->presenter->get_frame_height();            
 
-    // Get the plugin for this slide
+            // Get the plugin for this slide
             $slideplugin = $this->_session->plugins->get_plugin($currententry->type);
             if ($slideplugin) {
                 // Render the content for the web
@@ -266,6 +297,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             } else {
                 echo '<p style="font-size:150%; font-weight:bold; color:#880000;">',get_string('unknowntype','sloodle'),': ', $currententry->type, '</p>';
             }
+            
 
             // Display a direct link to the media
             echo "<p>";
@@ -448,10 +480,11 @@ class sloodle_view_presenter extends sloodle_base_view_module
     /**
     * Render the slide editing form of the Presenter (lets you edit a single slide).
     * Called from with the {@link render()} function when necessary.
-    */
+    */        
     function render_add_files()
     {
         global $CFG;
+        
         // Setup variables to store the data
         $entryid = 0;
         $entryname = '';
@@ -527,10 +560,13 @@ class sloodle_view_presenter extends sloodle_base_view_module
         echo "'scriptData' : {'moduleId':'".$this->cm->id."'},";
         //enable multiple uploads 
         echo "'multi'     :  true,";
+        //set cancel button image
         echo "'cancelImg' : 'lib/multiplefileupload/cancel.png',";
+        //set button text
         echo "'buttonText': 'Select Files',";
         //start uploading automatically after items are selected            
         echo "'auto'      : true,";
+        //this folder variable is required, but in our case, not used because we set the upload folder in the upload.php upload handler
         echo "'folder'    : 'uploads',";
         //allowable file types (must also modify upload.php upload handler to accept these)
         echo "'fileDesc'  : 'jpg;png;gif;htm;html;mov',";
@@ -566,8 +602,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         echo '$.each(uploadArray,';
         echo 'function( intIndex, objValue ){';
               //get the extension of the uploaded file             
-              echo 'var start = objValue.length-4;'; 
-                                    
+              echo 'var start = objValue.length-4;';                                     
               echo 'extension=objValue.substr(start,4);';
               echo 'extension=extension.toLowerCase();';   
               echo  'var fname = objValue.substr(0,objValue.length-4);';       
@@ -611,24 +646,20 @@ class sloodle_view_presenter extends sloodle_base_view_module
            echo "$('#fileTables').remove();";  
            echo "}   ";
         echo" });   });";
-echo "</script>";
+        echo "</script>";
                  
-echo '<input type="file" name="fileInput" id="fileInput" />';
-//this div is where the uploaded files will be displayed
-echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fileTables"></div></div>';             
+        echo '<input type="file" name="fileInput" id="fileInput" />';
+        //this div is where the uploaded files will be displayed
+        echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fileTables"></div></div>';             
         echo '</fieldset></form>';
-
         // Add a button to let us cancel and go back to the main edit tab
         echo '<form action="" method="get"><fieldset style="border-style:none;">';
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
         echo "<input type=\"hidden\" name=\"mode\" value=\"edit\" />";
-        echo "<input type=\"submit\" value=\"{$strcancel}\" />";
-        
-        echo '</fieldset></form>'; 
-        
-    }     
-    
-        /**
+        echo "<input type=\"submit\" value=\"{$strcancel}\" />";        
+        echo '</fieldset></form>';         
+    }         
+    /**
     * Render the slide editing form of the Presenter (lets you edit a single slide).
     * Called from with the {@link render()} function when necessary.
     */
@@ -639,9 +670,8 @@ echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fi
         $entryname = '';
         $entryurl = '';
         $entrytype = '';
-
         // Fetch a list of existing slides
-      $entries = $this->presenter->get_slides();
+        $entries = $this->presenter->get_slides();
         // Check what position we are adding the new slide to
         // (default to negative, which puts it at the end)
         $position = (int)optional_param('sloodleentryposition', '-1', PARAM_INT);
@@ -666,8 +696,7 @@ echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fi
            $entrytype = $entries[$entryid]->type;
            $entryname = $entries[$entryid]->name;
         }
-
-   // Fetch our translation strings
+        // Fetch our translation strings
         $streditpresenter = get_string('presenter:edit', 'sloodle');
         $strviewanddelete = get_string('presenter:viewanddelete', 'sloodle');
         $strnoentries = get_string('noentries', 'sloodle');
@@ -698,7 +727,7 @@ echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fi
             $plugin = $this->_session->plugins->get_plugin($pluginname);
             $availabletypes[$pluginname] = $plugin->get_plugin_name();
         }       
-   // We'll post the data straight back to this page
+         // We'll post the data straight back to this page
         echo '<form action="" method="post"><fieldset style="border-style:none;">';
         // Identify the module
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
