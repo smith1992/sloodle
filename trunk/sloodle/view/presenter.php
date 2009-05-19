@@ -14,11 +14,13 @@
 require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
 /** The SLOODLE Session data structures */
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
-/** Require the jquery javascript files */
-require_js($CFG->wwwroot .'/lib/jquery/jquery.js');
-require_js($CFG->wwwroot .'/lib/jquery/jquery.uploadify.js');
 
-
+$mode = optional_param('mode', 'view');
+if ($mode==addfiles){
+    /** Require the jquery javascript files */
+    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
+    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
+}
 /** ID of the 'view' tab for the Presenter. */
 define('SLOODLE_PRESENTER_TAB_VIEW', 1);
 /** ID of the 'edit' tab for the Presenter */
@@ -282,7 +284,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             
             if ($displayentrynum+1 <=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_next.png\" width=\"40\" height=\"40\"></a>  "; 
             if ($end<=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_fastforward.png\" width=\"50\" height=\"50\"></a>  "; 
-            // display hyperlinks for each slide
+            
             echo "<br><br>";
 
             // Get the frame dimensions for this Presenter
@@ -484,7 +486,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
     function render_add_files()
     {
         global $CFG;
-        
+
+
+
         // Setup variables to store the data
         $entryid = 0;
         $entryname = '';
