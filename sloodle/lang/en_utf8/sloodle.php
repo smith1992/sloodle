@@ -297,7 +297,9 @@ $string['presenter:viewslide'] = 'View this slide';
 $string['presenter:deleteslide'] = 'Delete this slide from the presentation';
 $string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
 $string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
-
+$string['presenter:deleted'] = 'Deleted';
+$string['presenter:fromtheserver'] = 'from the server';
+$string['presenter:sloodleinsert'] = 'Insert at position:';                          
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
 $string['presenter:type:web'] = 'Web';
