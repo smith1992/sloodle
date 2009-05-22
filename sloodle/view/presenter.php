@@ -15,17 +15,6 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
 /** The SLOODLE Session data structures */
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
-$mode = optional_param('mode', 'view');
-if (($mode=='addfiles')||($mode=='edit')) {
-    /** Require the jquery javascript files */
-    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
-    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
-    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
-    require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');      
-    if ($mode=='edit') {
-        require_js($CFG->wwwroot .'/lib/filelib.php');      
-    }                    
-}
 /** ID of the 'view' tab for the Presenter. */
 define('SLOODLE_PRESENTER_TAB_VIEW', 1);
 /** ID of the 'edit' tab for the Presenter */
@@ -63,16 +52,23 @@ class sloodle_view_presenter extends sloodle_base_view_module
     * @var int
     * @access private
     */
-      var $movingentryid = 0;
-   /**
+    var $movingentryid = 0;
+
+    /**
     * A SLOODLE session object to give us access to plugins and other functionality.
     * @var SloodleSession
     * @access private
     */
     var $_session = null;
     
-    var $feedback;
-       /**
+    /**
+    * Stores an optional feedback string which we may pick up from session data.
+    * @var string
+    * @access private
+    */
+    var $feedback = '';
+
+    /**
     * Constructor.
     */
     function sloodle_view_presenter()
@@ -86,6 +82,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
     {
         // Process the basic data
         parent::process_request();
+
+        // Grab any feedback left from a previous action
+        if (!empty($_SESSION['sloodle_presenter_feedback'])) $this->feedback = $_SESSION['sloodle_presenter_feedback'];
+        unset($_SESSION['sloodle_presenter_feedback']);
 
         // Construct a SLOODLE Session and load a module
         $this->_session = new SloodleSession(false);
@@ -120,6 +120,19 @@ class sloodle_view_presenter extends sloodle_base_view_module
         }
         // If we're in moving mode, then grab the entry ID
         if ($this->presenter_mode == 'moveslide') $this->movingentryid = (int)optional_param('entry', 0);
+
+        // Make sure Moodle includes our JavaScript files if necessary
+        if ($this->presenter_mode == 'addfiles' || $this->presenter_mode == 'edit') {
+            // Require the jquery javascript files
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');      
+            if ($this->presenter_mode == 'edit') {
+                require_js($CFG->wwwroot .'/lib/filelib.php');      
+            }                    
+        }
+
 
         // Should we process any incoming editing commands?
         if ($this->canedit) {
@@ -237,18 +250,29 @@ class sloodle_view_presenter extends sloodle_base_view_module
                                }
                                //delete from database
                                $this->presenter->delete_entry($selectedSlide);                                
-                        }      
+                        }     
+                        // Store the feedback as a session variable for the next time the page is loaded
+                        $_SESSION['sloodle_presenter_feedback'] = $feedback;
                         //set redirect so we go back to the edit tab
                         $redirect = true;         
                     break;
-                    default: //must be a slide number so we will move the selected slides to the new position
+
+                    case "none":
+                        // User didn't select anything
+                    break;
+
+                    default:
+                         //must be a slide number so we will move the selected slides to the new position
                          //get slide position to move slides to
-                         $moveTo = $multipleAction;                                                  
+                         $moveTo = (int)$multipleAction;                                                  
+                         if ($moveTo <= 0) break; // Make sure it's a valid position
                          $i=0;
                          //move each slide to the new position
-                         foreach ($selectedSlides as $r)
-                            $this->presenter->relocate_entry($r,$moveTo+$i++);
-                         //move slides
+                         foreach ($selectedSlides as $r) {
+                            $m = $moveTo + $i;
+                            $this->presenter->relocate_entry($r, $moveTo+$i);
+                            $i++;
+                         }
                          $redirect=true;
                     break;
                     
@@ -274,7 +298,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
     {        
         
         //display any feedback
-        echo $feedback;
+        if (!empty($this->feedback)) echo $this->feedback;
         
           // Get a list of entry slides in this presenter
         $entries = $this->presenter->get_slides();
@@ -379,7 +403,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         }
 
         
-            }
+    }
  
     /**
     * Render the Edit mode of the Presenter (lists all the slides and allows re-ordering).
@@ -387,6 +411,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
     */
     function render_edit()
     {
+        //display any feedback
+        if (!empty($this->feedback)) echo $this->feedback;
+
         global $CFG;      
         $streditpresenter = get_string('presenter:edit', 'sloodle');
         $strviewanddelete = get_string('presenter:viewanddelete', 'sloodle');
@@ -441,7 +468,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
     
 
                     // Output our confirmation form
-                    notice_yesno(get_string('presenter:confirmdelete', 'sloodle', $entryname), $linkYes, $linkNo);
+                    notice_yesno(get_string('presenter:confirmdelete', 'sloodle', $entries[$entryid]->name), $linkYes, $linkNo);
                     echo "<br/>";
                 }
             }
@@ -453,7 +480,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $strcancel = get_string('cancel');
                 // Display a message and an optional 'cancel' link
                 print_box_start('generalbox', 'notice');
-                echo "<p>", get_string('presenter:movingslide', 'sloodle', $entryname), "</p>\n";
+                echo "<p>", get_string('presenter:movingslide', 'sloodle', $entries[$this->movingentryid]->name), "</p>\n";
                 echo "<p>(<a href=\"{$linkCancel}\">{$strcancel}</a>)</p>\n";
                 print_box_end();
             }
@@ -461,8 +488,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
             // Setup a table object to display Presenter entries
             $entriesTable = new stdClass();
             $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div><div style=\'text-align:center;\' id="unselectall">Unselect All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'), $stradd);
-            $entriesTable->align = array('center', 'left', 'left', 'center', 'center');
-            $entriesTable->size = array('5%', '35%', '20%', '30%', '10%');
+            $entriesTable->align = array('center', 'center', 'left', 'left', 'center', 'center');
+            $entriesTable->size = array('5%', '5%', '30%', '20%', '30%', '10%');
             
             // Go through each entry
             $numentries = count($entries);
@@ -476,7 +503,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 else $entrytypename = '(unknown type)';
                 // Construct the link to the entry source
                 $entrylink = "<a href=\"{$entry->source}\" title=\"{$entry->source}\">{$entry->name}</a>";
-            // If this is the slide being moved, then completely ignore it
+                // If this is the slide being moved, then completely ignore iti
                 if ($this->movingentryid == $entryid) {
                     continue;
                 }
@@ -484,9 +511,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
     
                 // If we are in move mode, then add a 'move here' row before this slide
                 if ($this->presenter_mode == 'moveslide') { 
-                    $movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entrynum}";
+                    $movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$entry->slideposition}";
                     $movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
-                    $entriesTable->data[] = array('', $movebutton, '', '', '');
+                    $entriesTable->data[] = array('', '', $movebutton, '', '', '');
 
                     // If the current row belongs to the slide being moved, then emphasise it, and append (moving) to the end
                      if ($entryid == $this->movingentryid) $entrylink = "<strong>{$entrylink}</strong> <em>(".get_string('moving','sloodle').')</em>';
@@ -511,7 +538,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entry->slideposition}";
                 $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddbefore}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
                 //create checkbox for multiple edit functions
-                $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" ></div>";
+                $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" /></div>";
                 // Add each item of data to our table row.
                 //the first item is a check box for multiple deletes
                 // The sencond items are the position and the name of the entry, hyperlinked to the resource.
@@ -554,7 +581,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 foreach ($entries as $curentryid => $curentry) {
                       // Add this entry to the list
                       $optionList.= "<option value=\"{$curentry->slideposition}\"";              
-                      $optionList.=">{$sloodleInsert} {$curentry->slideposition}</option>\n";                                                           
+                      $optionList.=">{$sloodleInsert} {$curentry->slideposition}</option>\n"; 
                 }
                 //create select input
                 $selectInput = "<select name='multipleProcessor' id='multipleProcessor'>{$optionList}</select>";
