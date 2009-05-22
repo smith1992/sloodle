@@ -327,7 +327,62 @@
             return $entry->id;
         }
         
+	/**
+	* Configures a registered object based on the defaults for its layout entry id
+	* @param int $authid The ID of the object as registered by register_object in the active_objects table
+ 	* @param int $layout_entry_id The ID of the layout entry corresponding to this object
+	* NB The reverse of this process, where we create a layout entry config based on the active object,
+    	* ...is in the SloodleLayoutEntry class.
+	* TODO: Would this be better there?
+	*/
+	function configure_object_from_layout_entry($authid, $layout_entry_id) {
+
+	   $configs = get_records('sloodle_layout_entry_config','layout_entry',$layout_entry_id);
+	   $ok = true;
+	   if (count($configs) > 0) {
+	      foreach($configs as $config) {
+	         $config->id = null;
+	         $config->object = $authid;
+	         if (!insert_record('sloodle_object_config',$config)) {
+		    $ok = false;
+	         }
+	      }
+	   }
+	   return $ok;
+
+	}
         
+	function configure_object_from_parent($authid, $parent_object) {
+
+	   // Fetch the UUID of the current object from the header
+	   // ...then clone its config
+
+           // Check to see if an entry already exists for this object
+           $parententry = get_record('sloodle_active_object', 'uuid', $parent_object);
+/*
+           if (!$parententry) {
+              return false;
+           }
+*/
+
+           $parentconfigs = get_records('sloodle_object_config','object',$parententry->id);
+           $ok = true;
+           if (count($parentconfigs) > 0) {
+              $clonedconfig = new stdClass();
+              foreach($parentconfigs as $config) {
+                 $clonedconfig->object = $authid;
+                 $clonedconfig->name = $config->name;
+                 $clonedconfig->value = $config->value;
+                 if (!insert_record('sloodle_object_config',$clonedconfig)) {
+                    $ok = false;
+                 }
+              }
+           }
+
+           return $ok;
+
+	}
+
         /**
         * Registers a new unauthorised object.
         * (Can be called statically).
@@ -428,7 +483,13 @@
             $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
             if (!$entry) return false;
             // Make sure we have the type data
-            if (empty($entry->type)) return false;
+
+            // Edmund Edgar, 2009-01-31: 
+            // The type-checking is breaking the auto-configuration based on a profile.
+            // It should probably already have been filled in somewhere, so this is probably an auto-configuration bug.
+            // But we should probably be doing this check somewhere else, as it's not an authorization check.
+            // Maybe it needs its own error code?
+            //if (empty($entry->type)) return false;
             
             // Verify the password
             return ($password == $entry->password);
