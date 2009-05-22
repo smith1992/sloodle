@@ -16,10 +16,15 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
 $mode = optional_param('mode', 'view');
-if ($mode==addfiles){
+if (($mode=='addfiles')||($mode=='edit')) {
     /** Require the jquery javascript files */
     require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
     require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
+    require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
+    require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');      
+    if ($mode=='edit') {
+        require_js($CFG->wwwroot .'/lib/filelib.php');      
+    }                    
 }
 /** ID of the 'view' tab for the Presenter. */
 define('SLOODLE_PRESENTER_TAB_VIEW', 1);
@@ -65,6 +70,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
     * @access private
     */
     var $_session = null;
+    
+    var $feedback;
        /**
     * Constructor.
     */
@@ -145,7 +152,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             }
             
             
-            // Has a new entry been added?
+            
              // Has a new entry been added?
             if (isset($_REQUEST['fileaddentry']) ||isset($_REQUEST['sloodleaddentry'])) {
                if (isset($_REQUEST['fileaddentry'])){ 
@@ -165,6 +172,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                             case "html": $ftype = "web";   break;                              
                          }
                          $this->presenter->add_entry(sloodle_clean_for_db($u), $ftype, sloodle_clean_for_db($names[$i++]));                         
+                         
                     }     
                }
                if (isset($_REQUEST['sloodleaddentry'])){  
@@ -182,7 +190,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             }
             
             
-                    // Has an existing entry been edited?
+            // Has an existing entry been edited?
             if (isset($_REQUEST['sloodleeditentry'])) {
                 $sloodleentryid = (int)$_REQUEST['sloodleentryid'];
                 $sloodleentryurl = sloodle_clean_for_db($_REQUEST['sloodleentryurl']);
@@ -193,6 +201,60 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $this->presenter->edit_entry($sloodleentryid, $sloodleentryurl, $sloodleentrytype, $sloodleentryname, $sloodleentryposition);
                 $redirect = true;
             }
+            
+            //are we editing multiple files?  Mode: "Multiple edit"" is set as an input value when the multiple edit select field
+            // is submitted      
+            if (optional_param('mode')=='multiple edit')  {
+                //check what value was submitted from the select input
+                $multipleAction = optional_param('multipleProcessor');
+                $selectedSlides = $_REQUEST['selectedSlides'];
+                switch ($multipleAction) {                    
+                    case "multidelete":
+                        //get all selected slides to trash                
+                        $slides = $this->presenter->get_slides();                        
+                        $deleted = get_string("presenter:deleted",sloodle);
+                        $fromTheServer = get_string("presenter:fromtheserver",sloodle);
+                        $feedback = "";
+                        foreach ($selectedSlides as $selectedSlide){
+                            //get slide source so we can delete it from the server   
+                            foreach ($slides as $slide){
+                                   if ($slide->id==$selectedSlide){
+                                       //delete file
+                                         $fileLocation = $CFG->dataroot;
+                                         //here the $slide->source url has moodle's file.php handler in it
+                                         //we must therefore convert the slide source into a real file path
+                                         //do so by removing "file.php" from the file path string
+                                         $floc = strstr($slide->source,"file.php");
+                                         //now delete "file.php" from the path
+                                         $floc = substr($floc,8,strlen($floc));
+                                         //now add this to the data route to finish re-creating the true file path
+                                         $fileLocation.=$floc;
+                                         //finally we can delete the file
+                                         unlink($fileLocation);
+                                        //build feedback string
+                                        $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
+                                   }                           
+                               }
+                               //delete from database
+                               $this->presenter->delete_entry($selectedSlide);                                
+                        }      
+                        //set redirect so we go back to the edit tab
+                        $redirect = true;         
+                    break;
+                    default: //must be a slide number so we will move the selected slides to the new position
+                         //get slide position to move slides to
+                         $moveTo = $multipleAction;                                                  
+                         $i=0;
+                         //move each slide to the new position
+                         foreach ($selectedSlides as $r)
+                            $this->presenter->relocate_entry($r,$moveTo+$i++);
+                         //move slides
+                         $redirect=true;
+                    break;
+                    
+                }    
+            }
+              //$this->presenter->delete_entry()
 
             // Redirect back to self, if possible
             if ($redirect && headers_sent() == false) {
@@ -210,6 +272,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
     */
     function render_view()
     {        
+        
+        //display any feedback
+        echo $feedback;
+        
           // Get a list of entry slides in this presenter
         $entries = $this->presenter->get_slides();
         if (!is_array($entries)) $entries = array();
@@ -262,9 +328,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $jumpNumber=5;
             //display >>
             $start = $displayentrynum - $jumpNumber-1;
-            if ($start>=0) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_rewind.png\" width=\"50\" height=\"50\"></a>"; 
+            if ($start>=0) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_rewind.gif\" width=\"50\" height=\"50\"></a>"; 
             $prev=$displayentrynum-1;
-            if ($displayentrynum>=2) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_prev.png\" width=\"40\" height=\"40\"></a>  "; 
+            if ($displayentrynum>=2) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_prev.gif\" width=\"40\" height=\"40\"></a>  "; 
             // display hyperlinks for each slide
             foreach ($entries as $entryid => $entry) {
                 //get start and end slides                 
@@ -282,8 +348,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $end = $displayentrynum + $jumpNumber+1;
             $next=$displayentrynum+1;
             
-            if ($displayentrynum+1 <=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_next.png\" width=\"40\" height=\"40\"></a>  "; 
-            if ($end<=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/multiplefileupload/bluecons_fastforward.png\" width=\"50\" height=\"50\"></a>  "; 
+            if ($displayentrynum+1 <=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img alt=\"{$strviewnext}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_next.gif\" width=\"40\" height=\"40\"></a>  "; 
+            if ($end<=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img alt=\"{$strviewjumpforward} ".$jumpNumber."\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_fastforward.gif\" width=\"50\" height=\"50\"></a>  "; 
             
             echo "<br><br>";
 
@@ -321,8 +387,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
     */
     function render_edit()
     {
-        global $CFG;
-    
+        global $CFG;      
         $streditpresenter = get_string('presenter:edit', 'sloodle');
         $strviewanddelete = get_string('presenter:viewanddelete', 'sloodle');
         $strnoentries = get_string('noentries', 'sloodle');
@@ -355,7 +420,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Any images to display?
         if ($entries === false || count($entries) == 0) {
             echo '<h4>'.$strnoslides.'</h4>';
-            echo '<h4><a href="'.SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addslide\">{$stradd}</a></h4>\n";
+            echo '<h4><a href="'.SLOODLE_WWWROOT.'/view.php?id='.$this->cm->id.'&amp;mode=addslide">'.$stradd.'</a></h4><br>';
         } else {
         
             // Are we being asked to confirm the deletion of a slide?
@@ -395,7 +460,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
             // Setup a table object to display Presenter entries
             $entriesTable = new stdClass();
-            $entriesTable->head = array(get_string('position', 'sloodle'), get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'), $stradd);
+            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div><div style=\'text-align:center;\' id="unselectall">Unselect All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'), $stradd);
             $entriesTable->align = array('center', 'left', 'left', 'center', 'center');
             $entriesTable->size = array('5%', '35%', '20%', '30%', '10%');
             
@@ -406,7 +471,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $row = array();
                 
                 // Extract the entry data
-                        $slideplugin = $this->_session->plugins->get_plugin($entry->type);
+                $slideplugin = $this->_session->plugins->get_plugin($entry->type);
                 if ($slideplugin) $entrytypename = $slideplugin->get_plugin_name();
                 else $entrytypename = '(unknown type)';
                 // Construct the link to the entry source
@@ -445,12 +510,16 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 // Prepare the add buttons separately
                 $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entry->slideposition}";
                 $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddbefore}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
-                
+                //create checkbox for multiple edit functions
+                $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" ></div>";
                 // Add each item of data to our table row.
-                // The first items are the position and the name of the entry, hyperlinked to the resource.
+                //the first item is a check box for multiple deletes
+                // The sencond items are the position and the name of the entry, hyperlinked to the resource.
                 // The next is the name of the entry type.
                 // The last is a list of action buttons -- move, edit, view, and delete.
+                
                 $row[] = $entry->slideposition;
+                $row[] = $checkbox;  
                 $row[] = $entrylink;
                 $row[] = $entrytypename;
                 $row[] = $actionButtons;
@@ -459,6 +528,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 // Add the row to our table
                 $entriesTable->data[] = $row;
             }
+              
             
             // If we are in move mode, then add a final 'move here' row at the bottom
   // We need to add a final row at the bottom
@@ -466,15 +536,47 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $endentrynum = $entry->slideposition + 1;
             $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$endentrynum}";
             $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddatend}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
+            $sloodleInsert = get_string("presenter:sloodleinsert","sloodle");
             // It will contain a last 'add' button, and possibly a 'move here' button too (if we are in move mode)
             $movebutton = '';
             if ($this->presenter_mode == 'moveslide') {
                 $movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$endentrynum}";
                 $movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
             }
-            $entriesTable->data[] = array('', $movebutton, '', '', $addButtons);
-            
-            print_table($entriesTable);
+            //display drop down box with options to actions on a group of slides
+            if ($this->canedit)  {
+                //build options list for multi action select box
+                //with Selected is used as a UI element so user knows what this select is for
+                $optionList ='<option value="none">     With Selected  </option>';    
+                //add multiple delete option
+                $optionList.='<option value="multidelete">*** DELETE SELECTED ***</option>';    
+                //add options for each slide position
+                foreach ($entries as $curentryid => $curentry) {
+                      // Add this entry to the list
+                      $optionList.= "<option value=\"{$curentry->slideposition}\"";              
+                      $optionList.=">{$sloodleInsert} {$curentry->slideposition}</option>\n";                                                           
+                }
+                //create select input
+                $selectInput = "<select name='multipleProcessor' id='multipleProcessor'>{$optionList}</select>";
+                //add a submit button
+                $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
+                //add select input to table
+                $entriesTable->data[] = array('','<div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', '', $addButtons);
+                //encase in a form
+                echo '<form action="" ,method="POST" id="editform" name="editform">';
+                print_table($entriesTable);
+                //add course module id so moodle knows what to do with this post
+                echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
+                //set the mode for multiple edit so process_form knows what to do
+                echo "<input type=\"hidden\" name=\"mode\" value=\"multiple edit\" />";
+                echo '</form>';                
+            }
+            else {
+                    $entriesTable->data[] = array('',' ','', '', '', $addButtons);
+                      print_table($entriesTable);
+                    
+                }
+           
         }
         
     }
@@ -612,7 +714,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
               echo  'var fname = objValue.substr(0,objValue.length-4);';       
              //Construct the Name row
              //replace all spaces with underscores
-             echo  'tableData= \'<table ><tr><td width=100>Name:</td><td> <input type="text" id="filename"  name="filename[]" value="\'+fname.replace(\' \(\',\'_\(\').replace(\'\) \',\'\)_\').replace(\' \',\'_\')+\'" size="60" maxlength="255" /></td><td width="100">\';';                         
+             echo  'tableData= \'<table ><tr><td width=100>Name:</td><td> <input type="text" id="filename"  name="filename[]" value="\'+fname.replace(\' \(\',\'_\(\').replace(\'\) \',\'\)_\').replace(\' \',\'_\').replace(\' \',\'_\')+\'" size="60" maxlength="255" /></td><td width="100">\';';                         
              //Construct the Image row if this file is an image
              echo 'if ((extension==\'.jpg\') || (extension==\'.gif\') || (extension==\'.png\')) {';                        
                        echo 'tableData += \'<label>Type:</label><select name="ftype[]" id="type" size="1"><option name=""  value="">image</option></select></td></tr></table>\';';                                   
@@ -630,7 +732,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                         echo 'tableData+= \'<label>Type:</label><select name="" id="type" size="1"><option name=""   value="">web</option></select></td></tr></table>\';';            
             echo  '}'; 
             //Now add the constructed row (tableData) to the list of fields                         
-            echo 'tableData+=\'<table ><tr><td width=100>Url:</td><td><input type="text"  id="fileurl" name="fileurl[]" value="\'+uploadWwwDir+objValue.replace(\' \(\',\'_\(\').replace(\'\) \',\'\)_\').replace(\' \',\'_\')+\'" size="60" maxlength="255" /></td></tr></table><HR>\';';                                                
+            echo 'tableData+=\'<table ><tr><td width=100>Url:</td><td><input type="text"  id="fileurl" name="fileurl[]" value="\'+uploadWwwDir+objValue.replace(\' \(\',\'_\(\').replace(\'\) \',\'\)_\').replace(\' \',\'_\').replace(\' \',\'_\')+\'" size="60" maxlength="255" /></td></tr></table><HR>\';';                                                
             //insert the table data into <div id="fileTables"></div>
             echo 'jList.append($ (tableData));';
        echo ' });';                     
@@ -803,7 +905,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_SLIDE, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addslide", get_string('presenter:add', 'sloodle'), get_string('presenter:add', 'sloodle'), true);
 
             // Add the 'Bulk Upload' tab
-            $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_FILES, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addfiles", get_string('presenter:bulkupload', 'sloodle'), get_string('presenter:addfilesTab', 'sloodle'), true);
+            $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_FILES, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addfiles", get_string('presenter:bulkupload', 'sloodle'), get_string('presenter:bulkupload', 'sloodle'), true);
 
             // If we are editing a slide, then add the 'Edit Slide' tab
             if ($this->presenter_mode == 'editslide') {
