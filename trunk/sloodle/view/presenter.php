@@ -318,7 +318,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
         // Do we have any entries to work with?
         if ($numentries > 0) {
-            // Yes - go through them to figure out which entries to display
+            // Yes - go through them to figure out which entry to display
              $currententry = null;
           foreach ($entries as $entryid => $entry) {
                 // Check if this is our current entry
@@ -541,7 +541,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" /></div>";
                 // Add each item of data to our table row.
                 //the first item is a check box for multiple deletes
-                // The sencond items are the position and the name of the entry, hyperlinked to the resource.
+                // The second items are the position and the name of the entry, hyperlinked to the resource.
                 // The next is the name of the entry type.
                 // The last is a list of action buttons -- move, edit, view, and delete.
                 
@@ -588,7 +588,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 //add a submit button
                 $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
                 //add select input to table
-                $entriesTable->data[] = array('','<div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', '', $addButtons);
+                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', '', $addButtons);
                 //encase in a form
                 echo '<form action="" ,method="POST" id="editform" name="editform">';
                 print_table($entriesTable);
