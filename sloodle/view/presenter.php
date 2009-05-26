@@ -351,11 +351,28 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $entrynumcounter=1;            
             $jumpNumber=5;
             //display >>
+            $arrowLinks = new stdClass();       
+            $arrowLinks->class='texrender';     
+            $arrowLinks->size = array('40px', '40px','40px','40px');
+            $arrowLinks->cellpadding='1';
+            $arrowLinks->width='500px';
+            
+            $slideLinks= new stdClass();
+            $slideLinks->class='texrender';     
+            $slideLinks->size = array('20px', '20px','20px','20px','20px','20px','20px');
+            $slideLinks->cellpadding='1';
+            $row = array(); 
+            $arow = array(); 
+            
             $start = $displayentrynum - $jumpNumber-1;
-            if ($start>=0) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_rewind.gif\" width=\"50\" height=\"50\"></a>"; 
+            if ($start>=0) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_rewind.gif\" width=\"50\" height=\"50\"></a>"; 
+            else $arow[]="<img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_rewind.gif\" width=\"50\" height=\"50\">"; 
             $prev=$displayentrynum-1;
-            if ($displayentrynum>=2) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_prev.gif\" width=\"40\" height=\"40\"></a>  "; 
+            if ($displayentrynum>=2) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_prev.gif\" width=\"40\" height=\"40\"></a>  "; 
+            else $arow[]= "<img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_prev.gif\" width=\"40\" height=\"40\">"; 
+            
             // display hyperlinks for each slide
+            $row="<table width='400px'><tr>";
             foreach ($entries as $entryid => $entry) {
                 //get start and end slides                 
                 $start = $displayentrynum - $jumpNumber;
@@ -363,20 +380,27 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $end = $displayentrynum + $jumpNumber;
                 if ($end>$numentries) $end =$numentries;
                 if (($entrynumcounter >= $start)&& ($entrynumcounter<=$end)){
-                    if ($entrynumcounter==$displayentrynum) echo "<span style=\"font-weight:bold; font-size:larger;\">";
-                    echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$entrynumcounter."#slide\" title=\"{$entry->name}\">{$entrynumcounter}</a>  ";
-                    if ($entrynumcounter==$displayentrynum) echo "</span>";
+                    if ($entrynumcounter==$displayentrynum) $row.= "<td style=\"font-weight:bold; font-size:larger;\">"."<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$entrynumcounter."#slide\" title=\"{$entry->name}\">{$entrynumcounter}</a></td>";
+                    else $row.= "<td><a href=\"?id={$this->cm->id}&sloodledisplayentry=".$entrynumcounter."#slide\" title=\"{$entry->name}\">{$entrynumcounter}</td>";
                 }
                 $entrynumcounter++;
             }
+            $row.="</tr></table>";
+            $arow[]=$row;
             $end = $displayentrynum + $jumpNumber+1;
             $next=$displayentrynum+1;
             
-            if ($displayentrynum+1 <=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img alt=\"{$strviewnext}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_next.gif\" width=\"40\" height=\"40\"></a>  "; 
-            if ($end<=$numentries) echo "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img alt=\"{$strviewjumpforward} ".$jumpNumber."\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_fastforward.gif\" width=\"50\" height=\"50\"></a>  "; 
+            if ($displayentrynum+1 <=$numentries) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$next}#slide\" title=\"{$strviewnext}\"><img alt=\"{$strviewnext}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_next.gif\" width=\"40\" height=\"40\"></a>  "; 
+            else $arow[]="<img alt=\"{$strviewnext}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_next.gif\" width=\"40\" height=\"40\">"; 
+            if ($end<=$numentries) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry=".$end."#slide\" title=\"{$strviewjumpforward} ".$jumpNumber." slides\"><img alt=\"{$strviewjumpforward} ".$jumpNumber."\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_fastforward.gif\" width=\"50\" height=\"50\"></a>  "; 
+            else $arow[]="<img alt=\"{$strviewjumpforward} ".$jumpNumber."\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_fastforward.gif\" width=\"50\" height=\"50\">"; 
             
+            
+            //$slideLinks->data[]=$row;
+            $arrowLinks->data[]=$arow;
+            
+            print_table($arrowLinks); 
             echo "<br><br>";
-
             // Get the frame dimensions for this Presenter
             $framewidth = $this->presenter->get_frame_width();
             $frameheight = $this->presenter->get_frame_height();            
@@ -487,9 +511,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
             // Setup a table object to display Presenter entries
             $entriesTable = new stdClass();
-            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div><div style=\'text-align:center;\' id="unselectall">Unselect All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'), $stradd);
-            $entriesTable->align = array('center', 'center', 'left', 'left', 'center', 'center');
-            $entriesTable->size = array('5%', '5%', '30%', '20%', '30%', '10%');
+            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div><div style=\'text-align:center;\' id="unselectall">Unselect All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'));
+            $entriesTable->align = array('center', 'center', 'left', 'left', 'center');
+            $entriesTable->size = array('5%', '5%', '30%', '20%', '30%');
             
             // Go through each entry
             $numentries = count($entries);
@@ -526,17 +550,20 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $actionLinkView = $actionBaseLink."&amp;mode=view&amp;sloodledisplayentry={$entry->slideposition}#slide";
                 $actionLinkDelete = $actionBaseLink."&amp;mode=confirmdeleteslide&amp;entry={$entryid}&amp;sesskey=".sesskey();
                 
+               
+                // Prepare the add buttons separately
+                $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entry->slideposition}";
+                $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddbefore}\"><img src=\"".SLOODLE_WWWROOT."/lib/media/add.png\" alt=\"{$stradd}\" /></a>\n";
+                
                 // Construct our list of action buttons
                 $actionButtons = '';
                 $actionButtons .= "<a href=\"{$actionLinkMove}\" title=\"{$strmoveslide}\"><img src=\"{$CFG->pixpath}/t/move.gif\" class=\"iconsmall\" alt=\"{$strmove}\" /></a>\n";
                 $actionButtons .= "<a href=\"{$actionLinkEdit}\" title=\"{$streditslide}\"><img src=\"{$CFG->pixpath}/t/edit.gif\" class=\"iconsmall\" alt=\"{$stredit}\" /></a>\n";
                 $actionButtons .= "<a href=\"{$actionLinkView}\" title=\"{$strviewslide}\"><img src=\"{$CFG->pixpath}/t/preview.gif\" class=\"iconsmall\" alt=\"{$strview}\" /></a>\n";
                 $actionButtons .= "<a href=\"{$actionLinkDelete}\" title=\"{$strdeleteslide}\"><img src=\"{$CFG->pixpath}/t/delete.gif\" class=\"iconsmall\" alt=\"{$strdelete}\" /></a>\n";
-                
+                $actionButtons .= $addButtons;
 
-                // Prepare the add buttons separately
-                $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$entry->slideposition}";
-                $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddbefore}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
+               
                 //create checkbox for multiple edit functions
                 $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" /></div>";
                 // Add each item of data to our table row.
@@ -550,7 +577,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $row[] = $entrylink;
                 $row[] = $entrytypename;
                 $row[] = $actionButtons;
-                $row[] = $addButtons;
+                
                 
                 // Add the row to our table
                 $entriesTable->data[] = $row;
