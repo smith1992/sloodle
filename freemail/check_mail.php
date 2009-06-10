@@ -9,24 +9,24 @@
 * @contributor: Paul G. Preibisch - aka Fire centaur in Second Life
 *
 */
-
 require_once "../../config.php";
 require_once "lib_.php";
-
-//error_reporting(0);
-            
 require_once "readmail.php";
 
 //-----------No Edit------------------//
 
+// Display the Moodle page header -- keeps the page consistent with other Moodle features
+print_header_simple('SLOODLE Freemail - Postcard Blogger', 'SLOODLE Freemail - Postcard Blogger');
+echo "<div>&nbsp;</div>\n";
 
 $commands = array("HELP");
 
 $noticeTable = new stdClass();
-$noticeTable->head = array('SLOODLE BLOGGER - FREEMAIL FAQ');
+$noticeTable->head = array('SLOODLE Freemail - Postcard Blogger');
 $r = array();
 $r[] = get_string('freemail:cronnotice','freemail');
 
+$courseTable = new stdClass();
 $courseTable->class="course-view";
 
 $noticeTable->cellpadding=10;
@@ -34,15 +34,20 @@ $noticeTable->cellspacing=10;
 $noticeTable->data[] = $r;  
 print_table($noticeTable);
 
-if (empty($usermailcontent))
-    error("No mail was found on the server");
-    else $mails = $usermailcontent;
+if (empty($usermailcontent)) {
+    echo "<br/><h3 style=\"text-align:center;\">No mail was found on the server</h3><br/>";
+    $mails = null;
+} else {
+    $mails = $usermailcontent;
+}
 
 
-echo get_string("freemail_024", "freemail");
-echo sizeof($mails)."\r<br /><br />";
 
 if (is_array($mails)) {
+
+    echo get_string("freemail_024", "freemail");
+    echo sizeof($mails)."\r<br /><br />";
+
   foreach ($mails as $mail) {
     $datetext = date("F j, Y, g:i a", time());
     freemail_setlog("{$datetext} PROCESS START | email:{$mail['email']} | subject:*********");
@@ -205,10 +210,14 @@ if (is_array($mails)) {
     }
   }
 
+    echo "<br />";
+    echo get_string("freemail_029", "freemail");
 }
 
-echo "<br />";
-echo get_string("freemail_029", "freemail");
-echo "\r";
+// Display the Moodle page footer
+print_footer();
+
+// Disable notices from being reported -- there is a bug in the IMAP system causing a notice to be reported on shutdown.
+if (error_reporting() >= E_NOTICE) error_reporting(E_PARSE);
 
 ?>
