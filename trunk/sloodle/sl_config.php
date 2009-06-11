@@ -55,6 +55,8 @@
         // Report all errors and warnings
         @ini_set('display_errors', '1');
         @error_reporting(2047);
+        // Since we're in basic UTF8 text mode, disable the HTML in error codes
+        @ini_set('html_errors', '0');
     } else {
         // Debug mode is NOT active. Are we in a linker script?
         if (defined('SLOODLE_LINKER_SCRIPT') && SLOODLE_LINKER_SCRIPT == true) {

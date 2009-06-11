@@ -1,6 +1,4 @@
 <?php
-///// THIS SCRIPT IS STILL BEING USED FOR TESTING /////
-
 
     /**
     * Sloodle Presenter linker.
@@ -18,16 +16,40 @@
     //  sloodlepwd = the prim password or object-specific session key to authenticate the request
     //  sloodlemoduleid = ID of a presenter
     //
-    // Status code 1 will be returned on success.
-    // Each data line specifies one entry in the presetnation, as follows:
-    //  type|url|name
-    // The type may be "image", "video" or "web".
-    // In future, scaling values may be applied.
+    // The following parameter is optional:
+    //  sloodleslidenum = the number of a slide within a presentation (this is a 1 based number, so 1 is the first slide, 2 is the second, and so on)
+    //
+    // Status code 1 will be returned on success of any request.
+    // The first line will always contain the following data:
+    //
+    //  num_slides|name
+    //
+    // "name" is the name of the presentation, and "num_slides" is the total number of slides currently in the presentation.
+    // The second data line will contain data about a particular slide in the presentation, as follows:
+    //
+    //  num|type|source|name
+    //
+    // num = the number of slide within the presentation, starting at 1
+    // type = the mimetype of the slide, such as "video/*"
+    // source = the source of the slide, which will usually be a URL (although we might use it for other things later)
+    // name = the name of the slide
+    //
+    // By default, the first slide's data will always be returned.
+    // However, by including the "sloodleslidenum" parameter in the request, a specific slide can be requested.i
+    //
+    // In the event that the Presenter plugins fail to load at all, the response will be status code -131.
+    // If the presentation is empty (no slides at all) then the response will be status code -10501.
+    // If a particular slide's plugin cannot be loaded, then the main status code will still be 1 and the basic presenter data will be given. But there will be side effect code -132, and the 'type' field for the slide will say 'ERROR'. (This allows the presentation to continue to work -- the specific slide can simply be skipped.)
+    //
+    // Future modifications may include:
+    //  - text-based display in SL
+    //  - UUID-based texture or object loading in SL
+    //  - aspect ratio specified for each slide
     //
     
 
     /** Lets Sloodle know we are in a linker script. */
-//    define('SLOODLE_LINKER_SCRIPT', true);i
+    define('SLOODLE_LINKER_SCRIPT', true);
     
     /** Grab the Sloodle/Moodle configuration. */
     require_once('../../sl_config.php');
@@ -36,37 +58,66 @@
     
     // Authenticate the request, and load a slideshow module
     $sloodle = new SloodleSession();
-//    $sloodle->authenticate_request();
+    $sloodle->authenticate_request();
     $sloodle->load_module(SLOODLE_TYPE_PRESENTER, true);
-  
 
-    // Attempt to load some plugins
-    echo "Loading Presenter plugins...<br/>\n";
-    if (!$sloodle->plugins->load_plugins('presenter')) exit(" failed<br/>\n");
-    echo "Listing loaded plugins...<br/>\n";
-    $plugins = $sloodle->plugins->get_plugin_names('SloodlePluginBasePresenterSlide');
-    if (!$plugins) exit(" failed<br/>\n");
-    foreach ($plugins as $pluginname) {
-        echo " {$pluginname}<br/>\n";
+    // Load the necessary Presenter plugins
+    sloodle_debug("Loading Presenter plugins\n");
+    if (!$sloodle->plugins->load_plugins('presenter')) {
+        $sloodle->response->quick_output(-131, 'PLUGIN', 'Failed to load any SLOODLE Presenter plugins. Please check your "sloodle/plugin" folder.', false);
+        exit();
     }
-    echo "<hr>\n";
+
+    // Get all the slides in this presentation
+    $slides = $sloodle->module->get_slides();
+    if (!is_array($slides) || count($slides) == 0) {
+        $sloodle->response->quick_output(-10501, 'PRESENTER', 'There are no slides in this presentation', false);
+        exit();
+    }
+    $numslides = count($slides);
+  
+    // Has a particular slide been requested?
+    $sloodleslidenum = (int)$sloodle->request->optional_param('sloodleslidenum', 0);
+    if ($sloodleslidenum < 1 || $sloodleslidenum > $numslides) $sloodleslidenum = 1;
+    
+    // Figure out which slide we are going to output
+    $outputslide = null;
+    $curslidenum = 1;
+    foreach ($slides as $curslide) {
+        // If this is the current slide we are after, then output it
+        if ($curslidenum == $sloodleslidenum) {
+            $outputslide = $curslide;
+            break;
+        }
+        $curslidenum++;
+    }
 
 
-
-exit();  
-    // Start preparing the response
+    // Output the basic presenter information
     $sloodle->response->set_status_code(1);
     $sloodle->response->set_status_descriptor('OK');
+    $sloodle->response->add_data_line(array($numslides, sloodle_clean_for_output($sloodle->module->get_name())));
     
-    // Output each URL and entry type
-    $entries = $sloodle->module->get_entry_urls();
-    if (is_array($entries)) {
-        foreach ($entries as $entry) {
-            $sloodle->response->add_data_line(array($entry[1], $entry[0], $entry[2]));
-        }
+    // Our plugin data will be store in these variables
+    $slidetype = ''; $slidesource = '';
+    // Attempt to load the plugin required by our current slide
+    sloodle_debug("Attempting to load plugin \"{$outputslide->type}\"...");
+    $slideplugin = $sloodle->plugins->get_plugin($outputslide->type);
+    if ($slideplugin === false) {
+        // Indicate the error as a side effect, and specify the type as an error
+        sloodle_debug("Failed to load plugin\n");
+        $sloodle->response->add_side_effect(-132);
+        $slidetype = 'ERROR';
+        $slidesource = '';
+    } else {
+        // Load the slide data from the plugin
+        sloodle_debug("Loaded plugin OK\n");
+        list($slidetype, $slidesource) = $slideplugin->render_slide_for_sl($outputslide);
     }
-    
-    // Output our response
+
+    // Output the slide data
+    $sloodle->response->add_data_line(array($sloodleslidenum, sloodle_clean_for_output($slidetype), sloodle_clean_for_output($slidesource), sloodle_clean_for_output($outputslide->name)));
     $sloodle->response->render_to_output();
-    
+    exit();
+
 ?>
