@@ -589,7 +589,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             // Prepare the action link for this row
             $endentrynum = $entry->slideposition + 1;
             $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$endentrynum}";
-            $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddatend}\"><img src=\"".SLOODLE_WWWROOT."/add.png\" alt=\"{$stradd}\" /></a>\n";
+            $addButtons = "<a href=\"{$actionLinkAdd}\" title=\"{$straddatend}\"><img src=\"".SLOODLE_WWWROOT."/lib/media/add.png\" alt=\"{$stradd}\" /></a>\n";
             $sloodleInsert = get_string("presenter:sloodleinsert","sloodle");
             // It will contain a last 'add' button, and possibly a 'move here' button too (if we are in move mode)
             $movebutton = '';
@@ -598,7 +598,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
             }
             //display drop down box with options to actions on a group of slides
-            if ($this->canedit)  {
                 //build options list for multi action select box
                 //with Selected is used as a UI element so user knows what this select is for
                 $optionList ='<option value="none">     With Selected  </option>';    
@@ -615,7 +614,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 //add a submit button
                 $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
                 //add select input to table
-                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', '', $addButtons);
+                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', $addButtons);
                 //encase in a form
                 echo '<form action="" ,method="POST" id="editform" name="editform">';
                 print_table($entriesTable);
@@ -624,12 +623,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 //set the mode for multiple edit so process_form knows what to do
                 echo "<input type=\"hidden\" name=\"mode\" value=\"multiple edit\" />";
                 echo '</form>';                
-            }
-            else {
-                    $entriesTable->data[] = array('',' ','', '', '', $addButtons);
-                      print_table($entriesTable);
-                    
-                }
            
         }
         
