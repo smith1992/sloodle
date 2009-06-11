@@ -5,7 +5,7 @@
 // The first of each pair is the name, and second is the translation.
 //
 // This script is part of the Sloodle project.
-// Copyright (c) 2008 Sloodle (various contributors)
+// Copyright (c) 2008-9 Sloodle (various contributors)
 // Released under the GNU GPL v3
 //
 // Contributors:
@@ -33,71 +33,75 @@ string mybatch = ""; // Blank - this is the common Sloodle batch
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Common terms
-	"yes", "Yes",
-	"no", "No",
-	"on", "On",
-	"off", "Off",
-	"enabled", "Enabled",
-	"disabled", "Disabled",
+    //  Common terms
+    "yes", "Yes",
+    "no", "No",
+    "on", "On",
+    "off", "Off",
+    "enabled", "Enabled",
+    "disabled", "Disabled",
 
-	//  Web-configuration
-	"webconfigmenu", "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
-	"configlink", "Use this link to configure the object.",
-	"chatserveraddress", "Please chat the address of your Moodle site, without a trailing slash. For example: http://www.yoursite.blah/moodle",
-	"waitingforserveraddress", "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
-	"checkingserverat", "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
-	"sendingconfig", "Sending configuration data...",
-	"touchforwebconfig", "Touch me to start web-configuration",
+    //  Web-configuration
+    "webconfigmenu", "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
+    "configlink", "Use this link to configure the object.",
+    "chatserveraddress", "Please chat the address of your Moodle site, without a trailing slash. For example: http://www.yoursite.blah/moodle",
+    "waitingforserveraddress", "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
+    "checkingserverat", "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
+    "sendingconfig", "Sending configuration data...",
+    "touchforwebconfig", "Touch me to start web-configuration",
     
     // User-centric authorisation
     "userauthurl", "Please login to Moodle with this URL to authorize the object for your own use.",
 
-	//  General connection and authorisation
-	"readynotconnected", "Ready\n[Not connected]",
-	"shutdown", "Shutdown",
-	"connected", "Connected successfully",
-	"readyconnectedto", "Ready\n[Connected to: {{0}}]", // Parameter should identify what is connected to (e.g. URL of website)
-	"readyconnectedto:sitecourse", "Ready\n[Site: {{0}}]\n[Course: {{1}}]", // Parameters: site address, course name
-	"connectionfailed", "Connection failed",
-	"httperror", "ERROR: HTTP request failed",
-	"httperror:code", "ERROR: HTTP request failed with code {{0}}",
-	"httpempty", "ERROR: HTTP response empty",
-	"httptimeout", "ERROR: HTTP request timed out.",
-	"servererror", "ERROR: server responded with status code {{0}}",
-	"notypeid", "ERROR: failed to identify object type ID",
-	"gottype", "Identified object type as {{0}}", // Parameter gives an object type ID
-	"failedcheckcompatibility", "ERROR: failed to check compatibility with site",
-	"badresponseformat", "ERROR: response from server was badly formatted",
-	"objectauthfailed:code", "ERROR: object authorisation failed with code {{0}}",
-	"objectconfigfailed:code", "ERROR: object configuration failed with code {{0}}",
-	"initobjectauth", "Initiating object authorisation...",
-	"autoreg:newaccount", "A new Moodle account has been automatically generated for you.\nWebsite: {{0}} \nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
-	"configurationreceived", "Configuration received",
-	"configdatamissing", "ERROR: some required data was missing from the configuration",
-	"readingconfignotecard", "Reading configuration notecard...",
-	"checkingcourse", "Checking course...",
-	"errortouchtoreset", "ERROR\nTouch me to reset",
-	"notconfiguredyet", "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
-	"resetting", "Resetting...",
+    //  General connection and authorisation
+    "readynotconnected", "Ready\n[Not connected]",
+    "shutdown", "Shutdown",
+    "connected", "Connected successfully",
+    "readyconnectedto", "Ready\n[Connected to: {{0}}]", // Parameter should identify what is connected to (e.g. URL of website)
+    "readyconnectedto:sitecourse", "Ready\n[Site: {{0}}]\n[Course: {{1}}]", // Parameters: site address, course name
+    "connectionfailed", "Connection failed",
+    "httperror", "ERROR: HTTP request failed",
+    "httperror:code", "ERROR: HTTP request failed with code {{0}}",
+    "httpempty", "ERROR: HTTP response empty",
+    "httptimeout", "ERROR: HTTP request timed out.",
+    "servererror", "ERROR: server responded with status code {{0}}",
+    "notypeid", "ERROR: failed to identify object type ID",
+    "gottype", "Identified object type as {{0}}", // Parameter gives an object type ID
+    "failedcheckcompatibility", "ERROR: failed to check compatibility with site",
+    "badresponseformat", "ERROR: response from server was badly formatted",
+    "objectauthfailed:code", "ERROR: object authorisation failed with code {{0}}",
+    "objectconfigfailed:code", "ERROR: object configuration failed with code {{0}}",
+    "initobjectauth", "Initiating object authorisation...",
+    "autoreg:newaccount", "A new Moodle account has been automatically generated for you.\nWebsite: {{0}} \nUsername: {{1}}\nPassword: {{2}}", // Parameters: site address, username, password
+    "configurationreceived", "Configuration received",
+    "configdatamissing", "ERROR: some required data was missing from the configuration",
+    "readingconfignotecard", "Reading configuration notecard...",
+    "checkingcourse", "Checking course...",
+    "errortouchtoreset", "ERROR\nTouch me to reset",
+    "notconfiguredyet", "Sorry {{0}}. I am not configured yet.", // Parameter: avatar name
+    "resetting", "Resetting...",
     "noconfigavailable", "There is no configuration available to download. Please visit the configuration web-page first.",
     "checkingauth", "Checking authorisation...",
 
-	//  Sloodle installation/version
-	"sloodlenotinstalled", "ERROR: Sloodle is not installed on specified site.",
-	"sloodleversioninstalled", "Sloodle version installed on server: {{0}}", // Parameter gives a Sloodle version number
-	"sloodleversionrequired", "ERROR: you require at least Sloodle version {{0}}", // Parameter gives a Sloodle version number
+    //  Sloodle installation/version
+    "sloodlenotinstalled", "ERROR: Sloodle is not installed on specified site.",
+    "sloodleversioninstalled", "Sloodle version installed on server: {{0}}", // Parameter gives a Sloodle version number
+    "sloodleversionrequired", "ERROR: you require at least Sloodle version {{0}}", // Parameter gives a Sloodle version number
 
-	//  Permissions
-	"nopermission:use", "Sorry {{0}}. You do not have permission to use this object.", // Parameter should be the name of an avatar
-	"nopermission:ctrl", "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
-	"nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
+    //  Permissions
+    "nopermission:use", "Sorry {{0}}. You do not have permission to use this object.", // Parameter should be the name of an avatar
+    "nopermission:ctrl", "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
+    "nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
     
     // Layout (duplicated deliberately)
     "layout:failedretrying", "Failed to store layout position. Retrying...",
-	"layout:failedaborting", "Failed to store layout position. Aborting.",
-	"layout:toofar", "Failed to store layout position - too far from rezzer.",
-	"layout:storedobject", "Object stored in layout."
+    "layout:failedaborting", "Failed to store layout position. Aborting.",
+    "layout:toofar", "Failed to store layout position - too far from rezzer.",
+    "layout:storedobject", "Object stored in layout.",
+    
+    // General error
+    "sloodleerror", "SLOODLE error ({{0}}): please lookup SLOODLE wiki for error information", // Parameters: status code of error
+    "sloodleerror:desc", "SLOODLE error ({{0}}): {{1}}" // Parameters: status code of error, text description of error
 ];
 
 ///// ----------- /////
@@ -381,3 +385,4 @@ default
         }
     }
 }
+
