@@ -1,25 +1,21 @@
-// Sloodle Presenter (for Sloodle 0.4)
+// Sloodle Presenter (for Sloodle 0.4.1)
 // Lets the educator display a presentation of images. videos and webpages hosted on the web.
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2008 Sloodle
+// Copyright (c) 2008-9 Sloodle project contributors
 // Released under the GNU GPL
 //
 // Contributors:
 //  Peter R. Bloomfield
 //  Paul G. Preibisch (Fire Centaur)
-//  dz questi - youtube contrib
 //  
 
-string mediaurl;
-string vidid;
-integer index;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-string SLOODLE_SLIDESHOW_LINKER = "/mod/sloodle/mod/presenter-1.0/linker.php";
+string SLOODLE_PRESENTER_LINKER = "/mod/sloodle/mod/presenter-2.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
-list parcelInfo; //var for parcel owner 
-integer MENU_CHANNEL;
-string SLOODLE_OBJECT_TYPE = "presenter-1.0";
+list parcelInfo = []; //var for parcel owner 
+integer MENU_CHANNEL = -1;
+string SLOODLE_OBJECT_TYPE = "presenter-2.0";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
@@ -34,12 +30,18 @@ integer sloodleobjectaccesslevelctrl = 1; // Who can control this object?
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
-key httpentries = NULL_KEY; // Request for list of entries
-list entrytypes = []; // List of current entry types
-list entryurls = []; // List of current entry URLs
-list entrynames = []; // List of current entry names
-integer currententry = 0; // Array ID identifying which entry in the lists (entrytypes and entryurls) we are currently viewing
+key httploadpresentation = NULL_KEY; // Request for presentation data
 
+string presentername = ""; // The name of the Presenter
+integer numslides = 0; // Total number of slides in the presentation
+integer curslidenum = 0; // Number of the current slide in the presentation (starting from 1)
+string curslidetype = ""; // Mimetype of the current slide
+string curslidesource = ""; // Source of the current slide media (usually a URL)
+string curslidename = ""; // Name of the current slide
+
+// requestConfigData = 0 this is set to 1 after the presenter has been deeded - afterwhich if "update" is 
+//  selected, the presenter will go back into the default state and re-request config data.  This is necessary since the teacher may change prentations the presenter is pointing to via the web.  
+integer requestConfigData = 0; 
 
 ///// TRANSLATION /////
 
@@ -58,10 +60,9 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should b
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
-//requestConfigData = 0 this is set to 1 after the presenter has been deeded - afterwhich if "update" is 
-//selected, the presenter will go back into the default state and re-request config data.  This is necessary since the teacher may change prentations the presenter is pointing to via the web.  
+
 // Send a translation request link message
-integer requestConfigData=0; 
+
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
@@ -71,8 +72,9 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
-//just returns a random integer - used for setting channels
-integer random_integer( integer min, integer max ){
+// Just returns a random integer - used for setting channels
+integer random_integer( integer min, integer max )
+{
   return min + (integer)( llFrand( max - min + 1 ) );
 }
 
@@ -123,57 +125,75 @@ integer sloodle_check_access_ctrl(key id)
     return (id == llGetOwner());
 }
 
-// Update the image display (change the parcel media URL).
-// Does nothing if the current image ID is invalid.
+// Update the image display (e.g. change the parcel media URL).
+// Does nothing if the data we currently have isn't valid
 update_image_display()
 {
-    // Figure out what type to use
-    string typename = llList2String(entrytypes, currententry);
-    string type = "";
-    if (typename == "image") type = "image/*";
-    else if (typename == "video") {
-        if (~llSubStringIndex(llList2String(entryurls, currententry), "http://www.youtube.com") || ~llSubStringIndex(llList2String(entryurls, currententry), "http://youtube.com"))
-        {
-            //turn the data into a vidid
-            index = llSubStringIndex(llList2String(entryurls, currententry), "v=");
-            vidid = llGetSubString(llList2String(entryurls, currententry), index + 2, index + 12);;
-            mediaurl = "http://www.youtubemp4.com/video/"+vidid+".mp4";
-            type = "video/mp4";
-        }else type = "video/*";
-    }
-    else if (typename == "audio") type = "audio/*";
-    else type = "text/html";
-
+    // Make sure an error didn't occur with the slide plugin
+    if (curslidetype == "ERROR") return;
+    // Make sure we have a valid slide number and valid data
+    if (curslidenum < 1 || curslidenum > numslides) return;
+    if (curslidetype == "" || curslidesource == "") return;
+    
+    // If we expand this to include the display of non-media channel content, then check the type here.
+    
     // Set the parcel media
     llParcelMediaCommandList([
-        PARCEL_MEDIA_COMMAND_TYPE, type,
-        PARCEL_MEDIA_COMMAND_URL, llList2String(entryurls, currententry)
+        PARCEL_MEDIA_COMMAND_TYPE, curslidetype,
+        PARCEL_MEDIA_COMMAND_URL, curslidesource
     ]);
 }
 
-// Move to the next image
-next_image()
+// Request the specified slide
+request_slide(integer num)
 {
-    currententry = ((currententry + 1) % llGetListLength(entryurls));
-    sloodle_update_hover_text();
-    update_image_display();
+    // Indicate that we are requesting a slide
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 0.2, 1.0>, 0.9], "loadingslide", [num], NULL_KEY, "presenter");
+
+    // Construct and send our HTTP request for data
+    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+    body += "&sloodlepwd=" + sloodlepwd;
+    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+    body += "&sloodleslidenum=" + (string)num;
+    
+    httploadpresentation = llHTTPRequest(sloodleserverroot + SLOODLE_PRESENTER_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+    llSetTimerEvent(8.0);
 }
 
-// Move to the previous image
-previous_image()
+// Move to the next slide
+next_slide()
 {
-    currententry = currententry - 1;
-    if (currententry < 0) currententry = llGetListLength(entryurls) - 1;
-    sloodle_update_hover_text();
-    update_image_display();
+    if (curslidenum < 1 || curslidenum >= numslides) request_slide(1);
+    else request_slide(curslidenum + 1);
+}
+
+// Move to the previous slide
+previous_slide()
+{
+    if (curslidenum <= 1 || curslidenum > numslides) request_slide(numslides);
+    else request_slide(curslidenum - 1);
 }
 
 // Update the hover text to indicate which image is being displayed
-sloodle_update_hover_text()
+update_hover_text()
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "showingentryname", [(currententry + 1), llGetListLength(entryurls), llList2String(entrynames, currententry)], NULL_KEY, "presenter");
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "showingentryurl", [(currententry + 1), llGetListLength(entryurls), llList2String(entryurls, currententry)], NULL_KEY, "presenter");
+    // Make sure we actually have some slide data
+    if (numslides == 0) {
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5, 0.0, 0.0>, 1.0], "error:nodata", [], NULL_KEY, "presenter");
+        return;
+    }
+    
+    // Make sure an error didn't occur with the slide plugin
+    if (curslidetype == "ERROR") {
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5, 0.0, 0.0>, 1.0], "error:pluginnotfound", [presentername, curslidenum, numslides], NULL_KEY, "presenter");
+        return;
+    }
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "showingslidename", [presentername, curslidenum, numslides, curslidename], NULL_KEY, "presenter");
+    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "showingentryurl", [curslidenum, numslides, curslidesource], NULL_KEY, "presenter");
 }
+
+
+///// STATES /////
 
 
 // Default state - waiting for configuration
@@ -227,9 +247,9 @@ default
     touch_start(integer num_detected)
     {
         // Attempt to request a reconfiguration
-        if (llDetectedKey(0) == llGetOwner()) {
+        //if (llDetectedKey(0) == llGetOwner()) {
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
-        }
+        //}
     }
 }
 state checkParcelOwner
@@ -279,7 +299,8 @@ state checkParcelOwner
 
 state checkParcelOwnerAgain
 {
-    state_entry() {
+    state_entry()
+    {
         state checkParcelOwner;
     }
 
@@ -287,127 +308,27 @@ state checkParcelOwnerAgain
 
 state setMediaTexture
 {
-    state_entry() {
-                
-                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
-                llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
-                state requestdata;                
-    }
-}
-state requestdata
-{
     state_entry()
     {
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-        
-        llSetText("Requesting list of entries...", <0.0, 0.0, 1.0>, 0.8);
-        httpentries = llHTTPRequest(sloodleserverroot + SLOODLE_SLIDESHOW_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
-        llSetTimerEvent(8.0);
-    }
-    
-    state_exit()
-    {
-        llSetTimerEvent(0.0);
-        llSetText("", <0.0, 0.0, 0.0>, 0.0);
-    }
-    
-    timer()
-    {
-        llSay(0, "Timeout waiting for list of entries");
-        state error;
-    }
-    
-    http_response(key id, integer status, list meta, string body)
-    {
-        // Is this the expected data?
-        if (id != httpentries) return;
-        httpentries = NULL_KEY;
-        // Make sure the request worked
-        if (status != 200) {
-            sloodle_debug("Failed HTTP response. Status: " + (string)status);
-            return;
-        }
-
-        // Make sure there is a body to the request
-        if (llStringLength(body) == 0) return;
-        
-        // Split the data up into lines
-        list lines = llParseStringKeepNulls(body, ["\n"], []);  
-        integer numlines = llGetListLength(lines);
-        // Extract all the status fields
-        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
-        // Get the statuscode
-        integer statuscode = llList2Integer(statusfields,0);
-        
-        // Was it an error code?
-        if (statuscode <= 0) {
-            string msg = "ERROR: linker script responded with status code " + (string)statuscode;
-            // Do we have an error message to go with it?
-            if (numlines > 1) {
-                msg += "\n" + llList2String(lines,1);
-            }
-            sloodle_debug(msg);
-            return;
-        }
-        
-        // Check if we have some more lines
-        if (llGetListLength(lines) == 1) {
-            llSay(0, "No images to display.");
-            state error;
-            return;
-        }
-        
-        // Add each line to our lists of entries
-        entryurls = [];
-        entrytypes = [];
-        entrynames = [];
-        integer i = 0;
-        list fields = [];
-        for (i = 1; i < numlines; i++) {
-            fields = llParseString2List(llList2String(lines, i), ["|"], []);
-            if (llGetListLength(fields) >= 2) {
-                        entryurls += [llList2String(fields, 1)];        
-            }
-        }
-        
-        state running;
+        llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
+        llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
+        state running;                
     }
 }
 
-state error
-{
-    state_entry()
-    {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 0.0, 0.0>, 1.0], "errorstate", [], NULL_KEY, "presenter");
-        
-    }
-    
-    state_exit()
-    {
-        llSetText("", <0.0, 0.0, 0.0>, 0.0);
-    }
-    
-    touch_start(integer num)
-    {
-        llResetScript();
-    }
-}
 
 state running
 {
     state_entry()
     {
-        // Start from the first image
-        currententry = 0;
-        sloodle_update_hover_text();
-        update_image_display();
+        // Request the first slide
+        request_slide(1);
     }
     
     state_exit()
     {
         llSetText("", <0.0, 0.0, 0.0>, 0.0);
+        llSetTimerEvent(0.0);
     }
     
     touch_start(integer num)
@@ -415,13 +336,11 @@ state running
         // Find out what was touched
         string buttonname = llGetLinkName(llDetectedLinkNumber(0));
         if (buttonname == "next") {
-            next_image();
+            next_slide();
         } else if (buttonname == "previous") {
-            previous_image();
+            previous_slide();
         } else if (buttonname == "reset") {
-            currententry = 0;
-            sloodle_update_hover_text();
-            update_image_display();
+            request_slide(1);
         } else if (buttonname == "update") {
             requestConfigData=1; // in default data state request config data to ensure
             //controller settings proliferate into SL - ie: someone changed the presentation this presenter is pointing to via the             requestConfigData=1; // in default data state request config data to ensure
@@ -431,5 +350,101 @@ state running
     }
     
     on_rez(integer par) { llResetScript(); }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
+        update_hover_text();
+        update_image_display();
+    }
+    
+    http_response(key id, integer status, list meta, string body)
+    {
+        // Is this the expected data?
+        if (id != httploadpresentation) {
+            return;
+        }
+        httploadpresentation = NULL_KEY;
+        llSetTimerEvent(0.0);
+        
+        // Make sure the request worked
+        if (status != 200) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            return;
+        }
+
+        // Make sure there is a body to the request
+        if (body == "") {
+            sloodle_debug("Body of HTTP response was empty.");
+            return;
+        }
+        
+        // Split the data up into lines
+        list lines = llParseStringKeepNulls(body, ["\n"], []);  
+        integer numlines = llGetListLength(lines);
+        if (numlines < 2) {
+            sloodle_debug("HTTP response contained only 1 line - expected at least 2 for a correctly formatted response.");
+            return;
+        }
+        // Extract all the status fields
+        list statusfields = llParseStringKeepNulls( llList2String(lines,0), ["|"], [] );
+        // Get the statuscode
+        integer statuscode = llList2Integer(statusfields,0);
+        
+        // Was it an error code?
+        if (statuscode == -131) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "error:noplugins", [], NULL_KEY, "presenter");
+            return;
+            
+        } else if (statuscode == -10501) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "error:noslides", [], NULL_KEY, "presenter");
+            return;
+            
+        } else if (statuscode <= 0) {
+            
+            // Do we have an error message to go with it?
+            if (numlines > 1) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleerror:desc", [statuscode, llList2String(lines, 1)], NULL_KEY, "");
+            } else {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleerror", [statuscode], NULL_KEY, "");
+            }
+            
+            return;
+        }
+        
+        // The first data line contains two things: the number of slides, and the name of the Presenter
+        list fields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
+        if (llGetListLength(fields) < 2) {
+            sloodle_debug("Expected at least 2 fields on first data line.");
+            return;
+        }
+        numslides = (integer)llList2String(fields, 0);
+        presentername = llList2String(fields, 1);
+        fields = [];
+        
+        // Make sure we have another line, which will be the current slide data.
+        if (numlines < 3) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 1.0, 0.0>, 1.0], "error:noslides", [], NULL_KEY, "presenter");
+            return;
+        }
+        
+        // This line should contain at least 4 fields: num | type | source | name.
+        // If the "type" value is "ERROR" then the plugin could not be loaded.
+        fields = llParseStringKeepNulls(llList2String(lines, 2), ["|"], []);
+        if (llGetListLength(fields) < 4) {
+            sloodle_debug("Expected at least 4 fields of slide data in second data line.");
+            return;
+        }
+        curslidenum = (integer)llList2String(fields, 0);
+        curslidetype = llList2String(fields, 1);
+        curslidesource = llList2String(fields, 2);
+        curslidename = llList2String(fields, 3);
+        
+        // Now that we've got all that data, update the display
+        update_hover_text();
+        update_image_display();
+    }
+
 }
 

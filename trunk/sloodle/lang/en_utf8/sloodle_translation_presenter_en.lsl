@@ -4,7 +4,7 @@
 // The first of each pair is the name, and second is the translation.
 //
 // This script is part of the Sloodle project.
-// Copyright (c) 2008 Sloodle (various contributors)
+// Copyright (c) 2008-9 Sloodle (various contributors)
 // Released under the GNU GPL v3
 //
 // Contributors:
@@ -35,9 +35,18 @@ list locstrings = [
     "showingentry", "Showing entry {{0}} of {{1}}.", // Parameters: current slide number, total number of slides
     "showingentryurl", "Showing entry {{0}} of {{1}} ({{2}}).", // Parameters: current slide number, total number of slides, URL of slide
     "showingentryname", "Showing entry {{0}} of {{1}}\n{{2}}.", // Parameters: current slide number, total number of slides, name of slide
-    "errorstate", "Error state -- touch me to reset"
+    "errorstate", "Error state -- touch me to reset",
 
-
+    "showingslide", "{{0}}\nShowing slide {{1}} of {{2}}", // Parameters: name of Presenter, current slide number, total number of slides
+    "showingslideurl", "{{0}}\nShowing slide {{1}} of {{2}} ({{3}})", // Parameters: name of Presenter, current slide number, total number of slides, url of slide
+    "showingslidename", "\"{{0}}\":\n{{3}} ({{1}}/{{2}})", // Parameters: name of Presenter, current slide number, total number of slides, name of slide
+    
+    "loadingslide", "Loading slide {{0}}", // Parameters: number of slide being loaded
+    
+    "error:nodata", "ERROR: failed to download slide data.",
+    "error:noslides", "ERROR: This presentation is empty.",
+    "error:noplugins", "ERROR: Failed to load Presenter plugins.",
+    "error:pluginnotfound", "\"{{0}}\"\nCannot show slide {{1}} of {{2}}\nRequired plugin was not found." // Parameters: name of Presenter, current slide number, total number of slides
 ];
 
 ///// ----------- /////
@@ -321,4 +330,5 @@ default
         }
     }
 }
+
 
