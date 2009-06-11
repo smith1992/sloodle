@@ -13,7 +13,7 @@
         // Memory-saving hacks!
         key null_key = NULL_KEY;
         
-        list randomQuestionList;
+        
         integer doRepeat = 0; // whether we should run through the questions again when we're done
         integer doDialog = 1; // whether we should ask the questions using dialog rather than chat
         integer doPlaySound = 1; // whether we should play sound
@@ -191,21 +191,15 @@
                 //  and numbers on the buttons
                 integer qi;
                 list qdialogoptions = [];
-                randomQuestionList = [];
+                
                 string qdialogtext = qtext_current + "\n";
                 // Go through each option
                 integer num_options = llGetListLength(optext_current);
-                //make options random so that if the teacher puts answer number 1 as always the correct answer,
-                //the student still won't be able to cheat the system.
-                integer ri;
-                for (ri = 1; ri <= num_options; ri++) {
-                  randomQuestionList+=ri-1;
-                }
-                randomQuestionList = llListRandomize(randomQuestionList, 1);
+                
                 
                 for (qi = 1; qi <= num_options; qi++) {
                     // Append this option to the main dialog (remebering buttons are 1-based, but lists 0-based)
-                    qdialogtext += (string)qi + ": " + llList2String(optext_current, (llList2Integer(randomQuestionList,qi-1))) + "\n";
+                    qdialogtext += (string)qi + ": " + llList2String(optext_current,qi-1) + "\n";
                     // Add a button for this option
                     qdialogoptions = qdialogoptions + [(string)qi];
                 }
@@ -656,22 +650,6 @@
                             // Correct to 0-based
                             answer_num -= 1;
                             
-                            // Extract the results
-                            //Paul Preibisch Notes:
-                            //Ok, let's get the real answerNum - since we randomized the indicies of the answers we need to get the real answer num first
-                            //Ie: if you scroll back to where the menu dialog displays the list of options
-                            //You'll see that I put the real option numbers in a temporary list called randomQuestionList.
-                            //and then randomized it.  example: if there are four multiple choice options, the randomQuestionList may look like this:  
-                            //randomQuestionList[0]=2
-                            //randomQuestionList[0]=3
-                            //randomQuestionList[0]=0
-                            //randomQuestionList[0]=1
-                            //so as you can see, the real multiple choice options have been randomized so that multiple choice
-                            //option number 0, is actually in position 3 in the list.  This will ensure that if the instructor
-                            //always put number 0 as the correct answer, the quiz chair will randomize it so the students can't
-                            //cheat the system
-                            //ok, now lets decode the answerNum from our Randomized List                            
-                            answer_num = llList2Integer(randomQuestionList,answer_num);
                             
                             feedback = llList2String(opfeedback_current, answer_num);
                             scorechange = llList2Float(opgrade_current, answer_num);
