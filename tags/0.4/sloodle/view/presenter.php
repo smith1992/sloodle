@@ -93,9 +93,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
             // Has an image been added?
             if (isset($_REQUEST['sloodleaddentry'])) {
                 // Perform some validation
-                $sloodleentryurl = strip_tags(stripslashes($_REQUEST['sloodleentryurl']));
-                $sloodleentrytype = strip_tags(stripslashes($_REQUEST['sloodleentrytype']));
-                $sloodleentryname = strip_tags(stripslashes($_REQUEST['sloodleentryname']));
+                $sloodleentryurl = sloodle_clean_for_db($_REQUEST['sloodleentryurl']);
+                $sloodleentrytype = sloodle_clean_for_db($_REQUEST['sloodleentrytype']);
+                $sloodleentryname = sloodle_clean_for_db($_REQUEST['sloodleentryname']);
 
                 $this->presenter->add_entry($sloodleentryurl, $sloodleentrytype, $sloodleentryname);
                 $redirect = true;
