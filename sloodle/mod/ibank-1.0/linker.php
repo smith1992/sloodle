@@ -47,7 +47,7 @@
     $senderAvatarName=$sloodle->request->optional_param('senderavatarname');  
     $sCourseObj = new sloodleCourseObj($sloodlemoduleid);
     $sloodleid=$sCourseObj->getSloodleId();
-    $stipendGiverObj = new stipendGiverObject((int)$sloodleid);
+    $stipendGiverObj = new stipendGiverObject((int)$sloodlemoduleid);
     $userid = $sloodle->user->get_user_id();
     //this function will add all user stipend data to the output
     function addUserData($index){
@@ -320,8 +320,9 @@
            //    5)     sloodle name |
            //    6)     sloodle intro |
            //    7)     default Stipend |       
-           //    8)     Total Stipends Allocated |       
-           //    9+)     stipend data for each user |                     
+           //    8)     Total Stipends Allocated | 
+           //    9)     iCurrency Type      
+           //    10+)   stipend data for each user |                     
             $sloodle->response->set_status_code(1);             //line 0    1
             $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
             $sloodle->response->add_data_line($senderUuid);//line 1                   

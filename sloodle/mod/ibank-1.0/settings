@@ -1,0 +1,7 @@
+COMMENT:This setting file should be put inside the ibank contents.  It will get copied to each
+COMMENT:Scoreboard Prim, and serves as a way for the ibank to put points on the scoreboard
+COMMENT:The values chosen below are arbitrary numbers.  
+COMMENT:If you have multiple iBanks, please change keep each scoreboards numbers different and obscure
+
+SCOREBOARD_CHANNEL|10888
+MIDDLE_CHANNEL|881

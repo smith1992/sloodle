@@ -168,10 +168,11 @@ class sloodle_view_ibank extends sloodle_base_view_module
     */
    
     
-    function __construct()    
+    function sloodle_view_ibank()    
     {
             
-             $sloodleid = required_param('id', PARAM_INT);     
+             $sloodleid = required_param('id', PARAM_INT);   
+             
              //set Sloodle Course Obj - this object will give us things like: userlist of the course, sloodle id etc.
             $this->sCourseObj = new sloodleCourseObj($sloodleid);
             $this->sloodle= $this->sCourseObj->sloodleRec;
@@ -214,7 +215,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
             $this->start = optional_param('start', 0, PARAM_INT);
             $this->sloodleId = $this->sCourseObj->getSloodleId();           
             //get stipendGiver Object (iBank Object)
-            $this->stipendGiverObj = new stipendGiverObject($this->sloodleId);
+            $this->stipendGiverObj = new stipendGiverObject($sloodleid);
             if ($this->start < 0) $this->start = 0;
             //get icurrency type of points
             $this->icurrency= $this->stipendGiverObj->geticurrency();
@@ -361,7 +362,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
     function printUserTable($userData){        
         global $CFG;
         global $USER;
-        
+        $allotedString="";
         
          //===================== Build table with headers, set alignment and width of cells
         //Create HTML table object
