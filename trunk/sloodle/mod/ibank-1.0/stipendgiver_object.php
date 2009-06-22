@@ -35,9 +35,10 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
       * The class Contstructor
       * @var $id - the sloodle id of this stipendgiver
       */
-      function __construct($id){
-          parent::__construct($id);
-          $this->stipendGiverRec = get_record('sloodle_stipendgiver','sloodleid',$id);
+      function StipendGiverObject($id){
+          //parent::iPointBank($id);
+          $instanceid = get_field('course_modules', 'instance', 'id', $id);   
+          $this->stipendGiverRec = get_record('sloodle_stipendgiver','sloodleid',$instanceid);
           $this->startingBalance = $this->stipendGiverRec->amount;        
           $this->itype = $this->stipendGiverRec->icurrency;
           $this->icurrency = $this->stipendGiverRec->icurrency;
@@ -135,7 +136,12 @@ require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
       function geticurrency(){
           return $this->icurrency;      
       }
-
+      /*
+      * get gets the currency property of this object
+      */
+      function getSloodleId(){
+          return $this->sloodleId;      
+      }
 
      
      /**

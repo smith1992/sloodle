@@ -14,9 +14,9 @@
 */
 
  /** SLOODLE course data structure */
- 
+global $CFG;   
 require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');   
-global $CFG; 
+
 
   class sloodleCourseObj{
       
@@ -67,7 +67,8 @@ global $CFG;
           if(!$this->cm = get_coursemodule_from_id('sloodle',$id)) error ('Course module ID was incorrect.');
           //coursemodule id
           
-           
+         $this->courseContext = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+         
           // Course object
           if (!$this->courseRec = get_record('course', 'id', $this->cm->course)) error('Failed to retrieve course.');            
           
@@ -128,7 +129,7 @@ global $CFG;
         return $this->sloodleId;
       }  
       function is_teacher($userid){
-           $context = get_record('context','instanceid',$this->cm->id);         
+           $context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
           
           if (has_capability('moodle/course:manageactivities',$context, $userid)) { 
               return true;
@@ -139,40 +140,15 @@ global $CFG;
       }
       
       function getUserList(){
-       
+            global $CFG;  
+            
            //get all the users from the users table in the moodle database   
-           $fullUserList = get_users(true, '');
-            
-           if (!$fullUserList) $fullUserList = array();
-           $uList = array();
-          
+           $sql = "select u.*, ra.roleid from ".$CFG->prefix."role_assignments ra, ".$CFG->prefix."context con, ".$CFG->prefix."course c, ".$CFG->prefix."user u ";
+           $sql .= " where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=".$this->cm->course;
            
-           // Filter it down to members of the course
-           foreach ($fullUserList as $ful) {
-                //get context of the course
-                // Is this user on this course?
-                                           
-            
-              $context = get_record('context','instanceid',$this->cm->id); 
-             
-
-                if (has_capability('moodle/course:view',$context, $ful->id)) {
-                    
-
-                    // Copy it to our filtered list and exclude administrators
-               //  if (!isadmin($ful->id)){     
-                 //now add sloodle data to ful array
-                         $uList[]=$ful;
-                 //  }
-                
-                    
-                } 
-
-           }
-           //now add avatar data to each user record
-            //sort user list either by avnames
-          //  sort($uList,SORT_STRING);
-           return $uList;                          
+           
+           $fullUserList = get_records_sql($sql);          
+           return $fullUserList;                          
       }
   
    
