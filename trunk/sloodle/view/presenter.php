@@ -684,6 +684,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
         echo get_string('presenter:uploadInstructions','sloodle');
         // We'll post the data straight back to this page
         echo '<form action="" method="post"><fieldset style="border-style:none;">';
+        
+        
         // Identify the module
     
     /*
@@ -700,12 +702,23 @@ class sloodle_view_presenter extends sloodle_base_view_module
     echo '<script type="text/javascript">';                                                           
     echo 'var uploadWwwDir="'.$CFG->wwwroot.'/file.php/1/presenter/'.$this->cm->id.'/";';
     echo ' var uploadArray = [];';
+    echo ' var qSize=0;';
+    echo 'var uploadLimit='.((integer)INI_GET('post_max_size')*1000000).';';
+
     echo ' var uploadArrayLen=0;';
     echo ' var counter=0;';
     echo ' var extension=\'\';';  
     echo ' var tableData=\'\';';
+    
+    ?>
+    function startUpload(id){  ;
+        if (qSize < uploadLimit)
+            $('#fileInput').fileUploadStart();
+    }        <?php
     // when DOM is fully loaded, JQuery ready function executes our code     
     echo '$(document).ready(function() {';
+         
+        echo '$("#uploadButton").hide();';
        echo '$(\'#fileInput\').fileUpload ({';       
         echo "'uploader'  : 'lib/multiplefileupload/uploader.swf',";        
         echo "'script'    : 'lib/multiplefileupload/upload.php',";
@@ -718,7 +731,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         //set button text
         echo "'buttonText': 'Select Files',";
         //start uploading automatically after items are selected            
-        echo "'auto'      : true,";
+        echo "'auto'      : false,";
         //this folder variable is required, but in our case, not used because we set the upload folder in the upload.php upload handler
         echo "'folder'    : 'uploads',";
         //allowable file types (must also modify upload.php upload handler to accept these)
@@ -750,7 +763,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         //<dif id="fileTables></div> is necessary because everytime the user presses Select files button, we must delete all elements in the div and redisplay so that all items are sorted properly
         echo 'fileDisplayArea.append($ (\'<div id="fileTables"></div>\'));';       
         //bind a variable fileTables to the tag <div id="fileTables"> so we can refer to it easily
-        echo 'var jList = $( "#fileTables" );';
+        echo 'var jList = $( "#fileTables" );';   
         //iterate through all files uploaded
         echo '$.each(uploadArray,';
         echo 'function( intIndex, objValue ){';
@@ -782,10 +795,51 @@ class sloodle_view_presenter extends sloodle_base_view_module
             echo 'tableData+=\'<table ><tr><td width=100>Url:</td><td><input type="text"  id="fileurl" name="fileurl[]" value="\'+uploadWwwDir+objValue.replace(\' \(\',\'_\(\').replace(\'\) \',\'\)_\').replace(\' \',\'_\').replace(\' \',\'_\')+\'" size="60" maxlength="255" /></td></tr></table><HR>\';';                                                
             //insert the table data into <div id="fileTables"></div>
             echo 'jList.append($ (tableData));';
+            
+            
+            
        echo ' });';                     
             //insert a submit button into <div id="fileTables"></div>
             echo  'jList.append($ (\'<input type="submit" value="'.$stradd.'" name="fileaddentry" />\'));';
+            echo ' $("#uploadButton").hide();';
+            echo ' $("#qSize").hide();';  
+            echo 'qSize=0;';
         echo ' },';
+        ?>
+                'onSelect': function (event,queueID,fileObj){
+                   $("#qSize").show();
+              qSize += fileObj.size;
+               if (qSize > uploadLimit){
+                 $("#uploadButton").hide();
+                 $("#qSize").css("color","red");
+                 $("#qSize").text("Error: You have selected "+qSize+ " bytes to upload. Bulk upload size is limited to: "+uploadLimit);
+              } else 
+              { 
+                $("#uploadButton").show();
+                $("#qSize").css("color","blue");
+                $("#qSize").html(qSize+" bytes selected. <b>"+(uploadLimit-qSize) + "</b> bytes available to queue");
+              }
+
+        
+        },
+        
+               'onCancel': function (event,queueID,fileObj){
+              qSize -= fileObj.size;
+              
+              if (qSize > uploadLimit){
+                $("#uploadButton").hide();
+                $("#qSize").css("color","red");
+                $("#qSize").text("Error: You have selected "+qSize+ " bytes to upload. Bulk upload size is limited to: "+uploadLimit);
+              } else 
+              { 
+                $("#uploadButton").show();
+                $("#qSize").css("color","blue");
+                $("#qSize").html(qSize+" bytes selected. <b>"+(uploadLimit-qSize) + "</b> bytes available to queue");
+              }
+              
+        
+        },
+        <?php
         /*
         * onComplete will trigger after each upload is done
         * When a file is uploaded, add it to the uploadArray array
@@ -798,19 +852,22 @@ class sloodle_view_presenter extends sloodle_base_view_module
            //clear the fileTables div so we can re-display all files in proper order           
            echo "$('#fileTables').remove();";  
            echo "}   ";
-        echo" });   });";
+        echo" });   });";     
         echo "</script>";
                  
         echo '<input type="file" name="fileInput" id="fileInput" />';
         //this div is where the uploaded files will be displayed
         echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fileTables"></div></div>';             
-        echo '</fieldset></form>';
+        echo '<div name="qSize" id="qSize"></div></fieldset>';          
+        echo '<div style="display:none;" name="uploadButton" id="uploadButton"><a href="javascript:startUpload(\'fileUpload\')">Start Upload</a></div></form>';
         // Add a button to let us cancel and go back to the main edit tab
         echo '<form action="" method="get"><fieldset style="border-style:none;">';
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
         echo "<input type=\"hidden\" name=\"mode\" value=\"edit\" />";
         echo "<input type=\"submit\" value=\"{$strcancel}\" />";        
-        echo '</fieldset></form>';         
+        echo '</fieldset></form>';   
+        
+
     }         
     /**
     * Render the slide editing form of the Presenter (lets you edit a single slide).
