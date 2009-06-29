@@ -366,10 +366,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
             
             $start = $displayentrynum - $jumpNumber-1;
             if ($start>=0) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$start}#slide\" title=\"{$strviewjumpback} ".$jumpNumber." slides\"><img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_rewind.gif\" width=\"50\" height=\"50\"></a>"; 
-            else $arow[]="<img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_rewind.gif\" width=\"50\" height=\"50\">"; 
+            else $arow[]="<img style=\"vertical-align:middle;\" alt=\"{$strviewjumpback} ".$jumpNumber." slides\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_rewind.gif\" width=\"50\" height=\"50\">"; 
             $prev=$displayentrynum-1;
             if ($displayentrynum>=2) $arow[]= "<a href=\"?id={$this->cm->id}&sloodledisplayentry={$prev}#slide\" title=\"{$strviewprev}\"><img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_prev.gif\" width=\"40\" height=\"40\"></a>  "; 
-            else $arow[]= "<img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/greycons_prev.gif\" width=\"40\" height=\"40\">"; 
+            else $arow[]= "<img alt=\"{$strviewprev}\" style=\"vertical-align:middle;\" src=\"".SLOODLE_WWWROOT."/lib/media/bluecons_prev.gif\" width=\"40\" height=\"40\">"; 
             
             // display hyperlinks for each slide
             $row="<table width='400px'><tr>";
