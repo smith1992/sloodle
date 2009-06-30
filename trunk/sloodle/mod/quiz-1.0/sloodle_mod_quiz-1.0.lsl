@@ -1,4 +1,4 @@
-        // Sloodle quiz chair
+       // Sloodle quiz chair
         // Allows SL users to take Moodle quizzes in-world
         // Part of the Sloodle project (www.sloodle.org)
         //
@@ -8,11 +8,11 @@
         // Contributors:
         //  Edmund Edgar
         //  Peter R. Bloomfield
-        //
+        //  Junta Kohime
         
         // Memory-saving hacks!
         key null_key = NULL_KEY;
-        
+
         
         integer doRepeat = 0; // whether we should run through the questions again when we're done
         integer doDialog = 1; // whether we should ask the questions using dialog rather than chat
@@ -164,7 +164,7 @@
         }
         
         // Notify the server of a response
-        notify_server(string qtype, integer questioncode, integer responsecode)
+        notify_server(string qtype, integer questioncode, string responsecode)
         {
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
@@ -172,7 +172,7 @@
             body += "&sloodleuuid=" + (string)sitter;
             body += "&sloodleavname=" + llEscapeURL(llKey2Name(sitter));
             body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-            body += "&resp" + (string)questioncode + "_=" + (string)responsecode;
+            body += "&resp" + (string)questioncode + "_=" + responsecode;
             body += "&resp" + (string)questioncode + "_submit=1";
             body += "&questionids=" + (string)questioncode;
             body += "&action=notify";
@@ -642,7 +642,7 @@
                     string feedback = "";
                     
                     // Check the type of question this was
-                    if (qtype_current == "multichoice") {
+                    if ((qtype_current == "multichoice") || (qtype_current == "truefalse") || (qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
                         // Multiple choice - the response should be a number from the dialog box (1-based)
                         integer answer_num = (integer)message;
                         // Make sure it's valid
@@ -650,11 +650,13 @@
                             // Correct to 0-based
                             answer_num -= 1;
                             
-                            
                             feedback = llList2String(opfeedback_current, answer_num);
                             scorechange = llList2Float(opgrade_current, answer_num);
                             // Notify the server of the response
-                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2Integer(opids_current, answer_num));
+                            if ((qtype_current == "multichoice") || (qtype_current == "truefalse")) {
+                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(opids_current, answer_num));}
+                            if ((qtype_current == "numerical") || (qtype_current == "shortanswer")) {
+                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(optext_current, answer_num));}
                             // Give the user feedback, and add their score
                             move_vertical(scorechange); // Visual feedback
                             play_sound(scorechange); // Audio feedback
@@ -811,7 +813,7 @@
                             opfeedback_current = [];
                             
                             // Make sure it's a valid question type
-                            if (qtype_current != "multichoice") {
+                            if ((qtype_current != "multichoice") && (qtype_current != "truefalse") && (qtype_current != "numerical") && (qtype_current != "shortanswer")) {
                                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
                                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], null_key, "");
                                 state default;
@@ -829,7 +831,7 @@
                             opfeedback_next = [];
                             
                             // Make sure it's a valid question type
-                            if (qtype_current != "multichoice") {
+                            if ((qtype_current != "multichoice") && (qtype_current != "truefalse") && (qtype_current != "numerical") && (qtype_current != "shortanswer")) {
                                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_next], null_key, "quiz");
                                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], null_key, "");
                                 state default;
@@ -875,5 +877,3 @@
                 reinitialise();
             }
         }
-
-
