@@ -10,6 +10,23 @@
 * @contributor Peter R. Bloomfield
 */
 
+
+//
+// The mode of operation is defined by the "mode" HTTP parameter.
+// The available modes are as follows:
+//
+//  - view = viewing the Presentation (default)
+//  - edit = editing the Presentation
+//  - editslide = editing a particular slide
+//  - addslide = adding a new slide
+//  - addfiles = uploading multiple slides
+//  - moveslide = moving a slide (part of 'edit' mode)
+//  - deleteslide = deleting a particular slide (asking user for confirmation) (part of 'edit' mode)
+//  - confirmdeleteslide = user has confirmed they want to delete a slide (part of 'edit' mode)
+//  - importslides = add new slides using an importer plugin
+//
+
+
 /** The base module view class */
 require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
 /** The SLOODLE Session data structures */
@@ -23,9 +40,14 @@ define('SLOODLE_PRESENTER_TAB_EDIT', 2);
 define('SLOODLE_PRESENTER_TAB_EDIT_SLIDE', 3);
 /** ID of the 'add slide' tab for the Presenter */
 define('SLOODLE_PRESENTER_TAB_ADD_SLIDE', 4);
-/** ID of the 'add files' tab for the Presenter */
+/** ID of the 'bulk upload' tab for the Presenter */
 define('SLOODLE_PRESENTER_TAB_ADD_FILES', 5);
-            /**
+/** ID of the 'import slides' tab for the Presenter */
+define('SLOODLE_PRESENTER_TAB_IMPORT_SLIDES', 6);
+
+
+
+/**
 * Class for rendering a view of a Presenter module in Moodle.
 * @package sloodle
 */
@@ -40,7 +62,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
    
     /**
     * Our current mode of access to the Presenter.
-    * This can be 'view', 'edit', or 'editslide'.
+    * This can be 'view', 'edit', 'editslide', 'bulkupload', 'upload'.
     * NOTE: 'edit' mode is for the presentation as a whole (slide order), while 'editslide' shows the slide editing form.
     * @var string
     * @access private
@@ -937,7 +959,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $plugin = $this->_session->plugins->get_plugin($pluginname);
             $availabletypes[$pluginname] = $plugin->get_plugin_name();
         }       
-         // We'll post the data straight back to this page
+        // We'll post the data straight back to this page
         echo '<form action="" method="post"><fieldset style="border-style:none;">';
         // Identify the module
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
@@ -988,6 +1010,83 @@ class sloodle_view_presenter extends sloodle_base_view_module
         echo '</fieldset></form>'; 
     }
 
+
+    /**
+    * Render the tab for importing slides from some source.
+    * If necessary, this will first display a form letting the user select which importer to use.
+    * It will then rely on the plugin to sort out everything else.
+    */
+    function render_import_slides()
+    {
+        global $CFG;
+
+        // Construct an array of available importers, associating the identifier to the human-readable name.
+        $availableimporters = array();
+        $pluginnames = $this->_session->plugins->get_plugin_names('SloodlePluginBasePresenterImporter');
+        if (!$pluginnames) error('Failed to load any SLOODLE Presenter importer plugins. Please check your plugins folder.');
+        foreach ($pluginnames as $pluginname) {
+            // Fetch the plugin and store its human-readable name
+            $plugin = $this->_session->plugins->get_plugin($pluginname);
+            $availableimporters[$pluginname] = $plugin->get_plugin_name();
+        }
+
+        // We are expecting a few parameters
+        $position = (int)optional_param('sloodleentryposition', '-1', PARAM_INT);
+        $plugintype = optional_param('sloodleplugintype', '', PARAM_CLEAN);
+
+        // Fetch translation strings
+        $strselectimporter = get_string('presenter:selectimporter', 'sloodle');
+        $strsubmit = get_string('submit');
+        
+        // Do we have a valid plugin type already specified?
+        if (empty($plugintype) || !array_key_exists($plugintype, $availableimporters)) {
+            // No - display a menu to select the desired importer
+            
+            // Sort the list of importers by name
+            natcasesort($availableimporters);
+            // Setup a base link for all importer types
+            $baselink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides";
+
+            // Go through each one and display it in a menu
+            $table = new stdClass();
+            $table->head = array('Name', 'Description');
+            $table->size = array('25%', '75%');
+            $table->align = array('center', 'left');
+            $table->data = array();
+            foreach ($availableimporters as $importerident => $importername) {
+
+                // Get the description of the plugin
+                $plugin = $this->_session->plugins->get_plugin($importerident);
+                $desc = $plugin->get_plugin_description();
+
+                // Add the name of the importer to the table as a link
+                $link = "{$baselink}&amp;sloodleplugintype={$importerident}";
+                $line = array();
+                $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\">{$importername}</a></span>";
+                // Add the description
+                $line[] = $desc;
+
+                $table->data[] = $line;
+            }
+
+            echo "<h4>{$strselectimporter}: </h4>\n";
+            print_table($table);
+            
+
+            return;
+        }
+        
+        // Grab the importer plugin object
+        $importer = $this->_session->plugins->get_plugin($plugintype);
+
+        // Display a heading for this importer
+        echo '<h2 style="margin-bottom:0px; padding-bottom:0px;">'.$importer->get_plugin_name()."</h2>\n";
+
+        // Render the plugin display
+        $importer->render("{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}", $this->presenter);
+        
+    }
+
     /**
     * Render the view of the Presenter.
     */
@@ -1011,11 +1110,14 @@ class sloodle_view_presenter extends sloodle_base_view_module
             // Add the 'Bulk Upload' tab
             $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_ADD_FILES, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=addfiles", get_string('presenter:bulkupload', 'sloodle'), get_string('presenter:bulkupload', 'sloodle'), true);
 
+            // Add the 'Import Slides' tab
+            $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_IMPORT_SLIDES, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=importslides", get_string('presenter:importslides', 'sloodle'), get_string('presenter:importslides', 'sloodle'), true);
+
             // If we are editing a slide, then add the 'Edit Slide' tab
             if ($this->presenter_mode == 'editslide') {
                 $presenterTabs[0][] = new tabobject(SLOODLE_PRESENTER_TAB_EDIT_SLIDE, '', get_string('editslide', 'sloodle'), '', false);
             }
-              }
+        }
         // Determine which tab should be active
         $selectedtab = SLOODLE_PRESENTER_TAB_VIEW;
         switch ($this->presenter_mode)
@@ -1027,6 +1129,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         case 'moveslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'deleteslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'confirmdeleteslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
+        case 'importslides': $selectedtab = SLOODLE_PRESENTER_TAB_IMPORT_SLIDES; break;
         }
         
         // Display the tabs
@@ -1043,6 +1146,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         case 'moveslide': $this->render_edit(); break;
         case 'deleteslide': $this->render_edit(); break;
         case 'confirmdeleteslide': $this->render_edit(); break;
+        case 'importslides': $this->render_import_slides(); break;
         default: $this->render_view(); break;
         }
         

@@ -51,6 +51,18 @@ class SloodlePluginBase
     }
 
     /**
+    * Gets the human-readable description of this plugin.
+    * This should be overridden by base classes. If not, it will just return an empty string.
+    * @param string $lang Optional -- can specify the language we want the description in, as an identifier like "en_utf8". If unspecified, then the current Moodle language should be used.
+    * @access public
+    * @return string The human-readable description of this plugin
+    */
+    function get_plugin_description($lang = null)
+    {
+        return '';
+    }
+
+    /**
     * Gets the identifier of this plugin.
     * This can be overridden, but should usually not be.
     * This ID is just the name of the class

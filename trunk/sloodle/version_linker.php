@@ -29,6 +29,8 @@
 //  version may implemented at some point. This will require a request
 //  parameter, and will likely return "true" or "false" on the data line.
 
+/** Let's SLOODLE know we're in a linker script. */
+define('SLOODLE_LINKER_SCRIPT', true);
 
 /** Sloodle/Moodle configuration information. */
 require_once('sl_config.php');

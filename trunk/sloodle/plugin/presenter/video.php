@@ -37,8 +37,8 @@ class SloodlePluginPresenterSlideVideo extends SloodlePluginBasePresenterSlide
         if (strpos($source, '://') !== false) return $source;
         // Assume the source URL is relative to the Moodle WWW root.
         // Make sure we don't duplicate a forward slash.
-        if (strpos($source, '/') === 0) return $CFG->WWWROOT.$source;
-        return $CFG->WWWROOT.'/'.$source;
+        if (strpos($source, '/') === 0) return $CFG->wwwroot.$source;
+        return $CFG->wwwroot.'/'.$source;
     }
 
     /**
