@@ -1061,4 +1061,63 @@
         return htmlentities($str, ENT_QUOTES, 'UTF-8');
     }
 
+    /**
+    * Converts a shorthand file size to a number of bytes, if necessary.
+    * This follows PHP shorthand, with K for Kilobytes, M for Megabytes, and G for Gigabytes.
+    * @param string size The shorthand size to conert
+    * @return integer The size specified in bytes
+    */
+    function sloodle_convert_file_size_shorthand($size)
+    {
+        $size = trim($size);
+        $num = (int)$size;
+        $char = strtolower($size{strlen($size)-1});
+        switch ($char)
+        {
+        case 'g': $num *= 1024;
+        case 'm': $num *= 1024;
+        case 'k': $num *= 1024;
+        }
+
+        return $num;
+    }
+
+    /**
+    * Converts a file size to plain text.
+    * For example, will convert "1024" to "1 kilobyte".
+    * @param integer|string size If an integer, then it is the number of bytes. If a string, then it can be PHP shorthand, such as "1M" for 1 megabyte.
+    * @return string A text string describing the specified size.
+    */
+    function sloodle_get_size_description($size)
+    {
+        // Make sure we have a number of bytes
+        $bytes = 0;
+        if (is_int($size)) $bytes = $size;
+        else $bytes = sloodle_convert_file_size_shorthand($size);
+        $desc = '';
+
+        // Keep the number small by going with the largest possible units
+        if ($bytes >= 1073741824) $desc = ($bytes / 1073741824)." GB";
+        else if ($bytes >= 1048576) $desc = ($bytes / 1048576). " MB";
+        else if ($bytes >= 1024) $desc = ($bytes / 1024). " KB";
+        else $desc = $bytes . " bytes";
+
+        return $desc;
+    }
+
+    /**
+    * Gets the maximum size of a file (in bytes) that can be uploaded using POST.
+    * @return integer
+    */
+    function sloodle_get_max_post_upload()
+    {
+        // Get the sizes of the relevant limits
+        $upload_max_filesize = sloodle_convert_file_size_shorthand(ini_get('upload_max_filesize'));
+        $post_max_size = sloodle_convert_file_size_shorthand(ini_get('post_max_size'));
+
+        // Use the smaller limit
+        return min($upload_max_filesize, $post_max_size);
+    }
+
+
 ?>

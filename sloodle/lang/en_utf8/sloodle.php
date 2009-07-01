@@ -303,7 +303,21 @@ $string['presenter:sloodleinsert'] = 'Insert at position:';
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
 $string['presenter:type:web'] = 'Web';
-$string['presenter:uploadInstructions'] ="To Bulk Upload, first click the button below, then to select multiple files, hold down the control or shift key while selecting files";
+$string['presenter:uploadInstructions'] = "To Bulk Upload, first click the button below, then to select multiple files, hold down the control or shift key while selecting files";
+$string['presenter:importslides'] = 'Import Slides';
+$string['presenter:importslidescaption'] = 'Import slides from a file or other source';
+$string['presenter:selectimporter'] = 'Select the importer you would like to use';
+$string['presenter:importfile'] = 'Import File';
+$string['presenter:importfrommycomputer'] = 'Import a file from my computer';
+$string['presenter:importfromweb'] = 'Import a file from the Internet';
+$string['presenter:importposition'] = 'Import Position';
+$string['presenter:importpositioncaption'] = 'Select where you would like to import the slides to.';
+$string['presenter:importname'] = 'Import Name';
+$string['presenter:importnamecaption'] = '(Optional) Enter a name for the material you are importing.';
+$string['presenter:importfailed'] = 'Import failed. This plugin may not be compatible with your server.';
+$string['presenter:importneedimagick'] = 'You need ImageMagick and (optionally) MagickWand installed to use this plugin. GhostScript is also required.';
+$string['presenter:importsuccessful'] = 'Import successful. $a slide(s) have been added to your presentation.';
+
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long (or leave field blank to disable it).';
@@ -398,6 +412,10 @@ $string['userobjectauth'] = 'SLOODLE User Object Authorization';
 $string['usedialogs'] = 'Use dialogs (instead of chat)?';
 $string['url']  = 'URL';
 $string['unknowntype'] = 'Unknown type';
+
+$string['upload:selectfile'] = 'Select file to upload';
+$string['upload:file'] = 'Upload File';
+$string['upload:maxsize'] = 'Estimated maximum upload size: $a';
 
 $string['uuid'] = 'UUID';
 
