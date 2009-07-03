@@ -507,4 +507,6 @@ $string['layoutmanager:x'] = 'X';
 $string['layoutmanager:y'] = 'Y';
 $string['layoutmanager:z'] = 'Z';
 $string['layoutmanager:savelayout'] = 'Save Layout';
+$string['layoutmanager:currentobjects'] = 'Objects Already In Your Layout';
+$string['layoutmanager:addobjects'] = 'Add Objects To Your Layout';
 
