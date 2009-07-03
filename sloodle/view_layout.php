@@ -279,6 +279,41 @@
        $rezoptions[] = array($obj);
     }
  
+    // When putting in default spacing, space objects out 2 meters apart along the y axis
+    define('DEFAULT_SPACING_X', 1);
+    define('DEFAULT_SPACING_Y', 2);
+    define('DEFAULT_CENTER_Y', 0);
+    define('DEFAULT_CENTER_X', 0);
+  
+    // increment and return the position variables
+	/*
+	         O  
+                O O  
+	       O O O
+              O O O O
+             O O O O O
+            O O O O O O
+	*/
+
+    function rowForItem($index) {
+        $index++;
+        $itemsPerRow = 1;
+        $row = 1;
+        $itemsInThisRow = 0;
+        for ($i=0; $i<$index; $i++) {
+             
+        }
+        return $row;
+    }
+
+    function xForIndex($index) {
+        return 1;
+    }
+
+    function yForIndex($index) {
+        return $index;
+    }
+
     $posx = 1;
     $posy = 1;
     $posz = -2; // they'll need to be below the rezzer
@@ -334,66 +369,83 @@
 
     print '<br />';
 
-    $table = new stdClass();
-    $table->head = array('&nbsp;','&nbsp;',get_string('layoutmanager:object','sloodle'),get_string('layoutmanager:module','sloodle'),get_string('layoutmanager:x','sloodle'),get_string('layoutmanager:y','sloodle'),get_string('layoutmanager:z','sloodle'),get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
+    if (!empty($currentlayoutentries)) {
 
 
-    $item = 0;
+	    $table = new stdClass();
+	    $table->head = array('&nbsp;','&nbsp;',get_string('layoutmanager:currentobjects','sloodle'),get_string('layoutmanager:module','sloodle'),get_string('layoutmanager:x','sloodle'),get_string('layoutmanager:y','sloodle'),get_string('layoutmanager:z','sloodle'),get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
 
-    foreach($currentlayoutentries as $co) {
 
-       $sloodlemoduleid = '';
-       $modname = '';
-       $confighash = $co->get_layout_entry_configs_as_name_value_hash();
-       if (isset($confighash['sloodlemoduleid'])) {
-           $sloodlemoduleid = $confighash['sloodlemoduleid'];
-           if (isset($modulesbyid[$sloodlemoduleid])) {
-              $modobj = $modulesbyid[$sloodlemoduleid];
-              $modname = $modobj->name;
-           }
-       }
-       $posxyz = $co->position;
-       if (preg_match('/^<(-?\d+)\,(-?\d+)\,(-?\d+)>$/', $posxyz, $matches)) {
-          $posx = $matches[1];
-          $posy = $matches[2];
-          $posz = $matches[3];
-       } 
-       $accesssettings = array(true, true, true);
-       if (isset($objects_to_configs[$co->name])) {
-          $linkertype = $objects_to_configs[$co->name];
-          if (isset($configs_to_access_options[$linkertype])) {
-             $accesssettings = $configs_to_access_options[$linkertype];
-          }
-       }
-       echo "\n";
-       echo "<input type=\"hidden\" name=\"layout_entry_id_{$item}\" value=\"{$co->id}\" />";
-       echo "<input type=\"hidden\" name=\"object_type_{$item}\" value=\"{$co->name}\" />";
-       echo "<input type=\"hidden\" name=\"layout_entry_rotation_{$item}\" value=\"{$co->rotation}\" />";
-       echo $co->get_layout_entry_configs_as_hidden_fields('layout_entry_config_', '_'.$item); 
-       echo "\n";
+	    $item = 0;
+	    $pageitem = 0;
 
-       $table->data[] = array(
-          $co->id,
-          "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" />",
-          $co->name,
-          $modname,
-          "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
-          "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
-          "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
-          sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
-          sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
-          sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+	    foreach($currentlayoutentries as $co) {
 
-       );
-       $item++; 
+	       $sloodlemoduleid = '';
+	       $modname = '';
+	       $confighash = $co->get_layout_entry_configs_as_name_value_hash();
+	       if (isset($confighash['sloodlemoduleid'])) {
+		   $sloodlemoduleid = $confighash['sloodlemoduleid'];
+		   if (isset($modulesbyid[$sloodlemoduleid])) {
+		      $modobj = $modulesbyid[$sloodlemoduleid];
+		      $modname = $modobj->name;
+		   }
+	       }
+	       $posxyz = $co->position;
+	       if (preg_match('/^<(-?\d+)\,(-?\d+)\,(-?\d+)>$/', $posxyz, $matches)) {
+		  $posx = $matches[1];
+		  $posy = $matches[2];
+		  $posz = $matches[3];
+	       } 
+	       $accesssettings = array(true, true, true);
+	       if (isset($objects_to_configs[$co->name])) {
+		  $linkertype = $objects_to_configs[$co->name];
+		  if (isset($configs_to_access_options[$linkertype])) {
+		     $accesssettings = $configs_to_access_options[$linkertype];
+		  }
+	       }
+	       echo "\n";
+	       echo "<input type=\"hidden\" name=\"layout_entry_id_{$item}\" value=\"{$co->id}\" />";
+	       echo "<input type=\"hidden\" name=\"object_type_{$item}\" value=\"{$co->name}\" />";
+	       echo "<input type=\"hidden\" name=\"layout_entry_rotation_{$item}\" value=\"{$co->rotation}\" />";
+	       echo $co->get_layout_entry_configs_as_hidden_fields('layout_entry_config_', '_'.$item); 
+	       echo "\n";
+
+	       $table->data[] = array(
+		  $co->id,
+		  "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" />",
+		  $co->name,
+		  $modname,
+		  "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
+		  "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
+		  "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+		  sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+		  sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
+		  sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
+
+	       );
+	       $item++; 
+	       $pageitem++;
+	    }
+
+        print_table($table);
+
+	print '<br />';
+
     }
 
+    $table = new stdClass();
+    $table->head = array('&nbsp; &nbsp; &nbsp; ','&nbsp;',get_string('layoutmanager:addobjects','sloodle'),get_string('layoutmanager:module','sloodle'),get_string('layoutmanager:x','sloodle'),get_string('layoutmanager:y','sloodle'),get_string('layoutmanager:z','sloodle'),get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
 
     $checkedflag = '';
     if ($recommendedon) {
         $checkedflag = 'checked="checked" ';
     }
     foreach($standardobjects as $so) {
+
+       $posy = yForIndex($pageitem);
+       $posx = xForIndex($pageitem);
+     
        $accesssettings = array(true, true, true);
        if (isset($objects_to_configs[$so])) {
           $linkertype = $objects_to_configs[$so];
@@ -416,11 +468,16 @@
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
        );
-       $posy++;
+       //$posy = $posy + DEFAULT_SPACING_Y;
+      //$posx = $posx + DEFAULT_SPACING_X;
        $item++; 
+       $pageitem++; 
     }
 
     foreach($possiblemoduleobjects as $pmo) {
+
+       $posy = yForIndex($pageitem);
+       $posx = xForIndex($pageitem);
 
        $accesssettings = array(true, true, true);
        $objname = $pmo['object'];
@@ -452,8 +509,10 @@
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
        );
-       $posy++;
+      //$posy = $posy + DEFAULT_SPACING_Y;
+      // $posx = $posx + DEFAULT_SPACING_X;
        $item++; 
+       $pageitem++; 
     }
     print_table($table);
 
