@@ -492,3 +492,19 @@ $string ['secondlifetracker:notcompleted'] = 'Not Completed';
 $string ['secondlifetracker:time'] = 'Time';
 $string ['secondlifetracker:selecttracker'] = 'Select Tracker';
 $string ['secondlifetracker:notrackers'] = 'No trackers in your course';
+
+$string['layoutpage'] = 'Layouts';
+$string['layoutmanager:nopermission'] = 'You do not have permission to edit layouts';
+$string['layoutmanager:namealreadyexists'] = 'You do not have permission to edit layouts';
+$string['layoutmanager:savefailed'] = 'Save failed';
+$string['layoutmanager:Layouts'] = 'Layouts';
+$string['layoutmanager:layoutaddpageexplanation'] = 'This page shows the Sloodle tools that will work for this course. Check and uncheck them to include them in your layout. <br /><br />You can rez the layout in-world using a Layout Rezzer object, then move the objects around to the places where you want them to be. ';
+$string['layoutmanager:layoutname'] = 'Layout Name';
+
+$string['layoutmanager:object'] = 'Object';
+$string['layoutmanager:module'] = 'Module';
+$string['layoutmanager:x'] = 'X';
+$string['layoutmanager:y'] = 'Y';
+$string['layoutmanager:z'] = 'Z';
+$string['layoutmanager:savelayout'] = 'Save Layout';
+
