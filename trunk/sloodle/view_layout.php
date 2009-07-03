@@ -89,7 +89,7 @@
     
     // Only display the layouts if they can use them
     if (!$layouts_can_edit) {
-        print "You don not have permission to edit layouts";
+        print get_string('layoutmanager:nopermission', 'sloodle');
         exit;
     }
 
@@ -108,7 +108,7 @@
           if ( in_array($layoutname,$layout_names) ) {
               $layoutnamestoids = array_flip($layout_names);
               if ( $layoutnamestoids[$layoutname] != $layoutid )  {
-                  print "layout of name $layoutname already exists";
+                  print get_string("layoutmanager:namealreadyexists",'sloodle');
                   exit;
               }
           }
@@ -170,7 +170,7 @@
              //print '<a href="'.$next.'">next</a>';
              redirect($next);
           } else {
-             print "<h3>save failed</h3>";
+             print "<h3>".get_string('layoutmanager:savefailed','sloodle')."</h3>";
              exit;
 	  }
 
@@ -205,7 +205,7 @@
 
     $currentlayoutentries = array();
     $recommendedon = true; // Whether by default we turn on modules that aren't already in the layout we're looking at
-    $layoutname = "My layout";
+    $layoutname = 'Layout '.date('Y-m-d H:i:s');
 
     if ($layoutid > 0) {
          
@@ -221,7 +221,6 @@
 //
  
     if ($layoutid >= 0) { // add or edit layout
-
     $modinfo =& get_fast_modinfo($COURSE);
 
     $cmsmodules = $modinfo->cms;
@@ -320,9 +319,15 @@
     echo "<input type=\"hidden\" name=\"courseid\" value=\"{$course->id}\">\n";
     echo "<input type=\"hidden\" name=\"layoutid\" value=\"{$layoutid}\">\n";
 
+    $description_table = new stdClass();
+    $description_table->head = array(get_string('layoutmanager:Layouts', 'sloodle'));
+    $description_table->data[] = array(get_string('layoutmanager:layoutaddpageexplanation', 'sloodle'));
+
+    print '<br />';
+    print_table($description_table);
+
     $name_table = new stdClass();
-    $name_table->head = array('Layout name');
-    $name_table->data[] = array("<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"40\" value=\"{$layoutname}\" />");
+    $name_table->data[] = array(get_string('layoutmanager:layoutname', 'sloodle'),"<input type=\"text\" name=\"layoutname\" maxlength=\"40\" size=\"40\" value=\"{$layoutname}\" />");
 
     print '<br />';
     print_table($name_table);
@@ -330,7 +335,7 @@
     print '<br />';
 
     $table = new stdClass();
-    $table->head = array('&nbsp;','&nbsp;','Object','Module','X','Y','Z',get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
+    $table->head = array('&nbsp;','&nbsp;',get_string('layoutmanager:object','sloodle'),get_string('layoutmanager:module','sloodle'),get_string('layoutmanager:x','sloodle'),get_string('layoutmanager:y','sloodle'),get_string('layoutmanager:z','sloodle'),get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
 
 
     $item = 0;
@@ -454,7 +459,7 @@
 
     // TODO: localize
     echo '<input type="hidden" name="num_items" value="'.($item-1).'" />';
-    echo '<input type="submit" value="Save layout" />';
+    echo '<input type="submit" value="'.get_string('layoutmanager:savelayout','sloodle').'" />';
     // Determine how many allocations there are for this course
     echo "</form>\n";
 
