@@ -129,9 +129,9 @@
 
                 $entry_id = optional_param("layout_entry_id_$i", 0, PARAM_INT);
                 $object_type = required_param("object_type_$i", PARAM_TEXT);
-                $layout_entry_x = required_param("layout_entry_x_$i", PARAM_INT);
-                $layout_entry_y = required_param("layout_entry_y_$i", PARAM_INT);
-                $layout_entry_z = required_param("layout_entry_z_$i", PARAM_INT);
+                $layout_entry_x = required_param("layout_entry_x_$i", PARAM_TEXT);
+                $layout_entry_y = required_param("layout_entry_y_$i", PARAM_TEXT);
+                $layout_entry_z = required_param("layout_entry_z_$i", PARAM_TEXT);
                 $rotation = required_param("layout_entry_rotation_$i", PARAM_RAW);
                 $position = "<$layout_entry_x,$layout_entry_y,$layout_entry_z>";
 
@@ -392,7 +392,8 @@
 		   }
 	       }
 	       $posxyz = $co->position;
-	       if (preg_match('/^<(-?\d+)\,(-?\d+)\,(-?\d+)>$/', $posxyz, $matches)) {
+	       //if (preg_match('/^<(-?\d+)\,(-?\d+)\,(-?\d+)>$/', $posxyz, $matches)) {
+	       if (preg_match('/^<(.*?)\,(.*?)\,(.*?)>$/', $posxyz, $matches)) {
 		  $posx = $matches[1];
 		  $posy = $matches[2];
 		  $posz = $matches[3];
@@ -416,9 +417,9 @@
 		  "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" checked=\"checked\" />",
 		  $co->name,
 		  $modname,
-		  "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
-		  "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
-		  "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+		  "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posx\" />",
+		  "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posy\" />",
+		  "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posz\" />",
 		  sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
 		  sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
 		  sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
@@ -461,9 +462,9 @@
            "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" value=\"on\" {$checkedflag} />",
            "{$so}",
            "-",
-           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
-           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
-           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posx\" />",
+           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posy\" />",
+           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posz\" />",
            sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
@@ -502,9 +503,9 @@
            "<input type=\"checkbox\" name=\"layout_entry_on_{$item}\" {$checkedflag} />",
            "{$pmo['object']}",
            "{$pmo['name']}",
-           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posx\" />",
-           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posy\" />",
-           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"2\" maxlength=\"2\" value=\"$posz\" />",
+           "<input type=\"text\" name=\"layout_entry_x_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posx\" />",
+           "<input type=\"text\" name=\"layout_entry_y_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posy\" />",
+           "<input type=\"text\" name=\"layout_entry_z_{$item}\" size=\"4\" maxlength=\"9\" value=\"$posz\" />",
            sloodle_access_level_option_choice('sloodleobjectaccessleveluse', $confighash, $accesssettings[0], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleobjectaccesslevelctrl', $confighash, $accesssettings[1], $prefix = 'layout_entry_config_', $suffix = '_'.$item),
            sloodle_access_level_option_choice('sloodleserveraccesslevel', $confighash, $accesssettings[2], $prefix = 'layout_entry_config_', $suffix = '_'.$item)
