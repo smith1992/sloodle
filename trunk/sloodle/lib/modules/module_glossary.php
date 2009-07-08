@@ -116,16 +116,17 @@
             
             // Search aliases
             if ($searchAliases) {
-                $recs = get_records_select('glossary_alias', "glossaryid = $glossaryid AND alias $termquery");
+                $recs = get_records_select('glossary_alias', "alias $termquery");
                 // Go through each alias found
                 if (is_array($recs)) {
                     foreach ($recs as $r) {
-                        // Did we already have this entry?
-                        if (!isset($entries[$r->entryid])) {
-                            // No - fetch the entry and store it
-                            $entry = get_record('glossary_entries', 'id', $r->entryid);
-                            $entries[$entry->id] = new SloodleGlossaryEntry($entry->id, $entry->concept, $entry->definition);
-                        }
+                        // First check if we already had this entry
+                        if (isset($entries[$r->entryid])) continue;
+                        // Check if this alias refers to an entry in our desired glossary
+                        $entry = get_record('glossary_entries', 'glossaryid', $glossaryid, 'entryid', $r->entryid);
+                        if (!$entry) continue;
+                        // Store the entry
+                        $entries[$entry->id] = new SloodleGlossaryEntry($entry->id, $entry->concept, $entry->definition);
                     }
                 }
             }
