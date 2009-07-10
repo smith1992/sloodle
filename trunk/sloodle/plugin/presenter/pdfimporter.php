@@ -17,6 +17,12 @@
 */
 
 
+// Path to the ImageMagick "convert" file. Leave it blank to DISABLE this feature for security.
+// Likely to be something like this:  '/usr/bin/convert' or '/usr/local/bin/convert'
+global $IMAGICK_CONVERT_PATH;
+$IMAGICK_CONVERT_PATH = '/usr/local/bin/convert';
+
+
 /**
 * Presenter plugin for importing a PDF file as a series of image slides.
 *
@@ -212,17 +218,16 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
 
         // Prepare a "Continue" link which takes us to edit mode
         $continueURL = $CFG->wwwroot."/mod/sloodle/view.php?id={$presenter->cm->id}&amp;mode=edit";
-        $continueLink = "<a href=\"{$continueURL}\">".get_string('continue')."</a>";
 
         // Display the results (in future, it might be good to show a list of slides, and let the user rename or delete them before addition to the presentation)
         if ($result === false) {
             echo "<h3>",get_string('presenter:importfailed', 'sloodle'),"</h3>\n";
             echo "<h4>",get_string('presenter:importneedimagick', 'sloodle'),"</h4>\n";
-            echo "<p style=\"text-align:center;\">{$continueLink}</p>\n";
+            redirect($continueURL, '', 5);
             return false;
         }
         echo "<h3>",get_string('presenter:importsuccessful', 'sloodle', $result),"</h3>\n";
-        echo "<p style=\"text-align:center;\">{$continueLink}</p>\n";
+        redirect($continueURL, '', 5);
         return true;
     }
     
@@ -243,10 +248,9 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     function _import_MagickWand($presenter, $srcfile, $destpath, $viewurl, $destfile, $destfileext, $destname, $position = -1)
     {
         global $CFG;
-return false;
         // Check to see if the MagickWand extension is already loaded.
         // Attempt to load it if not -- the name will vary depending on OS
-        sloodle_debug('Checking for presence of extension "magickwand"... ');
+        sloodle_debug('<br/><strong>Checking for presence of extension "magickwand"...</strong> ');
         if (!extension_loaded('magickwand')) {
             sloodle_debug('not loaded.<br/>Checking OS... ');
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -328,8 +332,55 @@ return false;
     */
     function _import_ImageMagick($presenter, $srcfile, $destpath, $viewurl, $destfile, $destfileext, $destname, $position = -1)
     {
-        // TODO: implement this based on Jordan's code
-        return false;
+        global $IMAGICK_CONVERT_PATH;
+
+        // Do a security check -- has command-line execution of IMagick been disabled by the admin?
+        sloodle_debug("<br/><strong>Attempting to use ImageMagick by command-line.</strong><br/>");
+        if (empty($IMAGICK_CONVERT_PATH)) {
+            sloodle_debug(" ERROR: path to ImageMagick \"convert\" program is blank.");
+            return false;
+        }
+        // Now make sure there are no quotation marks in the source/destination file and path names
+        //  (these could be used to execute malicious commands on the server)
+        if (strpos($srcfile, "\"") !== false || strpos($destpath, "\"") !== false || strpos($destfile, "\"") !== false || strpos($destfileext, "\"") != false) error("Invalid file name -- please remove quotation marks from file names.");
+
+        // Execute the conversion command
+        $cmd = escapeshellcmd("{$IMAGICK_CONVERT_PATH} -verbose \"{$srcfile}\" \"{$destpath}/{$destfile}.{$destfileext}\"");
+        $output = '';
+        sloodle_debug(" Executing shell command<br/>");
+        $result = exec($cmd);
+        // If all the output is empty, then execution failed
+        if (empty($result) && empty($output)) {
+            sloodle_debug(" ERROR: execution of the shell command failed.<br/>");
+            return false;
+        }
+        
+        // Quick validation - position should start at 1. (-ve numbers mean "at the end")
+        if ($position == 0) $position = 1;
+
+        // Go through each page which was created.
+        // Stop when we encounter a file which wasn't created -- that will be the end of the document.
+        $pagenum = 0; $page_position = -1;
+        $stop = false;
+        while ($stop == false && $pagenum < 10000) {
+            // Determine this page's position in the Presentation
+            if ($position > 0) $page_position = $position + $pagenum;
+
+            // Construct the file and slide names for this page
+            $page_filename = "{$destpath}/{$destfile}-{$pagenum}.{$destfileext}"; // Where it gets uploaded to
+            $page_slidesource = "{$viewurl}/{$destfile}-{$pagenum}.{$destfileext}"; // The URL to access it publicly
+            $page_slidename = "{$destname} (".($pagenum + 1).")";
+            // Was this file created?
+            if (file_exists($page_filename)) {
+                // Add it to the Presenter
+                $presenter->add_entry($page_slidesource, 'PresenterSlideImage', $page_slidename, $page_position);
+                $pagenum++;
+            } else {
+                $stop = true;
+            }
+        }
+
+        return $pagenum;
     }
     
 
