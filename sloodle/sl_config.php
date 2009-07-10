@@ -40,7 +40,7 @@
 
     /** The name of the HTTP parameter which can be used to activate Sloodle debug mode. */
     define('SLOODLE_DEBUG_MODE_PARAM_NAME', 'sloodledebug');
-    
+
     // Check if debug mode is active
     $sloodle_debug = 'false';
     if (isset($_REQUEST[SLOODLE_DEBUG_MODE_PARAM_NAME])) $sloodle_debug = $_REQUEST[SLOODLE_DEBUG_MODE_PARAM_NAME];
