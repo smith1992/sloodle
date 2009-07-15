@@ -285,8 +285,7 @@
     <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="amount"/>
     <FIELD NAME="amount" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="icurrency"/>
     <FIELD NAME="icurrency" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="Lindens" SEQUENCE="false" ENUM="false" PREVIOUS="amount" NEXT="timemodified"/>
-    <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="icurrency" NEXT="date"/>    
-    <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="purpose"/>
+    <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="icurrency"/>
     </FIELDS>
 
     <KEYS>
@@ -319,4 +318,5 @@
 
   </TABLES>
 </XMLDB>
+
 

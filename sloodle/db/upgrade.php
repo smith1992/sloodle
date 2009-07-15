@@ -335,152 +335,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     }
     
     
-    // Attempted upgrades from previous 0.3 versions should not be warned
-    if ($oldversion >= 2008052800 && $oldversion < 2008070301) {
-        echo('<center><b>WARNING: you are upgrading from an old test version of Sloodle 0.3. This is not recommended. If you experience difficulties, then uninstall Sloodle, and re-install the new version.</b></center>');
-    }
-    
-    // Is this a version from before SLOODLE 0.4?
-    if ($oldversion < 2008111000) {
-        // This used to contain the sloodle_presentation_entry table, but that is now sloodle_presenter_entry, and is added further down.
-    }
-
-    if ($oldversion < 2009010800) {
-
-    /// Define table sloodle_map to be created
-        $table = new XMLDBTable('sloodle_map');
-
-    /// Adding fields to table sloodle_map
-        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
-        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
-        $table->addFieldInfo('initialx', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
-        $table->addFieldInfo('initialy', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
-        $table->addFieldInfo('initialzoom', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
-        $table->addFieldInfo('showpan', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '1');
-        $table->addFieldInfo('allowdrag', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
-        $table->addFieldInfo('showzoom', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, null, '1');
-
-    /// Adding keys to table sloodle_map
-        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->addKeyInfo('sloodleid', XMLDB_KEY_FOREIGN, array('sloodleid'), 'sloodle', array('id'));
-
-    /// Launch create table for sloodle_map
-        $result = $result && create_table($table);
-        
-        
-        
-    /// Define table sloodle_map_location to be created
-        $table = new XMLDBTable('sloodle_map_location');
-
-    /// Adding fields to table sloodle_map_location
-        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
-        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
-        $table->addFieldInfo('globalx', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
-        $table->addFieldInfo('globaly', XMLDB_TYPE_NUMBER, '10, 3', XMLDB_UNSIGNED, null, null, null, null, '0');
-        $table->addFieldInfo('region', XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null);
-        $table->addFieldInfo('localx', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
-        $table->addFieldInfo('localy', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
-        $table->addFieldInfo('localz', XMLDB_TYPE_INTEGER, '3', XMLDB_UNSIGNED, null, null, null, null, null);
-        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null);
-        $table->addFieldInfo('description', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, null, null);
-
-    /// Adding keys to table sloodle_map_location
-        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->addKeyInfo('sloodleid', XMLDB_KEY_FOREIGN, array('sloodleid'), 'sloodle', array('id'));
-
-    /// Launch create table for sloodle_map_location
-        $result = $result && create_table($table);
-    }
-       if ($oldversion < 2009010805) {     
-        echo "Dropping old stipendgiver tables<br/>";
-        $table = new XMLDBTable('sloodle_stipendgiver');
-        drop_table($table);
-        echo "adding new stipendgiver tables<br/>"; 
-    /// Define field id to be added to sloodle_stipendgiver
-        $table = new XMLDBTable('sloodle_stipendgiver');
-        
-        $field = new XMLDBField('id');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
-        $table->addField($field);
-        
-        $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('enabled');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('amount');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('purpose');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'amount');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('receiveruuid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'purpose');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('date');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'purpose');
-
-        $table->addField($field);  
-        
-        $key = new XMLDBKey('primary');
-        $key->setAttributes(XMLDB_KEY_PRIMARY, array('id'));
-        $table->addKey($key);
-        
-        $index = new XMLDBIndex('sloodleid');
-        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
-        $table->addIndex($index); 
-        
-       /// Launch create table for sloodle_map_location
-        $result = $result && create_table($table);
-    }
-     if ($oldversion < 2009010805) {
-        echo "Dropping old stipendgiver transaction tables<br/>";
-        $table = new XMLDBTable('sloodle_stipendgiver_trans');
-        drop_table($table);
-        echo "adding new stipendgiver trans tables<br/>"; 
-        /// Define field id to be added to sloodle_stipendgiver_trans
-        
-        $table = new XMLDBTable('sloodle_stipendgiver_trans');
-        
-        $field = new XMLDBField('id');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
-        $table->addField($field); 
-        
-        $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
-        $table->addField($field); 
-        
-        $field = new XMLDBField('receiveruuid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
-        $table->addField($field); 
-         
-        $field = new XMLDBField('receivername');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null, 'receiveruuid');
-        $table->addField($field); 
-            
-        $field = new XMLDBField('date');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'receivername');
-        $table->addField($field); 
-        
-        $key = new XMLDBKey('primary');
-        $key->setAttributes(XMLDB_KEY_PRIMARY, array('id'));
-        $table->addKey($key);
-        
-        $index = new XMLDBIndex('sloodleid');
-        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
-        $table->addIndex($index); 
-          
-        $result = $result && create_table($table);   
-        
-    }
-	
-	if ($result && $oldversion < 2009020201) {
+    if ($result && $oldversion < 2009020201) {
 
     /// Define table sloodle_presenter_entry to be created
         $table = new XMLDBTable('sloodle_presenter_entry');
@@ -609,31 +464,31 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     }
      if ($result && $oldversion < 2009042901){
               
-                 $table = new XMLDBTable('sloodle_stipendgiver');
-                 drop_table($table);
-                 echo " dropping sloodle_stipendgiver table, creating new one";
-            /// Define field icurrency to be added to sloodle_stipendgiver
-                $table = new XMLDBTable('sloodle_stipendgiver');
-                $field = new XMLDBField('id');
-                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
-                $table->addField($field);
-                $field = new XMLDBField('sloodleid');
-                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
-                $table->addField($field);            
-                $field = new XMLDBField('enabled');
-                $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
-                $table->addField($field);            
-                $field = new XMLDBField('amount');
-                $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
-                $table->addField($field);            
-                $field = new XMLDBField('icurrency');
-                $field->setAttributes(XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, null, 'Lindens', 'amount');
-                $table->addField($field);            
-                $field = new XMLDBField('timemodified');
-                $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'icurrency');
-                $table->addField($field);            
-                $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
-                $result = $result && create_table($table);
+         $table = new XMLDBTable('sloodle_stipendgiver');
+         drop_table($table);
+         echo " dropping sloodle_stipendgiver table, creating new one";
+    /// Define field icurrency to be added to sloodle_stipendgiver
+        $table = new XMLDBTable('sloodle_stipendgiver');
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+        $table->addField($field);
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+        $table->addField($field);            
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
+        $table->addField($field);            
+        $field = new XMLDBField('amount');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+        $table->addField($field);            
+        $field = new XMLDBField('icurrency');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, null, 'Lindens', 'amount');
+        $table->addField($field);            
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'icurrency');
+        $table->addField($field);            
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);
      }
 
 
@@ -641,3 +496,4 @@ function xmldb_sloodle_upgrade($oldversion=0) {
 }
 
 ?>
+
