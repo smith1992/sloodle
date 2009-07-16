@@ -220,8 +220,8 @@ class sloodle_view_course extends sloodle_base_view
 //------------------------------------------------------
 
     // Check the user's permissions regarding layouts
-    $layouts_can_use = has_capability('mod/sloodle:uselayouts', $course_context);
-    $layouts_can_edit = has_capability('mod/sloodle:editlayouts', $course_context);
+    $layouts_can_use = has_capability('mod/sloodle:uselayouts', $this->course_context);
+    $layouts_can_edit = has_capability('mod/sloodle:editlayouts', $this->course_context);
     $layouts_can_edit = true;
     $layouts_can_use = true;
    
