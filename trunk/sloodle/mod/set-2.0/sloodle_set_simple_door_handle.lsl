@@ -1,3 +1,14 @@
+// Sloodle Set object door handle script.
+// Sends a cleanup chat-message when touched.
+//
+// Part of the Sloodle project (www.sloodle.org).
+// Copyright (c) 2007-8 Sloodle
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  Edmund Edgar
+
+
 integer SLOODLE_CHANNEL_SET_SIMPLE_DOOR_OPEN =-1639270101;
 integer SLOODLE_CHANNEL_SET_SIMPLE_DOOR_CLOSED = -1639270102;
 
