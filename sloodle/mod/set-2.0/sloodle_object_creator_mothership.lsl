@@ -9,8 +9,8 @@
 //  Edmund Edgar
 //  Peter R. Bloomfield
 
-integer SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET = 1;
-integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 0;
+integer SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET = 0;
+integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 1;
 
 vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_BASIC_SET = <0.0, 2.5, 0.0>; // The basic set rezzes things 2 meters in front of it
 vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_MOTHERSHIP = <0.0, 0.0, -2.0>; // The mothership rezzes things 2 meters below it
