@@ -25,7 +25,8 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 string sloodleserverroot = "";
 string sloodlepwd = ""; 
 integer sloodlecontrollerid = 0;
-  
+key sloodlemyrezzer = NULL_KEY;
+
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
@@ -57,6 +58,7 @@ integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
 
 integer SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_LAYOUT_DIALOG = -1639270094;
+integer SLOODLE_CHANNEL_SET_GO_HOME = -1639270093;
 
 // Translation output methods
 string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
@@ -72,6 +74,8 @@ string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should b
 
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVE = -1639270101;
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_LAYOUT_SAVING_DONE = -1639270102; 
+integer SLOODLE_CHANNEL_SET_LAYOUT_REZZER_SHOW_DIALOG = -1639270094;
+
 
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
@@ -263,22 +267,25 @@ state ready
      //   if (currentlayout == "") llSetText("", <0.0,0.0,0.0>, 0.0);
     //  else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "layoutcaption:layout", [currentlayout], NULL_KEY, "set");
         // Listen for owner dialog responses
-        llListen(SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER , "", llGetOwner(), "");
+        
+        
+        llListen(SLOODLE_CHANNEL_SET_LAYOUT_REZZER_SHOW_DIALOG , "", NULL_KEY, "");
+        
     }
     
-    touch_start(integer num_detected)
-    {
-        // Make sure the user is allowed to use this object
-        key id = llDetectedKey(0);
-        if (!sloodle_check_access_use(id) && !sloodle_check_access_ctrl(id)) {
-            // Inform the user of the problem
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
-            return;
-        }
-        // Check te user's server access, and get all layouts they are allowed to use
-        httplayoutbrowse = sloodle_update_layout_list(id);
-    }
-    
+//    touch_start(integer num_detected)
+//    {
+//        // Make sure the user is allowed to use this object
+//        key id = llDetectedKey(0);
+//        if (!sloodle_check_access_use(id) && !sloodle_check_access_ctrl(id)) {
+//            // Inform the user of the problem
+//            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
+//            return;
+//        }
+//        // Check te user's server access, and get all layouts they are allowed to use
+//        httplayoutbrowse = sloodle_update_layout_list(id);
+//    }
+        
     http_response(key id, integer status, list meta, string body)
     {
         // Make sure this is the expected HTTP response
@@ -324,11 +331,14 @@ state ready
         
         // Show the command menu
         menutime = llGetUnixTime();
+        
+        llListen(SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER , "", llGetOwner(), "");        
         sloodle_show_command_dialog(llGetOwner());
     }
     
     listen(integer channel, string name, key id, string msg)
     {
+                
         // Check the channel
         if (channel == SLOODLE_CHANNEL_AVATAR_LAYOUT_MANAGER ) {
             // Ignore anybody but the owner
@@ -395,8 +405,25 @@ state ready
                 if (currentlayout == "") return;
                 if (loadmenu) state load;
                 else state save;
+            }         
+        
+        // Listen for instructions from the layout panel on the Simple Set
+        } else if (channel == SLOODLE_CHANNEL_SET_LAYOUT_REZZER_SHOW_DIALOG) { 
+            //llOwnerSay(msg);
+                                
+            key kval = (key)msg;                                
+                                
+           // Can the user use this object
+            if (!sloodle_check_access_use(kval) && !sloodle_check_access_ctrl(kval)) {
+                // Inform the user of the problem
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(kval)], NULL_KEY, "");
+                return;
             }
-        }
+            // Check te user's server access, and get all layouts they are allowed to use
+            httplayoutbrowse = sloodle_update_layout_list(kval);             
+                        
+        }            
+        
     }
 
     on_rez(integer par)
@@ -638,4 +665,5 @@ state load
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") state default;
     }
 }
+
 
