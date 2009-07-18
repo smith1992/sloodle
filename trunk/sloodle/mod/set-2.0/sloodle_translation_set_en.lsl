@@ -34,7 +34,8 @@ string mybatch = "set"; // Sloodle Set
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
     //  Sloodle Set
-    "sloodleset:cmddialog", "Sloodle Set Menu\n\n{{0}} = Reset\n{{1}} = Rez an object\n{{2}} = Manage layouts of multiple objects\n{{3}} = Destroy all objects", // Parameter: button label
+    "sloodleset:cmddialog_simple", "Sloodle Set Menu\n\n{{0}} = Reset\n{{1}} = Rez an object", // Parameter: button label    
+    "sloodleset:cmddialog_mothership", "Sloodle Set Menu\n\n{{0}} = Reset\n{{1}} = Rez an object\n{{2}} = Manage layouts of multiple objects\n{{3}} = Destroy all objects", // Parameter: button label
     "sloodleset:objectmenu", "Sloodle Set.\nSelect object to rez:\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
     "rezzingobject", "Rezzing Object:\n\"{{0}}\"", // Parameter should give the name of the object being rezzed
     "reztimeout", "Timeout while attempting to rez \"{{0}}\",", // Parameter should give the name of the object
