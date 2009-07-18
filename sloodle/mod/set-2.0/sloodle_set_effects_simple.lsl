@@ -1,3 +1,14 @@
+// Sloodle Set effects simple script.
+// Sends a cleanup chat-message when touched.
+//
+// Part of the Sloodle project (www.sloodle.org).
+// Copyright (c) 2007-8 Sloodle
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  Edmund Edgar
+//  Peter R. Bloomfield
+
 integer SLOODLE_CHANNEL_SET_CONFIGURED = -1639270091;
 integer SLOODLE_CHANNEL_SET_RESET = -1639270092; 
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_WILL_REZ_AT_POSITION = -1639270084;

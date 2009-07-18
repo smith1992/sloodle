@@ -1,3 +1,14 @@
+// Sloodle Set rezzing cone script.
+// Sends a cleanup chat-message when touched.
+//
+// Part of the Sloodle project (www.sloodle.org).
+// Copyright (c) 2007-8 Sloodle
+// Released under the GNU GPL v3
+//
+// Contributors:
+//  Edmund Edgar
+//  Peter R. Bloomfield
+
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_REZZING_STARTED = -1639270082;
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_REZZING_FINISHED = -1639270083;
 
