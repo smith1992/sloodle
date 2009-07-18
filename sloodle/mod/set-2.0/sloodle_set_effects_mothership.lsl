@@ -6,13 +6,19 @@ integer SLOODLE_CHANNEL_OBJECT_CREATOR_REZ_FROM_POSITION = -1639270088;
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_AUTOREZ_STARTED = -1639270086;
 integer SLOODLE_CHANNEL_OBJECT_CREATOR_AUTOREZ_FINISHED = -1639270087;
 
-vector default_hover_offset = <0.0,0.0,3.3>; 
+integer SLOODLE_CHANNEL_SET_GO_HOME = -1639270093;
+
+vector default_hover_offset = <0.0,0.0,3.6>; 
 vector default_hover_offset_partway = <0.0,0.0,1.8>;
 
 vector hover_position;
+integer is_flying = 0;
+
+
 
 take_off()
 {
+    is_flying = 1;    
     take_off_particles();
     hover_position = llGetPos()+default_hover_offset;    
     //llTargetOmega(<0,0,0.1>,1,1);
@@ -25,6 +31,7 @@ take_off()
 
 land()
 {
+    is_flying = 0;
     //llTargetOmega(ZERO_VECTOR,0,0);
     llSetPos(llGetPos()-default_hover_offset);     
 } 
@@ -58,6 +65,14 @@ object_move_to(vector position) {
 
 default 
 {
+    state_entry() {
+        is_flying = 0;
+    }
+    
+    on_rez(integer int) {
+        is_flying = 0;
+    }
+    
     timer()
     {
         llTargetOmega(ZERO_VECTOR,0,0);
@@ -71,12 +86,14 @@ default
         } else if (num == SLOODLE_CHANNEL_SET_CONFIGURED) {
             take_off();
         } else if (num == SLOODLE_CHANNEL_SET_RESET) {
-            land();
+            if (is_flying == 1) {
+                land();
+            }
         } else if (num == SLOODLE_CHANNEL_OBJECT_CREATOR_AUTOREZ_STARTED) {
             hover_position = llGetPos(); // When we start autorezzing, save the original position. This will be the same as the hover_position set at takeoff unless somebody moved us around. TODO: Are there situations where this could get called while we're busy moving?
         } else if (num == SLOODLE_CHANNEL_OBJECT_CREATOR_AUTOREZ_FINISHED) {
             object_move_to(hover_position); 
-        }
+        } 
     } 
 }
 
