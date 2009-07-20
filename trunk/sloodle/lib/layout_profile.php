@@ -18,7 +18,7 @@
         var $courseid;
 
         var $entries = array();
-        var $originalentryids = array();
+        var $originalentries = array();
 
         function SloodleLayout($r = null) {
 
@@ -139,12 +139,14 @@
                $neededids[] = $entry->id;
             }
 
-            foreach($this->originalentries as $entry) {
-               $entryid = $entry->id;
-               if (!in_array($entryid,$neededids)) {
-                  $entry->delete();
+	    if (count($this->originalentries) > 0) {
+               foreach($this->originalentries as $entry) {
+                  $entryid = $entry->id;
+                  if (!in_array($entryid,$neededids)) {
+                     $entry->delete();
+                  }
                }
-            }
+	    }
 
            return true;
 
