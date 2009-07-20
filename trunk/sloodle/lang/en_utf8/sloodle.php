@@ -59,7 +59,9 @@ $string['avatarname'] = 'Avatar name';
 $string['avataruuid'] = 'Avatar UUID';
 $string['avatarsearch'] = 'Avatar Search (within course)';
 
+$string['backtocoursepage'] = 'Back to course page';
 $string['backtosloodlesetup'] = 'Back to the SLOODLE Setup page';
+
 
 $string['cfgnotecard:header'] = 'SLOODLE Configuration Notecard';
 $string['cfgnotecard:generate'] = 'Generate Notecard';
