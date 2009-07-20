@@ -8,7 +8,7 @@
         // Contributors:
         //  Edmund Edgar
         //  Peter R. Bloomfield
-        //  Junta Kohime
+        //
         
         // Memory-saving hacks!
         key null_key = NULL_KEY;
@@ -502,6 +502,10 @@
                     state ready;
                     return;
                     
+                }else if (statuscode == -321) {                    
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notenrolled", [], null_key, "quiz");
+                     state ready;                   
+                    return;
                 } else if (statuscode <= 0) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
                     // Check if an error message was reported
@@ -774,6 +778,10 @@
                     
                 } else if (statuscode == -10302) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noquestions", [], null_key, "");
+                    return;
+                    
+                } else if (statuscode == -321) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notenrolled", [], null_key, "quiz");                   
                     return;
                     
                 } else if (statuscode <= 0) {
