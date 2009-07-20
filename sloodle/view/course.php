@@ -145,7 +145,7 @@ class sloodle_view_course extends sloodle_base_view
         
         // Start the box
         print_box_start('generalbox boxaligncenter boxwidthnormal');
-        echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').'</h3>';
+        echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').' (for '.$this->sloodle_course->get_full_name().')</h3>';
         
         // Start the form (including a course ID hidden parameter)
         echo "<form action=\"view_course.php\" method=\"post\">\n";
