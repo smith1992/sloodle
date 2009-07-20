@@ -276,7 +276,7 @@ default
     state_entry()
     {
         // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
+        llSetTexture("sloodle_chat_off",ALL_SIDES);
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -299,8 +299,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -339,7 +339,7 @@ state ready
     {
         llSetTimerEvent(0);
         // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("059eb6eb-9eef-c1b5-7e95-a4c6b3e5ed9a",ALL_SIDES);
+        llSetTexture("sloodle_chat_off",ALL_SIDES);
         // Reset the list of recorded keys and names
         recordingkeys = [];
         recordingnames = [];
@@ -411,7 +411,7 @@ state logging
     state_entry()
     {
         // Udpate the texture on the side to indicate we're logging
-        llSetTexture("d3c9180a-1703-3a84-8dcd-e3aa6306a343",ALL_SIDES);
+        llSetTexture("sloodle_chat_on",ALL_SIDES);
         // Listen for chat and commands
         llListen(0,"",NULL_KEY,"");
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
@@ -662,6 +662,5 @@ state logging
         }
     }
 }
-
 
 
