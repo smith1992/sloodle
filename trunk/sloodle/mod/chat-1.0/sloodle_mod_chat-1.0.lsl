@@ -501,6 +501,7 @@ state logging
                 // Make sure the user can control this 
                 if (!canctrl) return;
                 // Deactivate the WebIntercom
+                  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
                 state ready;
             }
             
