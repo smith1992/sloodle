@@ -224,7 +224,15 @@
     $modinfo =& get_fast_modinfo($COURSE);
 
     $cmsmodules = $modinfo->cms;
-    $instancemodules = $modinfo->instances;
+    $instancemodulearrays = $modinfo->instances;
+    $instancemodules = array();
+    if (count($instancemodulearrays) > 0) {
+	    foreach($instancemodulearrays as $ima) {
+		foreach($ima as $imaitem) {
+			$instancemodules[] = $imaitem;
+		}
+	    }
+    }
 
     $objects_to_configs = array(
 	'SLOODLE Access Checker' => 'accesschecker-1.0',
@@ -287,7 +295,7 @@
   
     // increment and return the position variables
 	/*
-	         O  
+
                 O O  
 	       O O O
               O O O O
@@ -313,6 +321,9 @@
     function yForIndex($index) {
         return $index;
     }
+
+    $pageitem = 0;
+    $item = 0;
 
     $posx = 1;
     $posy = 1;
@@ -376,8 +387,6 @@
 	    $table->head = array('&nbsp;','&nbsp;',get_string('layoutmanager:currentobjects','sloodle'),get_string('layoutmanager:module','sloodle'),get_string('layoutmanager:x','sloodle'),get_string('layoutmanager:y','sloodle'),get_string('layoutmanager:z','sloodle'),get_string('accesslevelobject:use','sloodle'),get_string('accesslevelobject:control','sloodle'),get_string('accesslevel','sloodle'));
 
 
-	    $item = 0;
-	    $pageitem = 0;
 
 	    foreach($currentlayoutentries as $co) {
 
@@ -443,6 +452,8 @@
         $checkedflag = 'checked="checked" ';
     }
     foreach($standardobjects as $so) {
+
+       $confighash = array();		       
 
        $posy = yForIndex($pageitem);
        $posx = xForIndex($pageitem);

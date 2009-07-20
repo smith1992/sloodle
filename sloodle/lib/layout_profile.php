@@ -56,7 +56,7 @@
            $ok = true;
 	   for ($i=0; $i<count($entries); $i++) {
               $entry = $entries[$i];
-              if ( ($entry->objectuuid != null) && ($entry->objectuuid != '') ) {
+              if ( (isset($entry->objectuuid)) && ($entry->objectuuid != null) && ($entry->objectuuid != '') ) {
                  $entry->populate_from_active_object();
               }
 	   }
@@ -206,7 +206,9 @@
             $this->rotation = $r->rotation;
             $this->id = $r->id;
             $this->layout = $r->layout;
-            $this->objectuuid = $r->objectuuid; // not saved - just used to populate defaults
+            if (isset($r->objectuuid)) {
+                $this->objectuuid = $r->objectuuid; // not saved - just used to populate defaults
+            }
 
             $this->configs = $this->get_layout_entry_configs();
             $this->originalconfigs = $this->configs; // save the original configs so we know what to delete, what to update and what to add
