@@ -88,6 +88,7 @@ class sloodle_view_course extends sloodle_base_view
         print_header_simple(get_string('courseconfig','sloodle'), "", $navigation, "", "", true, '', navmenu($this->course));
     }
 
+
     /**
     * Render the view of the module or feature.
     * This MUST be overridden to provide functionality.
@@ -132,7 +133,10 @@ class sloodle_view_course extends sloodle_base_view
     //------------------------------------------------------
 
         // Display info about Sloodle course configuration
-        echo "<h1 style=\"text-align:center;\">".get_string('courseconfig','sloodle')."</h1>\n";
+        echo "<h1 style=\"text-align:center;\">".get_string('courseconfig','sloodle')."</h1>\n"; 
+        echo "<h2 style=\"text-align:center;\">(".get_string('course').": \"<a href=\"{$CFG->wwwroot}/course/view.php?id={$this->course->id}\">".$this->sloodle_course->get_full_name()."</a>\")</h2>";
+        
+
         print_box(get_string('courseconfig:info','sloodle'), 'generalbox boxaligncenter boxwidthnormal');
         echo "<br/>\n";
 
@@ -145,7 +149,7 @@ class sloodle_view_course extends sloodle_base_view
         
         // Start the box
         print_box_start('generalbox boxaligncenter boxwidthnormal');
-        echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').' (for '.$this->sloodle_course->get_full_name().')</h3>';
+        echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').'</h3>';
         
         // Start the form (including a course ID hidden parameter)
         echo "<form action=\"view_course.php\" method=\"post\">\n";
@@ -231,7 +235,7 @@ class sloodle_view_course extends sloodle_base_view
     if ($layouts_can_use) {
 
         // Start the section
-    	echo '<a name="layouts">&nbsp;<a>';
+    	echo '<a name="layouts">&nbsp;</a>';
         print_box_start('generalbox boxaligncenter boxwidthnormal');
         echo '<div style="text-align:center;"><h3>'.get_string('storedlayouts','sloodle').'</h3>';
    
@@ -309,6 +313,8 @@ class sloodle_view_course extends sloodle_base_view
     */
     function print_footer()
     {
+        global $CFG;
+        echo "<p style=\"text-align:center; margin-top:32px; font-size:90%;\"><a href=\"{$CFG->wwwroot}/course/view.php?id={$this->course->id}\">&lt;&lt;&lt; ".get_string('backtocoursepage','sloodle')."</a></h2>";
         print_footer($this->course);
     }
 
