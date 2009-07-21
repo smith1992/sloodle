@@ -453,7 +453,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'itype');
         $table->addField($field);
         $field = new XMLDBField('idata');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '80', null, null, null, null, null, null, 'amount');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null, 'amount');
         $table->addField($field);
         $field = new XMLDBField('timemodified');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'idata');
