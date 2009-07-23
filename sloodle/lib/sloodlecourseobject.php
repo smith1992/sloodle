@@ -103,27 +103,33 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
          return  get_records('sloodle_users', 'userid', $userid);   
           
       } 
+      function get_avatar($userid){
+         return  get_record('sloodle_users', 'userid', $userid);            
+      }
       //returns a list of avatars in the class
       function getAvatarList($userList){
          $avList = array();
-         
+
          foreach ($userList as $u){             
              $sloodledata = get_records('sloodle_users', 'userid', $u->id);   
-             
+             //only adds users who have a linked avatar
              if ($sloodledata){
                 foreach ($sloodledata as $sd){
                    $av = new stdClass(); 
                    $av->userid = $u->id;
-                   $av->username = $u->username;
+                   $av->username = $u->username;                                      
                    $av->avname = $sd->avname;
-                   $av->uuid = $sd->uuid;
+                   $av->uuid = $sd->uuid;                   
                    $avList[]=$av;
+                  
                 }
              
              
              }
          }
+
          return $avList;
+         
       }
       function getSloodleId(){
         return $this->sloodleId;
@@ -142,7 +148,7 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
       function getUserList(){
             global $CFG;  
             
-           //get all the users from the users table in the moodle database   
+           //get all the users from the users table in the moodle database that are members in this class   
            $sql = "select u.*, ra.roleid from ".$CFG->prefix."role_assignments ra, ".$CFG->prefix."context con, ".$CFG->prefix."course c, ".$CFG->prefix."user u ";
            $sql .= " where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=".$this->cm->course;
            
@@ -173,6 +179,14 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
          global $CFG;
         $url_sloodleprofile = SLOODLE_WWWROOT."/view.php?_type=user&amp;id={$u->id}&amp;course={$this->courseId}";        
         return $url_sloodleprofile;
+     }
+     function get_user_by_uuid($avuuid){
+         global $CFG;
+         $sql='SELECT *  FROM '.$CFG->prefix.'sloodle_users WHERE `uuid`=\''.$avuuid.'\''; 
+         $rec=get_record_sql($sql); 
+         if (empty($rec)) return null;       
+         return $rec;
+         
      }
   }
         

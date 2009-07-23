@@ -80,7 +80,7 @@
             // Create the secondary table for this ibank
             $sec_table->amount = (int)$sloodle->stipendgiver_amount;
             $sec_table->icurrency = (string)$sloodle->icurrency;            
-            if (!insert_record('sloodle_stipendgiver', $sec_table)) {
+            if (!insert_record('sloodle_ibank', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -213,14 +213,14 @@
 
         case SLOODLE_TYPE_IBANK:
             // Attempt to fetch the stipend giver record
-            $stipendgiver = get_record('sloodle_stipendgiver', 'sloodleid', $sloodle->id);
+            $stipendgiver = get_record('sloodle_ibank', 'sloodleid', $sloodle->id);
             if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
             // Add the updates values from the form
             $stipendgiver->amount = (int)$sloodle->stipendgiver_amount;
              $stipendgiver->icurrency = (string)$sloodle->icurrency;       
 
             // Update the database
-            update_record('sloodle_stipendgiver', $stipendgiver);
+            update_record('sloodle_ibank', $stipendgiver);
         break;
 
             
@@ -273,7 +273,7 @@
         delete_records('sloodle_presenter_entry', 'sloodleid', $id);
 
         // Delete any StipenGiver and iPoint transaction entries
-        delete_records('sloodle_stipendgiver', 'sloodleid', $id);  
+        delete_records('sloodle_ibank', 'sloodleid', $id);  
         delete_records('sloodle_ipoint_trans', 'sloodleid', $id);
         
         // ADD FURTHER MODULE TYPES HERE!

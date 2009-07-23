@@ -21,7 +21,7 @@
     require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
     /** SLOODLE stipendgiver object data structure */
-    require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/stipendgiver_object.php');
+    require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/ibank_object.php');
     /** Sloodle Session code. */
         
     /**
@@ -50,11 +50,11 @@
         
         /**
         * Internal only - Sloodle StipendGiver instance database object.
-        * Corresponds to one record from the Moodle 'sloodle_StipendGiver' table.
+        * Corresponds to one record from the Moodle 'sloodle_ibank' table.
         * @var object
         * @access private
         */
-        var $sloodle_stipendgiver_instance = null;
+        var $sloodle_ibank_instance = null;
         
         var $sCourseObj = null;
         
@@ -95,7 +95,7 @@
             if ($this->sloodle_module_instance->type != SLOODLE_TYPE_IBANK) return false;
             
             // Load from the secondary table: StipendGiver instance
-            if (!($this->sloodle_StipendGiver_instance = get_record('sloodle_stipendgiver', 'sloodleid', $this->cm->instance))) return false;
+            if (!($this->sloodle_ibank_instance = get_record('sloodle_ibank', 'sloodleid', $this->cm->instance))) return false;
             
             return true;
         }
@@ -108,7 +108,7 @@
         function get_objects()
         {
             // Get all StipendGiver record entries for this StipendGiver
-            $recs = get_records('sloodle_ipoint_trans', 'sloodleid', $this->sloodle_StipendGiver_instance->id);
+            $recs = get_records('sloodle_ipoint_trans', 'sloodleid', $this->sloodle_ibank_instance->id);
             if (!$recs) return array();
             // Convert it to an array of strings
             $entries = $recs;
@@ -185,7 +185,7 @@
             return $this->sloodle_module_instance->timecreated;
         }
         function get_amount(){
-          return $this->sloodle_StipendGiver_instance->amount;
+          return $this->sloodle_ibank_instance->amount;
       }
         
         /**
