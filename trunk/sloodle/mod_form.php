@@ -208,12 +208,12 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->addElement('header', 'typeheader', $sloodletypefull);
             
             // The stipend needs an amount and a purpose
-            $mform->addElement('text', 'stipendgiver_amount', get_string('stipendgiver:amount','sloodle'), array('size'=>'10'));             
+            $mform->addElement('text', 'stipendgiver_amount', get_string('ibank:amount','sloodle'), array('size'=>'10'));             
             $mform->setDefault('stipendgiver_amount', '0');
             $mform->addElement('text', 'refreshtime', get_string('refreshtimeseconds','sloodle'), array('size'=>'10')); 
             $mform->setDefault('refreshtime', '10');            
             $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
-            $mform->addElement('select', 'icurrency',get_string('stipendgiver:typeofcurrency','sloodle'),$pTypes);
+            $mform->addElement('select', 'icurrency',get_string('ibank:typeofcurrency','sloodle'),$pTypes);
             $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
             break;
         
