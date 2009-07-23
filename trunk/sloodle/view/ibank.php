@@ -20,9 +20,9 @@ require_once(SLOODLE_LIBROOT.'/course.php');
 /** SLOODLE course object data structure */
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 /** SLOODLE course object data structure */
-require_once(SLOODLE_LIBROOT.'/ipointbank_object.php');
-/** SLOODLE stipendgiver object data structure */
-require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/stipendgiver_object.php');
+
+/** SLOODLE ibank object data structure */
+require_once(SLOODLE_DIRROOT.'/mod/ibank-1.0/ibank_object.php');
 /** Sloodle Session code. */
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
@@ -116,9 +116,9 @@ class sloodle_view_ibank extends sloodle_base_view_module
     */
    var $icurrency; 
    /**
-    * @var $stipendGiverObj - a pointer to the stipendGiverObject with useful functions to access the stipendGiver
+    * @var $ibankObj - a pointer to the ibankObject with useful functions to access the ibank
     */   
-   var $stipendGiverObj = null;
+   var $ibankObj = null;
    
      /**
     * The course module instance, retrieved directly from the database (table: course_modules)
@@ -132,7 +132,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
     * @var object
     * @access private
     */
-    var $sloodle = null;
+    var $sloodleRec = null;
 
     /**
     * The VLE course object, retrieved directly from the database (table: course)
@@ -163,34 +163,34 @@ class sloodle_view_ibank extends sloodle_base_view_module
    /**
     * Constructor.
     * This constructor creates a sloodleCourseObject which gives us useful functions to access course data 
-    * Also creats a stipendGiver Object which gives us useful functions to access stipendGiver data
+    * Also creats a ibank Object which gives us useful functions to access ibank data
     * 
     */
    
     
     function sloodle_view_ibank()    
     {
-            
-             $sloodleid = required_param('id', PARAM_INT);   
+        global $sCourseObj,$ibankObj;
+        
+            $sloodleid = required_param('id', PARAM_INT);   
              
              //set Sloodle Course Obj - this object will give us things like: userlist of the course, sloodle id etc.
-            $this->sCourseObj = new sloodleCourseObj($sloodleid);
-            $this->sloodle= $this->sCourseObj->sloodleRec;
-
-            $this->cm = $this->sCourseObj->cm;
-            $this->course = $this->sCourseObj->courseRec;
-            $this->course_context = $this->sCourseObj->courseContext;
-            
+            $sCourseObj = new sloodleCourseObj($sloodleid);
+            $this->sloodleRec= $sCourseObj->sloodleRec;
+            $this->cm = $sCourseObj->cm;
+            $this->course = $sCourseObj->courseRec;
+            $this->course_context = $sCourseObj->courseContext;
     }
     /**
     * Check that the user has permission to view this module, and check if they can edit it too.
     */
+    
     function check_permission()
     {
+        global $sCourseObj;
         // Make sure the user is logged-in
         require_course_login($this->course, true, $this->cm);
-
-        add_to_log($this->course->id, 'sloodle', 'view sloodle module', "view.php?id={$this->cm->id}", "{$this->sloodle->id}", $this->cm->id);
+        add_to_log($sCourseObj->courseId, 'sloodle', 'view sloodle module', "view.php?id={$sCourseObj->cm->id}", "{$this->sloodleRec->id}", $sCourseObj->cm->id);
         
         // Check for permissions
         $this->module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
@@ -200,135 +200,113 @@ class sloodle_view_ibank extends sloodle_base_view_module
         // If the module is hidden, then can the user still view it?
         if (empty($this->cm->visible) && !has_capability('moodle/course:viewhiddenactivities', $this->module_context)) notice(get_string('activityiscurrentlyhidden'));
     }
-    
+
     /**
     * Check and process the request parameters.
     */
     function process_request()
     {
         global $CFG, $USER;
-    
+        global $sCourseObj;
+        global $ibankObj;
     
         //====================== Get all course related information
            //coursemodule id
             $sloodleid = required_param('id', PARAM_INT);      
             $this->start = optional_param('start', 0, PARAM_INT);
-            $this->sloodleId = $this->sCourseObj->getSloodleId();           
-            //get stipendGiver Object (iBank Object)
-            $this->stipendGiverObj = new stipendGiverObject($sloodleid);
+            $sloodleId =  $sCourseObj->cm->instance;          
+            //get ibank Object (iBank Object)
+            $ibankObj = new Ibank((int)$sloodleId);
             if ($this->start < 0) $this->start = 0;
             //get icurrency type of points
-            $this->icurrency= $this->stipendGiverObj->geticurrency();
+            $this->icurrency= $ibankObj->sloodle_ibank_instance->icurrency;
             //get users in this course
-            $this->userList = $this->sCourseObj->getUserList(); 
+            $this->userList = $sCourseObj->getUserList(); 
 
             
     }
-   
+   function creditAll($amount){
+       global $ibankObj;
+       foreach ($this->sCourseObj->getUserList() as $u){ 
+            //Ipoints can be various types - ie: real lindens, or just points.                         
+            $iTransaction = new stdClass();
+            $iTransaction->userid       = (int)$u->id;
+            $iTransaction->sloodleid    = (int)$this->sloodleId;
+            $iTransaction->icurrency    = (string)$this->icurrency;
+            $iTransaction->amount       = (int)$amount;
+            $iTransaction->itype = "credit";
+            $iTransaction->timemodified = (int)time();
+            $ibankObj->makeTransaction($iTransaction);
+       }   
+        $ibank_xmlchannel = $ibankObj->sloodle_ibank_instance->xmlchannel;
+        do_xml_post($ibank_xmlchannel,"1","UPDATE");
+   } 
     
     /**
     * Process any form data which has been submitted.
     */
     function process_form()
     {        
-        //STEP 1 - HAS THE DEFAULT STIPEND AMOUNT BEEN ALLOCATED TO EVERY USER?       
-        //======================== creates initial default stipend records for all users 
-        //if no transactions exist        
-
-        if (!$this->stipendGiverObj->getTransactionRecords()) {
-              //create stipend transactions for each student!
-              //get student list
-               
-               //for each user in the class insert a transaction record with following values:
-               //avuuid,userid,avname,amount,type,timemodified
-             
-             foreach ($this->sCourseObj->getUserList() as $u){ 
-             //Ipoints can be various types - ie: real lindens, or just points.                         
-                    $iTransaction = new stdClass();
-                    $iTransaction->userid       = $u->id;
-                    $iTransaction->sloodleid    = $this->stipendGiverObj->getSloodleId();                 
-                    $iTransaction->icurrency     = $this->stipendGiverObj->geticurrency();
-                    $iTransaction->amount       = $this->stipendGiverObj->getStartingBalance();
-                    $iTransaction->itype = "stipend";
-                    $iTransaction->timemodified = time();
-                    $this->stipendGiverObj->makeTransaction($iTransaction);
-             }    
-           //insert iTransaction into db            
-           }
-              
-        
-       //STEP 2 - Transactions exist for this stipend already, check to see if new students have been added
-       //========================= HAVE NEW STUDENTS BEEN ADDED 
-       else 
-       {
-           $this->stipendGiverObj->updateUserList($this->sCourseObj->getUserList());
-        }
-        //============== STEP 3 - CHECK TO SEE IF THERE ARE PENDING UPDATES TO EXISTING STUDENTS
+        global $ibankObj;
+        global $sCourseObj;
+        global $USER;
+        //============== - CHECK TO SEE IF THERE ARE PENDING UPDATES TO EXISTING STUDENTS
            //check if we need to update allocations 
-           //if "update" param exists, that means someone submitted a form using the update butotn in printUserTable function
+           //if "update" param exists, that means someone submitted a form using the update button in printUserTable function
            $update= optional_param("update");
-            if ($update){
-                
-                //check each allotment value from form, and compare against db. change where necessary
-                $newBudgets=optional_param("newbudgets");
+            if ($update){                
+                $balance_updates=optional_param("balanceAdjustment");
+                //get userId's that were posted
                 $userIds = optional_param("userIds");
+                //get user names that were posted
                 $userNames = optional_param("usernames");
                 $currIndex=0;   
                 $updatedRecs = Array();
                 $errorString=''; 
+                //go through each userId posted, and check each update field.  If it's a non-zero
+                //then we must make a transaction for this user
                 foreach ($userIds as $userId) {
-                    //retreive saved budget for this user from the database
-                    $savedBudget = $this->stipendGiverObj->getStipendBudget($userId,$this->userList);                    
-                    //compare saved budget with the budget submitted in the form field for this user
-                   
-                    if ((int)$newBudgets[$currIndex] !==$savedBudget){
-                        //The user has submited a new stipend allotment for this user, because the new budget 
-                        //from the form differs from what has been saved in the db.
-                        //so we must update the alloted amount in db
-                        //STEP 1 First we should check if the user has already withdrawn any stipends
-                        $withdrawnAmount = 0;
-                        $withdrawnAmount = $this->stipendGiverObj->getUserDebits($userId,$this->userList);
-                        if ($withdrawnAmount > $newBudgets[$currIndex]){
-                            $errorString = "<br>".$userNames[$currIndex]." ".get_string('stipendgiver:alreadywd','stipendgiver') . $withdrawnAmount;
-                            $errorString =  get_string('stipendgiver:alreadywd2','stipendgiver');
-                        }else{
-                                //STEP 2 - get id of transaction to update
-                                $stipendRec = $this->stipendGiverObj->getStipendRec($userId);
-                               
-                                $transactionUpdate = new stdClass();
-                                $transactionUpdate->id=$stipendRec->id;
-                                $transactionUpdate->amount=$newBudgets[$currIndex];                            
-                                $transactionUpdate->timemodified= time();
-                                $this->stipendGiverObj->updateTransaction($transactionUpdate);
-                                $updatedRecs[]=$userNames[$currIndex];
-                                
-                        }
+                    //Was a non-zero value entered in the balance_update field for this user?
+                    if ($balance_updates[$currIndex]!=0){
+                        //build a new transaction record for the sloodle_ipoint_trans table
+                            //build sloodle_user object for this user id
+                            $sloodle = new SloodleSession( false );
+                            $avuser = new SloodleUser( $sloodle ); 
+                            $userRec = get_record('sloodle_users', 'userid', $userId);  
+                            $trans = new stdClass();
+                            $trans->sloodleid=$ibankObj->sloodleId;
+                            $trans->avuuid= $userRec->uuid;        
+                            if ($balance_updates[$currIndex]>0)$trans->itype='credit'; else 
+                            if ($balance_updates[$currIndex]<0){
+                                $trans->itype='debit';
+                                //check to see if this debit will make a negative amount
+                                $userAccountInfo = $ibankObj->ibank_getBalanceDetails($userRec->userid);
+                                if (($userAccountInfo->balance - abs($balance_updates[$currIndex]))<0){
+                                    $balance_updates[$currIndex]= $userAccountInfo->balance;
+                                }
+                            }
+                            $trans->amount=abs($balance_updates[$currIndex]);
+                            $trans->userid = $userId; 
+                            $trans->avname= $userRec->avname; 
+                            $trans->idata="DETAILS:webupdate|by moodle user:".$USER->username;
+                            $trans->timemodified=time();       
+                            $ibankObj->ibank_makeTransaction($trans);                        
                     }
-                    $currIndex++;     
-                    
+                    $currIndex++;        
                 }
                 //create and print confirmation message to the user
-                $confirmedMessage = get_string("stipendgiver:successfullupdate","sloodle");
+                $confirmedMessage = get_string("ibank:successfullupdate","sloodle");
                 $confirmedMessage .= $this->addCommas($updatedRecs);
-                
                 //send confirmation Message
                 $this->setRenderMessage($confirmedMessage . $errorString);
-                //updater stipendgier ibank
-                $this->stipendGiverObj->update();
             }
-       
        } 
-    
-
-
       /**
     * Override the base_view_module print_header for formatting reasons 
     */
     
-     function print_header()
-    {             
-        global $CFG;
-
+     function print_header(){             
+        global $CFG,$sCourseObj;
         // Offer the user an 'update' button if they are allowed to edit the module
         $editbuttons = '';
         if ($this->canedit) {
@@ -336,18 +314,16 @@ class sloodle_view_ibank extends sloodle_base_view_module
         }
         // Display the header: Sloodle with edit buttons
         $navigation = "<a href=\"index.php?{$this->course->id}\">".get_string('modulenameplural','sloodle')."</a> ->";
-        print_header_simple(format_string($this->sloodle->name), "", "{$navigation} ".format_string($this->sloodle->name, "", "", true, $editbuttons, navmenu($this->course, $this->cm)));
-
-        // Display the module name: Sloodle StipendGiver
-        $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-        print_heading($img.$this->sloodle->name, 'center');
+        $courseName=$sCourseObj->sloodleRec->name;
+        print_header_simple(format_string($courseName), "", "{$navigation} ".format_string($courseName, "", "", true, $editbuttons, navmenu($this->course, $this->cm)));
+        // Display the module name: Sloodle ibank
+       
+        
     
         // Display the module type and description
-        $fulltypename = get_string("moduletype:{$this->sloodle->type}", 'sloodle');
+        $fulltypename = get_string("moduletype:{$sCourseObj->sloodleRec->type}", 'sloodle');
         echo '<h4 style="text-align:center;">'.get_string('moduletype', 'sloodle').': '.$fulltypename;
-        echo helpbutton("moduletype_{$this->sloodle->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
-    
-         
+        echo helpbutton("moduletype_{$sCourseObj->sloodleRec->type}", $fulltypename, 'sloodle', true, false, '', true).'</h4>';
     }   
  
  /**
@@ -362,161 +338,205 @@ class sloodle_view_ibank extends sloodle_base_view_module
     function printUserTable($userData){        
         global $CFG;
         global $USER;
-        $allotedString="";
+        global $sCourseObj;
+        global $ibankObj;
+
         
          //===================== Build table with headers, set alignment and width of cells
         //Create HTML table object
         $sloodletable = new stdClass();
+        $sloodletable->tablealign='center';
         //Row Data
         
         //Create Sloodle Table Column Labels
         //User | Avatar  |  Amount Alloted  |  Balance Remaining
         if ($this->icurrency=="Lindens"){      
-                         $allotedString = get_string('stipendgiver:alloted', 'sloodle');   
+                         $allotedString = get_string('ibank:alloted', 'sloodle');   
                      }else if ($this->icurrency=="iPoints"){
-                        $allotedString = get_string('stipendgiver:iPoints', 'sloodle');    
-                         
+                        $allotedString = get_string('ibank:iPoints', 'sloodle');    
                      }
-            
-        if ($this->sCourseObj->is_teacher($USER->id)){        
-            $allotedString .=' <input type="submit"';
-            $allotedString .=' name="update" ';
-            $allotedString .='  value="'.get_string("stipendgiver:update","sloodle") .'">';      
-        }
-        if ($this->icurrency=="Lindens"){
-        $sloodletable->head = array('',
-                                    get_string('stipendgiver:username', 'sloodle'),
-                                  //  get_string('user', 'sloodle'),  
-                                    $allotedString,
-                                    get_string('stipendgiver:avatars', 'sloodle'),   
-                                    get_string('stipendgiver:debits', 'sloodle'),   
-                                    get_string('stipendgiver:balance', 'sloodle'));
-        }else if ($this->icurrency=="iPoints"){
-        $sloodletable->head = array('',
-                                    get_string('stipendgiver:username', 'sloodle'),
-                                    //get_string('user', 'sloodle'),  
-                                    $allotedString,
-                                    get_string('stipendgiver:avatars', 'sloodle'),   
-                                    
-                                    get_string('stipendgiver:totalipoints', 'sloodle'));
-        }
+         $context = get_context_instance(CONTEXT_MODULE, $sCourseObj->cm->id);          
+          if (has_capability('moodle/course:manageactivities',$context, $USER->id)) {                 
+            $updateString =' <input type="submit"';
+            $updateString .=' name="update" ';
+            $updateString .='  value="'.get_string("ibank:update","sloodle") .'">';      
+        }else $updateString = '';
+             $totals = $ibankObj->getTotals();   
+            $totalbalances =  $totals->totalbalances;         
+            $totalcredits = $totals->totalcredits;
+            $totaldebits = $totals->totaldebits;
+            $totalusers =  $totals->totalusers;
+            $sloodletable->head = array(
+             get_string('ibank:fullname', 'sloodle') .'('.$totalusers.')',             
+             get_string('ibank:avname', 'sloodle'),             
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:credits', 'sloodle').'<br>('.$totalcredits.')'.'</h4>',
+             '<h4><div style="color:red;text-align:center;">'.get_string('ibank:debits', 'sloodle').'<br>('.$totaldebits.')'.'</h4>',
+             '<h4><div style="color:green;text-align:center;">'.get_string('ibank:balance', 'sloodle').'<br>('.$totalbalances.')'.'</h4>',
+             $updateString);
         //set alignment of table cells                                        
-        $sloodletable->align = array('left',  'center', 'left','right','center');
+        $sloodletable->align = array('left', 'left','right','right','right','center');
         //set size of table cells
-        $sloodletable->size = array('2%','15%', '5%','45%','3%');
+        $sloodletable->size = array('15%','35%', '5%','5%','10%');
+        
         $avs='';
         $debits='';
-        
         $checkBoxId=0; 
         if (!empty($userData)){
-                        
             foreach ($userData as $u){
-                 $rowData= Array();  
-                
-                // Construct URLs to this user's Moodle and SLOODLE profile pages
-                $url_moodleprofile = $this->sCourseObj->get_moodleUserProfile($u);
-                $url_sloodleprofile = $this->sCourseObj->get_sloodleprofile($u);
-                //==========print check box
-                //if ($this->sCourseObj->is_teacher($USER->id)){  
-               //     $rowData[]= '<input type="checkbox" id="cb'.$checkBoxId++.' name="cid[]" value="'.$u->id.'" checked>';               
-               // }      else
-                $rowData[]='';
                  //==========print hidden user id for form processing
                 $userIdFormElement = '<input type="hidden" name="userIds[]" value="'.$u->id.'">';
-                $userIdFormElement .= '<input type="hidden" name="usernames[]" value="'.$u->username.'">';
-                //========= print url link to Moodle name
+                // Get the Sloodle user data for this Moodle user
+               
+                if ($sCourseObj->is_teacher($USER->id))
+                  $editField = '<input style="text-align:right;" type="text" size="6" name="balanceAdjustment[]" value=0>';
+                  else $editField ='';
+                //build row
+                //col 0: fullname & link to profile
+                //col 1: avatar
+                //col 2: balance
+                //col 3: updateAmount
+                //col 4: transaction link
+                $rowData= Array();  
+                // Construct URLs to this user's Moodle and SLOODLE profile pages
+                $url_moodleprofile= $sCourseObj->get_moodleUserProfile($u);
                 $rowData[]= $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$u->firstname} {$u->lastname}</a>";
-                //$rowData[]=  "<a href=\"{$url_moodleprofile}\">{$u->username}</a>"; 
-                // Construct URLs to this user's Moodle and SLOODLE profile pages     
-                // Get the Sloodle data for this Moodle user
-                $ownedAvatars = null;;
-                $ownedAvatars = get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
-                //=========*** print stipend amount alloted for this moodle user (Prints 0 if no stipend alloted
-                $editField='';
-                $budget= $this->stipendGiverObj->getStipendBudget($u->id,$this->userList);
-                if ($this->sCourseObj->is_teacher($USER->id)){  
-                  $editField = '<input style="text-align:right;" type="text" size="6" name="newbudgets[]" value="'.$budget.'">';
-                }else  $editField= $budget;
-                $rowData[]=$editField;
+                //create a url to the transaction list of each avatar the user owns
                 
-                //========= print names of avatars this moodle user has, and the amount's they've withdrawn and the dates
-                    //===== build inner Avatar names table
-                       
-                        //===== BUILD Avatar table if user has avatars
-                            //initialize Av table data;
-                                     
-                            //if this user has an avatar associated with the accound
-                            $userAvatar=null;
-                            $avs='';  
-                            $debits=''; 
-                            if ($ownedAvatars) {
-                               
-                               
-                                foreach ($ownedAvatars as $userAvatar) {
-                              
-                                 
-                                   // If this entry is empty, then skip it
-                                    if (empty($userAvatar->avname) || ctype_space($userAvatar->avname)) {
-                              
-                                         continue;
-                                    }
-                                    // ========= print avatar name 
-                                    $avs = "<a href=\"{$url_sloodleprofile}\">{$userAvatar->avname}</a><br>";
-                                    //========== print amount withdrawn by this avatar
-                                        //search transactions to see if this user made a debit and return amount. If they havent withdrew any, 0 will be returned
-                                    $debits .= $this->stipendGiverObj->getAvatarDebits($userAvatar->uuid) . "<br>";
-                                }
-                                
-                                
-                            }else{ 
-                         //======= build an empty avatars names table if no avatars                     
-                                 //Build Avatar names table
-                                 //even though this user has no avatars associated with account, check to see if transactions                     
-                                 $transAmount=$this->stipendGiverObj->getUserDebits($u->id);
-                                 //have been made with this moodle user id.                     
-                               if ($transAmount>0){
-                                     //if they have, notify teacher that transaction has been made
-                                     //search transaction records and find out which avatar was used
-                                     $transRecs = $this->stipendGiverObj->getTransactionRecords($u->id);                                      
-                                     $deletedAvs= Array();                                    
-                                     if($transRecs)
-                                        foreach ($transRecs as $t){
-                                            if ($u->id == $t->userid)
-                                                $deletedAvs[]=$t->avname;
-                                            
-                                            }
-                                     //print avs that made transactions, but no longer are registered to this user
-                                    $avs= $this->addCommas($deletedAvs);
-                                 } else {
-                                     
-                                     $debits = $transAmount;
-                                     $avs = get_string('stipendgiver:noneregistered','sloodle');
-                                 }
-                               
-                               }
-                                
-                     //========= now print Inner AvTable
-                     //add the collective RowData to inner avTable that will sit in this cell of the bigger user html table
-                                             //now place this inner avTable inside the bigger user html table 
-                     // the "true" in print_table($table,true) returns the html rather than print it
-                     $rowData[]= $avs;
-                     if ($this->icurrency=="Lindens"){      
-                         $rowData[]= $debits;
-                     }           
-                     $rowData[]= $this->stipendGiverObj->getStipendBudget($u->id,$this->userList) - $this->stipendGiverObj->getUserDebits($u->id);
-                      //===== NOW print the actual User table                 
-                      $sloodletable->data[] = $rowData;
-                
+                 $ownedAvatars = get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
+                if ($ownedAvatars){
+                    $trans_url ='';   
+                    foreach ($ownedAvatars as $av){
+                       $trans_url.='<a href="'.$CFG->wwwroot.'/mod/sloodle/view.php?id=';
+                       $trans_url.=$sCourseObj->cm->id.'&';
+                       $trans_url.='action=gettrans&userid='.$av->userid.'">';
+                       $trans_url.=$av->avname;
+                       $rowData[]=$trans_url;
+                       $trans_details = $ibankObj->ibank_getBalanceDetails($av->userid);
+                       if (!$trans_details) {
+                           $credits=0; $debits=0;$balance=0;
+                       }else{
+                           $credits=$trans_details->credits;
+                           $debits=$trans_details->debits;
+                           $balance=$trans_details->balance;
+                       }
+                       $rowData[]='<div style="color:black;text-align:center;">'.$credits.'</div>';
+                       $rowData[]='<div style="color:red;text-align:center;">'.$debits.'</div>';
+                       $rowData[]='<div style="color:green;text-align:center;">'.$balance.'</div>';
+                       $rowData[]=$editField;
+                    }
+                    
+                   
+                    $sloodletable->data[] = $rowData;
+                    
+                }
             }
             print ('<form action="" method="POST">');
             print_table($sloodletable);  
             print('</form>');  
         }  
-  
-          
-               
-            
     }  
+   
+ /**
+ * printTransTable function
+ * @desc This function will display an HTML table of a single users transactions
+ * @staticvar null
+ * @param $userData - an array of users
+ * @link http://sloodle.googlecode.com
+ * @return null 
+ */ 
+    function printTransTable($userid){        
+        global $CFG;
+        global $USER;
+        global $sCourseObj;
+        global $ibankObj;
+        
+         $context = get_context_instance(CONTEXT_MODULE, $sCourseObj->cm->id);          
+         $permissions = has_capability('moodle/course:manageactivities',$context, $USER->id);
+      
+        //get sloodle_record
+        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        //build table
+        print("<div align='center'>");
+        $sloodletable = new stdClass();            
+        $sloodletable->tablealign='center';
+        //build row
+        $rowData=Array();
+        $text='<h2><div style="color:black;text-align:center;">'.get_string('ibank:usertransactions','sloodle').$userRec->avname.'</div></h2>';
+        $text.='<div style="color:black;text-align:center;">'.$sCourseObj->sloodleRec->name.'<br>';
+        $text.='<a href="'.$CFG->wwwroot.'/mod/sloodle/view.php?id='.$sCourseObj->cm->id.'">'.get_string('ibank:goback','sloodle').'</a></div>';
+        $rowData[]=$text;        
+        $sloodletable->data[]=$rowData;            
+        print_table($sloodletable); 
+              
+        $totals = $ibankObj->ibank_getBalanceDetails($userid);   
+            if ($totals->balance==NULL)$totalbalances =0;
+                else $totalbalances =  $totals->balance;         
+            if ($totals->credits==NULL)$totalcredits=0;
+                else $totalcredits = $totals->credits;
+            if ($totals->debits==NULL) $totaldebits = 0;
+            else $totaldebits = $totals->debits;
+            
+        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        $avName = $userRec->avname; 
+        
+       $tsloodletable = new stdClass(); 
+        //create transactions table
+        if ($permissions) {
+            $tsloodletable->head = array(             
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:id', 'sloodle').'<br></h4>',
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:details', 'sloodle').'<br></h4>',
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:credits', 'sloodle').'<br>('.$totaldebits.')'.'</h4>',
+             '<h4><div style="color:red;text-align:center;">'.get_string('ibank:debits', 'sloodle').'<br>('.$totaldebits.')'.'</h4>',
+             '<h4><div style="color:green;text-align:center;">'.get_string('ibank:balance', 'sloodle').'<br>('.$totalbalances.')'.'</h4>',             
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:date', 'sloodle').'</h4>');
+             //set alignment of table cells                                        
+            $tsloodletable->align = array('left','left', 'right','right','right','left');
+            $tsloodletable->width="95%";
+            //set size of table cells
+            $tsloodletable->size = array('5%','40%','10%', '10%','10%','35%');
+        } else {
+            $tsloodletable->head = array(             
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:id', 'sloodle').'<br></h4>',
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:credits', 'sloodle').'<br>('.$totaldebits.')'.'</h4>',
+             '<h4><div style="color:red;text-align:center;">'.get_string('ibank:debits', 'sloodle').'<br>('.$totaldebits.')'.'</h4>',
+             '<h4><div style="color:green;text-align:center;">'.get_string('ibank:balance', 'sloodle').'<br>('.$totalbalances.')'.'</h4>',             
+             '<h4><div style="color:black;text-align:center;">'.get_string('ibank:date', 'sloodle').'</h4>');             
+              //set alignment of table cells                                        
+            $tsloodletable->align = array('left','right','right','right','left');
+            $tsloodletable->width="95%";
+            //set size of table cells
+            $tsloodletable->size = array('5%','10%', '10%','10%','25%');
+        }
+        //get all users transactions
+        $transactions = $ibankObj->ibank_getTransactionRecords($userid);
+        if (!empty($transactions)){
+            $balance=0;
+            foreach ($transactions as $t){
+               $trowData= Array();        
+               $trowData[]=$t->id;
+               if ($permissions) {                 
+                $trowData[]=$t->idata;         
+               }
+               if ($t->itype=='credit') { 
+                   $balance+=$t->amount;
+                   $trowData[]='<div style="color:black;text-align:center;">'.$t->amount.'</div>'; 
+                   $trowData[]='';
+               }else
+               if ($t->itype=='debit') { 
+                   $balance-=$t->amount;
+                   $trowData[]='';
+                   $trowData[]='<div style="color:black;text-align:center;">'.$t->amount.'</div>';                    
+               }               
+               $trowData[]='<div style="color:green;text-align:center;">'.$balance.'</div>';
+               
+               $trowData[]=date("D M j G:i:s T Y",$t->timemodified);
+               $tsloodletable->data[] = $trowData;     
+            }
+            
+            }                        
+            print_table($tsloodletable);  
+            print("</div>"); 
+        }    
    
             
       
@@ -525,75 +545,68 @@ class sloodle_view_ibank extends sloodle_base_view_module
     */
     function render()              
     {
-        global $CFG, $USER;   
-        $this->courseid = $this->course->id; 
-        $sloodleid=$this->sloodle->id;
-    
-        // Print a Table Intro / Amount  / Purpose 
-        // of Stipend        
-        print_box_start('generalbox boxaligncenter boxwidthnormal leftpara'); 
-            $iTable = new stdClass();
-            $iRow = array();            
-            //********* PRINT DESCRIPTION
-            print('<b style="color:Black;text-align:left;">'.get_string('stipendgiver:description','sloodle').':</b>'.$this->sloodle->intro.'<br> ');             
-            if ($this->icurrency=="Lindens"){      
-                 $iRow[] ='<b style="color:green;text-align:left;">'.get_string('stipendgiver:totalallocations','sloodle').'</b>:';
-                 $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->geticurrency();
-            }else if ($this->icurrency=="iPoints"){
-                    $iRow[] ='<b style="color:green;text-align:left;">'.get_string('stipendgiver:totalawarded','sloodle').'</b>:';
-                     $iRow[]=$this->stipendGiverObj->getStipendBudget(null,$this->userList) ." ". $this->stipendGiverObj->geticurrency();
-            }           
-            $iTable->data[] = $iRow;
-            //********* PRINT TOTAL DEBITS
-            if ($this->icurrency=="Lindens"){      
-                $iRow = array();            
-                            $iRow[] ='<b style="color:red;text-align:left;">'.get_string('stipendgiver:totaldebits','sloodle').'</b>:&nbsp&nbsp';
-                $iRow[] =$this->stipendGiverObj->getUserDebits() . " ".$this->stipendGiverObj->geticurrency();
-                $iTable->data[] = $iRow;    
-                //********* PRINT STARTING BALANCE
-                $iRow = array();                        
-                $iRow[] ='<b style="color:blue;text-align:left;">'.get_string('stipendgiver:startingbalance','sloodle').'</b>:&nbsp&nbsp';
-                $iRow[] =$this->stipendGiverObj->getStartingBalance() ." ". $this->stipendGiverObj->geticurrency();
-                $iTable->data[] = $iRow;
-                $iRow = array();             
-            }    
+        global $CFG, $USER,$sCourseObj,$ibankObj;   
+        $this->courseid = $sCourseObj->courseId;
+        $sloodleid=$ibankObj->sloodleId;
+        $action = optional_param('action');  
+        switch ($action){
+         case "gettrans":
+            //get user id
+            $userid = optional_param('userid');           
+            $this->printTransTable($userid);
             
-            print_table($iTable);
+         break;
+         default: 
+         // Print a Table Intro
+            print('<div align="center">');
+          
+                $iTable = new stdClass();
+                $iRow = array();
+                $totals = $ibankObj->getTotals();   
+                $totalbalances =  $totals->totalbalances;         
+                 if ($totals->totalcredits==NULL) $totalcredits=0; else
+                    $totalcredits = $totals->totalcredits;
+                if ($totals->totaldebits==NULL) $totaldebits = 0; else
+                $totaldebits = $totals->totaldebits;
+                $totalusers =  $totals->totalusers;
+                $sloodletable = new stdClass();
+                $sloodletable->tablealign='center';
+                
+                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
+                $rowData=Array();
+                $rowData[]=get_string('ibank:course','sloodle'). $img.$sCourseObj->courseRec->fullname;
+                $sloodletable->data[]=$rowData;
+                $rowData=Array();
+                $rowData[]='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'<h2>';
+                $sloodletable->data[]=$rowData;
+                
+                print_table($sloodletable); 
+                 
+                
+            //==================================================================================================================
+               
+           if ($this->getRenderMessage()){
+            print_box_start('generalbox boxaligncenter boxwidthnarrow leftpara'); 
+                print ('<h1 style="color:red;text-align:center;">'.$this->getRenderMessage().'</div>');
+            print_box_end();
             
-        print_box_end();      
-        //==================================================================================================================
-       
-       if ($this->getRenderMessage()){
-        print_box_start('generalbox boxaligncenter boxwidthnarrow leftpara'); 
-            print ($this->getRenderMessage());
-        print_box_end();
-       }
-       
-       
-       //print_box_start('generalbox boxaligncenter boxwidthnarrow leftpara'); 
-            //======Print TRANSACTIONS TITLE
-  if ($this->icurrency=="Lindens"){      
-                          print('<h3 style="color:black;text-align:center;">'.get_string('stipendgiver:transactions','sloodle')).'</h3> ';
-          
-                     }else if ($this->icurrency=="iPoints"){
-            print('<h3 style="color:black;text-align:center;">'.get_string('stipendgiver:scoreboard','sloodle')).'</h3> ';
-          
-                         
-                     }           
-           
+           }
+           print('</div>'); 
             //======Print STUDENT TRANSACTIONS
-             
-            if ($this->sCourseObj->getUserList()){
-            
-                $this->printUserTable($this->sCourseObj->getUserList());
+              
+            if ($sCourseObj->getUserList()){
+              print("<div align='center'>");
+                $this->printUserTable($sCourseObj->getUserList());
+                 print("</div>"); 
             }
+           
             else print "no student transaction";
             
         //==================================================================================================================
            
              //  $this->destroy();        
         
-     
+       }
     }
     
 
@@ -645,31 +658,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
  function getRenderMessage(){
     return $this->renderMessage;
  }
-
-function destroy(){
-    //debugging only
-                      //test file to access db and play with forms
-        $dbtype  = 'mysql';
-        $dbhost    = 'localhost';
-        $dbname    = 'eslteach_moodle';
-        $dbuser    = 'eslteach_moodle';
-        $dbpass    = 'evkingmoodle555';
-          
-          //connect to db
-          $con = mysql_connect("localhost",$dbuser,$dbpass);
-        if (!$con)
-          {
-          die('Could not connect: ' . mysql_error());
-          }
-          //use databse
-          mysql_select_db($dbname);
-          
-        $result = mysql_query("TRUNCATE TABLE `mdl_sloodle_stipendgiver_trans`");
-               
-
-        mysql_close($con);    
-    
-    } 
+        
 }
 
           

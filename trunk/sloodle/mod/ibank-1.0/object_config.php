@@ -69,7 +69,8 @@
         // Setup our default values
         //sloodlemoduleid comes from the mdl_course_modules table and is the id of the actual distributer module
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
-        $sloodlerefreshtime = (int)sloodle_get_value($settings, 'sloodlerefreshtime', 3600);
+        
+        
 
     
     ///// GENERAL CONFIGURATION /////
@@ -78,21 +79,18 @@
         // Create a new section box for general configuration options
         print_box_start('generalbox boxaligncenter');
         echo '<h3>'.get_string('generalconfiguration','sloodle').'</h3>';
-         // Ask the user to select an assignment
+         // Ask the user to select an ibank
         echo get_string('stipendgiver:selectstipend','sloodle').': ';
-        
-        
         choose_from_menu($stipendgivers, 'sloodlemoduleid', $sloodlemoduleid, '');
         echo "<br>\n";
-     
-    
-       
-        
-      
         // Close the general section
         print_box_end();
+
+           
         
+ 
         
+  
     ///// ACCESS LEVELS /////
         // This is common to nearly all objects, although variations are possible.
         // There are 3 access settings, in two categories:

@@ -475,8 +475,41 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field = new XMLDBField('sloodleid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $table->addField($field);            
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+        $table->addField($field);            
         $field = new XMLDBField('enabled');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
+        $table->addField($field);            
+        $field = new XMLDBField('amount');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+        $table->addField($field);            
+        $field = new XMLDBField('icurrency');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, null, 'Lindens', 'amount');
+        $table->addField($field);            
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'icurrency');
+        $table->addField($field);            
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);
+     }
+      if ($result && $oldversion < 2009072101){
+              
+         $table = new XMLDBTable('sloodle_stipendgiver');
+         drop_table($table);
+         echo " dropping sloodle_stipendgiver table, creating new sloodle_ibank table instead";
+    /// Define field icurrency to be added to sloodle_stipendgiver
+        $table = new XMLDBTable('sloodle_ibank');
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+        $table->addField($field);
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+        $table->addField($field);            
+        $field = new XMLDBField('xmlchannel');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, null, null, null, null, '', 'sloodleid');
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'xmlchannel');
         $table->addField($field);            
         $field = new XMLDBField('amount');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
