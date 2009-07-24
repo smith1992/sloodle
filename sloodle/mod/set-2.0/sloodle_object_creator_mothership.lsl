@@ -329,7 +329,7 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
     
         // llOwnerSay("processed rot is "+(string)rot);
         // TODO: Deal with the situation where the rezzer isn't where we asked it to be...
-        llRezObject(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
+        llRezAtRoot(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
     } else {
         llRezObject(name, llGetRootPosition() + ( rez_offset * llGetRootRotation() ), ZERO_VECTOR, rot, password);        
     }
