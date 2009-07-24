@@ -206,8 +206,13 @@ class sloodle_view_presenter extends sloodle_base_view_module
                             case ".htm": $ftype = "web";   break;
                             case "html": $ftype = "web";   break;                              
                          }
-                         $this->presenter->add_entry(sloodle_clean_for_db($u), $ftype, sloodle_clean_for_db($names[$i++]));                         
-                         
+                        $this->presenter->add_entry(sloodle_clean_for_db($u), $ftype, sloodle_clean_for_db($names[$i++]));        
+                       }
+                        
+                         $redirect=true;                 
+                          if ($redirect && headers_sent() == false) {
+                header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
+                exit();
                     }     
                }
                if (isset($_REQUEST['sloodleaddentry'])){  
@@ -242,64 +247,41 @@ class sloodle_view_presenter extends sloodle_base_view_module
             if (optional_param('mode')=='multiple edit')  {
                 //check what value was submitted from the select input
                 $multipleAction = optional_param('multipleProcessor');
-                $selectedSlides = $_REQUEST['selectedSlides'];
-                switch ($multipleAction) {                    
-                    case "multidelete":
-                        //get all selected slides to trash                
-                        $slides = $this->presenter->get_slides();                        
-                        $deleted = get_string("presenter:deleted",sloodle);
-                        $fromTheServer = get_string("presenter:fromtheserver",sloodle);
-                        $feedback = "";
-                        foreach ($selectedSlides as $selectedSlide){
-                            //get slide source so we can delete it from the server   
-                            foreach ($slides as $slide){
-                                   if ($slide->id==$selectedSlide){
-                                       //delete file
-                                         $fileLocation = $CFG->dataroot;
-                                         //here the $slide->source url has moodle's file.php handler in it
-                                         //we must therefore convert the slide source into a real file path
-                                         //do so by removing "file.php" from the file path string
-                                         $floc = strstr($slide->source,"file.php");
-                                         //now delete "file.php" from the path
-                                         $floc = substr($floc,8,strlen($floc));
-                                         //now add this to the data route to finish re-creating the true file path
-                                         $fileLocation.=$floc;
-                                         //finally we can delete the file
-                                         unlink($fileLocation);
-                                        //build feedback string
-                                        $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
-                                   }                           
-                               }
-                               //delete from database
-                               $this->presenter->delete_entry($selectedSlide);                                
-                        }     
-                        // Store the feedback as a session variable for the next time the page is loaded
-                        $_SESSION['sloodle_presenter_feedback'] = $feedback;
-                        //set redirect so we go back to the edit tab
-                        $redirect = true;         
-                    break;
-
-                    case "none":
-                        // User didn't select anything
-                    break;
-
-                    default:
-                         //must be a slide number so we will move the selected slides to the new position
-                         //get slide position to move slides to
-                         $moveTo = (int)$multipleAction;                                                  
-                         if ($moveTo <= 0) break; // Make sure it's a valid position
-                         $i=0;
-                         //move each slide to the new position
-                         foreach ($selectedSlides as $r) {
-                            $m = $moveTo + $i;
-                            $this->presenter->relocate_entry($r, $moveTo+$i);
-                            $i++;
-                         }
-                         $redirect=true;
-                    break;
-                    
-                }    
-            }
+                $selectedSlides = $_REQUEST['selectedSlides'];   
+                  if ($multipleAction=="Delete Selected"){
+                    //get all selected slides to trash                
+                    $slides = $this->presenter->get_slides();                        
+                    $deleted = get_string("presenter:deleted",'sloodle');
+                    $fromTheServer = get_string("presenter:fromtheserver",'sloodle');
+                    $feedback = "";
+                    foreach ($selectedSlides as $selectedSlide){
+                        //get slide source so we can delete it from the server   
+                        foreach ($slides as $slide){
+                               if ($slide->id==$selectedSlide){
+                                   //delete file
+                                     $fileLocation = $CFG->dataroot;
+                                     //here the $slide->source url has moodle's file.php handler in it
+                                     //we must therefore convert the slide source into a real file path
+                                     //do so by removing "file.php" from the file path string
+                                     $floc = strstr($slide->source,"file.php");
+                                     //now delete "file.php" from the path
+                                     $floc = substr($floc,8,strlen($floc));
+                                     //now add this to the data route to finish re-creating the true file path
+                                     $fileLocation.=$floc;
+                                     //finally we can delete the file
+                                     unlink($fileLocation);
+                                    //build feedback string
+                                    $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
+                               }                           
+                           }
+                           //delete from database
+                           $this->presenter->delete_entry($selectedSlide);                                    }
+                      
+                    // Store the feedback as a session variable for the next time the page is loaded
+                    $_SESSION['sloodle_presenter_feedback'] = $feedback;
+                    //set redirect so we go back to the edit tab
+                    $redirect = true;   
+                          
               //$this->presenter->delete_entry()
 
             // Redirect back to self, if possible
@@ -307,8 +289,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
                 exit();
             }
-        }            
-            
+            }            
+                
+        }
+        }
     }
     
     
@@ -533,7 +517,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
             // Setup a table object to display Presenter entries
             $entriesTable = new stdClass();
-            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div><div style=\'text-align:center;\' id="unselectall">Unselect All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'));
+            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'));
             $entriesTable->align = array('center', 'center', 'left', 'left', 'center');
             $entriesTable->size = array('5%', '5%', '30%', '20%', '30%');
             
@@ -636,7 +620,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 //add a submit button
                 $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
                 //add select input to table
-                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div><div style=\'text-align:center;\' id="unselectall2">Unselect All</div></a></div>',$selectInput, '', $addButtons);
+              $deleteButton = "<input value='Delete Selected' type='submit' name='multipleProcessor' id='multipleProcessor'>";                                
+                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div></a></div>',$deleteButton , '', $addButtons);
                 //encase in a form
                 echo '<form action="" ,method="POST" id="editform" name="editform">';
                 print_table($entriesTable);
@@ -1123,6 +1108,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         switch ($this->presenter_mode)
         {
         case 'edit': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
+        case 'multiple edit': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'addslide': $selectedtab = SLOODLE_PRESENTER_TAB_ADD_SLIDE; break;
         case 'addfiles': $selectedtab = SLOODLE_PRESENTER_TAB_ADD_FILES; break;
         case 'editslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT_SLIDE; break;
@@ -1140,6 +1126,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         switch ($this->presenter_mode)
         {
         case 'edit': $this->render_edit(); break;
+        case 'multiple edit': $this->render_edit(); break;
         case 'addslide': $this->render_slide_edit(); break;
         case 'addfiles': $this->render_add_files(); break;
         case 'editslide': $this->render_slide_edit(); break;
