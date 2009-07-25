@@ -16,7 +16,7 @@ string SLOODLE_EOF = "sloodleeof";
 list parcelInfo = []; //var for parcel owner 
 integer MENU_CHANNEL = -1;
 string SLOODLE_OBJECT_TYPE = "presenter-2.0";
-
+integer reset;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
@@ -60,6 +60,15 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should b
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
 string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
+string SLOODLE_TRANSLATE_HOVER_TEXT_BASIC = "hovertextbasic";
+key myOwnerKey;
+string transMethod;              //constant to identify why type of translation we want to configure - dialog, hovertext etc
+list  menuChannel;            //useful var to configure a sloodle_request_translation - channel dialog will chat responses on
+list btns;                                //useful var to configure a sloodle_request_translation - buttons for the dialog
+string transString;                    //useful var to configure a sloodle_request_translation - the local translation string in the translation script
+key destinationKey;                    //useful var to configure a sloodle_request_translation - who we send the dialog to
+string translationModule;        //useful var to configure a sloodle_request_translation - in this case - the "presenter"
+
 
 // Send a translation request link message
 
@@ -148,7 +157,7 @@ update_image_display()
 request_slide(integer num)
 {
     // Indicate that we are requesting a slide
-    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0, 0.2, 1.0>, 0.9], "loadingslide", [num], NULL_KEY, "presenter");
+    sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.29037, 1.42417, 0.00000>, 0.9], "loadingslide", [num], NULL_KEY, "presenter");
 
     // Construct and send our HTTP request for data
     string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -197,10 +206,35 @@ update_hover_text()
 
 
 // Default state - waiting for configuration
-default
+// Default state - waiting for configuration
+default{
+ on_rez(integer start_param) {    
+        myOwnerKey = llGetOwner();            
+    }
+ state_entry() {
+         myOwnerKey = llGetOwner();
+         llOwnerSay("Owner set to: " + llKey2Name(llGetOwner())+ " with UUID: " + (string)llGetOwner());
+         reset=FALSE; //used in the last state - if someone deletes the sloodle_presenter_texture, we set a timer, so need to distinguish in timer event, what to do - ie: was the timer set because the texture was deleted? then set reset to TRUE. 
+         state initialize; 
+         
+ }
+
+}
+
+state initialize
 {
+
+    on_rez(integer start_param) {  
+        llOwnerSay("Reseting...");  
+        myOwnerKey = llGetOwner();
+        llResetScript();
+                  
+    }
+    
     state_entry()
     {
+           if ((string)llGetInventoryKey("sloodle_config")!="00000000-0000-0000-0000-000000000000")
+              sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.00000,1, 0>, 1.0], "touchforwebconfig", [], NULL_KEY, "presenter");
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
@@ -308,12 +342,61 @@ state checkParcelOwnerAgain
 
 state setMediaTexture
 {
-    state_entry()
-    {
-        llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
-        llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
-        state running;                
+     state_entry() {
+      if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){
+           //string,list,list,string,list,key,list
+          transMethod= SLOODLE_TRANSLATE_DIALOG;
+          btns = ["Reset"];
+          transString = "missingsloodletexture";
+          llSay(0,(string)myOwnerKey);
+          destinationKey=myOwnerKey;
+          translationModule="presenter";
+          sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "missingsloodletexture", [], NULL_KEY, "presenter");
+       }else{
+               llSetTexture("sloodle_presenter_texture",ALL_SIDES);
+                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
+                llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
+                //set autoscale
+                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_AUTO_ALIGN,TRUE]);
+                 state running;        
+        }
+      }
+        
+        touch_start(integer num_detected) {
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "checkinginventory", [], NULL_KEY, "presenter");             
+            if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+                     transString = "stilldoesntexistininventory";
+                      sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "missingsloodletexture", [], NULL_KEY, "presenter");  
+            }
+             else {                 
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "foundsloodletexture", [], NULL_KEY, "presenter");
+                llResetScript();
+            }
+        
     }
+    /***********************************************
+    *  changed event
+    *  |-->Every time the inventory changes, reset the script
+    *        
+    ***********************************************/
+    changed(integer change) {
+     if (change ==CHANGED_INVENTORY){         
+        if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+                  sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "stilldoesntexistininventory", [], NULL_KEY, "presenter"); 
+                  
+            }else{
+                llSetTexture("sloodle_presenter_texture",ALL_SIDES);
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "foundsloodletexture", [], NULL_KEY, "presenter");
+                llSetTimerEvent(3.0);
+                      
+            }
+     }
+    }
+    timer() {
+      llSetTimerEvent(0.0);
+      llResetScript();    
+    }
+                    
 }
 
 
@@ -353,10 +436,16 @@ state running
     
     timer()
     {
+        
         llSetTimerEvent(0.0);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
-        update_hover_text();
-        update_image_display();
+        if (reset==TRUE){
+            reset=FALSE;
+            llResetScript();
+        }else{
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], NULL_KEY, "");
+            update_hover_text();
+            update_image_display();
+        }
     }
     
     http_response(key id, integer status, list meta, string body)
@@ -444,6 +533,26 @@ state running
         // Now that we've got all that data, update the display
         update_hover_text();
         update_image_display();
+    }
+    
+    /***********************************************
+    *  changed event
+    *  |-->Every time the inventory changes, reset the script
+    *        
+    ***********************************************/
+    changed(integer change) {
+     if (change ==CHANGED_INVENTORY){         
+        if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+                  sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "stilldoesntexistininventory", [], NULL_KEY, "presenter"); 
+                  
+            }else{
+                llSetTexture("sloodle_presenter_texture",ALL_SIDES);
+                sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "foundsloodletexture", [], NULL_KEY, "presenter");
+                reset=TRUE;
+                llSetTimerEvent(3.0);
+                      
+            }
+     }
     }
 
 }
