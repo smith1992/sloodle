@@ -4,7 +4,7 @@
 // The first of each pair is the name, and second is the translation.
 //
 // This script is part of the Sloodle project.
-// Copyright (c) 2008-9 Sloodle (various contributors)
+// Copyright (c) 2008 Sloodle (various contributors)
 // Released under the GNU GPL v3
 //
 // Contributors:
@@ -36,17 +36,15 @@ list locstrings = [
     "showingentryurl", "Showing entry {{0}} of {{1}} ({{2}}).", // Parameters: current slide number, total number of slides, URL of slide
     "showingentryname", "Showing entry {{0}} of {{1}}\n{{2}}.", // Parameters: current slide number, total number of slides, name of slide
     "errorstate", "Error state -- touch me to reset",
+    "missingsloodletexture", "Error: The sloodle_presenter_texture is missing from the presenter's inventory.  Did you delete it?  Please add this texture back into the contents, and touch to reset",
+    "foundsloodletexture", "Found sloodle_presenter_texture, resetting...",    
+    "stilldoesntexistininventory","Error: The sloodle_presenter_texture STILL doesn't exist in the presenter's conents!  Please copy it INTO the presenter's conents.",
+    "checkinginventory","Checking inventory for sloodle_presenter_texture",
+    "touchforwebconfig","Touch to configure",
+    "mustbedeeded","This Presenter MUST be deeded to the Parcel Owner for it to display your presentation"
+    
 
-    "showingslide", "{{0}}\nShowing slide {{1}} of {{2}}", // Parameters: name of Presenter, current slide number, total number of slides
-    "showingslideurl", "{{0}}\nShowing slide {{1}} of {{2}} ({{3}})", // Parameters: name of Presenter, current slide number, total number of slides, url of slide
-    "showingslidename", "\"{{0}}\":\n{{3}} ({{1}}/{{2}})", // Parameters: name of Presenter, current slide number, total number of slides, name of slide
-    
-    "loadingslide", "Loading slide {{0}}", // Parameters: number of slide being loaded
-    
-    "error:nodata", "ERROR: failed to download slide data.",
-    "error:noslides", "ERROR: This presentation is empty.",
-    "error:noplugins", "ERROR: Failed to load Presenter plugins.",
-    "error:pluginnotfound", "\"{{0}}\"\nCannot show slide {{1}} of {{2}}\nRequired plugin was not found." // Parameters: name of Presenter, current slide number, total number of slides
+
 ];
 
 ///// ----------- /////
@@ -67,6 +65,7 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";                 // Recipient avatar 
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";              // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";  // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";          // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_HOVER_TEXT_BASIC = "hovertextbasic";
 string SLOODLE_TRANSLATE_IM = "instantmessage";             // Recipient avatar should be identified in link message keyval. No output parameters.
 
 
@@ -118,8 +117,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    
-    for (pos += 1; pos < numstrings; pos += 2) {
+    pos += 1;
+    for (; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -149,12 +148,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum;
+    integer curparamnum = 0;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (curparamnum = 0; curparamnum < numparams; curparamnum++) {
+    for (; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);
@@ -206,9 +205,7 @@ default
             if (numfields < 3) {
                 sloodle_debug("ERROR: Insufficient fields for translation of string.");
                 return;
-            }
-            
-            // Extract the key parts of the request
+            }            
             string output_method = llList2String(fields, 0);
             list output_params = llCSV2List(llList2String(fields, 1));
             integer num_output_params = llGetListLength(output_params);
@@ -313,8 +310,10 @@ default
                 // We need 1 additional parameter, containing the URL to load
                 if (num_output_params >= 2) llSetText(trans, (vector)llList2String(output_params, 0), (float)llList2String(output_params, 1));
                 else sloodle_debug("ERROR: Insufficient output parameters to show hover text with string \"" + string_name + "\".");
-            
-            } else if (output_method == SLOODLE_TRANSLATE_IM) {
+            } else if (output_method == SLOODLE_TRANSLATE_HOVER_TEXT_BASIC){
+                    llSetText(trans, (vector)llList2String(output_params, 0), (float)llList2String(output_params, 1));
+            }
+                 else if (output_method == SLOODLE_TRANSLATE_IM) {
                 // Send an IM - we need a valid key
                 if (id == NULL_KEY) {
                     sloodle_debug("ERROR: Non-null key value required to send IM with string \"" + string_name + "\".");
@@ -330,5 +329,3 @@ default
         }
     }
 }
-
-
