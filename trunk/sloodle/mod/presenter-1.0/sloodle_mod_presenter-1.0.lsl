@@ -226,8 +226,8 @@ state initialize
     
     state_entry()
     {
-          sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.00000,1, 0>, 1.0], "touchforwebconfig", [], NULL_KEY, "presenter");
-        
+        if ((string)llGetInventoryKey("sloodle_config")!="00000000-0000-0000-0000-000000000000")
+              sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.00000,1, 0>, 1.0], "touchforwebconfig", [], NULL_KEY, "presenter");
         // Starting again with a new configuration
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
