@@ -27,6 +27,8 @@ integer sloodlecontrollerid = 0;
 integer sloodlemoduleid = 0;
 integer sloodleobjectaccesslevelctrl = 1; // Who can control this object?
 
+
+string PRESENTER_TEXTURE= "sloodle_presenter_texture";
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
 
@@ -343,7 +345,7 @@ state checkParcelOwnerAgain
 state setMediaTexture
 {
      state_entry() {
-      if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){
+      if ((string)llGetInventoryKey(PRESENTER_TEXTURE)=="00000000-0000-0000-0000-000000000000"){
            //string,list,list,string,list,key,list
           transMethod= SLOODLE_TRANSLATE_DIALOG;
           btns = ["Reset"];
@@ -353,9 +355,9 @@ state setMediaTexture
           translationModule="presenter";
           sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "missingsloodletexture", [], NULL_KEY, "presenter");
        }else{
-               llSetTexture("sloodle_presenter_texture",ALL_SIDES);
-                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey("sloodle_presenter_texture")]); //set texture to presenter texture
-                llSay(0,"Parcel Media texture set to sloodle_presenter_texture");
+               llSetTexture(PRESENTER_TEXTURE,ALL_SIDES);
+                llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_TEXTURE,llGetInventoryKey(PRESENTER_TEXTURE)]); //set texture to presenter texture
+                llSay(0,"Parcel Media texture set to "+PRESENTER_TEXTURE);
                 //set autoscale
                 llParcelMediaCommandList([PARCEL_MEDIA_COMMAND_AUTO_ALIGN,TRUE]);
                  state running;        
@@ -364,7 +366,7 @@ state setMediaTexture
         
         touch_start(integer num_detected) {
             sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "checkinginventory", [], NULL_KEY, "presenter");             
-            if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+            if ((string)llGetInventoryKey(PRESENTER_TEXTURE)=="00000000-0000-0000-0000-000000000000"){                 
                      transString = "stilldoesntexistininventory";
                       sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "missingsloodletexture", [], NULL_KEY, "presenter");  
             }
@@ -381,11 +383,11 @@ state setMediaTexture
     ***********************************************/
     changed(integer change) {
      if (change ==CHANGED_INVENTORY){         
-        if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+        if ((string)llGetInventoryKey(PRESENTER_TEXTURE)=="00000000-0000-0000-0000-000000000000"){                 
                   sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "stilldoesntexistininventory", [], NULL_KEY, "presenter"); 
                   
             }else{
-                llSetTexture("sloodle_presenter_texture",ALL_SIDES);
+                llSetTexture(PRESENTER_TEXTURE,ALL_SIDES);
                 sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "foundsloodletexture", [], NULL_KEY, "presenter");
                 llSetTimerEvent(3.0);
                       
@@ -542,11 +544,11 @@ state running
     ***********************************************/
     changed(integer change) {
      if (change ==CHANGED_INVENTORY){         
-        if ((string)llGetInventoryKey("sloodle_presenter_texture")=="00000000-0000-0000-0000-000000000000"){                 
+        if ((string)llGetInventoryKey(PRESENTER_TEXTURE)=="00000000-0000-0000-0000-000000000000"){                 
                   sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "stilldoesntexistininventory", [], NULL_KEY, "presenter"); 
                   
             }else{
-                llSetTexture("sloodle_presenter_texture",ALL_SIDES);
+                llSetTexture(PRESENTER_TEXTURE,ALL_SIDES);
                 sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT_BASIC, [<0.92748, 0.00000, 0.42705>, 1.0], "foundsloodletexture", [], NULL_KEY, "presenter");
                 reset=TRUE;
                 llSetTimerEvent(3.0);
