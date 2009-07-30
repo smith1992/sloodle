@@ -735,7 +735,8 @@
             
             touch_start(integer num)
             {
-                if (llDetectedKey(0) == sitter) ask_current_question();
+                if ((active_question + 1) < num_questions)
+                    if (llDetectedKey(0) == sitter) ask_current_question();
             }
         
             http_response(key request_id, integer status, list metadata, string body)
