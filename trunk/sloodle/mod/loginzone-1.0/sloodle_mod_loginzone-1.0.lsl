@@ -8,10 +8,11 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
+//  Paul Preibisch (Fire Centaur in SL)
 
 
 ///// DATA /////
-
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_LOGINZONE_LINKER = "/mod/sloodle/mod/loginzone-1.0/linker.php";
@@ -60,6 +61,18 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 
 // Send debug info
 sloodle_debug(string msg)
@@ -146,8 +159,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -205,8 +218,8 @@ state running
     collision_start(integer num_detected)
     {
         // Go through each detected avatar
-        integer i;
-        for (i = 0; i < num_detected; i++)
+        integer i = 0;
+        for (; i < num_detected; i++)
         {
             sloodle_detected_avatar(llDetectedKey(i), llDetectedPos(i));
         }
@@ -240,6 +253,7 @@ state running
             integer statuscode = (integer)llList2String(bits, 0);
             if (statuscode <= 0) {
                 sloodle_debug("Update failed with Sloodle status " + (string)statuscode);
+                sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
                 return;
             }
             return;
@@ -284,6 +298,7 @@ state running
         } else if (statuscode == -301) {
             // No user found with the specified position allocated
             // Nothing to do...
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             return;
         } else {
             if (av != NULL_KEY) {
@@ -291,6 +306,7 @@ state running
                 return;
             } else {
                 sloodle_debug("Authentication of unknown avatar failed with status code " + (string)statuscode);
+                sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
                 return;
             }
         }
