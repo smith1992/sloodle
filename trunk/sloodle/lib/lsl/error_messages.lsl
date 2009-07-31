@@ -200,7 +200,7 @@ default {
             if (trans!=""){
                 if (method == SLOODLE_TRANSLATE_SAY)    llSay(0,"Error Message: "+trans);
                 else if (method==SLOODLE_TRANSLATE_IM) llInstantMessage(senderUuid,"Error Message: " + trans);
-            }        
+            }else    llSay(0,"Error Message Translation not found - please view http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes for more information: Error Code: "+(string)statusCode);      
         }
     }
 }
