@@ -12,6 +12,12 @@
 
 ///// DATA /////
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
+integer SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET = 0;
+integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 1;
+
+integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET;
+
+
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_SET_LINKER = "/mod/sloodle/mod/set-1.0/linker.php";
@@ -22,14 +28,13 @@ integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 
-
 string SLOODLE_OBJECT_TYPE = "set-1.0";
 
 string sloodleserverroot = "";
 string sloodlepwd = "";
-integer sloodlecontrollerid = 0;
+integer sloodlecontrollerid = 0; 
 string sloodlecoursename_full = "";
-integer sloodleobjectaccessleveluse = 0;
+integer sloodleobjectaccessleveluse = 0; 
 
 integer isconfigured = FALSE; // Do we have all the configuration data we need?
 integer eof = FALSE; // Have we reached the end of the configuration data?
@@ -38,12 +43,24 @@ key httpcheckcourse = NULL_KEY;
 list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a dialog, and when
 
 string MENU_BUTTON_RESET = "0";
+string MENU_BUTTON_OPEN_REZ_DIALOG = "1"; // The same as touching the cargo bay
+string MENU_BUTTON_OPEN_LAYOUT_DIALOG = "2"; // The same as touching the layout button
+string MENU_BUTTON_KILL_ALL = "3"; // The same as touching the kill button
+
+integer TEX_SIDE = 2; // The side to apply our texture to for "ready" or otherwise
 
 ///// TRANSLATION /////
 
 // Link message channels
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
+
+integer SLOODLE_CHANNEL_SET_CONFIGURED = -1639270091;
+integer SLOODLE_CHANNEL_SET_RESET = -1639270092; 
+
+integer SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_REZ_DIALOG = -1639270093;
+integer SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_LAYOUT_DIALOG = -1639270094;
+integer SLOODLE_CHANNEL_SET_MENU_BUTTON_KILL_ALL = -1639270095;
 
 // Translation output methods
 string SLOODLE_TRANSLATE_LINK = "link";             // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
@@ -79,6 +96,7 @@ sloodle_translation_request(string output_method, list output_params, string str
 sloodle_error_code(string method, key avuuid,integer statuscode){
             llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
 }
+
 // Send debug info
 sloodle_debug(string msg)
 {
@@ -147,7 +165,11 @@ integer sloodle_check_access_use(key id)
 // Show a command dialog to the specified user
 sloodle_show_command_dialog(key id)
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_RESET], "sloodleset:cmddialog", [MENU_BUTTON_RESET], id, "set");
+    if (SLOODLE_THIS_OBJECT_TYPE == SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET) {
+                sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_RESET, MENU_BUTTON_OPEN_REZ_DIALOG], "sloodleset:cmddialog_simple", [MENU_BUTTON_RESET, MENU_BUTTON_OPEN_REZ_DIALOG], id, "set");
+    } else {
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, MENU_BUTTON_RESET, MENU_BUTTON_OPEN_REZ_DIALOG , MENU_BUTTON_OPEN_LAYOUT_DIALOG , MENU_BUTTON_KILL_ALL ], "sloodleset:cmddialog_mothership", [MENU_BUTTON_RESET, MENU_BUTTON_OPEN_REZ_DIALOG , MENU_BUTTON_OPEN_LAYOUT_DIALOG , MENU_BUTTON_KILL_ALL], id, "set");
+    }
 }
 
 // Add the given agent to our command dialog list
@@ -200,7 +222,8 @@ default
     state_entry()
     {
         // Starting again with a new configuration
-        llSetTexture("touch_to_set_moodle", 0);
+       // llSetTexture("touch_to_set_moodle", TEX_SIDE);
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_SET_RESET, "", NULL_KEY);
         llSetText("", <0.0,0.0,0.0>, 0.0);
         isconfigured = FALSE;
         eof = FALSE;
@@ -218,8 +241,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -335,7 +358,8 @@ state ready
     state_entry()
     {
         // Display the site and course info in the hover text
-        llSetTexture("sloodle_ready", 0);
+       // llSetTexture("sloodle_ready", TEX_SIDE);
+        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_SET_CONFIGURED, "", NULL_KEY);
         sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 1.0], "readyconnectedto:sitecourse", [sloodleserverroot, sloodlecoursename_full], NULL_KEY, "");
         // Run a regular timer to cancel expired dialogs
         llSetTimerEvent(12.0);
@@ -346,9 +370,9 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i;
+        integer i = 0;
         key id = NULL_KEY;
-        for (i = 0; i < num_detected; i++) {
+        for (; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Check the use access level here
             if (sloodle_check_access_use(id)) {
@@ -378,6 +402,15 @@ state ready
                 // Reset the object
                 sloodle_reset();
                 return;
+            } else if (msg == MENU_BUTTON_OPEN_REZ_DIALOG) {
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_REZ_DIALOG , "", id);
+                return;
+            } else if (msg == MENU_BUTTON_OPEN_LAYOUT_DIALOG) {
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_SET_MENU_BUTTON_OPEN_LAYOUT_DIALOG , "", id);                
+                return;                
+            } else if (msg == MENU_BUTTON_KILL_ALL) {
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_SET_MENU_BUTTON_KILL_ALL , "", id);        
+                return;                
             }
         }
     }
