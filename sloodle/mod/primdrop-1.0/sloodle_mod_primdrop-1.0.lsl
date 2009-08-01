@@ -393,6 +393,7 @@ state check_assignment
         if (status != 200) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             sloodle_reset();
             return;
         }
@@ -670,7 +671,7 @@ state submitting
         httpsubmit = NULL_KEY;
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             state ready;
             return;
         }

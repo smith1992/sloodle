@@ -22,7 +22,7 @@
 list ignorelist = ["sloodle_config","sloodle_object_distributor","sloodle_setup_notecard","sloodle_slave_object","sloodle_debug"];
 //
 // ***** ----------- *****
-integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
+
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
@@ -36,7 +36,7 @@ string SLOODLE_EOF = "sloodleeof";
 
 string SLOODLE_OBJECT_TYPE = "distributor-1.0";
 
-string sloodleserverroot = "";
+string sloodleserverroot = ""; 
 integer sloodlecontrollerid = 0;
 string sloodlepwd = "";
 integer sloodlemoduleid = 0;
@@ -101,18 +101,7 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
-/******************************************************************************************************************************
-* sloodle_error_code - 
-* Author: Paul Preibisch
-* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
-* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
-* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
-* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
-* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
-*******************************************************************************************************************************/
-sloodle_error_code(string method, key avuuid,integer statuscode){
-            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
-}
+
 sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
@@ -507,7 +496,7 @@ state connecting
         
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             state ready;
             return;
         }
@@ -534,8 +523,7 @@ state connecting
                 string errmsg = llList2String(lines, 1);
                 sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
             }
-            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
-            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
             sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 1.0], "connectionfailed", [], NULL_KEY, "");
         }
         

@@ -8,8 +8,9 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
-//
+//  Paul Preibisch - Fire Centaur in SL
 
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 // Memory-saving hacks!
 key null_key = NULL_KEY;
 
@@ -100,7 +101,18 @@ float totalscore = 0.0;
 
 
 ///// FUNCTIONS /////
-
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 
 sloodle_debug(string msg)
 {
@@ -365,8 +377,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i=0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -507,16 +519,16 @@ state check_quiz
         httpquizquery = null_key;
         // Make sure the response was OK
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror", [status], null_key, "");
+           sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl 
             state default;
         }
         
         // Split the response into several lines
-        list lines = llParseString2List(body, ["\n"], []);
+        list lines = llParseStringKeepNulls(body, ["\n"], []);
         integer numlines = llGetListLength(lines);
         body = "";
         list statusfields = llParseStringKeepNulls(llList2String(lines,0), ["|"], []);
-        integer statuscode = (integer)llStringTrim(llList2String(statusfields, 0), STRING_TRIM);
+        integer statuscode = llList2Integer(statusfields, 0);
         
         // Was it an error code?
         if (statuscode == -10301) {
@@ -529,8 +541,9 @@ state check_quiz
             state ready;
             return;
             
-        } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+        } else if (statuscode <= 0) {            
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl            
             // Check if an error message was reported
             if (numlines > 1) sloodle_debug(llList2String(lines, 1));
             state ready;
@@ -772,7 +785,7 @@ state quizzing
         llSetTimerEvent(0.0);
         // Make sure the response was OK
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror", [status], null_key, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             state default;
         }
         
@@ -799,7 +812,8 @@ state quizzing
             return;
             
         } else if (statuscode <= 0) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             // Check if an error message was reported
             if (numlines > 1) sloodle_debug(llList2String(lines, 1));
             return;

@@ -7,7 +7,6 @@
 // Contributors:
 //  Peter R. Bloomfield
 //  Paul Preibisch (Fire Centaur in SL)
-
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
@@ -346,7 +345,7 @@ state ready
             
             // Make sure the HTTP response was OK
             if (status != 200) {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror", [status], NULL_KEY, "");
+                sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
                 return;
             }
             

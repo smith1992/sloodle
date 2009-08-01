@@ -578,6 +578,7 @@ state logging
         // Make sure the request worked
         if (status != 200) {
             sloodle_debug("Failed HTTP response. Status: " + (string)status);
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             return;
         }
 
