@@ -597,7 +597,7 @@ state logging
         // Was it an error code?
         if (statuscode <= 0) {
             
-          //  sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             // Do we have an error message to go with it?
             string msg = "ERROR: linker script responded with status code " + (string)statuscode;
             if (numlines > 1) {

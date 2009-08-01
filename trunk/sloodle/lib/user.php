@@ -227,6 +227,7 @@
             return false;
         }
     
+   
         /**
         * Links the current avatar to the current user.
         * <b>NOTE:</b> does not remove any other avatar links to the VLE user.
@@ -611,7 +612,23 @@
             }
             return $usercourses;
         }
-        
+           
+            /**
+             * is_really_enrolled checks if the current user is enrolled in the course.  The other is_enrolled function
+             * evaluates to true for administrators even if they are not enrolled in the course. This function will
+             * evaluate to false for administrators
+             * @param $courseid [integer] the id of the course
+             */
+            function is_really_enrolled($courseid)
+            {
+         
+                global $USER;
+                global $CFG;
+                $sql = "SELECT u.id, u.username FROM ".$CFG->prefix."user u, ".$CFG->prefix."role_assignments r";
+                 $sql .= " WHERE u.id = r.userid";
+                 $sql .= " AND r.contextid =".$courseid." AND u.id=".$USER->id;
+                return get_records_sql($sql);
+        }
         /**
         * Is the current user enrolled in the specified course?
         * NOTE: a side effect of this is that it logs-in the user
@@ -622,6 +639,7 @@
         */
         function is_enrolled($courseid)
         {
+            
             global $USER;
             // Attempt to log-in the user
             if (!$this->login()) return false;
@@ -637,6 +655,7 @@
             // Allow the site course
             return ($courseid == SITEID || (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)));
         }
+             
         
         /**
         * Is the current user Sloodle staff in the specified course?

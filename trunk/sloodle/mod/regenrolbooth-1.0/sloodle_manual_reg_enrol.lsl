@@ -8,7 +8,7 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
-//
+//  Paul Preibisch - Fire Centaur in SL
 
 // Can be supplied with 3 link messages for registration only, enrolment only, or both.
 // The avatar in question should be identified in the key value for all 3.

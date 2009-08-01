@@ -13,7 +13,7 @@
         // Memory-saving hacks!
         key null_key = NULL_KEY;
 
-        
+        integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651;
         integer doRepeat = 0; // whether we should run through the questions again when we're done
         integer doDialog = 1; // whether we should ask the questions using dialog rather than chat
         integer doPlaySound = 1; // whether we should play sound
@@ -89,13 +89,22 @@
         
         
         ///// FUNCTIONS /////
-        
-        
-        sloodle_debug(string msg)
+        /******************************************************************************************************************************
+        * sloodle_error_code - 
+        * Author: Paul Preibisch
+        * Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+        * The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+        * Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+        * Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+        * Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+        *******************************************************************************************************************************/
+        sloodle_error_code(string method, key avuuid,integer statuscode){
+                    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+        }        sloodle_debug(string msg)
         {
             llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, null_key);
-        }
-        
+        }        
+
         // Configure by receiving a linked message from another script in the object
         // Returns TRUE if the object has all the data it needs
         integer sloodle_handle_command(string str) 
@@ -196,16 +205,19 @@
                 // Go through each option
                 integer num_options = llGetListLength(optext_current);
                 
-                
-                for (qi = 1; qi <= num_options; qi++) {
-                    // Append this option to the main dialog (remebering buttons are 1-based, but lists 0-based)
-                    qdialogtext += (string)qi + ": " + llList2String(optext_current,qi-1) + "\n";
-                    // Add a button for this option
-                    qdialogoptions = qdialogoptions + [(string)qi];
-                }
-                // Present the dialog to the user
-                llDialog(sitter, qdialogtext, qdialogoptions, SLOODLE_CHANNEL_AVATAR_DIALOG);
-                
+                if ((qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
+                   // Ask the question via IM
+                   llInstantMessage(sitter, qtext_current);
+            } else {
+            for (qi = 1; qi <= num_options; qi++) {
+                // Append this option to the main dialog (remebering buttons are 1-based, but lists 0-based)
+                qdialogtext += (string)qi + ": " + llList2String(optext_current,qi-1) + "\n";
+                // Add a button for this option
+                qdialogoptions = qdialogoptions + [(string)qi];
+            }
+            // Present the dialog to the user
+            llDialog(sitter, qdialogtext, qdialogoptions, SLOODLE_CHANNEL_AVATAR_DIALOG);
+            }
             } else {
                 
                 // Ask the question via IM
@@ -502,12 +514,9 @@
                     state ready;
                     return;
                     
-                }else if (statuscode == -321) {                    
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notenrolled", [], null_key, "quiz");
-                     state ready;                   
-                    return;
                 } else if (statuscode <= 0) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+                    //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+                     sloodle_error_code(SLOODLE_TRANSLATE_IM, sitter,statuscode); //send message to error_message.lsl                 
                     // Check if an error message was reported
                     if (numlines > 1) sloodle_debug(llList2String(lines, 1));
                     state ready;
@@ -615,9 +624,10 @@
                     return;
                 }
                 
-                // Listen for answers coming in from the avatar
-                if (doDialog) llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", sitter, "");
-                else llListen(0, "", sitter, "");
+                // Listen for answers coming in from the avatar in both suitable channels
+
+                llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", sitter, "");
+                llListen(0, "", sitter, "");
                 
                 // Start from the beginning
                 active_question = 0;
@@ -633,8 +643,11 @@
             listen(integer channel, string name, key id, string message)
             {
                 // If using dialogs, then only listen to the dialog channel
-                if (doDialog) {
-                    if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG) return;
+                if (doDialog && ((qtype_current == "multichoice") || (qtype_current == "truefalse"))) {
+                    if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG){
+                               llSay(0,"not dialog ?");
+                         return;
+                         }
                 } else {
                     if (channel != 0) return;
                 }
@@ -646,7 +659,7 @@
                     string feedback = "";
                     
                     // Check the type of question this was
-                    if ((qtype_current == "multichoice") || (qtype_current == "truefalse") || (qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
+                    if ((qtype_current == "multichoice") || (qtype_current == "truefalse")) {
                         // Multiple choice - the response should be a number from the dialog box (1-based)
                         integer answer_num = (integer)message;
                         // Make sure it's valid
@@ -657,10 +670,27 @@
                             feedback = llList2String(opfeedback_current, answer_num);
                             scorechange = llList2Float(opgrade_current, answer_num);
                             // Notify the server of the response
-                            if ((qtype_current == "multichoice") || (qtype_current == "truefalse")) {
-                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(opids_current, answer_num));}
-                            if ((qtype_current == "numerical") || (qtype_current == "shortanswer")) {
-                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(optext_current, answer_num));}
+                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(opids_current, answer_num));
+                        } else {
+                            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");
+                            ask_current_question();
+                        }        
+                    
+                    } else if ((qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
+                               // Notify the server of the response
+                               integer x = 0;
+                               integer num_options = llGetListLength(optext_current);
+                               for (x = 0; x < num_options; x++) {
+                                   if (message == llList2String(optext_current, x)) {
+                                      feedback = llList2String(opfeedback_current, x);
+                                      scorechange = llList2Float(opgrade_current, x);
+                                   }
+                               notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
+                               }        
+                    } else {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
+                    }
+
                             // Give the user feedback, and add their score
                             move_vertical(scorechange); // Visual feedback
                             play_sound(scorechange); // Audio feedback
@@ -673,15 +703,8 @@
                             } else {
                             sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "incorrect", [llKey2Name(sitter)], NULL_KEY, "quiz");
                             }
+                            llSleep(1.);  //wait to finish the sloodle_translation_request before next question.
         
-                        } else {
-                            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");
-                            ask_current_question();
-                        }        
-                    
-                    } else {
-                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
-                    }
                     
                     // Are we are at the end of the quiz?
                     if ((active_question + 1) >= num_questions) {
@@ -735,8 +758,8 @@
             
             touch_start(integer num)
             {
-                if ((active_question + 1) < num_questions)
-                    if (llDetectedKey(0) == sitter) ask_current_question();
+                 if ((active_question + 1) < num_questions)
+                if (llDetectedKey(0) == sitter) ask_current_question();
             }
         
             http_response(key request_id, integer status, list metadata, string body)
@@ -781,12 +804,9 @@
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "noquestions", [], null_key, "");
                     return;
                     
-                } else if (statuscode == -321) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "notenrolled", [], null_key, "quiz");                   
-                    return;
-                    
                 } else if (statuscode <= 0) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+                    //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
+                     sloodle_error_code(SLOODLE_TRANSLATE_IM, sitter,statuscode); //send message to error_message.lsl
                     // Check if an error message was reported
                     if (numlines > 1) sloodle_debug(llList2String(lines, 1));
                     return;

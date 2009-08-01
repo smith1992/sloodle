@@ -202,24 +202,33 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             break;
         
-        case SLOODLE_TYPE_IBANK:
-
+        case SLOODLE_TYPE_AWARDS:
+            //This switch occures when the user adds a new award activity
             // Add the type-specific header
-            $mform->addElement('header', 'typeheader', $sloodletypefull);
-            
-            // The stipend needs an amount and a purpose
-            $mform->addElement('text', 'stipendgiver_amount', get_string('ibank:amount','sloodle'), array('size'=>'10'));             
-            $mform->setDefault('stipendgiver_amount', '0');
-            $mform->addElement('text', 'refreshtime', get_string('refreshtimeseconds','sloodle'), array('size'=>'10')); 
-            $mform->setDefault('refreshtime', '10');            
+            $mform->addElement('header', 'typeheader', $sloodletypefull);           
+            //get all the assignments for the course
+            $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
+            $recs = get_records_select('assignment', "course = $COURSE->id AND assignmenttype='sloodleaward'");
+            if (!is_array($recs)) $recs = array();           
+            $assignments= array();
+            $assignments[]="";
+            foreach ($recs as $ass) {
+                $assignments[$ass->id] = $ass->name;
+            }  
+                      
+            natcasesort($assignments); // Sort the list by name
+           //add icurrency
             $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
-            $mform->addElement('select', 'icurrency',get_string('ibank:typeofcurrency','sloodle'),$pTypes);
-            $mform->addRule('stipendgiver_amount', null, 'numeric', null, 'client');
-            break;
-        
-                                                                           
-       
-        
+            $mform->addElement('select', 'icurrency',get_string('awards:typeofcurrency','sloodle'),$pTypes);
+            $mform->setHelpButton('icurrency', array('icurrency', get_string('awards:help:icurrency','sloodle'), 'sloodle'));
+            //display assignments            
+            $mform->addElement('select', 'assignmentid',get_string('awards:selectassignment','sloodle'),$assignments);
+            $mform->setHelpButton('assignmentid', array('awardsassignment', get_string('help:maxpoints','sloodle'), 'sloodle'));            
+            //maxpoints            
+            $mform->addElement('text', 'maxpoints', get_string('awards:maxpoints', 'sloodle'),'100');
+            $mform->setDefault('maxpoints', 100);
+            $mform->setHelpButton('maxpoints', array('maxpoints', get_string('help:maxpoints','sloodle'), 'sloodle'));            
+            break;  
          } 
 //-------------------------------------------------------------------------------
         // Add the standard course module elements, except the group stuff (as Sloodle doesn't support it)
@@ -282,15 +291,14 @@ class mod_sloodle_mod_form extends moodleform_mod {
         
             break;
                 
-        case SLOODLE_TYPE_IBANK:
-            // Fetch the stipend giver record
-            $stipendgiver = get_record('sloodle_ibank', 'sloodleid', $this->_instance);
-            if (!$stipendgiver) error(get_string('secondarytablenotfound', 'sloodle'));
+        case SLOODLE_TYPE_AWARDS:
+            // Fetch the awards record
+            $awards = get_record('sloodle_awards', 'sloodleid', $this->_instance);
+            if (!$awards) error(get_string('secondarytablenotfound', 'sloodle'));
             
-            // Add in the amount and currency of the ibank
-            $default_values['stipendgiver_amount'] = $stipendgiver->amount;
-            $default_values['icurrency'] = $stipendgiver->icurrency;
-            
+            $default_values['icurrency'] = $awards->icurrency;
+            $default_values['assignmentid'] = $awards->assignmentid;
+            $default_values['maxpoints'] =$awards->maxpoints;
             
             break;
   
@@ -377,7 +385,7 @@ switch ($data['type']) {
             break; 
 
         // ADD FUTURE TYPES HERE
-           case SLOODLE_TYPE_IBANK:           //MOVED TO 0.41
+           case SLOODLE_TYPE_AWARDS:           //MOVED TO 0.41
             // Nothing to error check
            break; 
 
