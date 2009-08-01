@@ -327,9 +327,14 @@ sloodle_rez_inventory(string name, integer password, vector pos, rotation rot)
         // So the only position we'll need will be the offset from the rezzer.
         // llRezObject(name, llGetRootPosition() + (pos * llGetRootRotation()), ZERO_VECTOR, rot * llGetRootRotation(), password);
     
-        // llOwnerSay("processed rot is "+(string)rot);
-        // TODO: Deal with the situation where the rezzer isn't where we asked it to be...
-        llRezAtRoot(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
+        // If we're doing a regular rez, we want to rez based on the object size so we get the object right under the rezzer. We do this with llRezObject.
+        // But when we save layout entries, llDetectedPos gives us the positions of the root prims. 
+        // So if we're rezzing a layout, we'll use llRezAtRoot.
+        if (rez_layout_entry_id == "") {
+            llRezObject(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);
+        } else {
+            llRezAtRoot(name, llGetRootPosition() + rez_offset, ZERO_VECTOR, rot, password);            
+        }
     } else {
         llRezObject(name, llGetRootPosition() + ( rez_offset * llGetRootRotation() ), ZERO_VECTOR, rot, password);        
     }
@@ -743,4 +748,5 @@ state rezzing
         state ready;
     }
 }
+
 
