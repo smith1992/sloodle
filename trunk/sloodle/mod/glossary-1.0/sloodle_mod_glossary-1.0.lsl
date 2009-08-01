@@ -1,25 +1,21 @@
-// "PictureGloss" -- SLOODLE MetaGloss modified to show textures instead of text definitions
-
-///////////////////////////////////////////
-// Allows users in-world to search the Moodle glossary
-// for images and displays them while resizing the prim.
+// Sloodle Glossary (for Sloodle 0.3)
+// Allows users in-world to search a Moodle glossary.
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-9 SLOODLE (various contributors)
+// Copyright (c) 2006-8 Sloodle
 // Released under the GNU GPL
 //
 // Contributors:
 //  Jeremy Kemp
 //  Peter R. Bloomfield
-//
-///////////////////////////////////////////
+//  Paul Preibisch (Fire Centaur in SL)
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_GLOSSARY_LINKER = "/mod/sloodle/mod/glossary-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
-string SLOODLE_OBJECT_TYPE = "glossary-1.0"; // We just use the regular glossary tools server-side
+string SLOODLE_OBJECT_TYPE = "glossary-1.0";
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
@@ -44,11 +40,9 @@ key httpcheck = NULL_KEY; // Request used to check the glossary
 key httpsearch = NULL_KEY; // Request used to search the glossary
 float HTTP_TIMEOUT = 10.0; // Period of time to wait for an HTTP response before giving up
 
-string SLOODLE_METAGLOSS_COMMAND = "/pix "; // The command prefix for searching via chat message
+string SLOODLE_METAGLOSS_COMMAND = "/def "; // The command prefix for searching via chat message
 string searchterm = ""; // The term to be searched
 key searcheruuid = NULL_KEY; // Key of the avatar searching
-
-string PICTUREGLOSS_TEXTURE = "SLOODLE PictureGloss texture"; // Name of the default texture to display on the PictureGloss
 
 
 ///// TRANSLATION /////
@@ -84,13 +78,13 @@ sloodle_translation_request(string output_method, list output_params, string str
 * Author: Paul Preibisch
 * Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
 * The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
 * Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
 * Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
 *******************************************************************************************************************************/
 sloodle_error_code(string method, key avuuid,integer statuscode){
             llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
 }
-
 sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
@@ -173,10 +167,6 @@ default
         sloodlesearchdefinitions = 0;
         sloodleidletimeout = 120;
         sloodleglossaryname = "";
-        
-        // Reset to our default texture and size
-        llSetScale(<1.0, 1.0, 1.0>);
-        llSetTexture(PICTUREGLOSS_TEXTURE, ALL_SIDES);
     }
     
     link_message( integer sender_num, integer num, string str, key id)
@@ -261,7 +251,7 @@ state check_glossary
         // Make sure this is the response we're expecting
         if (id != httpcheck) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+        sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             sloodle_reset();
             return;
         }
@@ -274,10 +264,8 @@ state check_glossary
         
         // Check the statuscode
         if (statuscode <= 0) {
-            string errmsg = (string)statuscode;
-            if (numlines > 1) errmsg += ": " + llList2String(lines, 1);
-            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [errmsg], NULL_KEY, "");
-            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode);     
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             sloodle_reset();
             return;
         }
@@ -379,11 +367,17 @@ state shutdown
     
     touch_start(integer num_detected)
     {
-        // Does this user have permission to use this object?
-        if (sloodle_check_access_use(llDetectedKey(0))) {
-            state ready;
-        } else {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [], NULL_KEY, "");
+        // Go through each toucher
+        integer i = 0;
+        key id = NULL_KEY;
+        for (; i < num_detected; i++) {
+            id = llDetectedKey(i);
+            // Does this user have permission to use this object?
+            if (sloodle_check_access_use(id)) {
+                state ready;
+            } else {
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [], NULL_KEY, "");
+            }
         }
     }
 }
@@ -445,15 +439,10 @@ state search
     http_response(key id, integer status, list meta, string body)
     {
         // Make sure this is the response we're expecting
-        if (id != httpsearch) {
-            return;
-        }
-
-        httpsearch = NULL_KEY;
-        llSetTimerEvent(0.0);
+        if (id != httpsearch) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
-            state ready;
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
+            sloodle_reset();
             return;
         }
         
@@ -465,11 +454,8 @@ state search
         
         // Check the statuscode
         if (statuscode <= 0) {
-            string errmsg = (string)statuscode;
-            if (numlines > 1) errmsg += ": " + llList2String(lines, 1);
-           // sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [errmsg], NULL_KEY, "");
-           sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode);
-            state ready;
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_reset();
             return;
         }
         
@@ -483,25 +469,7 @@ state search
             // Split this definition into fields
             fields = llParseStringKeepNulls(llList2String(lines, defnum), ["|"], []);
             if (llGetListLength(fields) >= 2) {
-                llSay(0, llList2String(fields, 0) + " = " + llList2String(fields, 1)); 
-//-------------------
-//The definition is spoken here - and here is hte added code
-                list TextureList=llParseString2List(llList2String(fields, 1),[":"],[]);
-                
-                // Make sure the appropriate number of fields have been specified
-                if (llGetListLength(TextureList) >= 3) {                
-                    string TextureUUID=llList2String(TextureList,0);
-                    string PrimScaleWidth=llList2String(TextureList,1);
-                    string PrimScaleHeight=llList2String(TextureList,2); 
-                    llOwnerSay(TextureUUID+"/"+PrimScaleWidth+"/"+PrimScaleHeight);
-                      
-                    llSetTexture( llStringTrim( TextureUUID, STRING_TRIM) , ALL_SIDES);
-                    llSetPrimitiveParams([PRIM_SIZE,<(integer)PrimScaleWidth/100,(integer)PrimScaleWidth/100,(integer)PrimScaleHeight/100>]);
-                } else {
-                    llSay(0, "ERROR: invalid texture data in glossary. Please ensure the definition has the format \"UUID:width:height\".");
-                }
-//------------------------
-
+                llSay(0, llList2String(fields, 0) + " = " + llList2String(fields, 1));
             } else {
                 llSay(0, llList2String(fields, 0));
             }

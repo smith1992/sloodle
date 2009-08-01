@@ -8,7 +8,6 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
-//  Paul Preibisch (Fire Centaur in SL)
 
 
 ///// DATA /////
@@ -246,6 +245,7 @@ state running
             // Check the HTTP response
             if (status != 200) {
                 sloodle_debug("Update failed with HTTP status " + (string)status);
+                sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
                 return;
             }
             // Extract the status code of the response
@@ -268,6 +268,7 @@ state running
         // Check that it was a successful response
         if (status != 200) {
             sloodle_debug("Avatar notification failed with HTTP status " + (string)status);
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             return;
         }
         if (body == "") {

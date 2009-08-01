@@ -38,6 +38,7 @@ list httprequests = []; // A list of http request keys, corresponding to the "av
 ///// TRANSLATION /////
 
 // Link message channels
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
 
@@ -63,7 +64,18 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
-
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
@@ -188,8 +200,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -266,7 +278,7 @@ state ready
         
         // Check the response status
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             return;
         }
         
@@ -296,7 +308,8 @@ state ready
             
         } else if (statuscode <= 0) {
             // Error occurred
-            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:failed:code", [name, statuscode], av, "pwreset");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "pwreseterror:failed:code", [name, statuscode], av, "pwreset");
+            sloodle_error_code(SLOODLE_TRANSLATE_IM, av,statuscode); //send message to error_message.lsl
             sloodle_debug("ERROR reported in response: " + body);
             return;
         }

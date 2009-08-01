@@ -492,7 +492,7 @@
                 httpquizquery = null_key;
                 // Make sure the response was OK
                 if (status != 200) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror", [status], null_key, "");
+                        sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
                     state default;
                 }
                 
@@ -778,7 +778,7 @@
                 llSetTimerEvent(0.0);
                 // Make sure the response was OK
                 if (status != 200) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror", [status], null_key, "");
+                    sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
                     state default;
                 }
                 

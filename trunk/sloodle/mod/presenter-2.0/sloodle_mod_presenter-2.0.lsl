@@ -9,7 +9,7 @@
 //  Peter R. Bloomfield
 //  Paul G. Preibisch (Fire Centaur)
 //  
-
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_PRESENTER_LINKER = "/mod/sloodle/mod/presenter-2.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
@@ -83,6 +83,18 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 // Just returns a random integer - used for setting channels
 integer random_integer( integer min, integer max )
 {
@@ -461,7 +473,7 @@ state running
         
         // Make sure the request worked
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             return;
         }
 
@@ -498,7 +510,8 @@ state running
             if (numlines > 1) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleerror:desc", [statuscode, llList2String(lines, 1)], NULL_KEY, "");
             } else {
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleerror", [statuscode], NULL_KEY, "");
+               // sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "sloodleerror", [statuscode], NULL_KEY, "");
+               sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             }
             
             return;
