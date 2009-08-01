@@ -8,7 +8,7 @@
 * @copyright Copyright (c) 2008 Sloodle (various contributors)
 * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
 * @see http://slisweb.sjsu.edu/sl/index.php/Sloodle_Stipend_Giver
-* @see iBank
+* @see award
 *
 * @contributer Paul Preibisch - aka Fire Centaur 
 */
@@ -86,8 +86,8 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
           
         if (!$this->sloodleCourseObject->load($this->courseRec)) error(get_string('failedcourseload', 'sloodle'));
         //set course context
-          $this->courseContext = get_record('context','instanceid',(int)$this->cm->instance);   
-             
+          $this->courseContext =get_context_instance_by_id((int)$this->cm->instance);
+            //  get_records('context','instanceid',(int)$this->cm->instance);
           
         // Fetch the SLOODLE instance itself
         if (!$this->sloodleRec = get_record('sloodle', 'id', $this->cm->instance)) error('Failed to find SLOODLE module instance');
@@ -104,12 +104,13 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
           
       } 
       function get_avatar($userid){
-         return  get_record('sloodle_users', 'userid', $userid);            
+         $recs = get_records('sloodle_users', 'userid', $userid);            
+         return $recs;
       }
       //returns a list of avatars in the class
       function getAvatarList($userList){
          $avList = array();
-
+         if ($userList){
          foreach ($userList as $u){             
              $sloodledata = get_records('sloodle_users', 'userid', $u->id);   
              //only adds users who have a linked avatar
@@ -123,13 +124,10 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
                    $avList[]=$av;
                   
                 }
-             
-             
+               }
              }
          }
-
          return $avList;
-         
       }
       function getSloodleId(){
         return $this->sloodleId;
@@ -182,8 +180,9 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
      }
      function get_user_by_uuid($avuuid){
          global $CFG;
-         $sql='SELECT *  FROM '.$CFG->prefix.'sloodle_users WHERE `uuid`=\''.$avuuid.'\''; 
-         $rec=get_record_sql($sql); 
+         //$sql='SELECT *  FROM '.$CFG->prefix.'sloodle_users WHERE `uuid`=\''.$avuuid.'\''; 
+         $avuuid = addslashes($avuuid);
+         $rec=get_record_select('users','uuid',$avuuid);
          if (empty($rec)) return null;       
          return $rec;
          

@@ -8,12 +8,13 @@
 // Contributors:
 //  Jeremy Kemp
 //  Peter R. Bloomfield
-//
+//  Paul Preibisch (Fire Centaur in SL)
 
 
 /// DATA ///
 
 // Sloodle constants
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_PRIMDROP_LINKER = "/mod/sloodle/mod/primdrop-1.0/linker.php";
@@ -102,6 +103,18 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 /// FUNCTIONS ///
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 
 sloodle_debug(string msg)
 {
@@ -233,8 +246,8 @@ list get_inventory(integer type)
 {
     list inv = [];
     integer num = llGetInventoryNumber(type);
-    integer i;
-    for (i = 0; i < num; i++) {
+    integer i = 0;
+    for (; i < num; i++) {
         inv += [llGetInventoryName(type, i)];
     }
     
@@ -312,8 +325,8 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
-            for (i = 0; i < numlines; i++) {
+            integer i = 0;
+            for (; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -412,7 +425,8 @@ state check_assignment
                 string errmsg = llList2String(lines, 1);
                 sloodle_debug("ERROR " + (string)statuscode + ": " + errmsg);
             }
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
             sloodle_reset();
             return;
@@ -461,10 +475,10 @@ state ready
     touch_start(integer num_detected)
     {
         // Go through each toucher
-        integer i;
+        integer i = 0;
         key id = NULL_KEY;
         integer level = 0;
-        for (i = 0; i < num_detected; i++) {
+        for (; i < num_detected; i++) {
             id = llDetectedKey(i);
             // Can this avatar use and/or control this item?
             if (sloodle_check_access_ctrl(id)) level = 2;
@@ -683,7 +697,10 @@ state submitting
             else if (statuscode == -10202)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:early", [current_user_name], NULL_KEY, "assignment");
             else if (statuscode == -10203)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:late", [current_user_name], NULL_KEY, "assignment");
             else if (statuscode == -10205)  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:noresubmit", [current_user_name], NULL_KEY, "assignment");
-            else sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionfailed", [current_user_name, statuscode], NULL_KEY, "assignment");
+            else {
+                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:submissionfailed", [current_user_name, statuscode], NULL_KEY, "assignment");
+                 sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
+            }
             
             // Debug output, if possible
             if (numlines > 1) {

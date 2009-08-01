@@ -77,7 +77,8 @@
         
         // Ask the user to select a chatroom
         echo get_string('selectchatroom','sloodle').': ';
-        choose_from_menu($chatrooms, 'sloodlemoduleid', $sloodlemoduleid, '');
+        $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
+        
         echo "<br><br>\n";
     
         // Listening to object chat
