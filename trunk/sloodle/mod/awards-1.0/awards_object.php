@@ -9,7 +9,9 @@
     * @contributor Paul G. Preibisch - aka Fire Centaur 
     */
 global $CFG;    
-require_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
+if (file_exists($CFG->dirroot+"/mod/assignment/type/sloodleaward/assignment.class.php"))
+    require_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
+
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards{
@@ -26,9 +28,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       * The class Contstructor
       * @var $id - the sloodle id of this stipendgiver
       */
-      function Awards($sloodleId){          
-          
-  
+      function Awards($sloodleId){
+      global $CFG;          
+          if (!file_exists($CFG->dirroot+"/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+          error("The sloodleawards asigment object is not installed. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
+          return;
+          }
           $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$sloodleId); 
           $this->sloodleId=$sloodleId;           
           $this->icurrency=$this->sloodle_awards_instance->icurrency;
@@ -179,31 +184,17 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          global $CFG; 
          $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId);
          $credits=0;
-         foreach ($totalAmountRecs as $userCredits){
-             $credits+=$userCredits->amount;
-         }
+         if ($totalAmountRecs)
+            foreach ($totalAmountRecs as $userCredits){
+                 $credits+=$userCredits->amount;
+            }
          $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId);
          $debits=0;         
-         foreach ($totalAmountRecs as $userDebits){
-             $debits+=$userDebits->amount;
-         }
+         if ($totalAmountRecs)
+            foreach ($totalAmountRecs as $userDebits){
+                 $debits+=$userDebits->amount;
+            }
          $balances = $credits-$debits;
-/*         $totalCreditsSql='SELECT SUM(amount) as total  FROM '.$CFG->prefix.'sloodle_award_trans'.
-                             ' WHERE itype=\'credit\' AND sloodleid='.$this->sloodleId;
-                             
-                             
-         $totalDebitsSql='SELECT SUM(amount) as total FROM '.$CFG->prefix.'sloodle_award_trans'.
-                             ' WHERE itype=\'debit\' AND sloodleid='.$this->sloodleId;
-         $allTransactionsSql ='SELECT COUNT(id) as total FROM '.$CFG->prefix.'sloodle_award_trans'.
-                             ' WHERE sloodleid='.$this->sloodleId;
-                       
-         $totalCredits = get_record_sql($totalCreditsSql);         
-         $totalDebits = get_record_sql($totalDebitsSql);         
-         $totalRecs = get_record_sql($allTransactionsSql);         
-               
-         $credits = $totalCredits->total;
-         $debits = $totalDebits->total;
-               */
          $totals= new stdClass();
          $totals->totalcredits = $credits;
          $totals->totaldebits = $debits;
@@ -229,11 +220,21 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      function awards_removeTransaction($userId,$iType){
          return delete_records("sloodle_award_trans",'sloodleid',$this->getSloodleId(),'itype',$iType,'userid',$userId);
      }
-      function awards_updateTransaction($transRec){
+     function awards_updateTransaction($transRec){
         if (!update_record("sloodle_award_trans",$transRec))
             error(get_string("cantupdate","sloodle"));
-      }
-        /**
+     }
+     function get_assignment_id(){
+         return $this->sloodle_awards_instance->assignmentid;
+     }
+     function get_assignment_name(){
+         $recs = get_record('assignment','id',(int)$this->sloodle_awards_instance->assignmentid);
+         if ($recs)
+            return $recs->name;
+         else return null;
+     }
+      
+      /**
      * @method getLastTransaction
      * @author Paul Preibisch
      * 
@@ -294,9 +295,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      }
      
   } 
-      
-         
-                  
+   
      /**
      * getAvatarDebits function
      * @desc This function will search through all the transactions 
