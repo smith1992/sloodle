@@ -9,7 +9,7 @@
     * @contributor Paul G. Preibisch - aka Fire Centaur 
     */
 global $CFG;    
-require_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
+//require_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards{
