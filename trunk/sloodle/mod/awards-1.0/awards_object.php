@@ -9,9 +9,8 @@
     * @contributor Paul G. Preibisch - aka Fire Centaur 
     */
 global $CFG;    
-if (file_exists($CFG->dirroot+"/mod/assignment/type/sloodleaward/assignment.class.php"))
-    require_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 
+    @include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards{
@@ -28,12 +27,9 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       * The class Contstructor
       * @var $id - the sloodle id of this stipendgiver
       */
-      function Awards($sloodleId){
-      global $CFG;          
-          if (!file_exists($CFG->dirroot+"/mod/assignment/type/sloodleaward/assignment.class.php"))        {
-          error("The sloodleawards asigment object is not installed. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
-          return;
-          }
+      function Awards($sloodleId){          
+          
+  
           $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$sloodleId); 
           $this->sloodleId=$sloodleId;           
           $this->icurrency=$this->sloodle_awards_instance->icurrency;
