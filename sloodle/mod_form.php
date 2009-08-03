@@ -214,6 +214,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $assignments[]="";
             foreach ($recs as $ass) {
                 $assignments[$ass->id] = $ass->name;
+                
             }  
                       
             natcasesort($assignments); // Sort the list by name
