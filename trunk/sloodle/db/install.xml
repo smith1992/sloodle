@@ -259,7 +259,7 @@
         <KEY NAME="sloodleid" TYPE="unique" FIELDS="sloodleid" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="sloodle_presenter_entry" COMMENT="sloodle_presenter_entry table retrofitted from MySQL" PREVIOUS="sloodle_presenter" NEXT="awards">
+    <TABLE NAME="sloodle_presenter_entry" COMMENT="sloodle_presenter_entry table retrofitted from MySQL" PREVIOUS="sloodle_presenter" NEXT="sloodle_awards">
       <FIELDS>
 
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
