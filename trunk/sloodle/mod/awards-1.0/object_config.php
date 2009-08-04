@@ -88,6 +88,13 @@
     
         // Create a new section box for general configuration options
         print_box_start('generalbox boxaligncenter');
+        ?>
+        <!--  
+            The Golden Man image is licenced under the Creative Commons License here:
+            http://creativecommons.org/licenses/by-sa/3.0/
+            And was created by: LuMaxArt Linkware Image www.lumaxart.com/
+            -->
+        <?php
         echo '<img src="'.SLOODLE_WWWROOT.'/lib/media/award.gif"><h3>'.get_string('generalconfiguration','sloodle').'</h3>';
         helpbutton("awards_confighelp","Choose Sloodle Award System","sloodle",true,false,"",false);
          // Ask the user to select an awards
