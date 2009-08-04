@@ -19,14 +19,15 @@
     *  @contributor Paul G. Preibisch
     */
     global $CFG;
-    if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
-          error("The sloodleawards asigment object is not installed in ".$CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php".". Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
-          return;
-    }
+    
     // IMPORTANT: make sure this is called from within a Sloodle script
     if (!defined('SLOODLE_VERSION')) {
         error('Not called from within a Sloodle script.');
         exit();
+    }
+    if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+          error("The sloodleawards asigment object is not installed in /mod/assignment/type/sloodleaward/assignment.class.php. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
+          return;
     }
     
     // Execute everything within a function to ensure we don't mess up the data in the other file
@@ -93,6 +94,7 @@
             The Golden Man image is licenced under the Creative Commons License here:
             http://creativecommons.org/licenses/by-sa/3.0/
             And was created by: LuMaxArt Linkware Image www.lumaxart.com/
+            http://www.flickr.com/photos/lumaxart/2293239853/sizes/l/
             -->
         <?php
         echo '<img src="'.SLOODLE_WWWROOT.'/lib/media/award.gif"><h3>'.get_string('generalconfiguration','sloodle').'</h3>';
