@@ -134,14 +134,16 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                  
                  $submission = $sloodleAssignment->prepare_new_submission($iTransaction->userid,true);
                  $submission->timecreated=time();
+                 $submission->timemarked=time();
+                 $submission->timemodified=time();
                  
                  $submission->teacher = $USER->id;
                  $submission->submissioncomment="Sloodle Awards Point Update ";
                  $submission->data1="Sloodle Awards Point Update ";
-                 $submission->grade=$newGrade;
+                 $submission->grade=(int)$newGrade;
                  $sloodleAssignment->update_submission($iTransaction->userid,$submission);
                  require_once($CFG->libdir . "/gradelib.php");
-                grade_update( 'mod/assignment', $COURSE->id, 'mod', 'assignment', $assignmentId, 0, $newgrades);
+                 grade_update( 'mod/assignment', $sCourseObj->courseId, 'mod', 'assignment', $assignmentId, 0, $newgrades);
             }
             return true;
         }
@@ -219,6 +221,27 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      function awards_updateTransaction($transRec){
         if (!update_record("sloodle_award_trans",$transRec))
             error(get_string("cantupdate","sloodle"));
+<<<<<<< .mine
+     }
+     function get_assignment_id(){
+         return $this->sloodle_awards_instance->assignmentid;
+     }
+     function get_assignment_cmid($courseId){
+         
+          $recs = get_record('course_modules','instance',(int)$this->sloodle_awards_instance->assignmentid,'course',(int)$courseId);
+         if ($recs)
+            return $recs->id;
+         else return null;
+     }
+     function get_assignment_name(){
+         $recs = get_record('assignment','id',(int)$this->sloodle_awards_instance->assignmentid);
+         if ($recs)
+            return $recs->name;
+         else return null;
+     }
+      
+      /**
+=======
      }
      function get_assignment_id(){
          return $this->sloodle_awards_instance->assignmentid;
@@ -231,6 +254,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      }
       
       /**
+>>>>>>> .r742
      * @method getLastTransaction
      * @author Paul Preibisch
      * 
