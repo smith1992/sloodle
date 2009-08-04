@@ -18,7 +18,11 @@
     * @contributor Peter R. Bloomfield
     *  @contributor Paul G. Preibisch
     */
-    
+    global $CFG;
+    if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+          error("The sloodleawards asigment object is not installed in ".$CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php".". Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
+          return;
+    }
     // IMPORTANT: make sure this is called from within a Sloodle script
     if (!defined('SLOODLE_VERSION')) {
         error('Not called from within a Sloodle script.');
@@ -71,7 +75,7 @@
         $settings = SloodleController::get_object_configuration($sloodleauthid);
         
         // Setup our default values
-        //sloodlemoduleid comes from the mdl_course_modules table and is the id of the actual distributer module
+        //sloodlemoduleid comes from the mdl_course_modules table and is the id of the actual awards module
         $sloodlemoduleid = (int)sloodle_get_value($settings, 'sloodlemoduleid', 0);
         
       
@@ -92,7 +96,7 @@
         
         choose_from_menu($awards, 'sloodlemoduleid', $sloodlemoduleid,'');
         echo "<br><br>\n";
-        helpbutton("awards_confighelp2","Choose assignment","sloodle",true,false,"",false);
+        //helpbutton("awards_confighelp2","Choose assignment","sloodle",true,false,"",false);
        
         print_box_end();
 
