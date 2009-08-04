@@ -147,7 +147,8 @@
             $awardsId = $sloodle->request->optional_param('sloodlemoduleid'); 
             $userList = $sCourseObj->userList;
             $avatarNamesList = $sCourseObj->getAvatarList($userList);
-            
+            $assignmentId = $awardsObj->get_assignment_id();
+            $assignmentName = $awardsObj->get_assignment_name();
             $sloodle->response->add_data_line("NUM USERS:".count($avatarNamesList)); //line 3  
             
             $sloodle->response->add_data_line("COURSE NAME:".$sCourseObj->sloodleCourseObject->get_full_name()); //line 4         
@@ -165,6 +166,8 @@
             //if it is set to true, then a plugin is the one who the response should go to
             //otherwise if it is false, the awards uses the response
             $sloodle->response->add_data_line("AWARDSID:".$awardsId);               //line8
+            $sloodle->response->add_data_line("ASSIGNMENTID:".$assignmentId);               //line 9
+            $sloodle->response->add_data_line("ASSIGNMENTNAME:".$assignmentName);               //line 10        
     }
     /*
     * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
@@ -197,7 +200,7 @@
         8* AWARDSID:114
         */    
         case "REGISTER":
-            $data=$sloodle->request->optional_param('xmlchannel'); 
+            $data=$sloodle->request->optional_param('data'); 
             $awardsObj->setXmlChannel($data);
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
