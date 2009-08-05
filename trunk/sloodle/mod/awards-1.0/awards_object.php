@@ -13,7 +13,7 @@ global $CFG;
     @include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
-  class Awards{
+  class Awards {
    
       var $sloodleId = null;
       var $transactionRecords = null;
@@ -162,8 +162,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      * 
      * @staticvar $userId moodle id of the user
      */
-      function awards_getTransactionRecords($userId=null)
-      {
+      function awards_getTransactionRecords($userId=null){
           global $CFG,$awardsObj;
          if (!$userId){
             return get_records_select('sloodle_award_trans','sloodleid='.$this->sloodleId,'Timemodified DESC');
@@ -221,7 +220,6 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      function awards_updateTransaction($transRec){
         if (!update_record("sloodle_award_trans",$transRec))
             error(get_string("cantupdate","sloodle"));
-<<<<<<< .mine
      }
      function get_assignment_id(){
          return $this->sloodle_awards_instance->assignmentid;
@@ -241,20 +239,6 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      }
       
       /**
-=======
-     }
-     function get_assignment_id(){
-         return $this->sloodle_awards_instance->assignmentid;
-     }
-     function get_assignment_name(){
-         $recs = get_record('assignment','id',(int)$this->sloodle_awards_instance->assignmentid);
-         if ($recs)
-            return $recs->name;
-         else return null;
-     }
-      
-      /**
->>>>>>> .r742
      * @method getLastTransaction
      * @author Paul Preibisch
      * 
@@ -292,29 +276,27 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      * @return returns a stdObj with credits, debits, balace for the given userid
      */
        
-         function awards_getBalanceDetails($userid){
+     function awards_getBalanceDetails($userid){
          global $CFG;
-         
-         $creditsSql = 'SELECT SUM(amount) as total FROM '.$CFG->prefix.'sloodle_award_trans'.
-                             ' WHERE itype=\'credit\' AND sloodleid='.$this->sloodleId .
-                             ' AND userid='.$userid;
-         $debitsSql = 'SELECT SUM(amount) as total FROM '.$CFG->prefix.'sloodle_award_trans'.
-                             ' WHERE itype=\'debit\' AND sloodleid='.$this->sloodleId .
-                             ' AND userid='.$userid;  
-         $balance=0;                           
-         $debits = get_record_sql($debitsSql);
-         if ($debits->total==NULL) $tdebits = 0; else $tdebits = $debits->total;                  
-         $credits = get_record_sql($creditsSql);   
-         if ($credits->total==NULL) $tcredits = 0; else $tcredits = $credits->total;
-         $balance =$tcredits -  $tdebits;                  
-         $acountInfo = new stdClass();
-          $acountInfo->credits = $tcredits;
-          $acountInfo->debits = $tdebits;
+         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $credits=0;
+         if ($totalAmountRecs)
+            foreach ($totalAmountRecs as $userCredits){
+                 $credits+=$userCredits->amount;
+            }
+         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $debits=0;         
+         if ($totalAmountRecs)
+            foreach ($totalAmountRecs as $userDebits){
+                 $debits+=$userDebits->amount;
+            }
+          $balance = $credits-$debits;
+          $acountInfo = new stdClass();
+          $acountInfo->credits = $credits;
+          $acountInfo->debits = $debits;
           $acountInfo->balance = $balance;
-         return $acountInfo; 
-     }
-     
-  } 
+         return $acountInfo;      
+     } 
    
      /**
      * getAvatarDebits function
@@ -375,5 +357,5 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             return $userlist;
       
       }
-      
+  }      
 ?>
