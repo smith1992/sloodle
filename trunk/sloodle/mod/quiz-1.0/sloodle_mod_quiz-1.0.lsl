@@ -675,8 +675,7 @@
                             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");
                             ask_current_question();
                         }        
-                    
-                    } else if ((qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
+                     } else if (qtype_current == "shortanswer") {
                                // Notify the server of the response
                                integer x = 0;
                                integer num_options = llGetListLength(optext_current);
@@ -687,7 +686,22 @@
                                    }
                                notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
                                }        
-                    } else {
+                    } else if (qtype_current == "numerical") {
+                               // Notify the server of the response
+                               float number = (float)message;
+                               integer x = 0;
+                               integer num_options = llGetListLength(optext_current);
+                               for (x = 0; x < num_options; x++) {
+                                   if (number == (float)llList2String(optext_current, x)) {
+                                      feedback = llList2String(opfeedback_current, x);
+                                      scorechange = llList2Float(opgrade_current, x);
+                                   }
+                               notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
+                               }        
+                    } 
+                    
+                    
+                     else {
                         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
                     }
 
