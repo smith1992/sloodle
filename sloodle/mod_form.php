@@ -205,7 +205,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         case SLOODLE_TYPE_AWARDS:
         
             global $CFG;
-            if (!file_exists($CFG->dirroot+"/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+            if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
                   error("The sloodleawards asigment object is not installed. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
                   return;
             }
