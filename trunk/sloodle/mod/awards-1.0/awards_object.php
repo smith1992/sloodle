@@ -104,7 +104,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          global $USER,$COURSE,$sCourseObj; 
         if (insert_record('sloodle_award_trans',$iTransaction)) {
             $xmlChannel = $this->getXmlChannel($iTransaction->sloodleid);
-            if ($xmlChannel!=0)
+            if ($xmlChannel)
                 $this->do_xml_post($xmlChannel,"1","UPDATE");
             //get maxpoint limit
             $maxPoints = $this->sloodle_awards_instance->maxpoints;
