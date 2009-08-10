@@ -269,6 +269,30 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
              return "";
          }
      } 
+      /**
+     * @method findTransaction
+     * @author Paul Preibisch
+     * 
+     * getLastTransaction will retrieve the last transaction made for this user
+     *  
+     * @package sloodle
+     */
+     function findTransaction($avuuid,$details)    {
+      global $CFG; 
+         //get the maximum id (the last transaction) of a user with the details in idata in transaction db - this is the last transaction
+        
+         //get id of user         
+         $awardTrans = get_records_select('sloodle_award_trans',"avuuid='".addSlashes($avuuid)."'".' AND sloodleid='.$this->sloodleId);         
+         $foundArray = Array();      
+         foreach ($awardTrans as $trans){
+             //find records with the $details in the idata
+            if (strstr($trans->idata,addSlashes($details))){
+                //find max id
+               $foundArray[]=$trans;
+            }
+         }
+         return $foundArray;
+     } 
      /* @method awards_getBalanceDetails - gets the total balance, credit, debits for a user
      *  @author Paul Preibisch
      * 
