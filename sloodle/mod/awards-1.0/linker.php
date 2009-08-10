@@ -148,7 +148,7 @@
             $userList = $sCourseObj->userList;
             $avatarNamesList = $sCourseObj->getAvatarList($userList);
             $assignmentCourseModule = $awardsObj->get_assignment_cmid((int)$sCourseObj->courseId);
-            $assignmentName = $awardsObj->get_assignment_name();
+           $assignmentName = $awardsObj->get_assignment_name();
             $sloodle->response->add_data_line("NUM USERS:".count($avatarNamesList)); //line 3  
             
             $sloodle->response->add_data_line("COURSE NAME:".$sCourseObj->sloodleCourseObject->get_full_name()); //line 4         
@@ -210,7 +210,35 @@
             //now render output
             $sloodle->response->render_to_output();
         break;
-        
+        //find trans allows the inworld retreiving of transactions from the awards transaction table based on a the avuuid, sloodleid, and details columns. This will output all transactions found matching the avuuid and the idata
+        case "FINDTRANS":
+            $data=$sloodle->request->optional_param('data'); 
+            //&data=SOURCE_UUID:uuid|AVUUID:uuid|AVNAME:string|SEARCHSTRING:string
+            $bits = explode("|", $data);
+            $source_uuid = getFieldData($bits[0]);         
+            $avuuid = getFieldData($bits[1]);
+            $avName = getFieldData($bits[2]);
+            $searchString = $bits[3];
+            $foundRecs = $awardsObj->findTransaction($avuuid,$searchString);
+            if ($foundRecs){
+                $sloodle->response->set_status_code(1);             //line 0 
+                $sloodle->response->set_status_descriptor('OK'); //line 0 
+                $sloodle->response->add_data_line("SENDERUUID:".$source_uuid);//line 1  
+                $sloodle->response->add_data_line("COMMAND:SEARCH RESPONSE");//line 2  
+                addDefaultStats();   // LINE 3,4,5,6,7,8
+                foreach ($foundRecs as $recs){
+                  $sloodle->response->add_data_line("itype:".$recs->itype+"|amount:".$recs->amount."|".$recs->idata."|time:".$recs->timemodified);                                                 
+                }                
+            }else{
+               $sloodle->response->set_status_code(-777000);             //line 0    
+               $sloodle->response->set_status_descriptor('TRANSACTION');    //line 0 
+               $sloodle->response->add_data_line("SENDERUUID:".$source_uuid);//line 1  
+               $sloodle->response->add_data_line("COMMAND:SEARCH RESPONSE");//line 2  
+               addDefaultStats();   // LINE 3,4,5,6,7,8 
+            }
+            //now render output
+            $sloodle->response->render_to_output();
+        break;
         /* Get Balance response WE send back
         *
         0* 1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
