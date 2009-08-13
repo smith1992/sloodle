@@ -19,8 +19,9 @@
 
 // Path to the ImageMagick "convert" file. Leave it blank to DISABLE this feature for security.
 // Likely to be something like this:  '/usr/bin/convert' or '/usr/local/bin/convert'
+// Note: the PDF Importer plugin will attempt to auto-detect the location. You only need to modify this if the plugin can't find it.
 global $IMAGICK_CONVERT_PATH;
-$IMAGICK_CONVERT_PATH = '/usr/local/bin/convert';
+$IMAGICK_CONVERT_PATH = '/usr/bin/convert';
 
 
 /**
@@ -66,7 +67,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
             $res = $this->process_upload($localfile, $name);
             if ($res === true) {
                 sloodle_debug("Upload successful<br/>\n");
-                return $this->import_file($presenter, $localfile, $importname, $position);
+                return $this->import_file($presenter, $localfile, $importname, $position, $name);
             }
             if (is_string($res)) error($res, $url.'&amp;mode=edit');
         }
@@ -180,13 +181,17 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     * Import a file to this Presenter.
     * @param SloodleModulePresenter $presenter An object representing the Presenter we are importing into.
     * @param string $path The path of the file to import (must be local... i.e. on disk!)
-    * @param string $name Optional -- a name for the import. If omitted, it will be taken from the path.
+    * @param string $name Optional -- a name for the import. If omitted, it will be taken from the clientpath or path.
     * @param integer $position The position at which the slides should be imported. Optional. Defaults to import at the end.
+    * @param string $clientpath (Optional) Specifies the original client path from which a file name can be extrapolated.
     * @return bool True if successful or false if not.
     */
-    function import_file($presenter, $path, $name = '', $position = -1)
+    function import_file($presenter, $path, $name = '', $position = -1, $clientpath = '')
     {
         global $CFG;
+
+        // Start by running a compatibility check -- this just makes sure the extensions are loaded.
+        $this->check_compatibility();
 
         // PHP 4 doesn't support recursive creation of folders, so we need to do this the manual way
         $dir_sitefiles = $CFG->dataroot.'/'.SITEID;
@@ -204,7 +209,10 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         $dir_view = $CFG->wwwroot.'/file.php/'.SITEID.'/presenter/'.$presenter->cm->id;
 
         // Use the file name from the path if necessary
-        if (empty($name)) $name = basename($path);
+        if (empty($name)) {
+            if (!empty($clientpath)) $name = basename($clientpath);
+            else $name = basename($path);
+        }
         // Construct a basic identifier for the files which will be imported.
         // It will consist of a timestamp and the import name
         $filebase = gmdate('U').'_'.str_replace(" ", "_", $name);
@@ -248,25 +256,8 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     function _import_MagickWand($presenter, $srcfile, $destpath, $viewurl, $destfile, $destfileext, $destname, $position = -1)
     {
         global $CFG;
-        // Check to see if the MagickWand extension is already loaded.
-        // Attempt to load it if not -- the name will vary depending on OS
-        sloodle_debug('<br/><strong>Checking for presence of extension "magickwand"...</strong> ');
-        if (!extension_loaded('magickwand')) {
-            sloodle_debug('not loaded.<br/>Checking OS... ');
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                sloodle_debug('Windows.<br/>Attempting to load "php_magickwand.dll"... ');
-                @dl('php_magickwand.dll');
-            } else {
-                sloodle_debug('Non-Windows.<br>Attempting to load "magickwand.so"... ');
-                @dl('magickwand.so');
-            }
-            // If it's still not loaded, then we cannot use this function
-            if (!@extension_loaded('magickwand')) {
-                sloodle_debug('extension unavailable.<br/>');
-                return false;
-            }
-        }
-        sloodle_debug('extension loaded.<br/>');
+        // Only continue if the MagickWand extension is loaded (this is done by the check_compatibility function)
+        if (!extension_loaded('magickwand')) return false;
         
         // Load the PDF file
         sloodle_debug('Loading PDF file... ');
@@ -415,6 +406,54 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     {
         return 2009063000;
     }
+
+    /**
+    * Checks the compatibility of this plugin with the current installation.
+    * Override this for any plugin which has non-standard requirements, such as relying on particular PHP extensions.
+    * Note that the default (base class) implementation of this function returns true.
+    * @todo It would be useful if this function performed the auto-detection of the ImageMagick 'convert' program whether MagickWand is available or not.
+    * @return bool True if plugin is compatible, or false if not.
+    */
+    function check_compatibility()
+    {
+        global $IMAGICK_CONVERT_PATH;
+
+        // Check to see if the MagickWand extension is already loaded..
+        if (extension_loaded('magickwand')) return true;
+        // Attempt to load the extension, depending on OS.
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') @dl('php_magickwand.dll');
+        else @dl('magickwand.so');
+        // Check if MagickWand has been successfully loaded now.
+        if (extension_loaded('magickwand')) return true;
+
+        // Only do this if the use of ImageMagick via shell commands has not been disabled
+        if (!empty($IMAGICK_CONVERT_PATH)) {
+            // Build a list of locations to check for the ImageMagick program
+            $checkLocs = array();
+            $checkLocs[] = $IMAGICK_CONVERT_PATH;
+            $checkLocs[] = '/usr/bin/convert';
+            $checkLocs[] = '/usr/local/bin/convert';
+            
+            // Check for the presence of the ImageMagick convert program at each location
+            foreach ($checkLocs as $loc) {
+                // Make sure it's a safe command
+                $cmd = escapeshellcmd($loc);
+                // Attempt to execute it
+                $output = array();
+                @exec($cmd, $output);
+
+                // If the output is not empty, then the command must be executable
+                if (!empty($output)) {
+                    // Store this path
+                    if ($loc != $IMAGICK_CONVERT_PATH) $IMAGICK_CONVERT_PATH = $loc;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }
 
 

@@ -1022,6 +1022,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Fetch translation strings
         $strselectimporter = get_string('presenter:selectimporter', 'sloodle');
         $strsubmit = get_string('submit');
+        $strincompatible = get_string('incompatible', 'sloodle');
+        $strincompatibleplugin = get_string('incompatibleplugin', 'sloodle');
         
         // Do we have a valid plugin type already specified?
         if (empty($plugintype) || !array_key_exists($plugintype, $availableimporters)) {
@@ -1044,10 +1046,18 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $plugin = $this->_session->plugins->get_plugin($importerident);
                 $desc = $plugin->get_plugin_description();
 
+                // Check the compatibility of the plugin
+                $linkclass = '';
+                $compatibility = '';
+                if (!$plugin->check_compatibility()) {
+                    $linkclass = ' class="dimmed"';
+                    $compatibility = '<abbr title="'.$strincompatibleplugin.'"><span class="highlight2" style="font-weight:bold;">[ '.$strincompatible.' ]</span></abbr>';
+                }
+
                 // Add the name of the importer to the table as a link
                 $link = "{$baselink}&amp;sloodleplugintype={$importerident}";
                 $line = array();
-                $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\">{$importername}</a></span>";
+                $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\" {$linkclass}>{$importername}</a></span><br/>{$compatibility}";
                 // Add the description
                 $line[] = $desc;
 

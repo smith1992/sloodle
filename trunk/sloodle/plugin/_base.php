@@ -87,6 +87,17 @@ class SloodlePluginBase
         return 0;
     }
 
+    /**
+    * Checks the compatibility of this plugin with the current installation.
+    * Override this for any plugin which has non-standard requirements, such as relying on particular PHP extensions.
+    * Note that the default (base class) implementation of this function returns true.
+    * @return bool True if plugin is compatible, or false if not.
+    */
+    function check_compatibility()
+    {
+        return true;
+    }
+
 }
 
 
