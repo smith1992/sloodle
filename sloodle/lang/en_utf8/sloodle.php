@@ -146,6 +146,8 @@ $string['invalidcourseid'] = 'Invalid course ID';
 $string['isauthorized'] = 'Is Authorized?';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
 $string['insufficientpermissiontoviewpage'] = 'You do not have sufficient permission to view this page.';
+$string['incompatible'] = 'Incompatible';
+$string['incompatibleplugin'] = 'This plugin may not be compatible with your Moodle site. Please check SLOODLE documentation for more information.';
 
 $string['lastactive'] = 'Last SLOODLE Activity';
 $string['lastupdated'] = 'Last Updated';
@@ -417,6 +419,7 @@ $string['unknowntype'] = 'Unknown type';
 $string['upload:selectfile'] = 'Select file to upload';
 $string['upload:file'] = 'Upload File';
 $string['upload:maxsize'] = 'Estimated maximum upload size: $a';
+$string['upload:emptyfile'] = 'Uploaded file is empty. (This may mean the file was too big to upload.)';
 
 $string['uuid'] = 'UUID';
 
