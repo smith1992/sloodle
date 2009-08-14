@@ -11,7 +11,7 @@
 // Contributors:
 //  Peter R. Bloomfield
 //
-
+ 
 // Note: where a translation string contains {{x}} (where x is a number),
 //  it means that a parameter can be inserted. Please make sure to include these
 //  parameters in the appropriate location in your translation.
@@ -42,10 +42,11 @@ list locstrings = [
     "webintercom:chatloggingon", "Chat logging is on!",
     "webintercom:joinchat", "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
     "webintercom:anouncechatroom", "An archive of this session can be found at {{0}}", // Parameter should be link to Moodle chatroom
+    "webintercom:enterchatroom", "You can access the Web Chat room at {{0}}", // Parameter should be link to Moodle chatroom
     "webintercom:touchtorecord", "Touch logger to record your chat",
     "webintercom:ctrlmenu", "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
     "webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n", // Parameters: stop and start button labels
-    "webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom", // Parameters: stop, start, and deactivate button labels
+    "webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom\n{{3}} = Go to Web Chatroom", // Parameters: stop, start, and deactivate button labels
     "webintercom:autodeactivate", "Deactivating due to lack of nearby users"
 ];
 
