@@ -474,7 +474,7 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","3"], "webintercom:usectrlmenu", ["0", "1", "2","3"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
             sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id, "webintercom");
@@ -515,8 +515,13 @@ state logging
                 // Deactivate the WebIntercom
                   sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
                 state ready;
-            }
-            
+            } else if (message == "3") {
+                // Make sure the user can use this
+                if (!(canctrl || canuse)) return;
+                // Display chatroom
+                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [id], "webintercom:enterchatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], id, "webintercom");
+                
+            }           
         } else if (channel == 0) {
             // Is this an avatar?
             integer isavatar = FALSE;
@@ -677,6 +682,6 @@ state logging
             }
         }
     }
-}
+} 
 
 
