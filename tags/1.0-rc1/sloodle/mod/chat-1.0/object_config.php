@@ -75,11 +75,11 @@
         print_box_start('generalbox boxaligncenter');
         echo '<h3>'.get_string('generalconfiguration','sloodle').'</h3>';
         
-        // Ask the user to select a chatroom
+// Ask the user to select a chatroom
         echo get_string('selectchatroom','sloodle').': ';
-        $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
-        
+        choose_from_menu($chatrooms, 'sloodlemoduleid', $sloodlemoduleid, '');
         echo "<br><br>\n";
+    
     
         // Listening to object chat
         echo get_string('listentoobjects','sloodle').': ';
