@@ -35,7 +35,7 @@ list locstrings = [
     "showingentry", "Showing entry {{0}} of {{1}}.", // Parameters: current slide number, total number of slides
     "showingentryurl", "Showing entry {{0}} of {{1}} ({{2}}).", // Parameters: current slide number, total number of slides, URL of slide
     "showingentryname", "Showing entry {{0}} of {{1}}\n{{2}}.", // Parameters: current slide number, total number of slides, name of slide
-    "showingslidename", "{{0}}\nShowing entry {{1}} of {{2}}\n{{3}}.", // Parameters: current slide number, total number of slides, name of slide
+    "showingslidename", "Showing entry {{0}} of {{1}}\n{{2}}.", // Parameters: current slide number, total number of slides, name of slide
     "loadingslide", "Loading slide {{0}}", // Parameters: slide number
     "errorstate", "Error state -- touch me to reset",
     "missingsloodletexture", "Error: The sloodle_presenter_texture is missing from the presenter's inventory.  Did you delete it?  Please add this texture back into the contents, and touch to reset",
