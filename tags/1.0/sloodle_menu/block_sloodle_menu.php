@@ -26,7 +26,7 @@ if (!defined('SLOODLE_VERSION')) {
 }
 
 /** Define the Sloodle Menu Block version. */
-define('SLOODLE_MENU_VERSION', 0.4);
+define('SLOODLE_MENU_VERSION', 1.0);
 
 /**
 * Defines the block class.
