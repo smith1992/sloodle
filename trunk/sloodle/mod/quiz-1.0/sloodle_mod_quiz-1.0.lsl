@@ -276,7 +276,7 @@
         // Report completion to the user
         finish_quiz() 
         {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "complete", [llKey2Name(sitter), (string)num_correct + "/" + (string)num_questions], null_key, "quiz");
+            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "complete", [llKey2Name(sitter), (string)num_correct + "/" + (string)num_questions], sitter, "quiz");
             //move_to_start(); // Taking this out here leaves the quiz chair at its final position until the user stands up.
             
             // Clear the big nasty chunks of data
@@ -320,8 +320,10 @@
         string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
         
         // Send a translation request link message
+        
         sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
         {
+            
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
         }
         
@@ -645,7 +647,7 @@
                 // If using dialogs, then only listen to the dialog channel
                 if (doDialog && ((qtype_current == "multichoice") || (qtype_current == "truefalse"))) {
                     if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG){
-                               llSay(0,"not dialog ?");
+                             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "usedialogs", [llKey2Name(sitter)], sitter, "quiz");
                          return;
                          }
                 } else {
@@ -680,7 +682,7 @@
                                integer x = 0;
                                integer num_options = llGetListLength(optext_current);
                                for (x = 0; x < num_options; x++) {
-                                   if (message == llList2String(optext_current, x)) {
+                                   if (llToLower(message) == llToLower(llList2String(optext_current, x))) {
                                       feedback = llList2String(opfeedback_current, x);
                                       scorechange = llList2Float(opgrade_current, x);
                                    }
@@ -712,10 +714,11 @@
                             if(scorechange>0) num_correct++; // SAL added this
                             if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
                             else if (scorechange > 0.0) {                    
-                            sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "correct", [llKey2Name(sitter)], NULL_KEY, "quiz");
+                                
+                            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "correct", [llKey2Name(sitter)], sitter, "quiz");
                             //num_correct += 1; SAL commented out this
                             } else {
-                            sloodle_translation_request(SLOODLE_TRANSLATE_WHISPER, [0], "incorrect", [llKey2Name(sitter)], NULL_KEY, "quiz");
+                            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "incorrect",  [llKey2Name(sitter)], sitter, "quiz");
                             }
                             llSleep(1.);  //wait to finish the sloodle_translation_request before next question.
         

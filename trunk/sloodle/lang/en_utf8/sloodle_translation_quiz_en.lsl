@@ -43,7 +43,9 @@ list locstrings = [
     "fetchingquiz", "Fetching quiz data...",
     "ready", "Ready to attempt: {{0}}.", // Parameter: name of quiz
     "correct", "Correct {{0}}.", // Parameter: name of avatar
+    "usedialogs", "Error: You attempted to answer a multiple choice, or a true/false answer by typing on the chat line instead of using the dialog {{0}}.", // Parameter: name of avatar
     "incorrect", "Incorrect {{0}}." // Parameter: name of avatar
+    
 ];
 
 ///// ----------- /////
@@ -236,6 +238,8 @@ default
             // // OUTPUT STRING // //
             
             // Check what output method has been requested
+            
+    
             if (output_method == SLOODLE_TRANSLATE_LINK) {
                 // Return the string via link message
                 sloodle_translation_response(sender_num, string_name, trans);
