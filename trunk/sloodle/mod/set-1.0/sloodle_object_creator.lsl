@@ -60,8 +60,8 @@ list autorez_rot = []; // Autorez rotations
 list autorez_layout_entry_id = []; // Autorez layout entry ids
 string autorez_layout_name = ""; // Name of layout being rezzed
 
-string MENU_BUTTON_PREVIOUS = "<<";
-string MENU_BUTTON_NEXT = ">>";
+string MENU_BUTTON_PREVIOUS = "PREVIOUS";
+string MENU_BUTTON_NEXT = "NEXT";
 
 // The default distance between the position where we hover and the position where objects get rezzed
 // This will be set according to the object type in default state_entry
@@ -267,6 +267,41 @@ sloodle_show_object_dialog(key id, integer page)
     if (page > 0) buttonlabels += [MENU_BUTTON_PREVIOUS];
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     
+    list box1=[];
+    list box2=[];
+    list box3=[];
+    list box4=[];
+    integer i;
+    string lab;
+    buttonlabels = llListSort(buttonlabels,1,FALSE);
+     /*
+    * LSL Dialog buttons get printed on a max of 4 rows in the following order:
+    *
+    * 9 10 11  <--- consider this to be box 4
+    * 6 7 8      <--- consider this to be box 3
+    * 3 4 5      <--- consider this to be box 2
+    * 0 1 2      <--- consider this to be box 1
+    *
+    * We want the higher numbers to be printed on the bottom row, not the top row, so put them into box1, and the lowest numbers in box 4
+    * Do this by sorting the buttonlabels in decending order, and then place each label one by one into the boxes starting with box 1 first.
+    */
+         
+    for (i=0; i<llGetListLength(buttonlabels);i++){
+        lab = llList2String(buttonlabels,i);
+            if (llGetListLength(box1)<3) box1+=lab; else
+            if (llGetListLength(box2)<3) box2+=lab; else
+            if (llGetListLength(box3)<3) box3+=lab; else
+            if (llGetListLength(box4)<3) box4+=lab; 
+    }
+    //now sort each box so the numbers on each row get printed in ascending order eg: 3,4,5 etc
+    box1=llListSort(box1, 1, TRUE); 
+    box2=llListSort(box2, 1, TRUE); 
+    box3=llListSort(box3, 1, TRUE); 
+    box4=llListSort(box4, 1, TRUE); 
+    // now build our buttonlabel array, starting with the highest numbers first - this will allow us to display numbers correctly on the dialog    
+    buttonlabels = box1+box2+box3+box4;
+    // Are we to show the commmand button?
+    
     // Display the basic object menu
     sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG_OBJECT_REZZER] + buttonlabels, "sloodleset:objectmenu", [buttondef], id, "set");
 }
@@ -379,7 +414,7 @@ default
             // Split the message into lines
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
-            integer i;
+            integer i = 0;
             for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
@@ -442,7 +477,7 @@ state ready
     {
        // llOwnerSay("touched in ready state");
         // Go through each toucher
-        integer i;
+        integer i = 0;
         key id = NULL_KEY;
         for (i=0; i < num_detected; i++) {
             id = llDetectedKey(0);
@@ -478,7 +513,7 @@ state ready
             if (cmd == "do:rez") {
                 autorez_layout_name = llList2String(lines,1);
                 // Go through each other line
-                integer i;
+                integer i = 1;
                 list fields = [];
                 for (i=1; i < numlines; i++) {
                     // Extract the fields
@@ -743,4 +778,3 @@ state rezzing
         state ready;
     }
 }
-
