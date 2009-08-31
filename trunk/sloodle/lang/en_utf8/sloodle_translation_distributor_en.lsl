@@ -10,7 +10,7 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
-//
+//  Paul G. Preibisch
 
 // Note: where a translation string contains {{x}} (where x is a number),
 //  it means that a parameter can be inserted. Please make sure to include these
@@ -25,7 +25,7 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "distributor"; // Used by the Vending Machine object
+string mybatch = "distributor";
 
 
 // List of string names and translation pairs.
@@ -33,12 +33,13 @@ string mybatch = "distributor"; // Used by the Vending Machine object
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
-	//  Distributor
-	"openingxmlrpc", "Opening XMLRPC channel...",
-	"establishingconnection", "Establishing connection with outside server...",
-	"dialog:distributorcommandmenu", "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
-	"dialog:distributorobjectmenu", "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
-	"dialog:distributorobjectmenu:cmd", "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu" // As above, but the second parameter gives the command menu button label
+    //  Distributor
+    "openingxmlrpc", "Opening XMLRPC channel...",
+    "establishingconnection", "Establishing connection with outside server...",
+    "dialog:distributorcommandmenu", "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
+    "dialog:distributorobjectmenu", "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
+    "dialog:distributorobjectmenu:cmd", "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu\n{{2}} = Visit Distributer on MOODLE", // As above, but the second parameter gives the command menu button label
+    "dialog:distributorobjectmenu:visitmoodle", "Click \"Go to page\" to visit the distributer on MOODLE" // As above, but the second parameter gives the command menu button label
 ];
 
 ///// ----------- /////
@@ -141,7 +142,7 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum;
+    integer curparamnum = 0;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";

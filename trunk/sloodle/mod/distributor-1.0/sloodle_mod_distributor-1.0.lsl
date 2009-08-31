@@ -10,7 +10,7 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
-//
+//  Paul G. Preibisch
 
 // When configured, opens an XMLRPC channel, and reports the channel key and inventory list to the Moodle server.
 // Note that non-copyable items are NOT made available, and neither will scripts or items whose name is on the ignore list below.
@@ -19,7 +19,7 @@
 // ***** IGNORE LIST *****
 //
 // This is a list of names of items which should NOT be handed out
-list ignorelist = ["sloodle_config","sloodle_object_distributor","sloodle_setup_notecard","sloodle_slave_object","sloodle_debug"];
+list ignorelist = ["sloodle_config","sloodle_object_distributor","sloodle_setup_notecard","sloodle_slave_object","sloodle_debug","awards_sloodle_config"];
 //
 // ***** ----------- *****
 
@@ -62,9 +62,10 @@ list cmddialog = []; // Alternating list of keys, timestamps and page numbers, i
 string MENU_BUTTON_RECONNECT = "A";
 string MENU_BUTTON_RESET = "B";
 string MENU_BUTTON_SHUTDOWN = "C";
-string MENU_BUTTON_PREVIOUS = "<<";
-string MENU_BUTTON_NEXT = ">>";
+string MENU_BUTTON_PREVIOUS = "PREVIOUS";
+string MENU_BUTTON_NEXT = "NEXT";
 string MENU_BUTTON_CMD = "cmd";
+string MENU_BUTTON_WEB = "web";
 
 
 ///// TRANSLATION /////
@@ -248,11 +249,13 @@ update_inventory()
         // Make sure it's copyable, not a script, and not on the ignore list
         if((llGetInventoryPermMask(itemname, MASK_OWNER) & PERM_COPY) && llGetInventoryType(itemname) != INVENTORY_SCRIPT && llListFindList(ignorelist, [itemname]) == -1) {
             inventory += [itemname];
+        
             if (numavailable > 0) inventorystr += "|";
             inventorystr += llEscapeURL(itemname);
             numavailable++;
         }
     }
+    
 }
 
 // Update the server with our channel and inventory.
@@ -279,41 +282,82 @@ sloodle_show_command_dialog(key id)
 // If parameter "showcmd" is TRUE, then the "command" menu option will be shown.
 sloodle_show_object_dialog(key id, integer page, integer showcmd)
 {
-    // Each dialog can display 12 buttons, but we need 3 reserved for:
-    // Previous page, next page, and command menu.
+    // Each dialog can display 12 buttons, but we need 4 reserved for:
+    // Previous page, next page,  command menu, and web.
 
     // Check how many objects we have
     integer numobjects = llGetListLength(inventory);
     // How many pages are there?
-    integer numpages = (integer)((float)numobjects / 9.0) + 1;
+    integer numpages = (integer)((float)numobjects / 9.0);
+    if (numobjects%9 > 0) numpages+=1;
+    
+    
     // If the requested page number is invalid, then cap it
     if (page < 0) page == 0;
     else if (page >= numpages) page = numpages - 1;
-    
     // Build our list of item buttons (up to a maximum of 9)
     list buttonlabels = [];
     string buttondef = ""; // Indicates which button does what
     integer numbuttons = 0;
     integer itemnum = 0;
+    if (page <0) page=0;
     for (itemnum = page * 9; itemnum < numobjects && numbuttons < 9; itemnum++, numbuttons++) {
         // Add the button label (a number) and button definition
         buttonlabels += [(string)(itemnum + 1)]; // Button labels are 1-based
         buttondef += (string)(itemnum + 1) + " = " + llList2String(inventory, itemnum) + "\n";
     }
+   
     
     // Add our page buttons if necessary
     if (page > 0) buttonlabels += [MENU_BUTTON_PREVIOUS];
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
-    
+    if (showcmd) {
+        // Display the object menu with the command button
+      buttonlabels += [MENU_BUTTON_CMD,MENU_BUTTON_WEB];
+    } else {
+        // Display the basic object menu
+       buttonlabels += [MENU_BUTTON_WEB]; 
+    }
+    list box1=[];list box2=[];list box3=[];list box4=[];
+    integer i;
+    string lab;
+    buttonlabels = llListSort(buttonlabels,1,FALSE);
+    /*
+    * LSL Dialog buttons get printed on a max of 4 rows in the following order:
+    *
+    * 9 10 11  <--- consider this to be box 4
+    * 6 7 8      <--- consider this to be box 3
+    * 3 4 5      <--- consider this to be box 2
+    * 0 1 2      <--- consider this to be box 1
+    *
+    * We want the higher numbers to be printed on the bottom row, not the top row, so put them into box1, and the lowest numbers in box 4
+    * Do this by sorting the buttonlabels in decending order, and then place each label one by one into the boxes starting with box 1 first.
+    */
+         
+    for (i=0; i<llGetListLength(buttonlabels);i++){
+        lab = llList2String(buttonlabels,i);
+            if (llGetListLength(box1)<3) box1+=lab; else
+            if (llGetListLength(box2)<3) box2+=lab; else
+            if (llGetListLength(box3)<3) box3+=lab; else
+            if (llGetListLength(box4)<3) box4+=lab; 
+    }
+    //now sort each box so the numbers on each row get printed in ascending order eg: 3,4,5 etc
+    box1=llListSort(box1, 1, TRUE); 
+    box2=llListSort(box2, 1, TRUE); 
+    box3=llListSort(box3, 1, TRUE); 
+    box4=llListSort(box4, 1, TRUE); 
+    // now build our buttonlabel array, starting with the highest numbers first - this will allow us to display numbers correctly on the dialog    
+    buttonlabels = box1+box2+box3+box4;
     // Are we to show the commmand button?
     if (showcmd) {
         // Display the object menu with the command button
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels + [MENU_BUTTON_CMD], "dialog:distributorobjectmenu:cmd", [buttondef, MENU_BUTTON_CMD], id, "distributor");
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu:cmd", [buttondef, MENU_BUTTON_CMD,MENU_BUTTON_WEB], id, "distributor");
     } else {
         // Display the basic object menu
-        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu", [buttondef], id, "distributor");
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu", [buttondef,MENU_BUTTON_WEB], id, "distributor");
     }
-}
+   
+} 
 
 
 ///// STATES /////
@@ -403,7 +447,7 @@ state connecting
         
         isconnected = FALSE;
         // Open an xmlrpc channel
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "openingxmlrpc", [], NULL_KEY, "distributor");
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.01742, 0.00000, 1.07755>, 0.9], "openingxmlrpc", [], NULL_KEY, "distributor");
         llOpenRemoteDataChannel();
         
         // Listen for settings coming in on the avatar dialog channel
@@ -422,7 +466,7 @@ state connecting
         if (type == REMOTE_DATA_CHANNEL) { // channel created
             
             ch = channel;
-            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,0.0,0.7>, 0.9], "establishingconnection", [], NULL_KEY, "distributor");
+            sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.01742, 0.00000, 1.07755>, 0.9], "establishingconnection", [], NULL_KEY, "distributor");
             sloodle_debug("Opened XMLRPC channel "+(string)ch);
         
             // Get all available inventory
@@ -496,7 +540,7 @@ state connecting
         
         // Check that we got a proper response
         if (status != 200) {
-            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
             state ready;
             return;
         }
@@ -670,6 +714,11 @@ state ready
                 // Show the command menu
                 sloodle_show_command_dialog(id);
                 sloodle_add_cmd_dialog(id, 0);
+            }else if (msg == MENU_BUTTON_WEB) {                
+                string urltoload = sloodleserverroot+"/mod/sloodle/view.php?id="+(string)sloodlemoduleid; //the  url to load
+                string transLookup = "dialog:distributorobjectmenu:visitmoodle"; //the translation lookup as defined in your translation script which will be displayed on the dialog
+                key avuuid = id; // this is the avatar the dialog will be displayed to
+                sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [urltoload], transLookup , [], avuuid, "distributor");
             } else if (msg == MENU_BUTTON_RECONNECT) {
                 // Attempt reconnection to the server
                 sloodle_remove_cmd_dialog(id);
@@ -791,3 +840,7 @@ state shutdown
     }
 }
 
+ 
+    
+   
+   
