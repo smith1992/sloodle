@@ -246,6 +246,7 @@ $string['object:demo'] = 'SLOODLE Demo Object';
 $string['object:awards'] = 'Sloodle Award System';
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
+$string['object:picturegloss'] = 'Picture Gloss';
 
 
 $string['Object'] = 'Object';
