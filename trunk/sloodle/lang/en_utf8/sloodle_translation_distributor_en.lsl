@@ -39,7 +39,8 @@ list locstrings = [
     "dialog:distributorcommandmenu", "Sloodle Distributor.\nSelect an action:\n\n{{0}} = Reconnect\n{{1}} = Reset\n{{2}} = Shutdown", // Each parameter is a button label
     "dialog:distributorobjectmenu", "Sloodle Distributor.\n\n{{0}}", // The parameter should be a set of button labels and object names, e.g. "1 = WebIntercom, 2 = MetaGloss"
     "dialog:distributorobjectmenu:cmd", "Sloodle Distributor.\n\n{{0}}{{1}} = Command menu\n{{2}} = Visit Distributer on MOODLE", // As above, but the second parameter gives the command menu button label
-    "dialog:distributorobjectmenu:visitmoodle", "Click \"Go to page\" to visit the distributer on MOODLE" // As above, but the second parameter gives the command menu button label
+    "dialog:distributorobjectmenu:visitmoodle", "Click \"Go to page\" to visit the distributer on MOODLE", // As above, but the second parameter gives the command menu button label
+    "distributor:notconnected", "The distributer is currently not connected, or is shut down.  So we can not redirect you to the webpage for this distributer." 
 ];
 
 ///// ----------- /////
@@ -185,6 +186,7 @@ default
             // // PROCESS REQUEST // //
         
             // Split the incoming message into fields
+            
             list fields = llParseStringKeepNulls(str, ["|"], []);
             integer numfields = llGetListLength(fields);
             
@@ -210,7 +212,7 @@ default
             list string_params = [];
             if (numfields > 3) {
                 // Extract the string parameters (extra text added to the output)
-                string string_param_text = llList2String(fields, 3);
+                string string_param_text = llList2String(fields, 3);               
                 if (string_param_text != "") string_params = llCSV2List(string_param_text);
             }
             

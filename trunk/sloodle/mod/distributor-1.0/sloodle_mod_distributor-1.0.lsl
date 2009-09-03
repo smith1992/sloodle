@@ -86,6 +86,7 @@ string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_IM = "instantmessage";     // Recipient avatar should be identified in link message keyval. No output parameters.
 
 // Send a translation request link message
 // Parameter: output_method = should identify an output method, as given by the "SLOODLE_TRANSLATE_..." constants above
@@ -244,6 +245,7 @@ update_inventory()
     
     // Go through each item
     integer i = 0;
+
     for (i = 0; i < numitems; i++) {
         // Get the name of this item
         itemname = llGetInventoryName(INVENTORY_ALL, i);
@@ -319,11 +321,11 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     if (showcmd) {
         buttonlabels +=[MENU_BUTTON_CMD];
-        // Display the object menu with the command button
-      if (isconfigured&&sloodlemoduleid>0) {
-          buttonlabels += [MENU_BUTTON_WEB];
-        }
     }
+       
+          buttonlabels += [MENU_BUTTON_WEB];
+       
+    
     list box1=[];list box2=[];list box3=[];list box4=[];
     integer i;
     string lab="";
@@ -354,6 +356,7 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     box3=llListSort(box3, 1, TRUE); 
     box4=llListSort(box4, 1, TRUE); 
     // now build our buttonlabel array, starting with the highest numbers first - this will allow us to display numbers correctly on the dialog    
+    
     
     buttonlabels = box1+box2+box3+box4;
     // Are we to show the commmand button?
@@ -724,10 +727,17 @@ state ready
                 sloodle_show_command_dialog(id);
                 sloodle_add_cmd_dialog(id, 0);
             }else if (msg == MENU_BUTTON_WEB) {                
-                string urltoload = sloodleserverroot+"/mod/sloodle/view.php?id="+(string)sloodlemoduleid; //the  url to load
-                string transLookup = "dialog:distributorobjectmenu:visitmoodle"; //the translation lookup as defined in your translation script which will be displayed on the dialog
-                key avuuid = id; // this is the avatar the dialog will be displayed to
-                sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [urltoload], transLookup , [], avuuid, "distributor");
+                 
+                    string urltoload = sloodleserverroot+"/mod/sloodle/view.php?id="+(string)sloodlemoduleid; //the  url to load
+                   string transLookup = "dialog:distributorobjectmenu:visitmoodle"; //the translation lookup as defined in your translation script which will be displayed on the dialog
+                  key avuuid = id; // this is the avatar the dialog will be displayed to
+                if (isconfigured&&sloodlemoduleid>0) {
+                    sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL, [urltoload], transLookup , [], avuuid, "distributor");
+                    
+                }else{
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [id], "distributor:notconnected", [], id, "distributor");
+                }
+                
             } else if (msg == MENU_BUTTON_RECONNECT) {
                 // Attempt reconnection to the server
                 sloodle_remove_cmd_dialog(id);
