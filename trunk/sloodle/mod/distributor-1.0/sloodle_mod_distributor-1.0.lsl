@@ -10,7 +10,7 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
-//  Paul G. Preibisch
+//
 
 // When configured, opens an XMLRPC channel, and reports the channel key and inventory list to the Moodle server.
 // Note that non-copyable items are NOT made available, and neither will scripts or items whose name is on the ignore list below.
@@ -19,10 +19,11 @@
 // ***** IGNORE LIST *****
 //
 // This is a list of names of items which should NOT be handed out
+string MENU_BUTTON_PREVIOUS = "PREVIOUS";
 list ignorelist = ["sloodle_config","sloodle_object_distributor","sloodle_setup_notecard","sloodle_slave_object","sloodle_debug","awards_sloodle_config"];
 //
 // ***** ----------- *****
-
+// Returns number of Strides in a List
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
@@ -62,8 +63,8 @@ list cmddialog = []; // Alternating list of keys, timestamps and page numbers, i
 string MENU_BUTTON_RECONNECT = "A";
 string MENU_BUTTON_RESET = "B";
 string MENU_BUTTON_SHUTDOWN = "C";
-string MENU_BUTTON_PREVIOUS = "PREVIOUS";
-string MENU_BUTTON_NEXT = "NEXT";
+
+string MENU_BUTTON_NEXT = ">>";
 string MENU_BUTTON_CMD = "cmd";
 string MENU_BUTTON_WEB = "web";
 
@@ -297,6 +298,7 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     else if (page >= numpages) page = numpages - 1;
     // Build our list of item buttons (up to a maximum of 9)
     list buttonlabels = [];
+    
     string buttondef = ""; // Indicates which button does what
     integer numbuttons = 0;
     integer itemnum = 0;
@@ -304,23 +306,28 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     for (itemnum = page * 9; itemnum < numobjects && numbuttons < 9; itemnum++, numbuttons++) {
         // Add the button label (a number) and button definition
         buttonlabels += [(string)(itemnum + 1)]; // Button labels are 1-based
+        
         buttondef += (string)(itemnum + 1) + " = " + llList2String(inventory, itemnum) + "\n";
     }
    
     
     // Add our page buttons if necessary
-    if (page > 0) buttonlabels += [MENU_BUTTON_PREVIOUS];
+    if (page > 0) {
+        buttonlabels +=[MENU_BUTTON_PREVIOUS];
+    }
+    
     if (page < (numpages - 1)) buttonlabels += [MENU_BUTTON_NEXT];
     if (showcmd) {
+        buttonlabels +=[MENU_BUTTON_CMD];
         // Display the object menu with the command button
-      buttonlabels += [MENU_BUTTON_CMD,MENU_BUTTON_WEB];
-    } else {
-        // Display the basic object menu
-       buttonlabels += [MENU_BUTTON_WEB]; 
+      if (isconfigured&&sloodlemoduleid>0) {
+          buttonlabels += [MENU_BUTTON_WEB];
+        }
     }
     list box1=[];list box2=[];list box3=[];list box4=[];
     integer i;
-    string lab;
+    string lab="";
+    
     buttonlabels = llListSort(buttonlabels,1,FALSE);
     /*
     * LSL Dialog buttons get printed on a max of 4 rows in the following order:
@@ -347,10 +354,12 @@ sloodle_show_object_dialog(key id, integer page, integer showcmd)
     box3=llListSort(box3, 1, TRUE); 
     box4=llListSort(box4, 1, TRUE); 
     // now build our buttonlabel array, starting with the highest numbers first - this will allow us to display numbers correctly on the dialog    
+    
     buttonlabels = box1+box2+box3+box4;
     // Are we to show the commmand button?
     if (showcmd) {
         // Display the object menu with the command button
+        
         sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG] + buttonlabels, "dialog:distributorobjectmenu:cmd", [buttondef, MENU_BUTTON_CMD,MENU_BUTTON_WEB], id, "distributor");
     } else {
         // Display the basic object menu
