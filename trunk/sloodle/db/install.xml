@@ -282,7 +282,7 @@
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
     <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="xmlchannel"/>
-    <FIELD NAME="xmlchannel" TYPE="char" LENGTH="40" DEFAULT="" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="enabled"/>
+    <FIELD NAME="xmlchannel" TYPE="char" LENGTH="40" NOTNULL="false" DEFAULT="" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="enabled"/>
     <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="xmlchannel" NEXT="icurrency"/>   
     <FIELD NAME="icurrency" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="Lindens" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="assignmentid"/>
     <FIELD NAME="assignmentid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="icurrency" NEXT="maxpoints"/>
