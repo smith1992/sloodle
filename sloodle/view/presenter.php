@@ -413,7 +413,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
             // Get the plugin for this slide
             $slideplugin = $this->_session->plugins->get_plugin($currententry->type);
-            if ($slideplugin) {
+            if (is_object($slideplugin)) {
                 // Render the content for the web
                 echo $slideplugin->render_slide_for_browser($currententry);
             } else {
