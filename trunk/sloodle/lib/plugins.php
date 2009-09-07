@@ -100,11 +100,14 @@ class SloodlePluginManager
 
         // Go through all declared classes
         $classes = get_declared_classes();
-        foreach ($classes as $className) {
+        foreach ($classes as $srcClassName) {
+			// Down-case the class name for PHP4 compatibility
+			$className = strtolower($srcClassName);
+		
             // Make sure this is a SLOODLE plugin by checking that it starts "SloodlePlugin" but not "SloodlePluginbase"
-            if (strpos($className, 'SloodlePlugin') !== 0 || strpos($className, 'SloodlePluginBase') === 0) continue;
+            if (strpos($className, 'sloodleplugin') !== 0 || strpos($className, 'aloodlepluginbase') === 0) continue;
             // Make sure this is not one of the supporting classes
-            if ($className == 'SloodlePluginBase' || $className == 'SloodlePluginManager') continue;
+            if ($className == 'sloodlepluginbase' || $className == 'sloodlepluginmanager') continue;
 
             // Make sure it is in fact a plugin by ensuring it is appropriately derived from the given base plugin class
             $tempPlugin = @new $className();
@@ -127,8 +130,10 @@ class SloodlePluginManager
     */
     function get_plugin($name, $forcenew = false)
     {
+		// Down-case the incoming plugin name for PHP4 compatibility
+		$name = strtolower($name);
         // Prepend 'SloodlePlugin' if necessary
-        if (strpos($name, 'SloodlePlugin') !== 0) $name = 'SloodlePlugin'.$name;
+        if (strpos($name, 'sloodleplugin') !== 0) $name = 'sloodleplugin'.$name;
         // Make sure the specified class exists
         if (!class_exists($name)) return false;
         // Do we have a cached plugin of this type?
@@ -137,7 +142,7 @@ class SloodlePluginManager
         // Attempt to construct an instance of the plugin
         $plugin = new $name();
         // Make sure it is a valid plugin
-        if (is_subclass_of($plugin, 'SloodlePluginBase')) {
+        if (is_subclass_of($plugin, 'sloodlepluginbase')) {
             $this->plugin_cache[$name] = $plugin;
             return $plugin;
         }

@@ -45,12 +45,13 @@
     if (is_array($entries)) {
         foreach ($entries as $entry) {
             // Convert our type back to a legacy type for sake of old Presenters
-            $type = $entry[1];
-            switch ($entry[1])
+			$entrytype = strtolower($entry[1]);
+            $type = $entrytype;
+            switch ($entrytype)
             {
-            case 'PresenterSlideImage': case 'SloodlePluginPresenterSlideImage': $type = 'image'; break;
-            case 'PresenterSlideWeb': case 'SloodlePluginPresenterSlideWeb': $type = 'web'; break;
-            case 'PresenterSlideVideo': case 'SloodlePluginPresenterSlideVideo': $type = 'video'; break;
+            case 'presenterslideimage': case 'sloodlepluginpresenterslideimage': $type = 'image'; break;
+            case 'presenterslideweb': case 'sloodlepluginpresenterslideweb': $type = 'web'; break;
+            case 'presenterslidevideo': case 'sloodlepluginpresenterslidevideo': $type = 'video'; break;
             }
 
             $sloodle->response->add_data_line(array($type, $entry[0], $entry[2]));
