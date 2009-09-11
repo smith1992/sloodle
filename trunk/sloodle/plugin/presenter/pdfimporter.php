@@ -17,11 +17,12 @@
 */
 
 
-// Path to the ImageMagick "convert" file. Leave it blank to DISABLE this feature for security.
-// Likely to be something like this:  '/usr/bin/convert' or '/usr/local/bin/convert'
+// Path to the ImageMagick "convert" program. Leave it blank to DISABLE this feature for security.
+// On Linux, it is likely to be '/usr/bin/convert' or '/usr/local/bin/convert'
+// On Windows, you can probably just use 'convert'
 // Note: the PDF Importer plugin will attempt to auto-detect the location. You only need to modify this if the plugin can't find it.
 global $IMAGICK_CONVERT_PATH;
-$IMAGICK_CONVERT_PATH = 'C:\Program Files\ImageMagick-6.5.5-Q16\convert.exe';
+$IMAGICK_CONVERT_PATH = '/usr/bin/convert';
 
 
 /**
