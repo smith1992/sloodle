@@ -97,6 +97,7 @@ class SloodlePluginManager
     {
         // We want to create an array of plugin names
         $plugins = array();
+		$type = strtolower($type);
 
         // Go through all declared classes
         $classes = get_declared_classes();
@@ -115,7 +116,7 @@ class SloodlePluginManager
 
             // Remove the 'SloodlePlugin' prefix from the class name
             $className = substr($className, 13);
-            $plugins[] = $className;
+            $plugins[] = strtolower($className);
         }
 
         return $plugins;

@@ -21,7 +21,7 @@
 // Likely to be something like this:  '/usr/bin/convert' or '/usr/local/bin/convert'
 // Note: the PDF Importer plugin will attempt to auto-detect the location. You only need to modify this if the plugin can't find it.
 global $IMAGICK_CONVERT_PATH;
-$IMAGICK_CONVERT_PATH = '/usr/bin/convert';
+$IMAGICK_CONVERT_PATH = 'C:\Program Files\ImageMagick-6.5.5-Q16\convert.exe';
 
 
 /**
@@ -63,11 +63,11 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         // Has a file been uploaded?
         if (!empty($uploadfile)) {
             // Has an upload been made which we can import from?
-            $localfile = ''; $name = '';
-            $res = $this->process_upload($localfile, $name);
+            $localfile = ''; $clientfile = '';
+            $res = $this->process_upload($localfile, $clientfile);
             if ($res === true) {
                 sloodle_debug("Upload successful<br/>\n");
-                return $this->import_file($presenter, $localfile, $importname, $position, $name);
+                return $this->import_file($presenter, $localfile, $importname, $position, $clientfile);
             }
             if (is_string($res)) error($res, $url.'&amp;mode=edit');
         }
@@ -114,7 +114,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
 
     /**
     * Display a drop-down menu of slides in the current presentation.
-    * @param SloodleModulePresenter $presenter An object representing the Preseter to work from.
+    * @param SloodleModulePresenter $presenter An object representing the Presenter to work from.
     * @param integer $position Specifies the intially selected position, if known. Defaults to end.
     */
     function print_slide_position_menu($presenter, $position = -1)
@@ -139,7 +139,8 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
             echo ">{$curslide->slideposition}: {$curslide->name}</option>\n";
         }
         // Add an 'end' option
-        $endentrynum = $curslide->slideposition + 1;
+        if (!empty($curslide)) $endentrynum = $curslide->slideposition + 1;
+		else $endentrynum = 1;
         echo "<option value=\"{$endentrynum}\"";
         if (!$selected) echo " selected=\"selected\"";
         echo ">--".get_string('end', 'sloodle')."--</option>\n";
@@ -210,7 +211,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
 
         // Use the file name from the path if necessary
         if (empty($name)) {
-            if (!empty($clientpath)) $name = basename($clientpath);
+            if (!empty($clientpath)) $name = basename($clientpath, '.pdf');
             else $name = basename($path);
         }
         // Construct a basic identifier for the files which will be imported.
@@ -231,7 +232,8 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         if ($result === false) {
             echo "<h3>",get_string('presenter:importfailed', 'sloodle'),"</h3>\n";
             echo "<h4>",get_string('presenter:importneedimagick', 'sloodle'),"</h4>\n";
-            redirect($continueURL, '', 5);
+			$strcontinue = get_string('continue');
+			echo "<p style=\"text-align:center;\">( <a href=\"{$continueURL}\">{$strcontinue}</a> )</p>";
             return false;
         }
         echo "<h3>",get_string('presenter:importsuccessful', 'sloodle', $result),"</h3>\n";
@@ -335,11 +337,13 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         //  (these could be used to execute malicious commands on the server)
         if (strpos($srcfile, "\"") !== false || strpos($destpath, "\"") !== false || strpos($destfile, "\"") !== false || strpos($destfileext, "\"") != false) error("Invalid file name -- please remove quotation marks from file names.");
 
-        // Execute the conversion command
-        $cmd = escapeshellcmd("{$IMAGICK_CONVERT_PATH} -verbose \"{$srcfile}\" \"{$destpath}/{$destfile}.{$destfileext}\"");
-        $output = '';
-        sloodle_debug(" Executing shell command<br/>");
-        $result = exec($cmd);
+        // Construct the conversion command
+		$cmd = "\"{$IMAGICK_CONVERT_PATH}\" -verbose \"{$srcfile}\" \"{$destpath}/{$destfile}-%d.{$destfileext}\"";
+		if (substr(php_uname(), 0, 7) == "Windows") $cmd = 'start /B "" '.$cmd; // Windows compatibility
+		
+        sloodle_debug(" Executing shell command: {$cmd}<br/>");
+		$output = array();
+        $result = exec($cmd, $output);
         // If all the output is empty, then execution failed
         if (empty($result) && empty($output)) {
             sloodle_debug(" ERROR: execution of the shell command failed.<br/>");
@@ -433,11 +437,13 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
             $checkLocs[] = $IMAGICK_CONVERT_PATH;
             $checkLocs[] = '/usr/bin/convert';
             $checkLocs[] = '/usr/local/bin/convert';
+			$checkLocs[] = 'convert';
+			$checkLocs[] = 'convert.exe';
             
             // Check for the presence of the ImageMagick convert program at each location
             foreach ($checkLocs as $loc) {
                 // Make sure it's a safe command
-                $cmd = escapeshellcmd($loc);
+                $cmd = escapeshellarg($loc.' -version');
                 // Attempt to execute it
                 $output = array();
                 @exec($cmd, $output);
