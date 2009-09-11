@@ -47,7 +47,7 @@ class SloodlePluginBase
     */
     function get_plugin_name($lang = null)
     {
-        return get_class($this);
+        return strtolower(get_class($this));
     }
 
     /**
@@ -65,12 +65,12 @@ class SloodlePluginBase
     /**
     * Gets the identifier of this plugin.
     * This can be overridden, but should usually not be.
-    * This ID is just the name of the class
+    * This ID is just the name of the class in LOWER CASE (for PHP4 compatibility).
     */
     function get_id()
     {
-        $className = get_class($this);
-        if (strpos($className, 'SloodlePlugin') === 0) return substr($className, 13);
+        $className = strtolower(get_class($this));
+        if (strpos($className, 'sloodleplugin') === 0) return substr($className, 13);
         return $className;
     }
 
