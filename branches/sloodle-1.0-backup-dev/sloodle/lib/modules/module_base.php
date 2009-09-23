@@ -55,6 +55,44 @@
         }
         
         
+    // BACK AND RESTORE //
+        
+        /**
+        * Backs-up secondary data regarding this module.
+        * That includes everything except the main 'sloodle' database table for this instance.
+        * @param $bf Handle to the file which backup data should be written to.
+        * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
+        * @return bool True if successful, or false on failure.
+        */
+        function backup($bf, $includeuserdata)
+        {
+            return true;
+        }
+        
+        // TODO: add restore function
+        
+        /**
+        * Gets the name of the user data required by this type, or an empty string if none is required.
+        * For example, a chatroom would use the name "Messages" for user data.
+        * Note that this should respect current language settings in Moodle.
+        * @return string Localised name of the user data.
+        */
+        function get_user_data_name()
+        {
+            return '';
+        }
+        
+        /**
+        * Gets the number of user data records to be backed-up.
+        * @return int A count of the number of user data records which can be backed-up.
+        */
+        function get_user_data_count()
+        {
+            return 0;
+        }
+        
+        
+        
     // ACCESSORS //
     
         /**
