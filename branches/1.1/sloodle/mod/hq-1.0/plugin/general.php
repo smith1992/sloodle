@@ -16,7 +16,7 @@ class sloodle_hq_plugin_general {
   
      
      /**********************************************************
-     * getSloodleObjects will return all the distributers in this course
+     * getSloodleObjects will return all the objects in this course
      * 
      */
      
@@ -30,8 +30,6 @@ class sloodle_hq_plugin_general {
         $itemsPerPage=getFieldData($bits[2]);
         $dataLine="";
         $counter = 0;
-        //$cmid=$sloodle->request->required_param('sloodlemoduleid'); 
-        //$sCourseObj = new sloodleCourseObj($cmid);  
         $courseId = $sloodle->course->get_course_id();
         
         if ($type!="null"){
