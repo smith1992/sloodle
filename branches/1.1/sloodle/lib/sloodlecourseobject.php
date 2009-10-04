@@ -94,20 +94,12 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
             
         //set sloodleId  (id of module instance)          
         $this->sloodleId= $this->cm->instance;  
-
-      
-      
       }     
-      
-      function get_avatars($userid){
-         return  get_records('sloodle_users', 'userid', $userid);   
-          
-      } 
-      function get_avatar($userid){
-         $recs = get_records('sloodle_users', 'userid', $userid);            
-         return $recs;
-      }
-      //returns a list of avatars in the class
+      /**
+        * Returns a list of avatars in the course
+        * @param $userList an array of users of the site
+        * @return array of table rows of avatars (userid,username,avname,uuid)
+        */
       function getAvatarList($userList){
          $avList = array();
          if ($userList){
@@ -129,9 +121,28 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
          }
          return $avList;
       }
+       /**
+        * Returns a list of groups in the course
+        * @param $courseid This is the id of the course 
+        * @return array of table rows
+        */
+      function get_groups($courseid){
+         return  get_records('groups', 'id', $courseid);             
+         
+      } 
+      
+       /**
+        * Returns sloodleid of the course
+        * @return integer sloodle id
+        */      
       function getSloodleId(){
         return $this->sloodleId;
       }  
+      /**
+        * Returns true or false if user is a teacher
+        * @param $userid 
+        * @return bool true or false if user is a teacher
+        */
       function is_teacher($userid){
            $context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
           
@@ -142,7 +153,10 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
           
           
       }
-      
+      /**
+        * Returns a list of users in the course
+        * @return array of table rows
+        */
       function getUserList(){
             global $CFG;  
             
@@ -155,34 +169,35 @@ require_once(SLOODLE_DIRROOT.'/view/base/base_view_module.php');
            return $fullUserList;                          
       }
   
-   
      /**
-     * setUserList set's the private userList array
-     * @param $this->userList
-     * @return null
-     */   
-     
-     function setUserList($list){
-        $this->userList = $list;
-     }
-     
-     function get_moodleUserProfile($u){
+     * Returns a url of that points to a users moodle profile
+     * @param $user user object
+     * @return string url pointing to users moodle profile
+     */      
+     function get_moodleUserProfile($user){
          global $CFG;
         // Construct URLs to this user's Moodle and SLOODLE profile pages
-        $url_moodleprofile = $CFG->wwwroot."/user/view.php?id={$u->id}&amp;course={$this->courseId}";
+        $url_moodleprofile = $CFG->wwwroot."/user/view.php?id={$user->id}&amp;course={$this->courseId}";
         return $url_moodleprofile;
      }
-     
-     function get_sloodleprofile($u){
+          /**
+     * Returns a url of that points to a users sloodle profile
+     * @param $user user object* @return string url pointing to users sloodle profile
+     */ 
+     function get_sloodleprofile($user){
          global $CFG;
-        $url_sloodleprofile = SLOODLE_WWWROOT."/view.php?_type=user&amp;id={$u->id}&amp;course={$this->courseId}";        
+        $url_sloodleprofile = SLOODLE_WWWROOT."/view.php?_type=user&amp;id={$user->id}&amp;course={$this->courseId}";        
         return $url_sloodleprofile;
      }
+      /**
+        * Searches sloodle_users for a users id based on uuid of avatar
+        * @param $avuuid 
+        * @return array sloodle_user table row
+        */
      function get_user_by_uuid($avuuid){
-         global $CFG;
-         //$sql='SELECT *  FROM '.$CFG->prefix.'sloodle_users WHERE `uuid`=\''.$avuuid.'\''; 
-         $avuuid = addslashes($avuuid);
-         $rec=get_record_select('users','uuid',$avuuid);
+         global $CFG;         
+         $avuuid = sloodle_clean_for_db($avuuid);
+         $rec=get_record_select('sloodle_users','uuid',$avuuid);
          if (empty($rec)) return null;       
          return $rec;
          

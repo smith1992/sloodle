@@ -20,7 +20,7 @@
     /** SLOODLE course object data structure */
     require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
-    /** SLOODLE stipendgiver object data structure */
+    /** SLOODLE awards object data structure */
     require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
     /** Sloodle Session code. */
         

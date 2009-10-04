@@ -17,7 +17,7 @@
     require_once('../../sl_config.php');
     /** SLOODLE course object data structure */
     require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
-    /** SLOODLE stipendgiver object data structure */
+    /** SLOODLE awards object data structure */
     require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
     /** Sloodle Session code. */
     /** Grab the Sloodle/Moodle configuration. */
@@ -210,6 +210,7 @@
             //now render output
             $sloodle->response->render_to_output();
         break;
+      
         //find trans allows the inworld retreiving of transactions from the awards transaction table based on a the avuuid, sloodleid, and details columns. This will output all transactions found matching the avuuid and the idata
         case "FINDTRANS":
             $data=$sloodle->request->optional_param('data'); 
