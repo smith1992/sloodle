@@ -298,7 +298,7 @@
     <INDEX NAME="mdl_sloostip_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
     </INDEXES>
     </TABLE>
-         <TABLE NAME="sloodle_award_trans" COMMENT="sloodle_award_trans table retrofitted from MySQL" PREVIOUS="sloodle_awards">
+         <TABLE NAME="sloodle_award_trans" COMMENT="sloodle_award_trans table retrofitted from MySQL" PREVIOUS="sloodle_awards"  NEXT="sloodle_awards_scoreboards">
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
     <FIELD NAME="sloodleid" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avuuid"/>
@@ -317,7 +317,37 @@
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="sloodleid"/>
     </INDEXES>
     </TABLE>
-
+     <TABLE NAME="sloodle_awards_scoreboards" COMMENT="sloodle_awards_scoreboards table retrofitted from MySQL" PREVIOUS="sloodle_award_trans" NEXT="sloodle_awards_teams">
+    <FIELDS>
+    <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
+    <FIELD NAME="sloodleid" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="url"/>
+    <FIELD NAME="url" TYPE="char" LENGTH="255" NOTNULL="false" DEFAULT="" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="type"/>    
+    <FIELD NAME="type" TYPE="char" LENGTH="40" NOTNULL="false" DEFAULT="" SEQUENCE="false" ENUM="false" PREVIOUS="url" NEXT="enabled"/>    
+    <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="type" NEXT="timemodified"/>       
+    <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="enabled"/>
+    </FIELDS>
+    <KEYS>
+    <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+    </KEYS>
+    <INDEXES>
+    <INDEX NAME="sloolde_scoreboard_ix" UNIQUE="false" FIELDS="sloodleid"/>
+    </INDEXES>
+    </TABLE>
+     <TABLE NAME="sloodle_awards_teams" COMMENT="sloodle_awards_teams table retrofitted from MySQL" PREVIOUS="sloodle_awards_scoreboards">
+    <FIELDS>
+    <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
+    <FIELD NAME="sloodleid" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="enabled"/>
+    <FIELD NAME="enabled" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="sloodleid" NEXT="groupid"/>       
+    <FIELD NAME="groupid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="enabled" NEXT="timemodified"/>
+    <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="groupid"/>
+    </FIELDS>
+    <KEYS>
+    <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+    </KEYS>
+    <INDEXES>
+    <INDEX NAME="sloolde_teams_ix" UNIQUE="false" FIELDS="sloodleid"/>
+    </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>
 
