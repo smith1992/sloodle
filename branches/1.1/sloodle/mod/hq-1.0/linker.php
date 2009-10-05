@@ -51,10 +51,10 @@
         $functionName = $sloodle->request->required_param('function');        
         $data=$sloodle->request->optional_param('data');//request data from the LSL request
       // Attempt to include the relevant  class
-        $filename = SLOODLE_DIRROOT."/mod/hq-1.0/plugin/{$pluginName}.php";
+        $filename = SLOODLE_DIRROOT."/plugin/hq/{$pluginName}.php";
            
         if (!file_exists($filename)) {
-            error("SLOODLE file not found: mod/hq-1.0/plugin/{$pluginName}.php");
+            error("SLOODLE file not found:/plugin/hq/{$pluginName}.php");
             exit();
         }       
          
