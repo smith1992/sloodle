@@ -181,6 +181,7 @@ $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
 $string['moduletype:awards'] = 'Sloodle Award System'; 
+
 $string['moduletype:tracker'] = 'tracker';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
@@ -244,6 +245,7 @@ $string['object:regenrolbooth'] = 'Registration/Enrolment Booth';
 $string['object:set'] = 'SLOODLE Set';
 $string['object:demo'] = 'SLOODLE Demo Object';
 $string['object:awards'] = 'Sloodle Award System';
+$string['object:hq'] = 'Sloodle API HQ'; 
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
 $string['object:picturegloss'] = 'Picture Gloss';
