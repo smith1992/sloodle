@@ -10,7 +10,7 @@
     */
 global $CFG;    
 
-    @include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
+@include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards {
@@ -37,6 +37,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
               $this->icurrency=$this->sloodle_awards_instance->icurrency;
           }
           $this->transactionRecords = $this->awards_getTransactionRecords();          
+          
       }
               /*
         * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
@@ -226,7 +227,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
        * @param mixed $transactions
        */
         function synchronizeDisplays_sl($transaction){
-          global $sloodle;
+          global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
            $scoreboards = $this->getScoreboards($this->sloodleId);      
             if ($scoreboards){
@@ -278,7 +279,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                                 //get group name
                                 $groupName = $this->getFieldData($groupsData[0]);                                
                                 //get Group record
-                                $group = groups_get_group_by_name($groupName);
+                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
                                 if ($group){
                                     $groupId = $group->id;
                                     //set updateString to empty
@@ -299,6 +300,37 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                                 $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
                             }
                         }//endif$currentView=="Team Top Scores"
+                        else                         
+                        if ($currentView=="Team Booth"){
+                            $groupName = $this->getFieldData($dataLines[1]);
+                            //set $needsUpdating initially to false
+                            $needsUpdating = false;
+                            //get the courseId for this award activity
+                            $courseId = $sloodle->course->get_course_id();                           
+                            //for each scoreboard group, check if transactions have been made for any members
+                            //get Group record
+                            $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                            if ($group){
+                                
+                                $groupId = $group;
+                                //set updateString to empty
+                                $updateString ="";
+                                //go through each transaction and see if it matches this userid
+                               $t=$transaction;
+                                    if (groups_is_member($groupId,$t->userid)){
+                                        $needsUpdating = true;
+                                        $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                        $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                        $updateString.=$updateMsg."\n";
+                                    }//if
+
+                            }//endif group
+
+                            if ($needsUpdating){
+                                //this means one or more of the groups points has changed
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }
+                        }//endif$currentView=="Team Booth"
                     }//end if displayData
                 }//foreach scoreboard
             }//endif $scoreboards

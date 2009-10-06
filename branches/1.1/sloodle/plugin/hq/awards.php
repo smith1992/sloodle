@@ -147,8 +147,8 @@ class sloodle_hq_plugin_awards {
            }//(($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage)))
         }//foreach
         $sloodle->response->add_data_line("INDEX:". $index);   
-        $sloodle->response->add_data_line($dataLine);//line 
         $sloodle->response->add_data_line("numGroups:".$counter);//line 
+        $sloodle->response->add_data_line($dataLine);//line         
      }//function
      
      /**********************************************************
@@ -331,10 +331,59 @@ class sloodle_hq_plugin_awards {
             $sloodle->response->set_status_descriptor('HQ'); //line 0 
         }//else
         $sloodle->response->add_data_line("INDEX:". $index);   
+        $sloodle->response->add_data_line("numGroups:".$counter);//line 
         $sloodle->response->add_data_line($dataLine);//line 
-        $sloodle->response->add_data_line("numGroups:".$counter);//line         
-     } //function getTeamScores($data)
-     
+                
+     } //function getTeamScore($data)
+     /**********************************************************
+     * getTeamScores will return a total for the group specified
+     * 
+     * @param string|mixed $data - should be in the format: GROUPNAME:grpname
+     * @output: 1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     * @output: RESPONSE:awards|getTeamScores
+     * @output: GRP:name
+     * @output: BALANCE:100
+     * 
+     */
+     function getTeamScore($data){
+        global $sloodle;
+        //sloodleid is the id of the activity in moodle we want to connect with
+        $sloodleid = $sloodle->request->optional_param('sloodleid');
+        //get course module from the course_modules table for this sloodle activity
+        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+        //extract cmid from cm -
+        //cmid is the course module id of the sloodle activity in the course_modules table 
+        $cmid = $cm->id;
+        //create courseObject
+        $sCourseObj = new sloodleCourseObj($cmid);  
+        //create awards object
+        $awardsObj = new Awards((int)$cmid);
+        //extract data from sl
+        $data=$sloodle->request->optional_param('data'); 
+       
+        $groupName = getFieldData($data);
+        $dataLine="";
+        $counter = 0;
+        //get all groups in sloodle_awards_teams for this sloodleid
+        $groupId = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+        if ($groupId){
+            $sloodle->response->set_status_code(1);             //line 0 
+            $sloodle->response->set_status_descriptor('OK'); //line 0 
+            $sloodle->response->add_data_line("GROUPNAME:".$groupName);//line             
+            $groupMembers =groups_get_members($groupId);
+            $total=0;
+            foreach ($groupMembers as $gMbr){
+                 $balanceDetails = $awardsObj->awards_getBalanceDetails($gMbr->id);
+                 if ($balanceDetails)
+                    $total+=$balanceDetails->balance;                    
+            }  //foreach
+            $sloodle->response->add_data_line("BALANCE:".$total);//line 
+        } //end if $groupId
+        else{ //no groups exist for this award in sloodle_awards_teams
+            $sloodle->response->set_status_code(-500700);//no awards groups
+            $sloodle->response->set_status_descriptor('HQ'); //line 0 
+        }//else
+     } //function getTeamScore($data)
      /**********************************************************
      * getAwards will return all the sloodle_awards in this course
      * 

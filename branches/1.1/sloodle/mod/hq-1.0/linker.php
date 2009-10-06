@@ -77,7 +77,7 @@
         
         //retrieve output data from the plugin
      
-        //addMsgHeader($pluginName);        
+              
         //send output back to SL           
         $sloodle->response->add_data_line("RESPONSE:".$pluginName."|".$functionName);//line 1
         $plugin->{$functionName}($data);  
