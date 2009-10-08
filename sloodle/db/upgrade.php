@@ -464,7 +464,10 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     }     
       if ($result && $oldversion < 2009073002){
          $table = new XMLDBTable('sloodle_ibank');     
-         drop_table($table);
+         if (table_exists($table)){
+            echo "deleting old ibanks table, replacing with new sloodle_awards table";
+            drop_table($table);
+         }
          echo "creating new sloodle_awards table";
           $table = new XMLDBTable('sloodle_awards');
         $field = new XMLDBField('id');
@@ -528,6 +531,57 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addField($field);
         $field = new XMLDBField('timemodified');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'idata');
+        $table->addField($field);   
+            /// Adding keys to table sloodle_ipointTrans
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);                                           
+    }
+     if ($result && $oldversion < 2009100100) {
+         echo "Adding sloodle_awards_scoreboard table.  This will allow more than one scoreboard to be connected";
+         echo "<br>to the same awards activity.";
+         
+    /// Define field id to be added to sloodle_awards_scoreboards
+        $table = new XMLDBTable('sloodle_awards_scoreboards');
+        $field = new XMLDBField('id');   
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $table->addField($field);
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $table->addField($field);
+        $field = new XMLDBField('url');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'sloodleid');
+        $table->addField($field);
+        $field = new XMLDBField('type');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, null, null, null, null, '', 'url');
+        $table->addField($field);
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'type');
+        $table->addField($field);                    
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+        $table->addField($field);   
+            /// Adding keys to table sloodle_awards_trans
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);                                           
+    }
+     if ($result && $oldversion < 2009100100) {
+         echo "Adding sloodle_awards_teams table.  This will enables moodle groups functionality to the sloodle awards system";
+    /// Define field id to be added to sloodle_awards_scoreboards
+        $table = new XMLDBTable('sloodle_awards_teams');
+        $field = new XMLDBField('id');   
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $table->addField($field);
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $table->addField($field);
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
+        $table->addField($field);                    
+        $field = new XMLDBField('groupid');   
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null, 'enabled');
+        $table->addField($field);
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'groupid');
         $table->addField($field);   
             /// Adding keys to table sloodle_ipointTrans
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));

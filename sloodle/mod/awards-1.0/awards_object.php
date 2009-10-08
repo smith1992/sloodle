@@ -10,7 +10,7 @@
     */
 global $CFG;    
 
-    @include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
+@include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards {
@@ -27,48 +27,40 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       * The class Contstructor
       * @var $id - the sloodle id of this stipendgiver
       */
-      function Awards($sloodleId){          
-          
-  
-          $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$sloodleId); 
-          $this->sloodleId=$sloodleId;           
-          $this->icurrency=$this->sloodle_awards_instance->icurrency;
+      function Awards($courseModuleId){  
+          global $sloodle;
+          $cm = get_coursemodule_from_id('sloodle',$courseModuleId);              
+          $cmid = $cm->instance;
+          $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$cmid); 
+          $this->sloodleId=$cmid;           
+          if ($this->sloodle_awards_instance->icurrency){
+              $this->icurrency=$this->sloodle_awards_instance->icurrency;
+          }
           $this->transactionRecords = $this->awards_getTransactionRecords();          
+          
       }
-      function do_xml_post($data_channel, $data_int, $data_string)
-    {
-        $service_port = getservbyname('www', 'tcp');
-        $address = gethostbyname('xmlrpc.secondlife.com');
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        
-        $result = socket_connect($socket, $address, $service_port);
-
-        $data = "<?xml version=\"1.0\"?><methodCall><methodName>llRemoteData</methodName><params><param><value><struct><member><name>Channel</name><value><string>$data_channel</string></value></member><member><name>IntValue</name><value><int>$data_int</int></value></member><member><name>StringValue</name><value><string>$data_string</string></value></member></struct></value></param></params></methodCall>";
-
-        $in = "POST /cgi-bin/xmlrpc.cgi HTTP/1.1\r\n";
-        $in .= "Accept: */*\r\n";
-        $in .= "Accept-Language: en-gb\r\n";
-        $in .= "Cache-control: no-cache\r\n";
-        $in .= "Content-Type: application/x-www-form-urlencoded\r\n";
-        $in .= "Host: xmlrpc.secondlife.com\r\n";
-        $in .= "Content-Length: " . strlen($data) . "\r\n\r\n";
-        $in .= $data;
-   
-        socket_write($socket, $in, strlen($in));      
-        socket_close($socket);
-
-    }
-      function getXmlChannel($sloodleId){
-        $awardRec=get_record('sloodle_awards','sloodleid',$sloodleId);    
-        if ($awardRec->xmlchannel==NULL) return 0; else return $awardRec->xmlchannel;
+              /*
+        * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
+        * when debugging.  ie: instead of sending 2|Fire Centaur|1000 we send:  USERID:2|AVNAME:Fire Centaur|POINTS:1000
+        * This function just strips of the descriptor and returns the data field 
+        * 
+        * @param string fieldData - the field you want to strip the descripter from
+        */
+        function getFieldData($fieldData){
+               $tmp = explode(":", $fieldData); 
+               return $tmp[1];
+        }
+      function getScoreboards($sloodleId){
+        $scoreboardRecs=get_records('sloodle_awards_scoreboards','sloodleid',$sloodleId);    
+        return $scoreboardRecs;
       }
       
       //set functions
-      function setXmlChannel($xmlChannel){        
-          $this->sloodle_awards_instance->xmlchannel=$xmlChannel; 
-          $this->timeupdated = time();
-          return update_record('sloodle_awards', $this->sloodle_awards_instance);
-        
+      function setUrl($url){        
+          $scoreboard = new stdClass();
+          $scoreboard->url = $url;
+          $scoreboard->sloodleid = $this->sloodleId;          
+          return insert_record("sloodle_awards_scoreboards",$scoreboard);        
       }
       function setAmount($amount){
           $this->sloodle_awards_instance->amount=(int)$amount; 
@@ -76,6 +68,47 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           return update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
+
+        //Function by Simba Fuhr
+        //Use under the GPL License
+        function callLSLScript($URL, $Data, $Timeout = 10)
+        {
+         //Parse the URL into Server, Path and Port
+         $Host = str_ireplace("http://", "", $URL);
+         $Path = explode("/", $Host, 2);
+         $Host = $Path[0];
+         $Path = $Path[1];
+         $PrtSplit = explode(":", $Host);
+         $Host = $PrtSplit[0];
+         $Port = $PrtSplit[1];
+         
+         //Open Connection
+         $Socket = fsockopen($Host, $Port, $Dummy1, $Dummy2, $Timeout);
+         if ($Socket)
+         {
+          //Send Header and Data
+          fputs($Socket, "POST /$Path HTTP/1.1\r\n");
+          fputs($Socket, "Host: $Host\r\n");
+          fputs($Socket, "Content-type: application/x-www-form-urlencoded\r\n");
+          fputs($Socket, "User-Agent: Opera/9.01 (Windows NT 5.1; U; en)\r\n");
+          fputs($Socket, "Accept-Language: de-DE,de;q=0.9,en;q=0.8\r\n");
+          fputs($Socket, "Content-length: ".strlen($Data)."\r\n");
+          fputs($Socket, "Connection: close\r\n\r\n");
+          fputs($Socket, $Data);
+           $res="";
+          //Receive Data
+          while(!feof($Socket))
+           {$res .= fgets($Socket, 128);}
+          fclose($Socket);
+         }
+         
+         //ParseData and return it
+         if (isset($res)){
+            $res = explode("\r\n\r\n", $res);
+            return $res[1];
+         }else return false;
+         
+        }
       function setIcurrency($icurrency){
         $this->sloodle_awards_instance->icurrency=$icurrency; 
         $this->timeupdated = time();
@@ -86,6 +119,222 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         $this->timeupdated = time();
         return update_record('sloodle_awards', $this->sloodle_awards_instance);  
       } 
+    
+       /**********************************
+       * synchronizeDisplays($transactions)
+       *    This function will get all entries in sloodle_awards_scoreboards that match this award id. It will then send an http request to the each URL 
+       *    "COMMAND:GET DISPLAY DATA" and will receive a response indication which display is currently being viewed, and the data currently being displayed in SL
+       *    If the currently displayed data matches any of the users in the transaction list, then needsUpdating will be set to true, and an update command will be sent
+       *    into SL
+       * 
+       * @param mixed $transactions
+       */
+       function synchronizeDisplays($transactions){
+          global $sCourseObj;
+           //get all httpIn urls connected to this award
+           $scoreboards = $this->getScoreboards($this->sloodleId);
+           //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
+            if ($scoreboards){
+                foreach ($scoreboards as $sb){
+                    //get current display of each scoreboard
+                    $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
+                    $dataLines = explode("\n", $displayData);
+                    if ($displayData){
+                        $currentView = $this->getFieldData($dataLines[0]);
+                        if ($currentView=="Top Scores"||$currentView=="Sort by Name"){
+                            $userData = Array();
+                            //initially set needsUpdating to false, change to true if any users being displayed have
+                            //processed transactions                            
+                            $needsUpdating = false;
+                            //build user list from display
+                            $numUsers = count($dataLines);
+                            $updateString="";
+                            for ($userCounter=1;$userCounter<$numUsers;$userCounter++){
+                                $userData = explode("|", $dataLines[$userCounter]);                                                            //set updateString to empty
+                                
+                                //check if user is in transaction list
+                             
+                                    foreach ($transactions as $t){
+                                        if (isset($userData[1])){
+                                            if ($t->avname==$userData[1]){
+                                                $needsUpdating = true;
+                                                $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                                $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                                $updateString.=$updateMsg."\n";
+                                                //as soon as we find the individual transaction, 
+                                                //exit the for loop
+                                                break;
+                                            }//endif                                                
+                                        }//endif isset
+                                    }//foreach
+                                
+                            }//for
+                            //if any updates where made to students being displayed on this 
+                            //scoreboard send update command into sl
+                            if ($needsUpdating){
+                                //send update into SL for this scoreboard
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }//endif $needsUpdating
+                        }//endif $currentView=="Top Scores"||$currentView=="Sort by Name"
+                        else                         
+                        if ($currentView=="Team Top Scores"){
+                            //set $needsUpdating initially to false
+                            $needsUpdating = false;
+                            //get the courseId for this award activity
+                            
+                            //get number of groups for this scoreboard
+                            $numGroups = count($dataLines);           
+                            //for each scoreboard group, check if transactions have been made for any members
+                            for ($i=1;$i<$numGroups;$i++){
+                                //get groupData from display
+                                $groupData = explode("|", $dataLines[$i]);
+                                //get group name
+                                $groupName = $groupData[0];                                
+                                //get Group record
+                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                                if ($group){
+                                    $groupId = $group;
+                                    //set updateString to empty
+                                    $updateString ="";
+                                    //go through each transaction and see if it matches this userid
+                                    foreach ($transactions as $t){
+                                        if (groups_is_member($groupId,$t->userid)){
+                                            $needsUpdating = true;
+                                            $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                            $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                            $updateString.=$updateMsg."\n";
+                                        }//if
+                                    }//endforeach
+                                }//endif group
+                            }//for
+                            if ($needsUpdating){
+                                //this means one or more of the groups points has changed
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,8);
+                            }
+                        }//endif$currentView=="Team Top Scores"
+                    }//end if displayData
+                }//foreach scoreboard
+            }//endif $scoreboards
+       }//function
+       /**********************************
+       * synchronizeDisplays_SL($transactions)
+       *    This function works the same as the synchronizeDisplays but the transaction object is only one single transaction
+       *    It starts by getting all entries in sloodle_awards_scoreboards that match this award id. It will then send an http request to the each URL 
+       *    "COMMAND:GET DISPLAY DATA" and will receive a response indication which display is currently being viewed, and the data currently being displayed in SL
+       *    If the currently displayed data matches the user in the transaction list, then needsUpdating will be set to true, and an update command will be sent
+       *    into SL
+       * 
+       * @param mixed $transactions
+       */
+        function synchronizeDisplays_sl($transaction){
+          global $sloodle,$sCourseObj;
+           //get all httpIn urls connected to this award
+           $scoreboards = $this->getScoreboards($this->sloodleId);      
+            if ($scoreboards){
+                foreach ($scoreboards as $sb){
+                    //get current display of each scoreboard
+                    $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",8);
+                    $dataLines = explode("\n", $displayData);
+                    if ($displayData){
+                        $currentView = $this->getFieldData($dataLines[0]);
+                        if ($currentView=="Top Scores"||$currentView=="Sort by Name"){
+                            $userData = Array();
+                            //initially set needsUpdating to false, change to true if any users being displayed have
+                            //processed transactions                            
+                            $needsUpdating = false;
+                            //build user list from display
+                            $numUsers = count($dataLines);
+                            $updateString="";
+                            for ($userCounter=1;$userCounter<$numUsers;$userCounter++){
+                                $userData = explode("|", $dataLines[$userCounter]);                                                            //set updateString to empty                                //check if user is in transaction list
+                                        $t=$transaction;
+                                        if ($t->avname==$userData[1]){
+                                            $needsUpdating = true;
+                                            $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                            $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                            $updateString.=$updateMsg."\n";
+                                            //as soon as we find the individual transaction, exit the for loop      
+                                            break;
+                                        }//endif
+                            }//for
+                            //if any updates where made to students being displayed on this 
+                            //scoreboard send update command into sl
+                            if ($needsUpdating){
+                                //send update into SL for this scoreboard
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,8);
+                            }//endif $needsUpdating
+                        }//endif $currentView=="Top Scores"||$currentView=="Sort by Name"
+                        else                         
+                        if ($currentView=="Team Top Scores"){
+                            //set $needsUpdating initially to false
+                            $needsUpdating = false;
+                            //get the courseId for this award activity
+                            $courseId = $sloodle->course->get_course_id();
+                            //get number of groups for this scoreboard
+                            $numGroups = count($dataLines);           
+                            //for each scoreboard group, check if transactions have been made for any members
+                            for ($i=1;$i<$numGroups;$i++){
+                                //get groupData from display
+                                $groupData = explode("|", $dataLines[$i]);
+                                //get group name
+                                $groupName = $this->getFieldData($groupsData[0]);                                
+                                //get Group record
+                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                                if ($group){
+                                    $groupId = $group->id;
+                                    //set updateString to empty
+                                    $updateString ="";
+                                    //go through each transaction and see if it matches this userid
+                                   $t=$transaction;
+                                        if (groups_is_member($groupId,$t->userid)){
+                                            $needsUpdating = true;
+                                            $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                            $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                            $updateString.=$updateMsg."\n";
+                                        }//if
+
+                                }//endif group
+                            }//for
+                            if ($needsUpdating){
+                                //this means one or more of the groups points has changed
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }
+                        }//endif$currentView=="Team Top Scores"
+                        else                         
+                        if ($currentView=="Team Booth"){
+                            $groupName = $this->getFieldData($dataLines[1]);
+                            //set $needsUpdating initially to false
+                            $needsUpdating = false;
+                            //get the courseId for this award activity
+                            $courseId = $sloodle->course->get_course_id();                           
+                            //for each scoreboard group, check if transactions have been made for any members
+                            //get Group record
+                            $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                            if ($group){
+                                
+                                $groupId = $group;
+                                //set updateString to empty
+                                $updateString ="";
+                                //go through each transaction and see if it matches this userid
+                               $t=$transaction;
+                                    if (groups_is_member($groupId,$t->userid)){
+                                        $needsUpdating = true;
+                                        $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                        $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                        $updateString.=$updateMsg."\n";
+                                    }//if
+
+                            }//endif group
+
+                            if ($needsUpdating){
+                                //this means one or more of the groups points has changed
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }
+                        }//endif$currentView=="Team Booth"
+                    }//end if displayData
+                }//foreach scoreboard
+            }//endif $scoreboards
+       }//function
       /**
      * @method awards_makeTransaction
      * @author Paul Preibisch
@@ -102,10 +351,18 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      */
       function awards_makeTransaction($iTransaction,$sCourseObject){      
          global $USER,$COURSE,$sCourseObj; 
+         
+         //check to see if the transaction will result in a negative balace
+          
         if (insert_record('sloodle_award_trans',$iTransaction)) {
-            $xmlChannel = $this->getXmlChannel($iTransaction->sloodleid);
-            if ($xmlChannel)
-                $this->do_xml_post($xmlChannel,"1","UPDATE");
+            $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid);          
+            if ($balanceDetails->balance<0){
+              $iTransaction->amount=  $balanceDetails->balance*-1;
+              $iTransaction->itype="credit";
+              $iTransaction->idata="DETAILS:System Modified Balance adjustment"; 
+              insert_record('sloodle_award_trans',$iTransaction); 
+            }//endif
+            
             //get maxpoint limit
             $maxPoints = $this->sloodle_awards_instance->maxpoints;
             //Get balance 
@@ -145,6 +402,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                  require_once($CFG->libdir . "/gradelib.php");
                  grade_update( 'mod/assignment', $sCourseObj->courseId, 'mod', 'assignment', $assignmentId, 0, $newgrades);
             }
+           
             return true;
         }
         else return false;
@@ -293,13 +551,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          }
          return $foundArray;
      } 
-     /* @method awards_getBalanceDetails - gets the total balance, credit, debits for a user
+     /* awards_getBalanceDetails - gets the total balance, credit, debits for a user
      *  @author Paul Preibisch
      * 
      * @package sloodle
-     * @return returns a stdObj with credits, debits, balace for the given userid
-     */
-       
+     * @return returns a stdObj with credits, debits, balance for the given userid
+     */       
      function awards_getBalanceDetails($userid){
          global $CFG;
          $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
@@ -317,7 +574,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $balance = $credits-$debits;
           $acountInfo = new stdClass();
           $acountInfo->credits = $credits;
-          $acountInfo->debits = $debits;
+          $acountInfo->debits = $debits;          
           $acountInfo->balance = $balance;
          return $acountInfo;      
      } 

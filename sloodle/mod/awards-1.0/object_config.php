@@ -57,10 +57,10 @@
        
         $awards = array();
         foreach ($recs as $cm) {
-            // Fetch the stipendgiver instance
+            // Fetch the awards instance
             $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_AWARDS);
             if (!$inst) continue;
-            // Store the stipendgiver details
+            // Store the awards details
             $awards[$cm->id] = $inst->name;
         }
         // Sort the list by name
