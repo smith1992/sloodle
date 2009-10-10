@@ -11,7 +11,7 @@
 */
 
 
-class sloodle_hq_plugin_general {
+class SloodleApiPluginGeneral  extends SloodleApiPluginBase{
 
   
      

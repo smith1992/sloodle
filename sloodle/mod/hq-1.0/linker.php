@@ -22,14 +22,12 @@
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->validate_user();  
-    
-    
-    //get user data from the http request 
+     
      $avatarname = $sloodle->user->get_avatar_name(); 
      $avataruuid= $sloodle->user->get_avatar_uuid();     
      $sloodlecontrollerid=$sloodle->request->optional_param('sloodlecontrollerid');    
-     $command=$sloodle->request->optional_param('command'); 
-
+   
+     
     /*
     * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
     * when debugging.  ie: instead of sending 2|Fire Centaur|1000 we send:  USERID:2|AVNAME:Fire Centaur|POINTS:1000
@@ -48,20 +46,24 @@
         //Once exectuted, data back to SL via a dataLine.
         
         $pluginName= $sloodle->request->required_param('plugin');
-        $functionName = $sloodle->request->required_param('function');        
-        $data=$sloodle->request->optional_param('data');//request data from the LSL request
-      // Attempt to include the relevant  class
-        $filename = SLOODLE_DIRROOT."/plugin/hq/{$pluginName}.php";
-           
-        if (!file_exists($filename)) {
-            error("SLOODLE file not found:/plugin/hq/{$pluginName}.php");
+        if (!$sloodle->api_plugins->load_plugins($pluginName)) {
+            $sloodle->response->quick_output(-131, 'PLUGIN', 'Failed to load any SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
+        exit();
+        }
+        
+    //get user data from the http request 
+        $apiPlugins = $sloodle->api_plugins->get_plugin_names();
+        if (!in_array($pluginName, $apiPlugins)){
+            error("SLOODLE class missing: {$classname}");
             exit();
-        }       
-         
-       require_once($filename);
-       
-        // Create and execute the plugin instance
-        $classname = 'sloodle_hq_plugin_'.$pluginName;
+        }
+        
+            $functionName = $sloodle->request->required_param('function');        
+            $data=$sloodle->request->optional_param('data');//request data from the LSL request
+            // Attempt to include the relevant  class
+               
+            // Create and execute the plugin instance
+            $classname = 'SloodleApiPlugin'.$pluginName;
         
         
         if (!class_exists($classname)) {
