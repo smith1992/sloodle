@@ -1,6 +1,6 @@
 <?php
 /**
-* Defines a library class for managing SLOODLE Plugins.
+* Defines a library class for managing SLOODLE API Plugins.
 * It is constructed and used through a SloodleSession object.
 *
 * @package sloodle
@@ -8,6 +8,7 @@
 * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
 *
 * @contributor Peter R. Bloomfield
+* @contributer Paul G. Preibisch (aka Fire Centaur in Second Life / Open Sim)
 */
 
 
