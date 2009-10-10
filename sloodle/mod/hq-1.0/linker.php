@@ -40,23 +40,36 @@
            return $tmp[1];
     }
     
-        //all plugins live in /mod/hq-1.0/plugins.
-        //Each plugin can be called via this module
-        //and execute code within the SLOODLE system
-        //Once exectuted, data back to SL via a dataLine.
         
         $pluginName= $sloodle->request->required_param('plugin');
-        if (!$sloodle->api_plugins->load_plugins($pluginName)) {
-            $sloodle->response->quick_output(-131, 'PLUGIN', 'Failed to load any SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
+        /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
+        * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
+        * 
+        */
+        $apiPath = $sloodle->api_plugins->get_api_plugin_path($pluginName);
+        if (!$apiPath) {
+            $sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
         exit();
         }
+     
         
-    //get user data from the http request 
-        $apiPlugins = $sloodle->api_plugins->get_plugin_names();
-        if (!in_array($pluginName, $apiPlugins)){
-            error("SLOODLE class missing: {$classname}");
-            exit();
+        //got path now, so include each file in that path
+        $apiFiles = sloodle_get_files($apiPath);
+        if (!$apiFiles) {
+             $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api filesexist in specified api plugin path', false);
+             exit();
         }
+      
+        // Start by including the relevant base class files, if they are available
+        @include_once(SLOODLE_DIRROOT.'/plugin/_api_base.php');
+        @include_once($apiPath.'/_api_base.php');
+        
+        // Now, include each file in the api plugin path
+        foreach ($apiFiles as $file) {
+            // Include the specified file
+            include_once($apiPath.'/'.$file);
+        }
+
         
             $functionName = $sloodle->request->required_param('function');        
             $data=$sloodle->request->optional_param('data');//request data from the LSL request

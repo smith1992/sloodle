@@ -920,7 +920,7 @@
         natcasesort($output);
         return $output;
     }
-    
+       
     /**
     * Extracts the object name and version number from an object identifier.
     * @param string $objid An object identifier, such as "chat-1.0"
