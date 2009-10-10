@@ -87,13 +87,13 @@ class SloodleApiPluginManager
     }
     
     /**
-    * Gets an array of the names of all SLOODLE plugins derived from the specified type.
-    * By default, this gets all plugins. Specify a different base class to get others.
-    * NOTE: this will search all plugins loaded by all plugin managers in the current PHP script.
+    * Gets an array of the names of all SLOODLE api plugins derived from the specified type.
+    * By default, this gets all api plugins. Specify a different base class to get others.
+    * NOTE: this will search all api plugins loaded by all plugin managers in the current PHP script.
     * (There is no way to tell which manager loaded which plugins.)
-    * Plugin names correspond to class names, with the 'SloodlePlugin' prefix.
+    * Api Plugin names correspond to class names, with the 'SloodleApiPlugin' prefix.
     * @param string $type Name of a plugin base class.
-    * @return array Numeric array of plugin names. These names correspond to class names.
+    * @return array Numeric array of api plugin names. These names correspond to class names.
     */
     function get_plugin_names($type = 'SloodleApiPluginBase')
     {
@@ -126,10 +126,10 @@ class SloodleApiPluginManager
 
     /**
     * Gets an instance of the specified plugin type.
-    * This only works if the plugin has been loaded, and if it is derived from SloodlePluginBase.
-    * @param string $name Name of the plugin type to get. If it does not start with "SloodlePlugin", then that is added to the start.
+    * This only works if the api plugin has been loaded, and if it is derived from SloodleApiPluginBase.
+    * @param string $name Name of the plugin type to get. If it does not start with "SloodleApiPlugin", then that is added to the start.
     * @param bool $forcenew If false (default) then a cached instance of the plugin will be returned. Set this to true to force the manager to create a new plugin instance.
-    * @return object|bool An object descended from SloodlePluginBase if successful, or false on failure.
+    * @return object|bool An object descended from SloodleApiPluginBase if successful, or false on failure.
     */
     function get_plugin($name, $forcenew = false)
     {
