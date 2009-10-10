@@ -58,34 +58,86 @@ class SloodleApiPluginManager
     }
 
     /**
-    * Loads all available plugins from the specified folder.
-    * @param string $folder Name of the folder to load plugins from. This is a sub-folder of the 'sloodle/plugin' folder. It will only load files which are directly contained inside it.
-    * @return bool True if successful, or false if it fails. (It will only report failure if the folder does not exist, or there is an error accessing it.)
+    * includes all files located in an api plugin folder that matches the $folder input. This ensures that we only ever
+    * include files in our plugin folders, and not other misc potentially nasty files
+    * @param string $folder Name of the folder we will will compare with our list of api plugin folders. 
+    * If found, load api pluginsin that subfolder located in 'sloodle/plugin' . It will only load files which 
+    * are directly contained inside it.
+    * @return bool True if successful, or false if it fails. 
+    * (It will only report failure if the folder does not exist, or there is an error accessing it.)
     */
-    function load_plugins($folder)
-    {
+    function get_api_plugin_path($folder){
         if (empty($folder)) return false;
-
-        // Get a list of all the files in the specified folder
-        $pluginFolder = SLOODLE_DIRROOT.'/plugin/'.$folder;
-        //get all files in the specified folder
-        $files = sloodle_get_files($pluginFolder, true);
-        if (!$files) return false;
-        if (count($files) == 0) return true;
-
-        // Start by including the relevant base class files, if they are available
-        @include_once(SLOODLE_DIRROOT.'/plugin/_api_base.php');
-        @include_once($pluginFolder.'/_api_base.php');
-
-        // Go through each filename
-        foreach ($files as $file) {
-            // Include the specified file
-            include_once($pluginFolder.'/'.$file);
+        //first load the paths of all the defined plugins
+        $apiDirectories= $this->sloodle_get_api_plugin_directories();
+        //return false if folder specified is not in the list of our api folders
+      
+        //find the path to the $folder specified
+        $apiPath=FALSE;
+        foreach ($apiDirectories as $dir){
+            if ($dir["name"]==$folder){
+                $apiPath = $dir["path"]; //get include path
+                 return $apiPath;
+            }
         }
-
-        return true;
+        return false;
+       
     }
+    /**
+    * Return all sub directories in the /plugins 
+    * @return bool false if it fails.     
+    */
     
+    function sloodle_get_api_plugin_directories(){
+        
+         $directory = SLOODLE_DIRROOT.'/plugin';
+         // Open the directory
+         // Make sure we have a valid directory
+        if (empty($directory)) return false;
+        // Open the directory
+        if (!is_dir($directory)) return false;
+        if (!$dh = opendir($directory)) return false;
+        
+        // Go through each item
+        $output = array();
+        while (($file = readdir($dh)) !== false) {
+         $directory_list = opendir($directory);
+         // and scan through the items inside
+   
+             // if the filepointer is not the current directory
+             // or the parent directory
+             if($file != '.' && $file != '..'){
+                 // we build the new path to scan
+                 $path = $directory.'/'.$file;
+  
+                 // if the path is readable
+                 if(is_readable($path)){
+                     // we split the new path by directories
+                     $subdirectories = explode('/',$path);  
+                     // if the new path is a directory
+                     if(is_dir($path)){
+                         // add the directory details to the file list
+                         $directory_tree[] = array(
+                             'path'    => $path,
+                             'name'    => end($subdirectories),
+                             'kind'    => 'directory');  
+                             // we scan the new path by calling this function
+                             //'content' => sloodle_scan_api_plugin_directory($path, $filter));
+                     // if the new path is a file
+                     }
+                     elseif(is_file($path)){
+                         // get the file extension by taking everything after the last dot
+                         $extension = end(explode('.',end($subdirectories)));
+                     }
+                 }
+             }
+         }
+         // close the directory
+         closedir($directory_list);   
+         // return file list
+         return $directory_tree;
+       
+ }
     /**
     * Gets an array of the names of all SLOODLE api plugins derived from the specified type.
     * By default, this gets all api plugins. Specify a different base class to get others.
