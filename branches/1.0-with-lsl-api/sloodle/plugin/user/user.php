@@ -14,8 +14,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 /** SLOODLE awards object data structure */
 require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
 
-class sloodle_hq_plugin_user {
-    //var $NUM_USERS_TO_RETURN=10; 
+class SloodleApiPluginUser  extends SloodleApiPluginBase{
+
         
     public function balanceSort($a, $b){
         if ($a->balance == $b->balance) {

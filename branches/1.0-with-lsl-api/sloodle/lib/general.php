@@ -984,7 +984,44 @@
         return $mods;
     }
    
+    
+    /**
+    * Gets all api plugins in this installation.
+    * Creates a 1-dimensional associative array.
+    * wish includes a path to the plugin script    
+    * @return array|Returns an associative array if successful
+    */
+    function sloodle_get_installed_api_plugins()
+    {
+        // Fetch all sub-directories of the "mod" directory
+        $PLUGINPATH = SLOODLE_DIRROOT.'/plugin';
+        $files = sloodle_get_subdirectories($PLUGINPATH, true);
+        if (!$files) return false;
+        
+        // Go through each object to parse names and version numbers.
+        // plugin names should have format "name-version" (e.g. "awards-1.0").
+        // We will skip anything that does not match this format.
+        // We will also skip anything with a "noshow" file in the folder.
+        $files = array();
+        foreach ($files as $f) {
+            if (empty($f)) continue;
+            
+            // Parse the object identifier
+            list($name, $version) = sloodle_parse_object_identifier($f);
+            if (empty($name) || empty($version)) continue;
 
+            // Check if there's a noshow file
+            if (file_exists("{$PLUGINPATH}/{$f}/noshow")) continue;
+            
+            
+            $plugins[$name][$version] =true;
+            
+        }
+        
+        // Sort the array by name of the object
+        ksort($plugins);        
+        return $plugins;
+    }
     /**
     * Render a page viewing a particular feature, or a SLOODLE module.
     * Outputs error text in SLOODLE debug mode.
