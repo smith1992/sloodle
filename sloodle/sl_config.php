@@ -92,7 +92,7 @@
     define('SLOODLE_TYPE_PRESENTER', 'presenter');
     define('SLOODLE_TYPE_MAP', 'map');
     define('SLOODLE_TYPE_AWARDS', 'awards');
-    define('SLOODLE_TYPE_HQ', 'Headquarters');
+
     
     // Store the types in an array (used in lists)
     global $SLOODLE_TYPES;   
@@ -102,7 +102,7 @@
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_AWARDS; 
-    $SLOODLE_TYPES[] = SLOODLE_TYPE_HQ; 
+
     
     
     
