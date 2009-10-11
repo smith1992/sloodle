@@ -44,22 +44,32 @@
         $pluginName= $sloodle->request->required_param('plugin');
         /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
         * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
-        * 
         */
+        $replace="_"; //replace nasty chars with an underscore
+        $pattern="/([[:alnum:]_\.-]*)/"; //all the nasty chars! 
+        $pluginName=str_replace(str_split(preg_replace($pattern,$replace,$pluginName)),$replace,$pluginName);
+        /**********************************
+        * The function below, get_api_plugin_path
+        * will search a list of the subdirs located in the plugin folders,
+        * and compare * them with the $pluginName parameter.
+        * If found, the function returns the pre scanned path of the subfolder.
+        * ensuring that the path comes from our code, and not provided by the user!
+        **************************************/
         $apiPath = $sloodle->api_plugins->get_api_plugin_path($pluginName);
+        /**************************************
+        * if a subfolder is not found that matches the plugin name, output an error
+        ***************************************/
         if (!$apiPath) {
-            $sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
+        $sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
         exit();
-        }
-     
-        
+        } 
         //got path now, so include each file in that path
         $apiFiles = sloodle_get_files($apiPath);
         if (!$apiFiles) {
              $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api filesexist in specified api plugin path', false);
              exit();
         }
-      
+        
         // Start by including the relevant base class files, if they are available
         @include_once(SLOODLE_DIRROOT.'/plugin/_api_base.php');
         @include_once($apiPath.'/_api_base.php');
