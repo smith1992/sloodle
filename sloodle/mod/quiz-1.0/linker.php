@@ -224,12 +224,14 @@
 
 /// Load all the questions and states needed by this script
 
-    ///// SLOODLE MODIFICATION /////
-    // For SLOODLE to work properly, it needs the entire list of questions at all times.
-    // It ignores the "page" structure of a Moodle quiz.
-    $questionlist = quiz_questions_in_quiz($attempt->layout);
-    $pagelist = $questionlist;
-    ///// END SLOODLE MODIFICATION /////
+    // list of questions needed by page
+    $pagelist = quiz_questions_on_page($attempt->layout, $page);
+
+    if ($newattempt) {
+        $questionlist = quiz_questions_in_quiz($attempt->layout);
+    } else {
+        $questionlist = $pagelist;
+    }
 
     // add all questions that are on the submitted form
     if ($questionids) {
