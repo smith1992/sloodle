@@ -188,5 +188,78 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
          $sloodle->response->set_status_descriptor('API:LESSONS'); 
      }//end else
   }//end function
+     /*********************************************************************************
+     *   getLessonAnswrs will return the lessons answers for the lesson specified
+     * 
+     *   @parameters:  index - the index of the lessons you want to return
+     *   @parameters:  lessonAnswersPerPage - the number of lesson Pages you want to return into sl
+     *   @parameters:  lessonId
+     *   @parameters:  pageId
+     *                   
+     *   API CALL in SL:
+     *   string apiCall = "plugin:lessons,function:getLessonAnswers\nSLOODLEID:null\nindex:0|lessonsPerPage:9|lessonid:2|pageid:6";
+     *   llMessageLinked(LINK_SET, PLUGIN_CHANNEL, apiCall,  NULL_KEY);
+     **********************************************************************************/
+    function getLessonAnswers($data){
+        global $sloodle;
+        //sloodleid is the id of the activity in moodle we want to connect with
+        $sloodleid = $sloodle->request->optional_param('sloodleid');
+        //cmid is the module id of the sloodle activity we are connecting to
+        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+        $cmid = $cm->id;
+        $courseid = $sloodle->course->get_course_id();
+        $data=$sloodle->request->optional_param('data'); 
+        $bits = explode("|", $data);
+        /****************************
+        * parse the data parameters passed into SL
+        *****************************/
+        $index = getFieldData($bits[0]);        
+        $lessonAnswersPerPage = getFieldData($bits[1]);
+        $lessonId = getFieldData($bits[2]);
+        $pageId = getFieldData($bits[3]);
+        /****************************
+        * get all lesson answers in the course for this lesson
+        ******************************/
+        $lessonAnswers = get_recordset_select('lesson_answers','lessonid='.(int)$lessonId. ' AND pageid='.(int)$pageId);        
+        if ($lessonAnswers){
+            $sloodle->response->set_status_code(1);             //line 0 
+            $sloodle->response->set_status_descriptor('OK'); //line 0 
+            $dataLine="";
+            $counter = 0;
+            $sloodle->response->add_data_line("INDEX:".$index);
+            $sloodle->response->add_data_line("#ANSWERS:".count($lessonAnswers));
+            //Return a list of column names from the database to SL that we are returning values for
+            $dbColumns = "COLUMNS:ID|JUMPTO|GRADE|SCORE|ANSWER|RESPONSE";
+            $sloodle->response->add_data_line($dbColumns);
+            //list the db columns returned
+            foreach($lessonAnswers as $les_page){
+            //only return the answers in the index that was requested. This is useful because an http response is limited
+            //in how many characters you can send back into SL. 
+             if (($counter>=($index*$lessonAnswersPerPage))&&($counter<($index*$lessonAnswersPerPage+$lessonAnswersPerPage))){                
+                /****************************************
+                * Add data to the output
+                *****************************************/
+                //add answer id
+                $dataLine = $les_page["id"];                     
+                //add jumpto
+                $dataLine .= "|".$les_page["jumpto"];                
+                //add grade
+                $dataLine .= "|".$les_page["grade"];                
+                //add score
+                $dataLine .= "|". $les_page["score"];
+                //add answer
+                $dataLine .= "|".$les_page["answer"];
+                //add response
+                $dataLine .= "|".$les_page["response"];
+                $sloodle->response->add_data_line($dataLine);
+             $counter++;
+           }//(($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage)))
+        }//foreach
+     }// if ($lessonAnswers)
+     else{
+         $sloodle->response->set_status_code(-9874);             //no answers for this lesson in the course
+         $sloodle->response->set_status_descriptor('API:LESSONS'); 
+     }//end else
+  }//end function
 }//end class
 ?>
