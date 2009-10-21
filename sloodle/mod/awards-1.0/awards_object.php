@@ -235,7 +235,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     //get current display of each scoreboard
                     $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",8);
                     $dataLines = explode("\n", $displayData);
-                    if ($displayData){
+                    if ($displayData!=FALSE){
                         $currentView = $this->getFieldData($dataLines[0]);
                         if ($currentView=="Top Scores"||$currentView=="Sort by Name"){
                             $userData = Array();
@@ -264,42 +264,6 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                                 $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,8);
                             }//endif $needsUpdating
                         }//endif $currentView=="Top Scores"||$currentView=="Sort by Name"
-                        else                         
-                        if ($currentView=="Team Top Scores"){
-                            //set $needsUpdating initially to false
-                            $needsUpdating = false;
-                            //get the courseId for this award activity
-                            $courseId = $sloodle->course->get_course_id();
-                            //get number of groups for this scoreboard
-                            $numGroups = count($dataLines);           
-                            //for each scoreboard group, check if transactions have been made for any members
-                            for ($i=1;$i<$numGroups;$i++){
-                                //get groupData from display
-                                $groupData = explode("|", $dataLines[$i]);
-                                //get group name
-                                $groupName = $this->getFieldData($groupsData[0]);                                
-                                //get Group record
-                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
-                                if ($group){
-                                    $groupId = $group->id;
-                                    //set updateString to empty
-                                    $updateString ="";
-                                    //go through each transaction and see if it matches this userid
-                                   $t=$transaction;
-                                        if (groups_is_member($groupId,$t->userid)){
-                                            $needsUpdating = true;
-                                            $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
-                                            $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
-                                            $updateString.=$updateMsg."\n";
-                                        }//if
-
-                                }//endif group
-                            }//for
-                            if ($needsUpdating){
-                                //this means one or more of the groups points has changed
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
-                            }
-                        }//endif$currentView=="Team Top Scores"
                         else                         
                         if ($currentView=="Team Booth"){
                             $groupName = $this->getFieldData($dataLines[1]);
@@ -331,7 +295,48 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                                 $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
                             }
                         }//endif$currentView=="Team Booth"
+                        else                         
+                        if ($currentView=="Team Top Scores"){
+                            //set $needsUpdating initially to false
+                            $needsUpdating = false;
+                            //get the courseId for this award activity
+                            $courseId = $sloodle->course->get_course_id();
+                            //get number of groups for this scoreboard
+                            $numGroups = count($dataLines);           
+                            //for each scoreboard group, check if transactions have been made for any members
+                            for ($i=1;$i<$numGroups;$i++){
+                                //get groupData from display
+                                $groupData = explode("|", $dataLines[$i]);
+                                //get group name
+                                $groupName = $groupData[0];                                
+                                //get Group record
+                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                                if ($group){
+                                    $groupId = $group;
+                                    //set updateString to empty
+                                    $updateString ="";
+                                    //go through each transaction and see if it matches this userid
+                                   $t=$transaction;
+                                        if (groups_is_member($groupId,$t->userid)){
+                                            $needsUpdating = true;
+                                            $updateMsg="AVKEY:".$t->avuuid."|AVNAME:".$t->avname;
+                                            $updateMsg.="|ITYPE:".$t->itype.'|AMOUNT:'.$t->amount;
+                                            $updateString.=$updateMsg."\n";
+                                        }//if
+
+                                }//endif group
+                            }//for
+                            if ($needsUpdating){
+                                //this means one or more of the groups points has changed
+                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }
+                        }//endif$currentView=="Team Top Scores"
+                        
                     }//end if displayData
+                    else {
+                        
+                    delete_records('sloodle_awards_scoreboards','url',$sb->url);
+                    }
                 }//foreach scoreboard
             }//endif $scoreboards
        }//function
