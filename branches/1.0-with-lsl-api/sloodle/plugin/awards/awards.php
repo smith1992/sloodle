@@ -104,6 +104,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * 
      */
      
+     
      function getAwardGrps($data){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
@@ -163,6 +164,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      */
      function addAwardGrp($data){
         global $sloodle;
+        
         //sloodleid is the id of the activity in moodle we want to connect with
         $sloodleid = $sloodle->request->optional_param('sloodleid');
         //cmid is the module id of the sloodle activity we are connecting to
@@ -327,7 +329,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
                }//(($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage)))
             } //foreach
         } else{ //no groups exist for this award in sloodle_awards_teams
-            $sloodle->response->set_status_code(-500700);//no awards groups
+            $sloodle->response->set_status_code(-500700);//no awards groups exist for this sloodle module id
             $sloodle->response->set_status_descriptor('HQ'); //line 0 
         }//else
         $sloodle->response->add_data_line("INDEX:". $index);   
@@ -532,5 +534,66 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         }//end else
         
      } //function deregisterScoreboard($data)
+     
+     
+     /**********************************************************
+     * findTransaction will search the sloodle_awards_trans table for any transaction matching
+     * who's avuuid and idata field match the query sent.
+     * 
+     * Example:  Let's say you want to track whether a student has already touched a plant leaf in SL
+     * Using findTransaction, you could search through all the transactions in the sloodle_trans table for an 
+     * avatar with avuuid: 2102f5ab-6854-4ec3-aec5-6cd6233c31c6 and idata: "user touched flower"
+     * 
+     * If a transaction matching that query is found, the following information would be returned:
+     * 
+     *      1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      RESPONSE:awards|findTransaction
+     *      avuuid:2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      ID:563|ITYPE:credit|AMT:1000 
+     * 
+     * If not found, the following info would be returned:
+     * 
+     *      -500800|HQ|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      RESPONSE:awards|findTransaction
+     * 
+     * 
+     *  llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:awards,function:findTransaction\nSLOODLEID:"+(string)sloodlemoduleid+"\nAVUUID:"+(string)llDetectedKey(0)+"|DETAILS:User touched a plant leaf, NULL_KEY);
+     */
+     function findTransaction($data){
+        global $sloodle;                  
+         
+        //sloodleid is the id of the activity in moodle we want to connect with
+        $sloodleid = $sloodle->request->optional_param('sloodleid');
+        //get course module from the course_modules table for this sloodle activity
+        //create courseObject
+        $sCourseObj = new sloodleCourseObj($sloodleid);  
+        //create awards object
+        $awardsObj = new Awards((int)$sloodleid);
+        //extract data from sl
+        $data=$sloodle->request->optional_param('data'); 
+        $bits = explode("|", $data);
+        $avuuid = getFieldData($bits[0]);
+        $searchString= getFieldData($bits[1]);
+        $dataLine="";
+        $counter = 0;
+        $foundRecs = $awardsObj->findTransaction($avuuid,$searchString);       
+        
+        if ($foundRecs){
+            $sloodle->response->set_status_code(1);             //line 0 
+            $sloodle->response->set_status_descriptor('OK'); //line 0 
+            $sloodle->response->add_data_line("avuuid:". $avuuid);   
+            foreach($foundRecs as $trans){
+            
+                    $dataLine .= "ID:".$trans->id."|"; 
+                    $dataLine .= "ITYPE:".$trans->itype."|"; 
+                    $dataLine .= "AMT:".$trans->amount."\n"; 
+            } //foreach
+            $sloodle->response->add_data_line($dataLine);   
+        } else{ //no groups exist for this award in sloodle_awards_teams
+            $sloodle->response->set_status_code(-500800);//A transaction was searched for based on avatar uuid, and transaction details.  However, we could not find the transaction searched for, based on the query specified
+            $sloodle->response->set_status_descriptor('HQ'); //line 0 
+        }//else
+        
+     } //function findTransaction($data)
 }//class
 ?>
