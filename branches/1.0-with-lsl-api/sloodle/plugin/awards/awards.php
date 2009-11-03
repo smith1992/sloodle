@@ -548,13 +548,16 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * 
      *      1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
      *      RESPONSE:awards|findTransaction
-     *      avuuid:2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      AVUUID:2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      QUERY:user touched a flower
      *      ID:563|ITYPE:credit|AMT:1000 
      * 
      * If not found, the following info would be returned:
      * 
      *      -500800|HQ|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
      *      RESPONSE:awards|findTransaction
+     *      AVUUID:2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     *      QUERY:user touched a flower
      * 
      * 
      *  llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:awards,function:findTransaction\nSLOODLEID:"+(string)sloodlemoduleid+"\nAVUUID:"+(string)llDetectedKey(0)+"|DETAILS:User touched a plant leaf, NULL_KEY);
@@ -581,19 +584,20 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         if ($foundRecs){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
-            $sloodle->response->add_data_line("avuuid:". $avuuid);   
+           
             foreach($foundRecs as $trans){
-            
                     $dataLine .= "ID:".$trans->id."|"; 
                     $dataLine .= "ITYPE:".$trans->itype."|"; 
                     $dataLine .= "AMT:".$trans->amount."\n"; 
             } //foreach
-            $sloodle->response->add_data_line($dataLine);   
+            
         } else{ //no groups exist for this award in sloodle_awards_teams
             $sloodle->response->set_status_code(-500800);//A transaction was searched for based on avatar uuid, and transaction details.  However, we could not find the transaction searched for, based on the query specified
             $sloodle->response->set_status_descriptor('HQ'); //line 0 
         }//else
-        
+            $sloodle->response->add_data_line("AVUUID:". $avuuid);    
+            $sloodle->response->add_data_line("QUERY:". $searchString); 
+            if ($dataLine!="") $sloodle->response->add_data_line($dataLine);              
      } //function findTransaction($data)
 }//class
 ?>
