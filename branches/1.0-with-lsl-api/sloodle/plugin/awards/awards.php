@@ -19,40 +19,52 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
 
   
      /*
-     *   makeTransaction($data) will insert data into the sloodle_awards_trans table
+     *   makeTransaction() will insert data into the sloodle_awards_trans table
      */ 
-     function makeTransaction($data){
-         
+     function makeTransaction(){         
          global $sloodle;
-         //sloodleid is the id of the activity in moodle we want to connect with
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
          $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-         $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-         $cmid = $cm->id;
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodle activity as its instance.
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         //if the sloodlemoduleid is not specified, get the course module from the sloodle instance
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             if ($sloodleid) {
+              $cm = get_coursemodule_from_instance('sloodle',$sloodleid);                 
+              $cmid = $cm->id;                                            
+             }
+             else {
+                 //&sloodlemoduleid or &sloodleid must be defined and included in the url 
+                 //request so we can connect to an awards activity to complete this transaction
+                 $sloodle->response->set_status_code(-500900); 
+                 $sloodle->response->set_status_descriptor('HQ'); 
+             }
+         }
+         else $cmid= $coursemoduleid;
          //create sCourseObj, and awardsObj
          $sCourseObj = new sloodleCourseObj($cmid);  
          $awardsObj = new Awards((int)$cmid);
          //get the controller id
-         $sloodlecontrollerid=$sloodle->request->optional_param('sloodlecontrollerid');    
-         $command=$sloodle->request->optional_param('command');  
-         //get the module id of the activity we are working with
-         $sloodlemoduleid=(int)$sCourseObj->cm->instance;
-         
-         $data = $sloodle->request->optional_param('data'); 
-         $bits = explode("|", $data);
-         $sourceUuid        = getFieldData($bits[0]);
-         $avUuid            = trim(getFieldData($bits[1]));
-         $avName            = trim(getFieldData(trim($bits[2])));  
-         $points            = getFieldData($bits[3]);  
-         $details           = getFieldData($bits[4]);  
+         $sloodlecontrollerid=$sloodle->request->required_param('sloodlecontrollerid');    
+         //get the course module id of the activity we are working with
+         $sloodleid=(int)$sCourseObj->cm->instance;
+
+         $sourceUuid        = $sloodle->request->required_param('sourceuuid'); 
+         $avUuid            = $sloodle->request->required_param('avuuid'); 
+         $avName            = $sloodle->request->required_param('avname'); 
+         $points            = $sloodle->request->required_param('points'); 
+         $details           = $sloodle->request->optional_param('details'); 
          //get moodleId for the avatar which was sent
-        $avUser = new SloodleUser( $sloodle );
-        $avUser->load_avatar($avUuid,$avName);
-        $avUser->load_linked_user();
-        $userid = $avUser->avatar_data->userid;
+         $avUser = new SloodleUser( $sloodle );
+         $avUser->load_avatar($avUuid,$avName);
+         $avUser->load_linked_user();
+         $userid = $avUser->avatar_data->userid;
         //build transaction record 
         $trans = new stdClass();
-        $trans->sloodleid       = $sloodlemoduleid;
+        $trans->sloodleid       = $sloodleid;
         $trans->avuuid          = $avUuid;        
         $trans->userid          = $userid;
         $trans->avname          = $avName;           
@@ -78,6 +90,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         $sloodle->response->set_status_descriptor('OK'); 
         //line2: uuid who made the transaction        
         //add command
+        //TODO: change to xml output?
         $sloodle->response->add_data_line("SOURCE_UUID:".$sourceUuid);
         $sloodle->response->add_data_line("AVUUID:".$avUuid);
         $sloodle->response->add_data_line("AVNAME:".trim($avName));
@@ -87,7 +100,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         $awardsObj->synchronizeDisplays_sl($trans);
     }
     /*
-     *  getAwardGrps($data) will return all groups in the course and indicate which ones are connected with this award
+     *  getAwardGrps() will return all groups in the course and indicate which ones are connected with this award
      *  outputs:
      *  1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
         RESPONSE:groups|getGrps
@@ -96,7 +109,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         numGroups:7
      * 
      * TRIGGER:  You can trigger this function by adding the sloodle_api.lsl script to your prim, then executing the following function:
-     * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:awards,function:getAwardsGrps\nindex:0|groupsPerPage:9", NULL_KEY);
+        llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "awards->getAwardGrps"+authenticatedUser+"&sloodleid="+(string)currentAwardId+"&index="+(string)index+"&maxitems=10", NULL_KEY);
      * 
      * OUTPUT HANDLER
      * In second life, you can add the following code to handle the output generated by this function:
@@ -105,18 +118,23 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      */
      
      
-     function getAwardGrps($data){
+     function getAwardGrps(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
-        $sCourseObj = new sloodleCourseObj($cmid);          
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $index = getFieldData($bits[0]);
-        $groupsPerPage = getFieldData($bits[1]);
+        //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+        $sCourseObj = new sloodleCourseObj($cmid);                  
+        $index =  $sloodle->request->required_param('index'); 
+        $maxItems= $sloodle->request->required_param('maxitems'); 
         //get all groups in the course
         $groups = groups_get_all_groups($sCourseObj->courseId);
         $sloodle->response->set_status_code(1);             //line 0 
@@ -127,7 +145,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         $awardGroups = get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);        
         //get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);        
         foreach($groups as $g){
-             if (($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage))){
+             if (($counter>=($index*$maxItems))&&($counter<($index*$maxItems+$maxItems))){
                 if ($counter!=0) $dataLine.="|";
                 $dataLine .= "GRP:".$g->name;
                 $groupMembers =groups_get_members($g->id);
@@ -162,18 +180,22 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * @output status_code: 1 
      * @output GROUPNAME:name
      */
-     function addAwardGrp($data){
+     function addAwardGrp(){
         global $sloodle;
-        
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
+        //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
         $sCourseObj = new sloodleCourseObj($cmid);          
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $grpName =  getFieldData($bits[0]);
+        $grpName =  $sloodle->request->required_param('grpname');  
         //search for group to get id, then add to the sloodle_award_teams database
         $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
         if ($groupId){
@@ -227,20 +249,24 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * @output status_code: 1
      * @output GROUPNAME:name
      */
-     function removeAwardGrp($data){
+     function removeAwardGrp(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
-        //create courseObject
-        $sCourseObj = new sloodleCourseObj($cmid);          
-        //get data parameter (sent from SL)
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
+        //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+         $sCourseObj = new sloodleCourseObj($cmid);          
+       
         //get group name to remove
-        $grpName =  getFieldData($bits[0]);
+        $grpName =  $sloodle->request->required_param('grpname');   
         //search for group to get id, then add to the sloodle_award_teams database
         $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
         if ($groupId){
@@ -287,24 +313,26 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * @output: NUMGROUPS:10
      * 
      */
-     function getTeamScores($data){
-        global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //get course module from the course_modules table for this sloodle activity
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        //extract cmid from cm -
-        //cmid is the course module id of the sloodle activity in the course_modules table 
-        $cmid = $cm->id;
+     function getTeamScores(){
+        global $sloodle;                                                                    
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
         //create courseObject
         $sCourseObj = new sloodleCourseObj($cmid);  
         //create awards object
         $awardsObj = new Awards((int)$cmid);
-        //extract data from sl
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $index = getFieldData($bits[0]);
-        $groupsPerPage = getFieldData($bits[1]);
+        $index =  $sloodle->request->required_param('index');    
+        $maxitems= $sloodle->request->required_param('maxitems');    
         $dataLine="";
         $counter = 0;
         //get all groups in sloodle_awards_teams for this sloodleid
@@ -313,7 +341,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
             foreach($awardGroups as $awdGrp){
-                 if (($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage))){
+                 if (($counter>=($index*$maxitems))&&($counter<($index*$maxitems+$maxitems))){
                     if ($counter!=0) $dataLine.="|";
                     $groupName = groups_get_group_name($awdGrp->groupid);
                     $dataLine .= "GRP:".$groupName; 
@@ -336,7 +364,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("numGroups:".$counter);//line 
         $sloodle->response->add_data_line($dataLine);//line 
                 
-     } //function getTeamScore($data)
+     } //function getTeamScore()
      /**********************************************************
      * getTeamScores will return a total for the group specified
      * 
@@ -347,23 +375,26 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * @output: BALANCE:100
      * 
      */
-     function getTeamScore($data){
+     function getTeamScore(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //get course module from the course_modules table for this sloodle activity
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        //extract cmid from cm -
-        //cmid is the course module id of the sloodle activity in the course_modules table 
-        $cmid = $cm->id;
+        //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
         //create courseObject
         $sCourseObj = new sloodleCourseObj($cmid);  
         //create awards object
         $awardsObj = new Awards((int)$cmid);
         //extract data from sl
-        $data=$sloodle->request->optional_param('data'); 
-       
-        $groupName = getFieldData($data);
+        $groupName = $sloodle->request->required_param('grpname'); 
         $dataLine="";
         $counter = 0;
         //get all groups in sloodle_awards_teams for this sloodleid
@@ -393,8 +424,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * 
      * Call from SL to sloodle_api.lsl: 
      * 
-     * string cmdCall = "plugin:awards,function:getAwards\nsloodleid:null\nINDEX:";
-     *        cmdCall+=(string)0+"|MAXITEMS:9"
+     * string cmdCall = "awards->getAwards&index=0&maxitems=9"
      * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, cmdCall, NULL_KEY);
 
      * @output: 1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
@@ -410,16 +440,12 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * 
      */
      
-      function getAwards($data){
-        global $sloodle;
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $index = getFieldData($bits[0]);
-        $awardsPerPage=getFieldData($bits[1]);
+      function getAwards(){
+        global $sloodle;        
+        $index = $sloodle->request->required_param('index'); 
+        $maxItems=$sloodle->request->required_param('maxitems');    
         $dataLine="";
         $counter = 0;
-        //$cmid=$sloodle->request->required_param('sloodlemoduleid'); 
-        //$sCourseObj = new sloodleCourseObj($cmid);  
         $courseId = $sloodle->course->get_course_id();
         $awards = get_records_select('sloodle','course='.$courseId.' AND type=\'Awards\'');
         if ($awards){
@@ -428,7 +454,7 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
             $sloodle->response->add_data_line("INDEX:".$index); 
             $sloodle->response->add_data_line("#AWDS:".count($awards)); 
             foreach($awards as $awd){                
-                 if (($counter>=($index*$awardsPerPage))&&($counter<($index*$awardsPerPage+$awardsPerPage))){        
+                 if (($counter>=($index*$maxItems))&&($counter<($index*$maxItems+$maxItems))){        
                     $sloodle->response->add_data_line("ID:".$awd->id."|NAME:".$awd->name);
                  }//endif 
             }//foreach
@@ -436,47 +462,32 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
           $sloodle->response->set_status_code(-501100);    //no Sloodle_awards for this course
           $sloodle->response->set_status_descriptor('OK'); //line 0
       }
-    } //getAwards($data)
+    } //getAwards()
      /**********************************************************
-     * registerScoreboard will attempt to add an entry to the sloodle_awards_scoreboards
-     * Available HTTP vars
-     * sloodlecontrollerid
-     * sloodleid
-     * sloodlepwd
-     * sloodleserveraccesslevel=0&
-     * sloodleuuid
-     * sloodleavname=Fire%20Centaur&
-     * plugin=awards
-     * function=registerScoreboard
-     * data=urlhttp://sim4644.agni.lindenlab.com:12046/cap/e9ffef0c-f1e9-acf0-0f9d-ffc8370290d3|
-     * data=DISPLAYTYPE:Scoreboard
+     * registerScoreboard will attempt to add an entry to the sloodle_awards_scoreboards     
      */
-     function registerScoreboard($data){
+     function registerScoreboard(){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
         $sloodleid = $sloodle->request->required_param('sloodleid');
         //get data
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $url = $bits[0];     
-        $type =getFieldData($bits[1]);   
+        
+        $url = $sloodle->request->required_param('url');
+        $type =$sloodle->request->required_param('type');
+        $name=$sloodle->request->required_param('name');
         //add scoreboard to sloodle_awards_scoreboard table
-        if (count($bits)<2){
-             $sloodle->response->set_status_code(-92113);    //missing parameters
-             $sloodle->response->set_status_descriptor('HQ'); //line 0
-             $sloodle->response->add_data_line($url); //line 1
-        }//endif
-        else{
+       
             //create new scoreboard
             $sb= new stdClass();
             $sb->sloodleid = $sloodleid;
             $sb->url=$url;
             $sb->type=$type;
+            $sb->name=$name;
             //checl if already registered
-            $alreadyRegistered = get_records('sloodle_awards_scoreboards','url',$url);
+            $alreadyRegistered = get_records_select('sloodle_awards_scoreboards',"url=\"".$url."\" AND name=\"".$name."\"");
             if (!$alreadyRegistered){
                 if (!insert_record('sloodle_awards_scoreboards',$sb)){
-                     $sloodle->response->set_status_code(-92114);    //cant insert record in sloodle_awards_scoreboards
+                     $sloodle->response->set_status_code(-501200);    //cant insert record in sloodle_awards_scoreboards
                      $sloodle->response->set_status_descriptor('HQ'); //line 0 
                      $sloodle->response->add_data_line($url); //line 1
                 }//endif
@@ -487,42 +498,29 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
                 }
             }//alreadyRegistered
             else{
-                $sloodle->response->set_status_code(1);    
-                $sloodle->response->set_status_descriptor('OK'); //line 0 
-                $sloodle->response->add_data_line($url); //line 1
+                //delete all instances of the old urls for this scoreboard 
+                if (!delete_records('sloodle_awards_scoreboards','url',$url,'name',$name)){
+                    //insert new scoreboard url
+                    insert_record('sloodle_awards_scoreboards',$sb);
+                    $sloodle->response->set_status_code(1);    
+                    $sloodle->response->set_status_descriptor('OK'); //line 0 
+                    $sloodle->response->add_data_line($url); //line 1
+                }
             }//end else
 
-        }//end else
-        
-     } //function registerScoreboard($data)
+     } //function registerScoreboard()
      /**********************************************************
-     * deregisterScoreboard will attempt to remove an entry from the sloodle_awards_scoreboards
-     * Available HTTP vars
-     * sloodlecontrollerid
-     * sloodleid
-     * sloodlepwd
-     * sloodleserveraccesslevel=0&
-     * sloodleuuid
-     * sloodleavname=Fire%20Centaur&
-     * plugin=awards
-     * function=registerScoreboard
-     * data=urlhttp://sim4644.agni.lindenlab.com:12046/cap/e9ffef0c-f1e9-acf0-0f9d-ffc8370290d3|
-     * data=DISPLAYTYPE:Scoreboard
+     * deregisterScoreboard will attempt to remove an entry from the sloodle_awards_scoreboards     
      */
-     function deregisterScoreboard($data){
+     function deregisterScoreboard(){
         global $sloodle;
         //get data
-        $url=$sloodle->request->optional_param('data'); 
+        $url=$sloodle->request->required_param('url'); 
         //add scoreboard to sloodle_awards_scoreboard table
-        if ($data==""){
-             $sloodle->response->set_status_code(-92113);    //missing parameters
-             $sloodle->response->set_status_descriptor('HQ'); //line 0
-             $sloodle->response->add_data_line($url); //line 1
-        }//endif
-        else{
+        $name=$sloodle->request->required_param('name'); 
             //remove scoreboard            
-            if (!delete_records('sloodle_awards_scoreboards','url',$url)){
-                 $sloodle->response->set_status_code(-92115);    //cant delete record in sloodle_awards_scoreboards
+            if (!delete_records('sloodle_awards_scoreboards','url',$url,'name',$name)){
+                 $sloodle->response->set_status_code(-501300);    //cant delete record in sloodle_awards_scoreboards
                  $sloodle->response->set_status_descriptor('HQ'); //line 0 
                  $sloodle->response->add_data_line($url); //line 1
             }//endif
@@ -531,9 +529,9 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
                 $sloodle->response->set_status_descriptor('OK'); //line 0 
                 $sloodle->response->add_data_line($url); //line 1
             }//end else
-        }//end else
         
-     } //function deregisterScoreboard($data)
+        
+     } //function deregisterScoreboard()
      
      
      /**********************************************************
@@ -559,24 +557,31 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      *      AVUUID:2102f5ab-6854-4ec3-aec5-6cd6233c31c6
      *      QUERY:user touched a flower
      * 
-     * 
-     *  llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:awards,function:findTransaction\nSLOODLEID:"+(string)sloodlemoduleid+"\nAVUUID:"+(string)llDetectedKey(0)+"|DETAILS:User touched a plant leaf, NULL_KEY);
+     *      
      */
-     function findTransaction($data){
+     function findTransaction(){
         global $sloodle;                  
-         
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //get course module from the course_modules table for this sloodle activity
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+ 
         //create courseObject
-        $sCourseObj = new sloodleCourseObj($sloodleid);  
+        $sCourseObj = new sloodleCourseObj($cmid);  
         //create awards object
-        $awardsObj = new Awards((int)$sloodleid);
+        $awardsObj = new Awards((int)$cmid);
         //extract data from sl
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $avuuid = getFieldData($bits[0]);
-        $searchString= getFieldData($bits[1]);
+        
+        $avuuid = $sloodle->request->required_param('avuuid'); 
+        $searchString= $sloodle->request->required_param('details'); 
         $dataLine="";
         $counter = 0;
         $foundRecs = $awardsObj->findTransaction($avuuid,$searchString);       
@@ -598,6 +603,6 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
             $sloodle->response->add_data_line("AVUUID:". $avuuid);    
             $sloodle->response->add_data_line("QUERY:". $searchString); 
             if ($dataLine!="") $sloodle->response->add_data_line($dataLine);              
-     } //function findTransaction($data)
+     } //function findTransaction()
 }//class
 ?>

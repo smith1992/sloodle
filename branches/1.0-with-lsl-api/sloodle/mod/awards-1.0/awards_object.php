@@ -141,6 +141,50 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     $dataLines = explode("\n", $displayData);
                     if ($displayData){
                         $currentView = $this->getFieldData($dataLines[0]);
+                        if ($currentView=="Control Station"){
+                            //set $needsUpdating initially to false
+                           
+                            //get number of groups for this scoreboard
+                            $groupsInGame =   explode(",", $this->getFieldData($dataLines[1]);
+                            $numGroups = count($groupsInGame); 
+                            $needsUpdatingArray = array();          
+                            //for each scoreboard group, check if transactions have been made for any members
+                            $updateString ="";                                                       
+                            for ($i=1;$i<$numGroups;$i++){
+                                 $needsUpdating = false;        
+                                //get group name
+                                $groupName = $groupsInGame[$i];                                
+                                //get Group record
+                                $group = groups_get_group_by_name($sCourseObj->courseId,$groupName);
+                                if ($group){
+                                    $groupId = $group;
+                                    //set updateString to empty
+                                    
+                                    //go through each transaction and see if it matches this userid
+                                    foreach ($transactions as $t){
+                                        if (groups_is_member($groupId,$t->userid)){
+                                            $needsUpdating = true;                                            
+                                        }//if
+                                    }//endforeach
+                                    if ($needsUpdating){                                        
+                                        //get group total;
+                                        $groupMembers =groups_get_members($groupId);
+                                        $total=0;
+                                        foreach ($groupMembers as $gMbr){
+                                             $balanceDetails = $this->awards_getBalanceDetails($gMbr->id);
+                                             if ($balanceDetails)
+                                                $total+=$balanceDetails->balance;                    
+                                        }  //foreach
+                                        $updateString.="GROUP:".$groupName."|TOTAL:".$total."\n";
+                                    }//if
+                                }//endif group
+                            }//for
+                            if ($updateString!=""){
+                                //this means one or more of the groups points has changed
+                                 $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                            }
+                        }//endif $currentView=="Control Station"
+                        else
                         if ($currentView=="Top Scores"||$currentView=="Sort by Name"){
                             $userData = Array();
                             //initially set needsUpdating to false, change to true if any users being displayed have

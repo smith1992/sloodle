@@ -20,18 +20,14 @@ class SloodleApiPluginGeneral  extends SloodleApiPluginBase{
      * 
      */
      
-      function getSloodleObjects($data){
+      function getSloodleObjects(){
         global $sloodle;
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $type =  getFieldData($bits[0]);
-        
-        $index = getFieldData($bits[1]);
-        $itemsPerPage=getFieldData($bits[2]);
+        $type =  $sloodle->request->required_param('type');
+        $index = $sloodle->request->required_param('index');
+        $maxitems=$sloodle->request->required_param('maxitems');
         $dataLine="";
         $counter = 0;
         $courseId = $sloodle->course->get_course_id();
-        
         if ($type!="null"){
          $sloodleObjects= get_records_select('sloodle','course='.$courseId.' AND type=\''.$type.'\'');   
         }//endif
@@ -45,7 +41,7 @@ class SloodleApiPluginGeneral  extends SloodleApiPluginBase{
             $sloodle->response->add_data_line("INDEX:".$index); 
             $sloodle->response->add_data_line("#OBJS:".count($sloodleObjects)); 
             foreach($sloodleObjects as $obj){                
-                 if (($counter>=($index*$itemsPerPage))&&($counter<($index*$itemsPerPage+$itemsPerPage))){        
+                 if (($counter>=($index*$maxitems))&&($counter<($index*$maxitems+$maxitems))){        
                     $sloodle->response->add_data_line("ID:".$obj->id."|NAME:".$obj->name);
                  }//endif 
             }//foreach

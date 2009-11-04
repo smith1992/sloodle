@@ -18,17 +18,26 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
      * called by: 
      * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:user,function:getUsersGroups\nSLOODLEID:null|USERNAME:"+avName+"|USERUUID:"+(string)avUuid, NULL_KEY);
      */
-     function getUsersGrps($data){
+     function getUsersGrps(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        $data=$sloodle->request->optional_param('data'); 
+        //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;        
         /***************************
         * Extract data from data stream
         ****************************/
-        $bits = explode("|", $data);
-        $avName=getFieldData($bits[0]);
-        $avUuid=getFieldData($bits[1]);
+      
+        $avName=$sloodle->request->required_param('avname'); 
+        $avUuid=$sloodle->request->required_param('avuuid'); 
         //build user
        $avUser = new SloodleUser( $sloodle );
         if ($avUser->load_avatar($avUuid,$avName)){
@@ -76,15 +85,14 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
      * @param string|mixed $data - string with this format: INDEX:0|GROUPSPERPAGE:10
      * 
      ********************************************/
-      function getGrps($data){
+      function getGrps(){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
         $sloodleid = $sloodle->request->optional_param('sloodleid');
         //cmid is the module id of the sloodle activity we are connecting to
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $index = getFieldData($bits[0]);
-        $groupsPerPage = getFieldData($bits[1]);
+        
+        $index =  $sloodle->request->required_param('index');   
+        $groupsPerPage =$sloodle->request->required_param('maxitems');    
         //get all groups in the course
         $groups = groups_get_all_groups($sloodle->course->get_course_id());
         $sloodle->response->set_status_code(1);             //line 0 

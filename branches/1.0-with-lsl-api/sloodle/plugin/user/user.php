@@ -70,25 +70,31 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          return $avList;
       } 
      /*
-     *   getClassList($data) will return all users with avatars in a course, along with other data:
+     *   getClassList() will return all users with avatars in a course, along with other data:
      *   UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
-     *   llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "PLUGIN:user,FUNCTION:getClassList\nAWARDID:"+(string)currentAwardId+"\nSENDER:"+(string)owner+"|INDEX:"+(string)index+"|       *   SORTMODE:"+sortMode, NULL_KEY);
+     llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "user->getClassList&sloodleid="+(string)currentAwardId+"&senderuuid="+(string)owner+"&index="+(string)index_getClassList+"&sortmode="+sortMode, NULL_KEY);
      */ 
-      function getClassList($data){
+      function getClassList(){
          global $sloodle;
-         //sloodleid is the id of the activity in moodle we want to connect with
-         $awardModuleId = $sloodle->request->optional_param('sloodleid');
-         //$cmid=$sloodle->request->required_param('sloodlemoduleid');          
-         $cm = get_coursemodule_from_instance('sloodle',$awardModuleId);
-         $cmid = $cm->id;
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+         
          $sCourseObj = new sloodleCourseObj($cmid);  
          $awardsObj = new Awards((int)$cmid);
          $NUM_USERS_TO_RETURN=10;          
-           $data = $sloodle->request->required_param('data');            
-           $bits = explode("|", $data);
-           $senderUuid= getFieldData($bits[0]);           
-           $index        = getFieldData($bits[1]);
-           $sortMode     = getFieldData($bits[2]);  
+         $senderUuid= $sloodle->request->required_param('sloodleuuid');    
+         $index        = $sloodle->request->required_param('index');    
+         $sortMode     = $sloodle->request->required_param('sortmode');    
           /*  Send message back into SL
            *      LINE   MESSAGE
            *      0)     1 | OK
@@ -139,8 +145,8 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
   
                 }//foreach
                  //sort by points
-                 if ($sortMode=="balance") usort($avList, array("sloodle_hq_plugin_user", "balanceSort")); else
-                 if ($sortMode=="name") usort($avList,  array("sloodle_hq_plugin_user", "nameSort"));
+                 if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
+                 if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
                 $sloodleData="";
                 $size = count($avatarList);
                 $i = 0;
@@ -178,25 +184,28 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
         * getAwardMbrs will return a list of users with 
         * avatars in the course along with a tag indicating if they are a member of the group
         * This function can be called in SL using the following linked message:
-        * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:users,function:getAwardMbrs\nSENDERUUID:UUID\nGROUPNAME:"+clickedGroup"\nINDEX:index\nSORTMODE:name", NULL_KEY);
+        llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "user->getAwardGrpMbrs&sloodleid="+(string)currentAwardId+"&senderuuid="+(string)owner+"&grpname="+clickedGroup+"&index="+(string)index+"&sortmode=name", NULL_KEY);
         */
-        function getAwardGrpMbrs($data){
+        function getAwardGrpMbrs(){
            $NUM_USERS_TO_RETURN=10; 
            global $sloodle;           
-           //sloodleid is the id of the activity in moodle we want to connect with
-           $sloodleid = $sloodle->request->optional_param('sloodleid');
-           //cmid is the module id of the sloodle activity we are connecting to
-           $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-           $cmid = $cm->id;
+             $sloodleid = $sloodle->request->optional_param('sloodleid');
+             //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+             //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+             //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+             $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+             if (!$coursemoduleid){
+                //cmid is the module id of the sloodle activity we are connecting to
+                 $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+                 $cmid = $cm->id;
+             }
+             else $cmid= $coursemoduleid;
            $sCourseObj = new sloodleCourseObj($cmid);  
-           $awardsObj = new Awards((int)$cmid);
-           $data = $sloodle->request->required_param('data');            
-           $bits = explode("|", $data);                                 
-           //$data=GROUPNAME:groupname|INDEX:index|SORTMODE:name/balance
-           $senderUuid= getFieldData($bits[0]);
-           $groupName  = getFieldData($bits[1]);         
-           $index      = getFieldData($bits[2]);
-           $sortMode   = getFieldData($bits[3]);  
+           $awardsObj = new Awards((int)$cmid);           
+           $senderUuid= $sloodle->request->required_param('sloodleuuid'); 
+           $groupName  = $sloodle->request->required_param('grpname'); 
+           $index      = $sloodle->request->required_param('index'); 
+           $sortMode   = $sloodle->request->required_param('sortmode'); 
            $groupId = groups_get_group_by_name($sCourseObj->courseId,$groupName);
            if (!$groupId){
                 $sloodle->response->set_status_code(-500401); //group doesnt exist in course 
@@ -301,26 +310,33 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
      * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:user,function:addGrpMbr\nSENDERUUID:"+(string)owner+"|GROUPNAME:"+current_grp_membership_group+"|USERUUID:"+(string)useruuid|USERNAME:avname, NULL_KEY);
      * @output status_code: -500800 user doesn’t have capabilities to edit group membersip
      */
-     function addGrpMbr($data){
+     function addGrpMbr(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
-        $sCourseObj = new sloodleCourseObj($cmid);          
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $sender_uuid=getFieldData($bits[0]);
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+        
+                
+        $sender_uuid= $sloodle->request->required_param('sloodleuuid');   
         $sender_name=$sloodle->request->required_param('sloodleavname');
         $avUser = new SloodleUser( $sloodle );
         $avUser->load_avatar($sender_uuid,$sender_name);
         $avUser->load_linked_user();
         $sender_moodle_id= $avUser->avatar_data->userid;
-        $grpName =  getFieldData($bits[1]);
-        $newMemberUuid = getFieldData($bits[2]);
-        $newMemberName= getFieldData($bits[3]);
-        $context = get_context_instance(CONTEXT_COURSE, $sCourseObj->courseId);
+        $grpName =  $sloodle->request->required_param('grpname');
+        $newMemberUuid =$sloodle->request->required_param('avuuid');
+        $newMemberName= $sloodle->request->required_param('avname');
+        $courseId = $sloodle->course->get_course_id();
+        $context = get_context_instance(CONTEXT_COURSE, $courseId);
         //check to see if user has authority to edit group membership
         if (!has_capability('moodle/course:managegroups', $context,$sender_moodle_id)) {
            $sloodle->response->set_status_code(-500800);     //@output status_code: -500800 user doesn’t have capabilities to edit group membersip
@@ -331,7 +347,8 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
            return;
         }//has_capability('moodle/course:managegroups'
         //search for group to get id, then add to the sloodle_award_teams database
-        $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
+        $grpName=urldecode($grpName);
+        $groupId = groups_get_group_by_name($courseId,$grpName);
         if ($groupId){            
             $avUser = new SloodleUser( $sloodle );
             $avUser->load_avatar($newMemberUuid,$newMemberName);
@@ -349,7 +366,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
             }
             return;
         }else {//groupid is null
-            //@output status_code: -500400 group doesnt exist for this award 
+            //@output status_code: -500400 group doesnt exist for this course 
             $sloodle->response->set_status_code(-500400);     
             $sloodle->response->set_status_descriptor('GROUPS'); //line 0      
            $sloodle->response->add_data_line("GRP:".$grpName);
@@ -359,34 +376,42 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
         } 
             
      }
+     
      /**********************************************************
      * removeGrpMbr will attempt to remove a member to a group 
      * called by: 
-     * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:user,function:removeGrpMbr\nSENDERUUID:"+(string)owner+"|GROUPNAME:"
-     * +current_grp_membership_group+"|USERUUID:"+(string)useruuid+"|USERNAME:"+userName, NULL_KEY);
+     llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "user->removeGrpMbr&sloodleid="+(string)currentAwardId+"&senderuuid="+(string)owner+"&groupname="+currentGroup+"&avuuid="+(string)useruuid+"&avname="+userName, NULL_KEY);
      * 
      * @output status_code: -500800 user doesn’t have capabilities to edit group membersip
      * @output status_code: -500900 could not add user to group
      */
-     function removeGrpMbr($data){
+     function removeGrpMbr(){
         global $sloodle;
-        //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
+      
+           //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
         $sCourseObj = new sloodleCourseObj($cmid);          
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $sender_uuid=getFieldData($bits[0]);
+        
+        
+        $sender_uuid=$sloodle->request->required_param('sloodleuuid');    
         $sender_name=$sloodle->request->required_param('sloodleavname');
         $avUser = new SloodleUser( $sloodle );
         $avUser->load_avatar($sender_uuid,$sender_name);
         $avUser->load_linked_user();
         $sender_moodle_id= $avUser->avatar_data->userid;
-        $grpName =  getFieldData($bits[1]);
-        $newMemberUuid = getFieldData($bits[2]);
-        $newMemberName= getFieldData($bits[3]);
+        $grpName =  $sloodle->request->required_param('grpname');    
+        $newMemberUuid = $sloodle->request->required_param('avuuid');    
+        $newMemberName= $sloodle->request->required_param('avname');    
         $context = get_context_instance(CONTEXT_COURSE, $sCourseObj->courseId);
         //check to see if user has authority to edit group membership
         if (!has_capability('moodle/course:managegroups', $context,$sender_moodle_id)) {
@@ -398,6 +423,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
            return;
         }//has_capability('moodle/course:managegroups'
         //search for group to get id, then add to the sloodle_award_teams database
+        $grpName=urldecode($grpName); 
         $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
         if ($groupId){            
             $avUser = new SloodleUser( $sloodle );
