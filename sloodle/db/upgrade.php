@@ -587,8 +587,39 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);                                           
     }
-
-
+    if ($result && $oldversion < 2009110300) {
+         echo "upgrading sloodle_scoreboards table.  Adding name field to identify individual scoreboards, and eliminate dead urls";
+           // Define field id to be added to sloodle_awards_scoreboards
+                $table = new XMLDBTable('sloodle_awards_scoreboards');                
+                //id
+                $field = new XMLDBField('id');
+                $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);                 
+                $result = $result && change_field_type($table, $field);
+                //sloodleid
+                $field = new XMLDBField('sloodleid');
+                $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+                $result = $result && change_field_type($table, $field);                                         
+                //add name field
+                $field = new XMLDBField('name');
+                $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
+                $result = $result && add_field($table, $field);
+                //url field
+                $field = new XMLDBField('url');
+                $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'name');                
+                $result = $result && change_field_type($table, $field);
+                //type field
+                $field = new XMLDBField('type');
+                $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, null, null, null, null, '', 'url');                
+                $result = $result && change_field_type($table, $field);
+                //enabled
+                 $field = new XMLDBField('enabled');
+                 $field->setAttributes(XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'type');
+                 $result = $result && change_field_type($table, $field);
+                 //timemodified
+                 $field = new XMLDBField('timemodified');
+                 $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+                 $result = $result && change_field_type($table, $field);                
+    }   
   return $result; 
 }
 

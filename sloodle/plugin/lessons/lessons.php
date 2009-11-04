@@ -20,22 +20,15 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
      *   @parameters:  lessonsPerPage - the number of lessons you want to return into sl
      *      
      *   API CALL in SL:
-     *   string apiCall = "plugin:lessons,function:getLessons\nSLOODLEID:null\nindex:0|lessonsPerPage:9";
      *   llMessageLinked(LINK_SET, PLUGIN_CHANNEL, apiCall,  NULL_KEY);
      **********************************************************************************/
-     function getLessons($data){
+     function getLessons(){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
-        $sloodleid = $sloodle->request->optional_param('sloodleid');
-        //cmid is the module id of the sloodle activity we are connecting to
-        $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-        $cmid = $cm->id;
+        $sloodleid = $sloodle->request->optional_param('sloodleid');     
         $courseid = $sloodle->course->get_course_id();
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
-        $index = getFieldData($bits[0]);
-        
-        $lessonsPerPage = getFieldData($bits[1]);
+        $index =  $sloodle->request->required_param('index');   
+        $lessonsPerPage = $sloodle->request->required_param('maxitems');   
         //get all lessons in the course
         $lessons = get_records('lesson','course',$courseid);
         if ($lessons){
@@ -123,10 +116,9 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
      *   @parameters:  lessonPagesPerPage - the number of lesson Pages you want to return into sl
      *      
      *   API CALL in SL:
-     *   string apiCall = "plugin:lessons,function:getLessonPages\nSLOODLEID:null\nindex:0|lessonPagesPerPage:9|lessonid:1";
      *   llMessageLinked(LINK_SET, PLUGIN_CHANNEL, apiCall,  NULL_KEY);
      **********************************************************************************/
-    function getLessonPages($data){
+    function getLessonPages(){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
         $sloodleid = $sloodle->request->optional_param('sloodleid');
@@ -134,14 +126,12 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
         $cmid = $cm->id;
         $courseid = $sloodle->course->get_course_id();
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
         /****************************
         * parse the data parameters passed into SL
         *****************************/
-        $index = getFieldData($bits[0]);        
-        $lessonPagesPerPage = getFieldData($bits[1]);
-        $lessonId = getFieldData($bits[2]);
+       $index =  $sloodle->request->required_param('index');   
+        $lessonPagesPerPage =$sloodle->request->required_param('maxitems');   
+        $lessonId = $sloodle->request->required_param('lessonid');   
         /****************************
         * get all lesson pages in the course for this lesson
         ******************************/
@@ -200,7 +190,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
      *   string apiCall = "plugin:lessons,function:getLessonAnswers\nSLOODLEID:null\nindex:0|lessonsPerPage:9|lessonid:2|pageid:6";
      *   llMessageLinked(LINK_SET, PLUGIN_CHANNEL, apiCall,  NULL_KEY);
      **********************************************************************************/
-    function getLessonAnswers($data){
+    function getLessonAnswers(){
         global $sloodle;
         //sloodleid is the id of the activity in moodle we want to connect with
         $sloodleid = $sloodle->request->optional_param('sloodleid');
@@ -208,15 +198,13 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
         $cmid = $cm->id;
         $courseid = $sloodle->course->get_course_id();
-        $data=$sloodle->request->optional_param('data'); 
-        $bits = explode("|", $data);
         /****************************
         * parse the data parameters passed into SL
         *****************************/
-        $index = getFieldData($bits[0]);        
-        $lessonAnswersPerPage = getFieldData($bits[1]);
-        $lessonId = getFieldData($bits[2]);
-        $pageId = getFieldData($bits[3]);
+        $index =  $sloodle->request->required_param('index');   
+        $lessonAnswersPerPage = $sloodle->request->required_param('maxitems');   
+        $lessonId = $sloodle->request->required_param('lessonid');   
+        $pageId = $sloodle->request->required_param('pageid');   
         /****************************
         * get all lesson answers in the course for this lesson
         ******************************/
