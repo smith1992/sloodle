@@ -145,7 +145,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             //set $needsUpdating initially to false
                            
                             //get number of groups for this scoreboard
-                            $groupsInGame =   explode(",", $this->getFieldData($dataLines[1]);
+                            $groupsInGame =   explode(",", $this->getFieldData($dataLines[1]));
                             $numGroups = count($groupsInGame); 
                             $needsUpdatingArray = array();          
                             //for each scoreboard group, check if transactions have been made for any members
