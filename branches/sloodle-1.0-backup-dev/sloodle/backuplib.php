@@ -7,9 +7,6 @@
     * However, there are several sub-types of modules, most of which have one or more "secondary" records elsewhere in the database.
     * This file directly backs-up the primary data, but then relies on individual module code (in "lib/modules") to backup secondary data.
     *
-    * In addition, there is also SLOODLE data for each course, which is backed-up separately.
-    * This includes course settings for auto-registration/-enrolment, and stored object layouts/configurations.
-    *
     * The current 'active objects' (i.e. objects which are authorised to access the course when the backup is initiated) will NOT currently be backed-up.
     * This is for security, since in the event that a course is being transfered it is not desirable to allow existing objects access to the new course.
     * An option may be added in future to allow object authorisations to be transferred in a safe way.
@@ -17,6 +14,8 @@
     * NOTE: despite the above restriction, any objects relying on a prim password will still have access, since the prim password does not change during backup.
     *
     * @package sloodle
+    * @todo Implement backup of site data, including avatar registrations
+    * @todo Implement backup fo course data, including autoreg/enrol settings, and object layouts/configurations
     *
     */
     
@@ -59,7 +58,7 @@
     * @return bool True if successful, or false if not.
     */
     function sloodle_backup_one_mod($bf, $preferences, $mod)
-    {        
+    {
         // Load a 'sloodle' record if necessary
         if (is_numeric($mod)) {
             $mod = get_record('sloodle', 'id', $mod);
@@ -89,7 +88,9 @@
         fwrite($bf, full_tag('TIMEMODIFIED', 4, false, $mod->timemodified));
         
         // Backup any secondary data
+        fwrite($bf, start_tag('SECONDARYDATA', 4, true));
         if (!$moduleobj->backup($bf, backup_userdata_selected($preferences, 'sloodle', $mod->id))) $status = false;
+        fwrite($bf, end_tag('SECONDARYDATA', 4, true));
         
         // Finish off
         if (!fwrite($bf, end_tag('MOD', 3, true))) $status = false;

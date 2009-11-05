@@ -55,12 +55,12 @@
         }
         
         
-    // BACK AND RESTORE //
+    // BACKUP AND RESTORE //
         
         /**
         * Backs-up secondary data regarding this module.
         * That includes everything except the main 'sloodle' database table for this instance.
-        * @param $bf Handle to the file which backup data should be written to.
+        * @param object $bf Handle to the file which backup data should be written to.
         * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
         * @return bool True if successful, or false on failure.
         */
@@ -69,7 +69,20 @@
             return true;
         }
         
-        // TODO: add restore function
+        
+        /**
+        * Restore this module's secondary data into the database.
+        * This ignores any member data, so can be called statically.
+        * @param int $sloodleid The ID of the primary SLOODLE entry this restore belongs to (i.e. the ID of the record in the "sloodle" table)
+        * @param array $info An associative array representing the XML backup information for the secondary module data
+        * @param bool $includeuserdata Indicates whether or not to restore user data
+        * @return bool True if successful, or false on failure.
+        */
+        function restore($sloodleid, $info, $includeuserdata)
+        {
+            return true;
+        }
+        
         
         /**
         * Gets the name of the user data required by this type, or an empty string if none is required.
@@ -90,9 +103,7 @@
         {
             return 0;
         }
-        
-        
-        
+  
     // ACCESSORS //
     
         /**

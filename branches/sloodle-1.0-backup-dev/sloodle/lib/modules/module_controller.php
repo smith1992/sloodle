@@ -90,6 +90,73 @@
         }
         
         
+    // BACKUP AND RESTORE //
+        
+        /**
+        * Backs-up secondary data regarding this module.
+        * That includes everything except the main 'sloodle' database table for this instance.
+        * @param $bf Handle to the file which backup data should be written to.
+        * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
+        * @return bool True if successful, or false on failure.
+        */
+        function backup($bf, $includeuserdata)
+        {
+            // Backup the basic secondary data
+            $enabled = '0';
+            if (!empty($this->sloodle_controller_instance->enabled) && $this->sloodle_controller_instance->enabled != FALSE) $enabled = '1';
+            fwrite($bf, full_tag('ID', 5, false, $this->sloodle_controller_instance->id));
+            fwrite($bf, full_tag('ENABLED', 5, false, $enabled));
+            fwrite($bf, full_tag('PASSWORD', 5, false, $this->sloodle_controller_instance->password));
+            // Backup user data
+            if ($includeuserdata) {
+                // Layouts and configurations?
+                // They are technically course-based.
+            }
+        
+            return true;
+        }
+        
+        /**
+        * Restore this module's secondary data into the database.
+        * This ignores any member data, so can be called statically.
+        * @param int $sloodleid The ID of the primary SLOODLE entry this restore belongs to (i.e. the ID of the record in the "sloodle" table)
+        * @param array $info An associative array representing the XML backup information for the secondary module data
+        * @param bool $includeuserdata Indicates whether or not to restore user data
+        * @return bool True if successful, or false on failure.
+        */
+        function restore($sloodleid, $info, $includeuserdata)
+        {
+            // Construct the database record
+            $controller = new object();
+            $controller->sloodleid = $sloodleid;
+            $controller->enabled = $info['ENABLED']['0']['#'];
+            $controller->password = $info['PASSWORD']['0']['#'];
+            
+            $newid = insert_record('sloodle_controller', $controller);
+        
+            return true;
+        }
+        
+        
+        /**
+        * Gets the name of the user data required by this type, or an empty string if none is required.
+        * For example, a chatroom would use the name "Messages" for user data.
+        * Note that this should respect current language settings in Moodle.
+        * @return string Localised name of the user data.
+        */
+        function get_user_data_name()
+        {
+            return '';
+        }
+        
+        /**
+        * Gets the number of user data records to be backed-up.
+        * @return int A count of the number of user data records which can be backed-up.
+        */
+        function get_user_data_count()
+        {
+            return 0;
+        }
         
         
         
