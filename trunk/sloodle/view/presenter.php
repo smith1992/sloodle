@@ -4,10 +4,11 @@
 * Derived from the module view base class.
 *
 * @package sloodle
-* @copyright Copyright (c) 2008 Sloodle (various contributors)
+* @copyright Copyright (c) 2008-9 Sloodle (various contributors)
 * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
 *
 * @contributor Peter R. Bloomfield
+* @contributor Paul Preibisch
 */
 
 
@@ -121,10 +122,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
             return false;
         }
     }
-
-    
-    
-    
     
     /**
     * Process any form data which has been submitted.
@@ -182,51 +179,50 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $entryid = (int)required_param('entry', PARAM_INT);
                 $position = (int)required_param('position', PARAM_INT);
                 $this->presenter->relocate_entry($entryid, $position);
-                
                 $redirect = true;
             }
             
             
             
-             // Has a new entry been added?
+            // Has a new entry been added?
             if (isset($_REQUEST['fileaddentry']) ||isset($_REQUEST['sloodleaddentry'])) {
-               if (isset($_REQUEST['fileaddentry'])){ 
+                if (isset($_REQUEST['fileaddentry'])) { 
                     $urls = $_REQUEST['fileurl'];                    
                     $names =  $_REQUEST['filename']; 
                     $i = 0;                   
-                    foreach ($urls as $u){    
-                         $fnamelen= strlen($u);
-                         $extension= substr($u,$fnamelen-4); 
-                         $ftype = strtolower($extension);
-                         switch ($ftype){
-                            case ".mov": $ftype = "video"; break;   
+                    foreach ($urls as $u) {    
+                        $fnamelen= strlen($u);
+                        $extension= substr($u,$fnamelen-4); 
+                        $ftype = strtolower($extension);
+                        switch ($ftype){
+                            case ".mov": $ftype = "video"; break;
+                            case ".mp4": $ftype = "video"; break;
                             case ".jpg": $ftype = "image"; break;
                             case ".png": $ftype = "image"; break;
                             case ".gif": $ftype = "image"; break;
+                            case ".bmp": $ftype = "image"; break;
                             case ".htm": $ftype = "web";   break;
                             case "html": $ftype = "web";   break;                              
-                         }
+                        }
                         $this->presenter->add_entry(sloodle_clean_for_db($u), $ftype, sloodle_clean_for_db($names[$i++]));        
-                       }
+                    }
                         
-                         $redirect=true;                 
-                          if ($redirect && headers_sent() == false) {
-                header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
-                exit();
-                    }     
-               }
-               if (isset($_REQUEST['sloodleaddentry'])){  
-                if ($_REQUEST['sloodleentryurl']!=''){
-                    $sloodleentryurl = sloodle_clean_for_db($_REQUEST['sloodleentryurl']);
-                    $sloodleentrytype = sloodle_clean_for_db($_REQUEST['sloodleentrytype']);
-                    $sloodleentryname = sloodle_clean_for_db($_REQUEST['sloodleentryname']);
-                    $sloodleentryposition = (int)$_REQUEST['sloodleentryposition'];
-                    // Store the type in session data for next time we're adding a slide
-                    $_SESSION['sloodle_presenter_add_type'] = $sloodleentrytype;
-                    $this->presenter->add_entry($sloodleentryurl, $sloodleentrytype, $sloodleentryname, $sloodleentryposition);
+                    $redirect = true;
                 }
-               } 
-                 $redirect = true; 
+               
+                if (isset($_REQUEST['sloodleaddentry'])) {
+                    if ($_REQUEST['sloodleentryurl']!='') {
+                        $sloodleentryurl = sloodle_clean_for_db($_REQUEST['sloodleentryurl']);
+                        $sloodleentrytype = sloodle_clean_for_db($_REQUEST['sloodleentrytype']);
+                        $sloodleentryname = sloodle_clean_for_db($_REQUEST['sloodleentryname']);
+                        $sloodleentryposition = (int)$_REQUEST['sloodleentryposition'];
+                        // Store the type in session data for next time we're adding a slide
+                        $_SESSION['sloodle_presenter_add_type'] = $sloodleentrytype;
+                        $this->presenter->add_entry($sloodleentryurl, $sloodleentrytype, $sloodleentryname, $sloodleentryposition);
+                    }
+                } 
+                
+                $redirect = true; 
             }
             
             
@@ -248,16 +244,16 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 //check what value was submitted from the select input
                 $multipleAction = optional_param('multipleProcessor');
                 $selectedSlides = $_REQUEST['selectedSlides'];   
-                  if ($multipleAction=="Delete Selected"){
+                if ($multipleAction=="Delete Selected") {
                     //get all selected slides to trash                
                     $slides = $this->presenter->get_slides();                        
                     $deleted = get_string("presenter:deleted",'sloodle');
                     $fromTheServer = get_string("presenter:fromtheserver",'sloodle');
                     $feedback = "";
-                    foreach ($selectedSlides as $selectedSlide){
+                    foreach ($selectedSlides as $selectedSlide) {
                         //get slide source so we can delete it from the server   
-                        foreach ($slides as $slide){
-                               if ($slide->id==$selectedSlide){
+                        foreach ($slides as $slide) {
+                               if ($slide->id==$selectedSlide) {
                                     //delete file
                                     $fileLocation = $CFG->dataroot;
                                     //here the $slide->source url has moodle's file.php handler in it
@@ -284,18 +280,15 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     // Store the feedback as a session variable for the next time the page is loaded
                     $_SESSION['sloodle_presenter_feedback'] = $feedback;
                     //set redirect so we go back to the edit tab
-                    $redirect = true;   
-                          
-				  //$this->presenter->delete_entry()
-
-					// Redirect back to self, if possible
-					if ($redirect && headers_sent() == false) {
-						header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
-						exit();
-					}
-				}            
-                
+                    $redirect = true;
+				}
 			}
+            
+            // Redirect back to the edit page -- this is used to get rid of intermediate parameters.
+            if ($redirect && headers_sent() == false) {
+                header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
+                exit();
+            }
         }
     }
     
@@ -329,19 +322,17 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Do we have any entries to work with?
         if ($numentries > 0) {
             // Yes - go through them to figure out which entry to display
-             $currententry = null;
-          foreach ($entries as $entryid => $entry) {
+            $currententry = null;
+            foreach ($entries as $entryid => $entry) {
                 // Check if this is our current entry
-              if ($displayentrynum == $entry->slideposition) {                  
+                if ($displayentrynum == $entry->slideposition) {                  
                     $currententry = $entry;
                 }
-
-           
             }
     
             // Display the entry header
             echo "<div style=\"text-align:center;\">";
-           echo "<h2 id=\"slide\">\"<a href=\"{$currententry->source}\" title=\"".get_string('directlink', 'sloodle')."\">{$currententry->name}</a>\"</h2>\n";
+            echo "<h2 id=\"slide\">\"<a href=\"{$currententry->source}\" title=\"".get_string('directlink', 'sloodle')."\">{$currententry->name}</a>\"</h2>\n";
 
             // Display the presentation controls
             $strof = get_string('of', 'sloodle');
@@ -416,12 +407,12 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $frameheight = $this->presenter->get_frame_height();            
 
             // Get the plugin for this slide
-            $slideplugin = $this->_session->plugins->get_plugin($currententry->type);
+            $slideplugin = $this->_session->plugins->get_plugin('presenter-slide', $currententry->type);
             if (is_object($slideplugin)) {
                 // Render the content for the web
                 echo $slideplugin->render_slide_for_browser($currententry);
             } else {
-                echo '<p style="font-size:150%; font-weight:bold; color:#880000;">',get_string('unknowntype','sloodle'),': ', $currententry->type, '</p>';
+                echo '<p style="font-size:150%; font-weight:bold; color:#880000;">',get_string('unknowntype','sloodle'),': presenter-slide::',$currententry->type, '</p>';
             }
             
 
@@ -532,12 +523,12 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $row = array();
                 
                 // Extract the entry data
-                $slideplugin = $this->_session->plugins->get_plugin($entry->type);
-                if ($slideplugin) $entrytypename = $slideplugin->get_plugin_name();
+                $slideplugin = $this->_session->plugins->get_plugin('presenter-slide', $entry->type);
+                if (is_object($slideplugin)) $entrytypename = $slideplugin->get_plugin_name();
                 else $entrytypename = '(unknown type)';
                 // Construct the link to the entry source
                 $entrylink = "<a href=\"{$entry->source}\" title=\"{$entry->source}\">{$entry->name}</a>";
-                // If this is the slide being moved, then completely ignore iti
+                // If this is the slide being moved, then completely ignore it
                 if ($this->movingentryid == $entryid) {
                     continue;
                 }
@@ -595,7 +586,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
               
             
             // If we are in move mode, then add a final 'move here' row at the bottom
-  // We need to add a final row at the bottom
+            // We need to add a final row at the bottom
             // Prepare the action link for this row
             $endentrynum = $entry->slideposition + 1;
             $actionLinkAdd = $actionBaseLink."&amp;mode=addslide&amp;sloodleentryposition={$endentrynum}";
@@ -625,7 +616,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
                 //add select input to table
               $deleteButton = "<input value='Delete Selected' type='submit' name='multipleProcessor' id='multipleProcessor'>";                                
-                $entriesTable->data[] = array('',$movebutton . ' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div></a></div>',$deleteButton , '', $addButtons);
+                $entriesTable->data[] = array('',' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div></a></div>', $movebutton , '', $deleteButton.'&nbsp;&nbsp;'.$addButtons);
                 //encase in a form
                 echo '<form action="" ,method="POST" id="editform" name="editform">';
                 print_table($entriesTable);
@@ -640,8 +631,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
     }
     
     /**
-    * Render the slide editing form of the Presenter (lets you edit a single slide).
-    * Called from with the {@link render()} function when necessary.
+    * Render the "Upload Many" tab.
     */        
     function render_add_files()
     {
@@ -685,7 +675,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         $strview = get_string('view', 'sloodle');
         $strdelete = get_string('delete');
 
-        // Construct an array of available entry types, associating the identifier to the humand-readable name.
+        // Construct an array of available entry types, associating the identifier to the human-readable name.
         // In future, this will be built from a list of plugins, but for now we'll hard code it.
         $availabletypes = array();
         $availabletypes['image'] = get_string('presenter:type:image','sloodle');
@@ -941,12 +931,12 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
         // Construct an array of available entry types, associating the identifier to the human-readable name.
         $availabletypes = array();
-        $pluginnames = $this->_session->plugins->get_plugin_names('SloodlePluginBasePresenterSlide');
-        if (!$pluginnames) exit('Failed to query for SLOODLE Presenter slide plugins.');
-        foreach ($pluginnames as $pluginname) {
+        $pluginids = $this->_session->plugins->get_plugin_ids('presenter-slide');
+        if (!$pluginids) exit('Failed to query for SLOODLE Presenter slide plugins.');
+        foreach ($pluginids as $pluginid) {
             // Fetch the plugin and store its human-readable name
-            $plugin = $this->_session->plugins->get_plugin($pluginname);
-            $availabletypes[$pluginname] = $plugin->get_plugin_name();
+            $plugin = $this->_session->plugins->get_plugin('presenter-slide', $pluginid);
+            $availabletypes[$pluginid] = $plugin->get_plugin_name();
         }       
         // We'll post the data straight back to this page
         echo '<form action="" method="post"><fieldset style="border-style:none;">';
@@ -1011,12 +1001,12 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
         // Construct an array of available importers, associating the identifier to the human-readable name.
         $availableimporters = array();
-        $pluginnames = $this->_session->plugins->get_plugin_names('SloodlePluginBasePresenterImporter');
-        if (!$pluginnames) error('Failed to load any SLOODLE Presenter importer plugins. Please check your plugins folder.');
-        foreach ($pluginnames as $pluginname) {
+        $pluginids = $this->_session->plugins->get_plugin_ids('presenter-importer');
+        if (!$pluginids) error('Failed to load any SLOODLE Presenter importer plugins. Please check your plugins folder.');
+        foreach ($pluginids as $pluginid) {
             // Fetch the plugin and store its human-readable name
-            $plugin = $this->_session->plugins->get_plugin($pluginname);
-            $availableimporters[$pluginname] = $plugin->get_plugin_name();
+            $plugin = $this->_session->plugins->get_plugin('presenter-importer', $pluginid);
+            $availableimporters[$pluginid] = $plugin->get_plugin_name();
         }
 
         // We are expecting a few parameters
@@ -1047,7 +1037,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             foreach ($availableimporters as $importerident => $importername) {
 
                 // Get the description of the plugin
-                $plugin = $this->_session->plugins->get_plugin($importerident);
+                $plugin = $this->_session->plugins->get_plugin('presenter-importer', $importerident);
                 $desc = $plugin->get_plugin_description();
 
                 // Check the compatibility of the plugin
@@ -1076,7 +1066,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         }
         
         // Grab the importer plugin object
-        $importer = $this->_session->plugins->get_plugin($plugintype);
+        $importer = $this->_session->plugins->get_plugin('presenter-importer', $plugintype);
 
         // Display a heading for this importer
         echo '<h2 style="margin-bottom:0px; padding-bottom:0px;">'.$importer->get_plugin_name()."</h2>\n";

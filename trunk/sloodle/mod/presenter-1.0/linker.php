@@ -36,25 +36,43 @@
     $sloodle->authenticate_request();
     $sloodle->load_module(SLOODLE_TYPE_PRESENTER, true);
     
+    // Load the necessary Presenter plugins
+    if (!$sloodle->plugins->load_plugins('presenter')) {
+        $sloodle->response->quick_output(-131, 'PLUGIN', 'Failed to load any SLOODLE Presenter plugins. Please check your "sloodle/plugin" folder.', false);
+        exit();
+    }
+    
     // Start preparing the response
     $sloodle->response->set_status_code(1);
     $sloodle->response->set_status_descriptor('OK');
     
     // Output each URL and entry type
-    $entries = $sloodle->module->get_entry_urls();
-    if (is_array($entries)) {
-        foreach ($entries as $entry) {
-            // Convert our type back to a legacy type for sake of old Presenters
-			$entrytype = strtolower($entry[1]);
-            $type = $entrytype;
-            switch ($entrytype)
+    $slides = $sloodle->module->get_slides();
+    if (is_array($slides)) {
+        foreach ($slides as $slide) {
+            // This will store the source URL for the slide
+            $slidesource = '';
+            // Convert the plugin class names back to the simpler slide type name.
+			$slidetype = strtolower($slide->type);
+            switch ($slidetype)
             {
-            case 'presenterslideimage': case 'sloodlepluginpresenterslideimage': $type = 'image'; break;
-            case 'presenterslideweb': case 'sloodlepluginpresenterslideweb': $type = 'web'; break;
-            case 'presenterslidevideo': case 'sloodlepluginpresenterslidevideo': $type = 'video'; break;
+            case 'presenterslideimage': case 'sloodlepluginpresenterslideimage': $slidetype = 'image'; break;
+            case 'presenterslideweb': case 'sloodlepluginpresenterslideweb': $slidetype = 'web'; break;
+            case 'presenterslidevideo': case 'sloodlepluginpresenterslidevideo': $slidetype = 'video'; break;
+            }
+            // Attempt to load the plugin for this type
+            $slideplugin = $sloodle->plugins->get_plugin('presenter-slide', $slidetype);
+            if ($slideplugin === false) {
+                // Indicate the error as a side effect, and specify the type as an error
+                sloodle_debug("Failed to load Presenter slide plugin.\n");
+                $sloodle->response->add_side_effect(-132);
+                $entrytype = 'ERROR';
+                $entrysource = '';
+            } else {
+                list($mimetype, $slidesource) = $slideplugin->render_slide_for_sl($slide);
             }
 
-            $sloodle->response->add_data_line(array($type, $entry[0], $entry[2]));
+            $sloodle->response->add_data_line(array($slidetype, $slidesource, $slide->name));
         }
     }
     

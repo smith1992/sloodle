@@ -1047,7 +1047,7 @@
     */
     function sloodle_clean_for_output($str)
     {
-        return strip_tags(stripcslashes(html_entity_decode($str, ENT_QUOTES, 'UTF-8')));
+        return strip_tags(stripcslashes(@html_entity_decode($str, ENT_QUOTES, 'UTF-8')));
     }
 
     /**
