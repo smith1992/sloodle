@@ -56,6 +56,21 @@ class SloodlePluginBasePresenterSlide extends SloodlePluginBase
         // In case this function isn't overridden, just output a basic web URL
         return array('web', $slide->source);
     }
+    
+    /**
+    * Gets the category to which this plugin belongs.
+    * For example, Presenters have two plugin categories: slides, and importers.
+    * This function must be overriden.
+    * A useful approach would be to have a derived plugin base class for a particular category of plugins.
+    * Each derived base class would report the appropriate category by overriding this function.
+    * The actual plugin classes would simply have to inherit that derived base, without needing to specify their own category.
+    * @access public
+    * @return string The name of this category of plugin.
+    */
+    function get_category()
+    {
+        return 'presenter-slide';
+    }
 
 }
 
@@ -85,6 +100,21 @@ class SloodlePluginBasePresenterImporter extends SloodlePluginBase
     function import($file, $position = -1)
     {
         return false;
+    }
+    
+    /**
+    * Gets the category to which this plugin belongs.
+    * For example, Presenters have two plugin categories: slides, and importers.
+    * This function must be overriden.
+    * A useful approach would be to have a derived plugin base class for a particular category of plugins.
+    * Each derived base class would report the appropriate category by overriding this function.
+    * The actual plugin classes would simply have to inherit that derived base, without needing to specify their own category.
+    * @access public
+    * @return string The name of this category of plugin.
+    */
+    function get_category()
+    {
+        return 'presenter-importer';
     }
 }
 

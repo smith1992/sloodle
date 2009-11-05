@@ -21,6 +21,18 @@
 */
 class SloodlePluginPresenterSlideImage extends SloodlePluginBasePresenterSlide
 {
+    /**
+    * Gets the identifier of this plugin.
+    * This function MUST be overridden by sub-classes to return an ID that is unique to the category.
+    * It is possible to have different plugins of the same ID in different categories.
+    * This function is given a very explicitly sloodley name as it lets us ignore any classes which don't declare it.
+    * @access public
+    * @return string|bool The ID of this plugin, or boolean false if this is a base class and should not be instantiated as a plugin.
+    */
+    function sloodle_get_plugin_id()
+    {
+        return 'image';
+    }
 
     /**
     * Construct an absolute URL, based on the given source data.

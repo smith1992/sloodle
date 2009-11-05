@@ -33,6 +33,19 @@ $IMAGICK_CONVERT_PATH = '/usr/bin/convert';
 class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImporter
 {
     /**
+    * Gets the identifier of this plugin.
+    * This function MUST be overridden by sub-classes to return an ID that is unique to the category.
+    * It is possible to have different plugins of the same ID in different categories.
+    * This function is given a very explicitly sloodley name as it lets us ignore any classes which don't declare it.
+    * @access public
+    * @return string|bool The ID of this plugin, or boolean false if this is a base class and should not be instantiated as a plugin.
+    */
+    function sloodle_get_plugin_id()
+    {
+        return 'pdf-imagemagick';
+    }
+
+    /**
     * Render this importer on a web page.
     * All importing functionality should be handled by this function as well.
     * @param string $url A URL to this Presenter, without a "mode" parameter.
@@ -83,7 +96,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         echo '<form action="" method="post" enctype="multipart/form-data"><fieldset style="border-style:none;">';
         echo '<input type="hidden" name="id" id="id" value="'.$presenter->cm->id.'" />';
         echo '<input type="hidden" name="mode" id="mode" value="importslides" />';
-        echo '<input type="hidden" name="sloodleplugintype" id="sloodleplugintype" value="'.$this->get_id().'" />';
+        echo '<input type="hidden" name="sloodleplugintype" id="sloodleplugintype" value="'.$this->sloodle_get_plugin_id().'" />';
         echo '</fieldset><br/>';
 
         // Let the user specify a name for the imported files
@@ -191,6 +204,8 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     function import_file($presenter, $path, $name = '', $position = -1, $clientpath = '')
     {
         global $CFG;
+        
+        if (!file_exists($path)) error("Import file doesn't exist.");
 
         // Start by running a compatibility check -- this just makes sure the extensions are loaded.
         $this->check_compatibility();
@@ -298,7 +313,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
 
             // Add the entry to the Presenter
             sloodle_debug("  Adding slide \"{$page_slidename}\" to presentation at position {$page_position}... ");
-            if (!$presenter->add_entry($page_slidesource, 'PresenterSlideImage', $page_slidename, $page_position)) {
+            if (!$presenter->add_entry($page_slidesource, 'image', $page_slidename, $page_position)) {
                 sloodle_debug('failed.<br/>');
             } else {
                 sloodle_debug('OK.<br/>');
@@ -348,6 +363,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         // If all the output is empty, then execution failed
         if (empty($result) && empty($output)) {
             sloodle_debug(" ERROR: execution of the shell command failed.<br/>");
+            echo "<hr><pre>"; print_r($output); echo "</pre><hr>";
             return false;
         }
         
@@ -369,7 +385,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
             // Was this file created?
             if (file_exists($page_filename)) {
                 // Add it to the Presenter
-                $presenter->add_entry($page_slidesource, 'PresenterSlideImage', $page_slidename, $page_position);
+                $presenter->add_entry($page_slidesource, 'image', $page_slidename, $page_position);
                 $pagenum++;
             } else {
                 $stop = true;

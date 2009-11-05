@@ -533,6 +533,46 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);                                           
     }
+    
+    if ($result && $oldversion < 2009110500) {
+        echo "Converting Presenter slide type IDs... ";
+        // Standardize any Presenter slides to use type names "image", "web", and "video".
+        // The slide plugins for 1.0 initially used class names, like SloodlePluginPresenterSlideImage.
+        // That's laborious and necessary, so we're reverting back to the original type names.
+        $allslides = get_records('sloodle_presenter_entry');
+        $numupdated = 0;
+        if ($allslides) {
+            foreach ($allslides as $slide) {
+                // Update the type name if necessary
+                $updated = true;
+                switch ($slide->type) {
+                    // Image slides
+                    case 'SloodlePluginPresenterSlideImage': case 'PresenterSlideImage':
+                        $slide->type = 'image';
+                        break;
+                    // Web slides
+                    case 'SloodlePluginPresenterSlideWeb': case 'PresenterSlideWeb':
+                        $slide->type = 'web';
+                        break;
+                    // Video slides
+                    case 'SloodlePluginPresenterSlideVideo': case 'PresenterSlideVideo':
+                        $slide->type = 'video';
+                        break;
+                    // Unrecognised type
+                    default:
+                        $updated = false;
+                        break;
+                }
+                
+                // Update the database record
+                if ($updated) {
+                    update_record('sloodle_presenter_entry', $slide);
+                    $numupdated++;
+                }
+            }
+        }
+        echo "{$numupdated} slide(s) updated.<br/>";
+    }
 
 
   return $result; 

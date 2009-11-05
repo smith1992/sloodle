@@ -319,7 +319,7 @@ $string['presenter:importpositioncaption'] = 'Select where you would like to imp
 $string['presenter:importname'] = 'Import Name';
 $string['presenter:importnamecaption'] = '(Optional) Enter a name for the material you are importing.';
 $string['presenter:importfailed'] = 'Import failed. This plugin may not be compatible with your server.';
-$string['presenter:importneedimagick'] = 'You need the ImageMagick Plugin at http://www.imagemagick.org/ and (optionally) MagickWand installed to use this plugin. GhostScript is also required.';
+$string['presenter:importneedimagick'] = 'You need ImageMagick installed from http://www.imagemagick.org/ and (optionally) MagickWand to use this plugin. GhostScript is also required.';
 $string['presenter:importsuccessful'] = 'Import successful. $a slide(s) have been added to your presentation.';
 
 $string['primpass'] = 'Prim Password';
