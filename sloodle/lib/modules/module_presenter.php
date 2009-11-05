@@ -92,7 +92,7 @@
 
             // Load from the secondary table: sloodle_presenter
             if (!($this->presenter = get_record('sloodle_presenter', 'sloodleid', $this->cm->instance))) {
-                sloodle_debug("Failed to load secondary module table with instance ID #{$cm->instance}.<br/>");
+                sloodle_debug("Failed to load secondary module table with instance ID #{$this->cm->instance}.<br/>");
                 return false;
             }
             
@@ -306,6 +306,117 @@
                 $ordering += 10;
             }
         }
+        
+        
+    // BACKUP AND RESTORE //
+        
+        /**
+        * Backs-up secondary data regarding this module.
+        * That includes everything except the main 'sloodle' database table for this instance.
+        * @param $bf Handle to the file which backup data should be written to.
+        * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
+        * @return bool True if successful, or false on failure.
+        */
+        function backup($bf, $includeuserdata)
+        {
+            // Data about the Presenter itself
+            fwrite($bf, full_tag('ID', 5, false, $this->presenter->id));
+            fwrite($bf, full_tag('FRAMEWIDTH', 5, false, $this->presenter->framewidth));
+            fwrite($bf, full_tag('FRAMEHEIGHT', 5, false, $this->presenter->frameheight));
+            
+            // Attempt to fetch all the slides in the presentation
+            $slides = $this->get_slides();
+            if (!$slides) return false;
+            
+            // Data about the slides in the presenter.
+            // Currently this will only backup the raw URLs, and won't transfer any files.
+            // In future, it should backup any files which are on the same server.
+            fwrite($bf, start_tag('SLIDES', 5, true));
+            foreach ($slides as $slide) {
+                fwrite($bf, start_tag('SLIDE', 6, true));
+                
+                // Convert plugin class names back to simple slide types
+                switch ($slide->type) {
+                    case 'SloodlePluginPresenterSlideImage': case 'PresenterSlideImage': $slide->type = 'image'; break;
+                    case 'SloodlePluginPresenterSlideVideo': case 'PresenterSlideVideo': $slide->type = 'video'; break;
+                    case 'SloodlePluginPresenterSlideWeb': case 'PresenterSlideWeb': $slide->type = 'web'; break;
+                }
+                
+                fwrite($bf, full_tag('ID', 7, false, $slide->id));
+                fwrite($bf, full_tag('NAME', 7, false, $slide->name));
+                fwrite($bf, full_tag('SOURCE', 7, false, $slide->source));
+                fwrite($bf, full_tag('TYPE', 7, false, $slide->type));
+                fwrite($bf, full_tag('ORDERING', 7, false, $slide->ordering));
+                
+                fwrite($bf, end_tag('SLIDE', 6, true));
+            }
+            fwrite($bf, end_tag('SLIDES', 5, true));
+            
+            
+            return true;
+        }
+        
+        /**
+        * Restore this module's secondary data into the database.
+        * This ignores any member data, so can be called statically.
+        * @param int $sloodleid The ID of the primary SLOODLE entry this restore belongs to (i.e. the ID of the record in the "sloodle" table)
+        * @param array $info An associative array representing the XML backup information for the secondary module data
+        * @param bool $includeuserdata Indicates whether or not to restore user data
+        * @return bool True if successful, or false on failure.
+        */
+        function restore($sloodleid, $info, $includeuserdata)
+        {
+            // Construct the database record for the Presenter itself
+            $presenter = new object();
+            $presenter->sloodleid = $sloodleid;
+            $presenter->framewidth = $info['FRAMEWIDTH']['0']['#'];
+            $presenter->frameheight = $info['FRAMEHEIGHT']['0']['#'];
+            
+            $presenter->id = insert_record('sloodle_presenter', $presenter);
+            
+            // Go through each slide in the presenter backup
+            $numslides = count($info['SLIDES']['0']['#']['SLIDE']);
+            $curslide = null;
+            for ($slidenum = 0; $slidenum < $numslides; $slidenum++) {
+                // Get the current slide data
+                $curslide = $info['SLIDES']['0']['#']['SLIDE'][$slidenum]['#'];
+                // Construct a new Presenter slide database object
+                $slide = new object();
+                $slide->sloodleid = $sloodleid;
+                $slide->name = $curslide['NAME']['0']['#'];
+                $slide->source = $curslide['SOURCE']['0']['#'];
+                $slide->type = $curslide['TYPE']['0']['#'];
+                $slide->ordering = $curslide['ORDERING']['0']['#'];
+                
+                $slide->id = insert_record('sloodle_presenter_entry', $slide);
+            }
+        
+            return true;
+        }
+        
+        
+        /**
+        * Gets the name of the user data required by this type, or an empty string if none is required.
+        * For example, a chatroom would use the name "Messages" for user data.
+        * Note that this should respect current language settings in Moodle.
+        * @return string Localised name of the user data.
+        */
+        function get_user_data_name()
+        {
+            return '';
+        }
+        
+        /**
+        * Gets the number of user data records to be backed-up.
+        * @return int A count of the number of user data records which can be backed-up.
+        */
+        function get_user_data_count()
+        {
+            return 0;
+        }
+        
+        
+    // ACCESSORS //
 
         /**
         * Gets the width of the Presenter frame (for viewing in Moodle).
@@ -324,8 +435,6 @@
         {
             return (int)$this->presenter->frameheight;
         }
-        
-    // ACCESSORS //
     
         /**
         * Gets the name of this module instance.
