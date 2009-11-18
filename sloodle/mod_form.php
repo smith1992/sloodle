@@ -204,33 +204,16 @@ class mod_sloodle_mod_form extends moodleform_mod {
         
         case SLOODLE_TYPE_AWARDS:
         
-            global $CFG;
-            if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
-                  error("The sloodleawards asigment object is not installed. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
-                  return;
-            }
+            global $CFG;           
             //This switch occures when the user adds a new award activity
             // Add the type-specific header
             $mform->addElement('header', 'typeheader', $sloodletypefull);           
             //get all the assignments for the course
             $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
-            $recs = get_records_select('assignment', "course = $COURSE->id AND assignmenttype='sloodleaward'");
-            if (!is_array($recs)) $recs = array();           
-            $assignments= array();
-            $assignments[]="";
-            foreach ($recs as $ass) {
-                $assignments[$ass->id] = $ass->name;
-                
-            }  
-                      
-            natcasesort($assignments); // Sort the list by name
            //add icurrency
             $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
             $mform->addElement('select', 'icurrency',get_string('awards:typeofcurrency','sloodle'),$pTypes);
             $mform->setHelpButton('icurrency', array('icurrency', get_string('awards:help:icurrency','sloodle'), 'sloodle'));
-            //display assignments            
-            $mform->addElement('select', 'assignmentid',get_string('awards:selectassignment','sloodle'),$assignments);
-            $mform->setHelpButton('assignmentid', array('awardsassignment', get_string('help:maxpoints','sloodle'), 'sloodle'));            
             //maxpoints            
             $mform->addElement('text', 'maxpoints', get_string('awards:maxpoints', 'sloodle'),'100');
             $mform->setDefault('maxpoints', 100);

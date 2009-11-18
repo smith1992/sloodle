@@ -399,10 +399,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      * @$iTransaction is a dataObject (stdClass object)  with appropriate fields matching the table structure
      */
       function awards_makeTransaction($iTransaction,$sCourseObject){      
-         global $USER,$COURSE,$sCourseObj; 
+         global $USER,$COURSE,$CFG; 
          
          //check to see if the transaction will result in a negative balace
-          
+            if (!function_exists('grade_update')) { //workaround for buggy PHP versions
+            require_once($CFG->libdir.'/gradelib.php');
+        }
         if (insert_record('sloodle_award_trans',$iTransaction)) {
             $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid);          
             if ($balanceDetails->balance<0){
@@ -422,36 +424,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             if ($pointsEarned > $maxPoints) $pointsEarned =$maxPoints;
             $newGrade = $pointsEarned / $maxPoints *100;
             //now make the insert newGrade into the gradebook.
-            $assignmentId = $this->sloodle_awards_instance->assignmentid;
-            
-            if ($assignmentId!="") {
-                //first we have to find which grade item this assignment is                
-                $gradeItem = get_record('grade_items','iteminstance',$assignmentId);
-                $itemId = $gradeItem->id; 
-                $newgrades= new stdClass();
-                $newgrades->usermodified=$USER->id;
-                $newgrades->usermodified=$USER->id;
-                $newgrades->rawgrade=$newGrade;
-                 $newgrades->userid=$iTransaction->userid;
-                 global $CFG;
-                 $sCourseObj = $sCourseObject;
-                 $assignment = get_record('assignment','id',$assignmentId);
-                 $sloodleAssignment = new assignment_sloodleaward($sCourseObj->cm->id,$assignment,$sCourseObj->cm,$sCourseObj->courseRec);
-                 
-                 $submission = $sloodleAssignment->prepare_new_submission($iTransaction->userid,true);
-                 $submission->timecreated=time();
-                 $submission->timemarked=time();
-                 $submission->timemodified=time();
-                 
-                 $submission->teacher = $USER->id;
-                 $submission->submissioncomment="Sloodle Awards Point Update ";
-                 $submission->data1="Sloodle Awards Point Update ";
-                 $submission->grade=(int)$newGrade;
-                 $sloodleAssignment->update_submission($iTransaction->userid,$submission);
-                 require_once($CFG->libdir . "/gradelib.php");
-                 grade_update( 'mod/assignment', $sCourseObj->courseId, 'mod', 'assignment', $assignmentId, 0, $newgrades);
-            }
-           
+            $grade = new object();
+            $grade->userid   = $iTransaction->userid;
+            $grade->rawgrade = $newGrade;    
+            $maxgrade = $this->sloodle_awards_instance->maxpoints;
+            $params=array("itemname"=>$sCourseObject->sloodleRec->name,"grademax"=>$maxgrade);            
+            grade_update("mod/sloodle/awards-1.0",$sCourseObject->courseId,'mod','sloodle/mod/awards-1.0',$sloodleid,0,$grade,$params);
             return true;
         }
         else return false;
