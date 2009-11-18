@@ -33,11 +33,21 @@ class SloodlePluginManager
     * @access protected
     */
     var $_session = null;
+    
+    /**
+    * 2d array of plugin class names.
+    * The top level key gives the lower-case plugin category name, and the second level key gives the lower-case plugin ID. The value gives the name of the associated class.
+    * This list exists to ensure compatibility with the different ways class name casing is handled on different platform configurations.
+    * @var array
+    * @access protected
+    */
+    var $plugin_class_names = array();
 
     /**
     * Plugin instance cache.
     * Stores the plugins which have already been created, to prevent new ones being instantiated unnecessarily.
-    * Is an associative array of plugin names to plugin objects.
+    * Has the same 2d structure as $plugin_class_names, except the values are objects not class names.
+    * i.e.: $plugin_cache['presenter-slide']['image'] = pluginobject;
     * @var array
     * @access protected
     */
@@ -80,74 +90,118 @@ class SloodlePluginManager
             // Include the specified file
             include_once($pluginFolder.'/'.$file);
         }
+        
+        // Build a complete list of plugin class names
+        $this->plugin_class_names = array();
+        $allclasses = get_declared_classes();
+        foreach ($allclasses as $c) {
+            // Attempt to get the plugin ID.
+            // If this operation fails, then the class is not a SLOODLE plugin.
+            $pluginid = @call_user_func(array($c,'sloodle_get_plugin_id'));
+            if (empty($pluginid)) continue;
+            // Attempt to get the plugin category
+            $plugincat = @call_user_func(array($c,'get_category'));
+            if (empty($plugincat)) $plugincat = '';
+            
+            // Store the class name
+            $this->plugin_class_names[strtolower($plugincat)][strtolower($pluginid)] = $c;
+        }
 
         return true;
     }
     
     /**
-    * Gets an array of the names of all SLOODLE plugins derived from the specified type.
-    * By default, this gets all plugins. Specify a different base class to get others.
-    * NOTE: this will search all plugins loaded by all plugin managers in the current PHP script.
-    * (There is no way to tell which manager loaded which plugins.)
-    * Plugin names correspond to class names, with the 'SloodlePlugin' prefix.
-    * @param string $type Name of a plugin base class.
-    * @return array Numeric array of plugin names. These names correspond to class names.
+    * Dummy function included for error checking.
     */
-    function get_plugin_names($type = 'SloodlePluginBase')
+    function get_plugin_names($type = '')
     {
-        // We want to create an array of plugin names
+        exit("***** Call to \"get_plugin_names\". This function is no longer valid. Please edit the code. *****");
+    }
+    
+    /**
+    * Gets an array of the names of all SLOODLE plugins, optionally filtered to a specific category.
+    * Plugin categories are reported by the plugin classes themselves.
+    * NOTE: this will search all plugins loaded by all plugin managers in the current PHP execution.
+    * (There is no way to tell which manager loaded which plugins.)
+    * @param string $category If it is a string, it specifies the name of a category of plugins to get. If null (default) then it is ignored.
+    * @return array Numeric array of plugin IDs. Will return an empty array if no matching plugins have been loaded.
+    */
+    function get_plugin_ids($category = null)
+    {
+        // Create an array to store our list of plugin IDs
         $plugins = array();
-		$type = strtolower($type);
-
-        // Go through all declared classes
-        $classes = get_declared_classes();
-        foreach ($classes as $srcClassName) {
-			// Down-case the class name for PHP4 compatibility
-			$className = strtolower($srcClassName);
-		
-            // Make sure this is a SLOODLE plugin by checking that it starts "SloodlePlugin" but not "SloodlePluginbase"
-            if (strpos($className, 'sloodleplugin') !== 0 || strpos($className, 'aloodlepluginbase') === 0) continue;
-            // Make sure this is not one of the supporting classes
-            if ($className == 'sloodlepluginbase' || $className == 'sloodlepluginmanager') continue;
-
-            // Make sure it is in fact a plugin by ensuring it is appropriately derived from the given base plugin class
-            $tempPlugin = @new $className();
-            if (!is_subclass_of($tempPlugin, $type)) continue;
-
-            // Remove the 'SloodlePlugin' prefix from the class name
-            $className = substr($className, 13);
-            $plugins[] = strtolower($className);
+		// Has a particular category been provided?
+        if (is_string($category))
+        {
+            // Down-case the category name for compatibility
+            $category = strtolower($category);
+            if (!is_array($this->plugin_class_names[$category])) return $plugins;
+            
+            // Fetch each plugin ID in this category
+            foreach ($this->plugin_class_names[$category] as $pluginid => $pluginclass) {
+                // Add the ID to our array
+                $plugins[] = $pluginid;
+            }
+        } else {
+            // Go through each category of plugins
+            foreach ($this->plugin_class_names as $cat)
+            {
+                // Go through each plugin in this category
+                foreach ($cat as $pluginid => $pluginclass) {
+                    // Add the ID to our array
+                    $plugins[] = $pluginid;
+                }
+            }
         }
 
         return $plugins;
     }
+    
+    /**
+    * Gets an array of the names of all SLOODLE plugin categories.
+    * Plugin categories are reported by the plugin classes themselves.
+    * NOTE: this will search all plugins loaded by all plugin managers in the current PHP execution.
+    * (There is no way to tell which manager loaded which plugins.)
+    * @return array Numeric array of plugin IDs. Will return an empty array if no matching plugins have been loaded.
+    */
+    function get_plugin_categories()
+    {
+        // Create an array to store our list of plugin IDs
+        $plugincats = array();
+        if (!is_array($this->plugin_class_names)) return $plugincats;
+        // Go through each category of plugins and add it to our list
+        foreach ($this->plugin_class_names as $catname => $plugins)
+        {
+            $plugincats[] = $catname;
+        }
+
+        return $plugincats;
+    }
 
     /**
-    * Gets an instance of the specified plugin type.
-    * This only works if the plugin has been loaded, and if it is derived from SloodlePluginBase.
-    * @param string $name Name of the plugin type to get. If it does not start with "SloodlePlugin", then that is added to the start.
+    * Gets an instance of the specified plugin.
+    * This only works if the plugin has already been loaded.
+    * @param string $plugincat Name of the plugin category we are loading from.
+    * @param string $pluginid ID of the plugin type to get.
     * @param bool $forcenew If false (default) then a cached instance of the plugin will be returned. Set this to true to force the manager to create a new plugin instance.
-    * @return object|bool An object descended from SloodlePluginBase if successful, or false on failure.
+    * @return object|bool A suitable plugin object instance if successful, or false on failure.
     */
-    function get_plugin($name, $forcenew = false)
+    function get_plugin($plugincat, $pluginid, $forcenew = false)
     {
-		// Down-case the incoming plugin name for PHP4 compatibility
-		$name = strtolower($name);
-        // Prepend 'SloodlePlugin' if necessary
-        if (strpos($name, 'sloodleplugin') !== 0) $name = 'sloodleplugin'.$name;
-        // Make sure the specified class exists
-        if (!class_exists($name)) return false;
-        // Do we have a cached plugin of this type?
-        if ($forcenew == false && !empty($this->plugin_cache[$name]) && is_a($this->plugin_cache[$name], $name)) return $this->plugin_cache[$name];
-
-        // Attempt to construct an instance of the plugin
-        $plugin = new $name();
-        // Make sure it is a valid plugin
-        if (is_subclass_of($plugin, 'sloodlepluginbase')) {
-            $this->plugin_cache[$name] = $plugin;
-            return $plugin;
-        }
-        return false;
+		// Down-case the incoming category and ID for compatibility
+        $plugincat = strtolower($plugincat);
+		$pluginid = strtolower($pluginid);
+        
+        // Attempt to retrieve the name of the plugin class, and make sure it exists
+        if (empty($this->plugin_class_names[$plugincat][$pluginid])) return false;
+        $classname = $this->plugin_class_names[$plugincat][$pluginid];
+        if (!class_exists($classname)) return false;
+        
+        // Return a cached instance if possible, or create a new one if necessary
+        if ($forcenew == false && !empty($this->plugin_cache[$plugincat][$pluginid]) && is_a($this->plugin_cache[$plugincat][$pluginid], $classname)) return $this->plugin_cache[$plugincat][$pluginid];
+        $plugin = new $classname();
+        if (empty($this->plugin_cache[$plugincat][$pluginid])) $this->plugin_cache[$plugincat][$pluginid] = $plugin;
+        return $plugin;
     }
 
 }

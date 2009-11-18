@@ -139,16 +139,15 @@
                 $name = $r->name;
                 if (empty($name)) $name = $r->source;
                 
-                // Update legacy slide types
+                // Convert plugin class names back to legacy slide types.
+                // (The class names were used temporarily, but deemed unnecessary.)
                 $type = $r->type;
                 switch ($r->type)
                 {
-                case 'image': $type = 'PresenterSlideImage'; break;
-                case 'web': $type = 'PresenterSlideWeb'; break;
-                case 'video': $type = 'PresenterSlideVideo'; break;
+                case 'SloodlePluginPresenterSlideImage': case 'PresenterSlideImage': $type = 'image'; break;
+                case 'SloodlePluginPresenterSlideWeb': case 'PresenterSlideWeb': $type = 'web'; break;
+                case 'SloodlePluginPresenterSlideVideo': case 'PresenterSlideVideo': $type = 'video'; break;
                 }
-                // Remove the 'SloodlePlugin' prefix if necessary
-                $type = str_replace('SloodlePlugin', '', $type);
 
                 // Add the slide to our list
                 $output[$r->id] = new SloodlePresenterSlide($r->id, $this, $name, $r->source, $type, $r->ordering, $slideposition);
@@ -448,7 +447,7 @@
         var $source = '';
 
         /**
-        * The type of this slide. This will be the ID of a plugin, or it may be a legacy type, 'web', 'image', or 'video'.
+        * The type of this slide. This will be the ID of a plugin in the "presenter-slide" category, such as "web", "image", or "video".
         * @access public
         * @var string
         */

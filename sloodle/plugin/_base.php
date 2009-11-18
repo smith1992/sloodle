@@ -64,14 +64,30 @@ class SloodlePluginBase
 
     /**
     * Gets the identifier of this plugin.
-    * This can be overridden, but should usually not be.
-    * This ID is just the name of the class in LOWER CASE (for PHP4 compatibility).
+    * This function MUST be overridden by sub-classes to return an ID that is unique to the category.
+    * It is possible to have different plugins of the same ID in different categories.
+    * This function is given a very explicitly sloodley name as it lets us ignore any classes which don't declare it.
+    * @access public
+    * @return string|bool The ID of this plugin, or boolean false if this is a base class and should not be instantiated as a plugin.
     */
-    function get_id()
+    function sloodle_get_plugin_id()
     {
-        $className = strtolower(get_class($this));
-        if (strpos($className, 'sloodleplugin') === 0) return substr($className, 13);
-        return $className;
+        return false;
+    }
+    
+    /**
+    * Gets the category to which this plugin belongs.
+    * For example, Presenters have two plugin categories: slides, and importers.
+    * This function must be overriden.
+    * A useful approach would be to have a derived plugin base class for a particular category of plugins.
+    * Each derived base class would report the appropriate category by overriding this function.
+    * The actual plugin classes would simply have to inherit that derived base, without needing to specify their own category.
+    * @access public
+    * @return string The name of this category of plugin.
+    */
+    function get_category()
+    {
+        return 'base';
     }
 
     /**
