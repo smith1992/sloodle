@@ -299,10 +299,15 @@ $string['presenter:moveslide'] = 'Move this slide';
 $string['presenter:editslide'] = 'Edit this slide';
 $string['presenter:viewslide'] = 'View this slide';
 $string['presenter:deleteslide'] = 'Delete this slide from the presentation';
-$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
 $string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
-$string['presenter:deleted'] = 'Deleted';
-$string['presenter:fromtheserver'] = 'from the server';
+
+$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
+$string['presenter:confirmdeletemultiple'] = 'Are you sure you want to delete $a slide(s) from the presentation?';
+
+$string['presenter:deletedslide'] = 'Deleted slide \"$a\" from the presentation.';
+$string['presenter:deletedslides'] = 'Deleted $a slide(s) from the presentation.';
+$string['presenter:noslidesfordeletion'] = 'No slides selected for deletion. Please select one or more slides by ticking the checkboxes on the left, and then click \"Delete Selected\" again.';
+
 $string['presenter:sloodleinsert'] = 'Insert at position:';                          
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
@@ -345,6 +350,7 @@ $string['secondarytablenotfound'] = 'Secondary SLOODLE module table not found. M
 
 $string['searchaliases'] = 'Search Aliases';
 $string['searchdefinitions'] = 'Search Definitions';
+$string['selectall'] = 'Select All';
 $string['selectchatroom'] = 'Select Chatroom';
 $string['selectchoice'] = 'Select Choice';
 $string['selectglossary'] = 'Select Glossary';
