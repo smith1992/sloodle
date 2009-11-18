@@ -80,7 +80,6 @@
             // Create the secondary table for this awards
             
             $sec_table->icurrency = (string)$sloodle->icurrency;            
-            $sec_table->assignmentid = (int)$sloodle->assignmentid;
             $sec_table->maxpoints = (int)$sloodle->maxpoints;
             if (!insert_record('sloodle_awards', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
