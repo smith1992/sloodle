@@ -102,10 +102,10 @@
     $slidetype = ''; $slidesource = '';
     // Attempt to load the plugin required by our current slide
     sloodle_debug("Attempting to load plugin \"{$outputslide->type}\"...");
-    $slideplugin = $sloodle->plugins->get_plugin($outputslide->type);
+    $slideplugin = $sloodle->plugins->get_plugin('presenter-slide', $outputslide->type);
     if ($slideplugin === false) {
         // Indicate the error as a side effect, and specify the type as an error
-        sloodle_debug("Failed to load plugin\n");
+        sloodle_debug("Failed to load Presenter slide plugin.\n");
         $sloodle->response->add_side_effect(-132);
         $slidetype = 'ERROR';
         $slidesource = '';
