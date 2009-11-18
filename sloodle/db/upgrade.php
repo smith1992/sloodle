@@ -545,17 +545,17 @@ function xmldb_sloodle_upgrade($oldversion=0) {
             foreach ($allslides as $slide) {
                 // Update the type name if necessary
                 $updated = true;
-                switch ($slide->type) {
+                switch (strtolower($slide->type)) {
                     // Image slides
-                    case 'SloodlePluginPresenterSlideImage': case 'PresenterSlideImage':
+                    case 'sloodlepluginpresenterslideimage': case 'presenterslideimage':
                         $slide->type = 'image';
                         break;
                     // Web slides
-                    case 'SloodlePluginPresenterSlideWeb': case 'PresenterSlideWeb':
+                    case 'sloodlepluginpresenterslideweb': case 'presenterslideweb':
                         $slide->type = 'web';
                         break;
                     // Video slides
-                    case 'SloodlePluginPresenterSlideVideo': case 'PresenterSlideVideo':
+                    case 'sloodlepluginpresenterslidevideo': case 'presenterslidevideo':
                         $slide->type = 'video';
                         break;
                     // Unrecognised type
