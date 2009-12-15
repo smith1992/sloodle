@@ -258,44 +258,40 @@ class sloodle_view_presenter extends sloodle_base_view_module
                         //get slide source so we can delete it from the server   
                         foreach ($slides as $slide){
                                if ($slide->id==$selectedSlide){
-                                    //delete file
-                                    $fileLocation = $CFG->dataroot;
-                                    //here the $slide->source url has moodle's file.php handler in it
-                                    //we must therefore convert the slide source into a real file path
-                                    //do so by removing "file.php" from the file path string
-                                    $floc = strstr($slide->source,"file.php");
-									// Only continue if "file.php" was found -- no point trying to delete other files
-									if ($floc !== false) {
-										//now delete "file.php" from the path
-										$floc = substr($floc,8,strlen($floc));
-										//now add this to the data route to finish re-creating the true file path
-										$fileLocation.=$floc;
-										//finally we can delete the file
-										unlink($fileLocation);
-									}
+                                   //delete file
+                                     $fileLocation = $CFG->dataroot;
+                                     //here the $slide->source url has moodle's file.php handler in it
+                                     //we must therefore convert the slide source into a real file path
+                                     //do so by removing "file.php" from the file path string
+                                     $floc = strstr($slide->source,"file.php");
+                                     //now delete "file.php" from the path
+                                     $floc = substr($floc,8,strlen($floc));
+                                     //now add this to the data route to finish re-creating the true file path
+                                     $fileLocation.=$floc;
+                                     //finally we can delete the file
+                                     unlink($fileLocation);
                                     //build feedback string
                                     $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
-                                }
-                            }
+                               }                           
+                           }
                            //delete from database
-                           $this->presenter->delete_entry($selectedSlide);
-						}
+                           $this->presenter->delete_entry($selectedSlide);                                    }
                       
                     // Store the feedback as a session variable for the next time the page is loaded
                     $_SESSION['sloodle_presenter_feedback'] = $feedback;
                     //set redirect so we go back to the edit tab
                     $redirect = true;   
                           
-				  //$this->presenter->delete_entry()
+              //$this->presenter->delete_entry()
 
-					// Redirect back to self, if possible
-					if ($redirect && headers_sent() == false) {
-						header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
-						exit();
-					}
-				}            
+            // Redirect back to self, if possible
+            if ($redirect && headers_sent() == false) {
+                header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
+                exit();
+            }
+            }            
                 
-			}
+        }
         }
     }
     
@@ -417,7 +413,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
             // Get the plugin for this slide
             $slideplugin = $this->_session->plugins->get_plugin($currententry->type);
-            if (is_object($slideplugin)) {
+            if ($slideplugin) {
                 // Render the content for the web
                 echo $slideplugin->render_slide_for_browser($currententry);
             } else {
@@ -1021,7 +1017,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
         // We are expecting a few parameters
         $position = (int)optional_param('sloodleentryposition', '-1', PARAM_INT);
-        $plugintype = strtolower(optional_param('sloodleplugintype', '', PARAM_CLEAN));
+        $plugintype = optional_param('sloodleplugintype', '', PARAM_CLEAN);
 
         // Fetch translation strings
         $strselectimporter = get_string('presenter:selectimporter', 'sloodle');
