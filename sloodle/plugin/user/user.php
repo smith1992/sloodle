@@ -17,13 +17,13 @@ require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
 class SloodleApiPluginUser  extends SloodleApiPluginBase{
 
         
-    public function balanceSort($a, $b){
+    function balanceSort($a, $b){
         if ($a->balance == $b->balance) {
             return 0;
         }
         return ($a->balance > $b->balance) ? -1 : 1;
     }
-    public function nameSort($a, $b){
+    function nameSort($a, $b){
         if ($a->avname == $b->avname) {
             return 0;
         }
@@ -266,8 +266,8 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
                        $avList[]=$av;
                 }//foreach
                 //sort by points
-                if ($sortMode=="balance") usort($avList, array("sloodle_hq_plugin_user", "balanceSort")); else
-                if ($sortMode=="name") usort($avList,  array("sloodle_hq_plugin_user", "nameSort"));
+                if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
+                if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
                 $sloodleData="";
                 $totalUsers= count($avatarList);
                 $totalMembers= count(groups_get_members($groupId));
@@ -454,3 +454,4 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
      }
 }//class
 ?>
+

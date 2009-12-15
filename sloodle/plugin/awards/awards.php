@@ -15,7 +15,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 /** SLOODLE awards object data structure */
 require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
 
-class SloodleApiPluginAwards  extends SloodleApiPluginBase{
+class SloodleApiPluginAwards extends SloodleApiPluginBase{
 
   function balanceSort($a, $b){
         if ($a->balance == $b->balance) {
@@ -583,6 +583,15 @@ class SloodleApiPluginAwards  extends SloodleApiPluginBase{
      * 
      *      
      */
+           /**
+     * @method findTransaction
+     * @author Paul Preibisch
+     * 
+     * getLastTransaction will retrieve the last transaction made for this user
+     *  
+     * @package sloodle
+     */
+
      function findTransaction(){
         global $sloodle;                  
          //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
