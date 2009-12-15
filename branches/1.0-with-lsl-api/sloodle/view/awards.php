@@ -486,9 +486,9 @@ class sloodle_view_awards extends sloodle_base_view_module
                            $debits=$trans_details->debits;
                            $balance=$trans_details->balance;
                        }
-                       $rowData[]='<div style="color:black;text-align:center;">'.$credits.'</div>';
-                       $rowData[]='<div style="color:red;text-align:center;">'.$debits.'</div>';
-                       $rowData[]='<div style="color:green;text-align:center;">'.$balance.'</div>';
+                       $rowData[]='<div style="color:black;text-align:center;"><input type="text" size="10" readonly value="'.$credits.'"></div>';
+                       $rowData[]='<div style="color:red;text-align:center;"><input type="text" size="10" readonly value="'.$debits.'"></div>';
+                       $rowData[]='<div style="color:green;text-align:center;"><input type="text" size="10" readonly value="'.$balance.'"></div>';
                        $rowData[]=$editField;
                     }
                     
@@ -845,8 +845,15 @@ class sloodle_view_awards extends sloodle_base_view_module
        
         
     }
+    function avnameSort($a, $b){
+        if ($a->avname == $b->avname) {
+            return 0;
+        }
+        return ($a->avname < $b->avname) ? -1 : 1;
+    }
     function render_userview()              
     {
+        global $sloodle;
         global $CFG, $USER,$sCourseObj,$awardsObj;   
         $this->courseid = $sCourseObj->courseId;
         $sloodleid=$awardsObj->sloodleId;
@@ -895,10 +902,41 @@ class sloodle_view_awards extends sloodle_base_view_module
            }
            print('</div>'); 
             //======Print STUDENT TRANSACTIONS
+              $userList =$sCourseObj->getUserList();    
+              $newList = array();
+              if (!empty($userList)){
+              foreach ($userList as $u){
+                  $newU = new stdClass();
+                  foreach ($u as $uu=>$val){
+                      $newU->$uu = $val;
+                  }
+                  $sloodledata = get_record('sloodle_users', 'userid', $u->id);
+                  
+                  if (!empty($sloodledata)){
+                      if ($sloodledata->avname)
+                        $newU->avname = $sloodledata->avname;
+                      if ($sloodledata->uuid)                        
+                        $newU->uuid = $sloodledata->uuid;
+                        $trans_details = $awardsObj->awards_getBalanceDetails($u->id);
+                       if (!$trans_details) {
+                           $credits=0; $debits=0;$balance=0;
+                       }else{
+                           $newU->credits=$trans_details->credits;
+                           $newU->debits=$trans_details->debits;
+                           $newU->balance=$trans_details->balance;
+                       }
+                      
+                      $newList[]=$newU;
+                      
+                  }
+                  
+                  }
+              }
               
-            if ($sCourseObj->getUserList()){
+            usort($newList,array("sloodle_view_awards",  "avnameSort"));
+            if ($newList){
               print("<div align='center'>");
-                $this->printUserTable($sCourseObj->getUserList());
+                $this->printUserTable($newList);
                  print("</div>"); 
             }
            
