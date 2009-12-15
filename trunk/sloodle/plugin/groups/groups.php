@@ -79,7 +79,13 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
         }//endelse*/
      }//function 
   
-  
+  function memberSort($a, $b){
+        if ($a->numMembers == $b->numMembers) {
+            return 0;
+        }
+        return ($a->numMembers < $b->numMembers) ? -1 : 1;
+    }
+    
      /*********************************************
      * Gets all the groups in the current course
      * @param string|mixed $data - string with this format: INDEX:0|GROUPSPERPAGE:10
@@ -113,5 +119,88 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("numGroups:".$counter);//line 
         $sloodle->response->add_data_line($dataLine);//line         
      }//function
+      /*********************************************
+     * addToRandomGrp If the user specified is not in any of the groups sent, 
+     * this function will automatically add the user to one            of the groups specified which has the lowest number of members
+     * @param string|mixed $avname - name of the avatar
+     * @param string|mixed $avuuid - uuid of the avatar
+     * @param string|mixed $groups- groups you want to choose from to add a member to
+     * 
+     ********************************************/
+      function addToRandomGrp(){
+        global $sloodle;
+        //sloodleid is the id of the activity in moodle we want to connect with
+        $sloodleid = $sloodle->request->optional_param('sloodleid');
+        //cmid is the module id of the sloodle activity we are connecting to        
+        $avname=  $sloodle->request->required_param('avname');   
+        $uuid =$sloodle->request->required_param('avuuid');    
+        $availGrps =$sloodle->request->required_param('groups'); 
+        //http://englishvillage.asia/sloodle/mod/sloodle/mod/hq-1.0/linker.php?&plugin=groups&function=addToRandomGrp&sloodlecontrollerid=2&sloodlepwd=299749874&sloodleserveraccesslevel=0&sloodleuuid=2102f5ab-6854-4ec3-aec5-6cd6233c31c6&sloodleavname=Fire%20Centaur&sourceuuid=&avuuid=&avname=&groups=Group%20C,%20%20%20Group%20A,%20%20%20Group%20D,%20%20%20Group%20B,%20%20%20Team%20A,%20%20%20Group%20E,%20%20%20Team%20B
+        $availGrps = explode(",",$availGrps);
+        $user = new SloodleUser( $sloodle );
+        if (!$user->load_avatar($uuid, null)) {
+             $sloodle->response->set_status_code(-321);             //line 0 
+             $sloodle->response->set_status_descriptor('USER_AUTH'); //line 0
+             return;
+        }
+        if (!$user->load_linked_user()) {
+             $sloodle->response->set_status_code(-321);             //line 0 
+             $sloodle->response->set_status_descriptor('USER_AUTH'); //line 0
+             return;
+        }
+        
+        //get all groups in the course
+        $groups = groups_get_all_groups($sloodle->course->get_course_id());
+        $usersGroups = groups_get_all_groups($sloodle->course->get_course_id(),$user->get_user_id());
+        $numUsersGrps=0;
+        if ($usersGroups){
+            foreach ($usersGroups as $ug){
+                if (in_array($ug->name,$availGrps)) $numUsersGrps++;
+            }
+        }
+      if ($numUsersGrps==0){
+            //add to random group;
+            $numGroups = count($groups);
+            $allGrps = array();
+            foreach ($groups as $g){
+                if (in_array($g->name,$availGrps)){
+                    $newGrp = new stdClass();
+                    $newGrp->numMembers = count(groups_get_members($g->id));
+                    $newGrp->name = $g->name;
+                    $newGrp->id = $g->id;
+                    array_push($allGrps,$newGrp);
+                }
+            }
+            //sort with group with lowest member count first
+            usort($allGrps,array("SloodleApiPluginGroups",  "memberSort"));
+            $newGrp = new stdClass();
+            if (count($allGrps)>0){
+                //set new group for this member to be the group with the lowest member count
+                $newGrp = $allGrps[0];    
+          }
+            if (groups_add_member($newGrp->id,$user->get_user_id())){
+                $sloodle->response->set_status_code(1);             //line 0 
+                $sloodle->response->set_status_descriptor('OK'); //line 0 
+                $sloodle->response->add_data_line("AVUUID:". $uuid);   
+                $sloodle->response->add_data_line("GRP:". $newGrp->name);   
+                return;
+            }else{
+                $sloodle->response->set_status_code(-97000);             //Tried to add user to group, but MOODLE failed to add user to the group               
+                $sloodle->response->set_status_descriptor('HQ'); //line 0 
+                $sloodle->response->add_data_line("AVUUID:". $uuid);   
+                $sloodle->response->add_data_line("GRP:". $newGrp->name);  
+                return;
+                
+            }
+            
+      }
+         $sloodle->response->set_status_code(1);             //line 0 
+         $sloodle->response->set_status_descriptor('OK'); //line 0 
+        $sloodle->response->add_data_line("AVUUID:". $uuid);   
+        foreach ($usersGroups as $ug){
+            $sloodle->response->add_data_line("GRP:". $ug->name);   
+        }
+     }//function
 }//class
 ?>
+
