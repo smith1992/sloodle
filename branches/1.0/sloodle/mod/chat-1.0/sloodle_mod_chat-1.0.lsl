@@ -474,7 +474,7 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","cmd"], "webintercom:usectrlmenu", ["0", "1", "2","cmd"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","3"], "webintercom:usectrlmenu", ["0", "1", "2","3"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
             sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1","2"], "webintercom:usemenu", ["0", "1","2"], id, "webintercom");
@@ -508,19 +508,21 @@ state logging
                 if (!(canctrl || canuse)) return;
                 // Start recording the user
                 sloodle_start_recording_agent(id);
-                
-            } else if (message == "cmd") {
-                // Make sure the user can control this 
-                if (!canctrl) return;                
-                  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:enterchatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");                
+
             } else if (message == "2") {
-                // Make sure the user can use this
-                if (!(canctrl || canuse)) return;
-                // Display chatroom
+                // Make sure the user can control this
+                if (!canctrl) return;
+                // Show where the archive can be accessed, and stop logging chat.
                 sloodle_translation_request(SLOODLE_TRANSLATE_IM, [id], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], id, "webintercom");
                 state ready;
-                
-            }           
+            
+            } else if (message == "3") {
+                // Make sure the user can use this 
+                if (!(canctrl || canuse)) return;                
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:enterchatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
+
+            }
+
         } else if (channel == 0) {
             // Is this an avatar?
             integer isavatar = FALSE;
