@@ -136,7 +136,10 @@
             $slideposition = 1;
             foreach ($recs as $r) {
                 // Substitute the source data for the name if no name is given.
-                $name = $r->name;
+                $name = '';
+                if (isset($r->name)){
+                    $name = $r->name;
+                }
                 if (empty($name)) $name = $r->source;
                 
                 // Convert plugin class names back to legacy slide types.
