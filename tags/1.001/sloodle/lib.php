@@ -468,13 +468,6 @@
         $type->typestr = '--';
         $types[] = $type;
 
-        // Add the resource
-        $type = new object();
-        $type->modclass = MOD_CLASS_RESOURCE;
-        $type->type = "sloodle&amp;type=map";
-        $type->typestr = get_string("moduleaction:map", "sloodle");
-        $types[] = $type;
-
         return $types;
     }
 
