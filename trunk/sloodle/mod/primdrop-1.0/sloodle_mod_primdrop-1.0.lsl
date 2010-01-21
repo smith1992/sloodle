@@ -248,7 +248,8 @@ list get_inventory(integer type)
     integer num = llGetInventoryNumber(type);
     integer i = 0;
     for (; i < num; i++) {
-        inv += [llGetInventoryName(type, i)];
+        if (llGetInventoryName(type, i)!="sloodle_config") //dont give away configuration files!
+            inv += [llGetInventoryName(type, i)];
     }
     
     return inv;
@@ -544,7 +545,14 @@ state ready
             
             } else if (msg == MENU_BUTTON_TAKE_ALL && canctrl) {
                 // User wants to take all objects to their inventory
-                list inv = get_inventory(INVENTORY_OBJECT);
+                list inv;
+                inv+= get_inventory(INVENTORY_ANIMATION);
+                inv+= get_inventory(INVENTORY_GESTURE);
+                inv+= get_inventory(INVENTORY_LANDMARK);
+                inv+= get_inventory(INVENTORY_NOTECARD);
+                inv+= get_inventory(INVENTORY_OBJECT);
+                
+                
                 if (inv == []) {
                     // No submissions available
                     sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:nosubmissions", [], id, "assignment");
