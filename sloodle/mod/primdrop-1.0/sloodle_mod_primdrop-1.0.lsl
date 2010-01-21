@@ -267,8 +267,11 @@ integer sloodle_check_drop()
         return FALSE;
     }
     
-    // Make sure it is the correct type
-    if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
+    // Make sure it is the correct type  
+    // *** Fire Centaur Change January 2010
+    //--- changed this to accept all objects EXCEPT scripts.
+    //if (llGetInventoryType(submit_obj) == INVENTORY_OBJECT) {
+    if (llGetInventoryType(submit_obj) == INVENTORY_SCRIPT) {
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY, "assignment");
         llRemoveInventory(submit_obj);
         return FALSE;
