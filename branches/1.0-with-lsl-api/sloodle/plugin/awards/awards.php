@@ -23,11 +23,17 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         }
         return ($a->balance > $b->balance) ? -1 : 1;
     }
-    function grpNameSort($a, $b){
+    function nameSort($a, $b){
         if ($a->name == $b->name) {
             return 0;
         }
         return ($a->name < $b->name) ? -1 : 1;
+    }
+     function markSort($a, $b){
+        if ($a->mark == $b->mark) {
+            return 0;
+        }
+        return ($a->mark > $b->mark) ? -1 : 1;
     }
      /*
      *   makeTransaction() will insert data into the sloodle_awards_trans table
@@ -127,8 +133,106 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
      * 
      * 
      */
-     
-     
+     function getMarks(){      
+      global $sloodle;   
+        global $CFG;  
+         //request any variables that were sent from Second Life               
+         $index =  $sloodle->request->required_param('index');         
+         $assignmentId =   $sloodle->request->required_param('assignmentid');
+         $maxItems= $sloodle->request->required_param('maxitems');         
+         $sortMode= $sloodle->request->required_param('sortmode');         
+         $displayMode= $sloodle->request->required_param('displaymode');         
+         
+         if (!function_exists('grade_get_grades')) { //workaround for buggy PHP versions
+            require_once($CFG->libdir.'/gradelib.php');
+         }
+         //get the cmid
+         $coursemoduleid= $sloodle->course->controller->cm->id;    
+         //construct sCourseObj so we can access the class list
+         $sCourseObj = new sloodleCourseObj($coursemoduleid);  
+         //get the assignment info for this assignment                
+         $assignmentInfo=grade_get_grades($sloodle->course->get_course_id(), 'mod', "assignment", $assignmentId); 
+        //get everyone in this class
+         $classList = $sCourseObj->getUserList();
+         //abstract userIds
+         $classIds = array();
+         foreach($classList as $cuser){
+             $classIds[]=$cuser->id;             
+         }
+         //get grades for all the user ides
+            $gradeInfo=grade_get_grades($sloodle->course->get_course_id(), 'mod', "assignment", $assignmentId,$classIds);       
+             $items=    $gradeInfo->items;
+             $sloodle->response->set_status_code(1);             //line 0 
+             $sloodle->response->set_status_descriptor('OK'); //line 0 
+             $sloodle->response->add_data_line("INDEX:". $index);   
+             $sloodle->response->add_data_line("numItems:".sizeof($items[0]->grades));//line  
+             $counter =0;
+             //build list
+             $userGrades = array();
+             
+             foreach ($items[0]->grades as $userid =>$gradeItem){
+                     $avUser = new SloodleUser( $sloodle );
+                     $avUser->load_user($userid);
+                     $avUser->load_linked_avatar();
+                     $usr = new stdClass();
+                     if ($avUser->get_avatar_name()){
+                         $userMark = $gradeItem->grade;
+                         if ($displayMode=="all"){
+                            if (empty($userMark)) $userMark =0;                         
+                            $usr->name = $avUser->get_avatar_name();
+                            $usr->mark =$userMark;
+                            $userGrades[]=$usr;
+                         }//displaymode
+                         else
+                         if ($displayMode=="submitted"){
+                             if (!empty($userMark)) {
+                                $usr->name = $avUser->get_avatar_name();
+                                $usr->mark =$userMark;
+                                $userGrades[]=$usr; 
+                             }//of
+                         }//submitted
+                     }//get_avatar_name
+             }//foreach
+             if ($sortMode=='marks') usort($userGrades,array("SloodleApiPluginAwards",  "markSort"));
+             else if ($sortMode=='name') usort($userGrades,array("SloodleApiPluginAwards",  "nameSort"));
+             foreach ($userGrades as $ug){
+                 $dataLine="";
+                 if (($counter>=($index*$maxItems))&&($counter<($index*$maxItems+$maxItems))){                    
+                        $dataLine = "avname:".$ug->name;                        
+                        $dataLine .= "|grade:".$ug->mark;   
+                        $sloodle->response->add_data_line($dataLine);                                             
+                 }      
+                   $counter++;  
+                }//foreach  
+     }
+     function getAssignments(){      
+      global $sloodle;   
+        global $CFG;  
+         $courseId = $sloodle->course->get_course_id(); 
+         $maxItems= $sloodle->request->required_param('maxitems');                     
+         $index =  $sloodle->request->required_param('index'); 
+                 
+         $counter = 0;
+        //get all groups in sloodle_awards_teams for this sloodleid
+         $assignments= get_records('assignment','course',$sloodle->course->get_course_id());       
+        if (!empty($assignments)){
+            $sloodle->response->set_status_code(1);             //line 0 
+            $sloodle->response->set_status_descriptor('OK'); //line 0         
+            $sloodle->response->add_data_line("INDEX:". $index);   
+            $sloodle->response->add_data_line("TOTALITEMS:". sizeof($assignments));   
+            foreach($assignments as $a){
+                $dataLine="";
+             if (($counter>=($index*$maxItems))&&($counter<($index*$maxItems+$maxItems))){
+                $dataLine = "id:".$a->id;   
+                $dataLine .= "|name:".$a->name;
+                $dataLine .= "|desc:".$a->description;
+                 $sloodle->response->add_data_line($dataLine);
+                 $counter++;
+               }//(($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage)))
+            }//foreach
+        
+        }
+     }
      function getAwardGrps(){
         global $sloodle;
         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
@@ -377,7 +481,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
             $sloodle->response->set_status_descriptor('HQ'); //line 0 
         }//else
         if ($sortMode=="balance") usort($teamScores,array("SloodleApiPluginAwards",  "balanceSort")); else
-        if ($sortMode=="name") usort($teamScores, array("SloodleApiPluginAwards",  "grpNameSort"));  
+        if ($sortMode=="name") usort($teamScores, array("SloodleApiPluginAwards",  "nameSort"));  
         foreach($teamScores as $ts){
             $dataLine .= "GRP:".$ts->name; 
             $dataLine .= ",BALANCE:".$ts->balance;
@@ -638,49 +742,37 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
             if ($dataLine!="") $sloodle->response->add_data_line($dataLine);              
      } //function findTransaction()
      
-     function addGrade(){
-         global $sloodle;
-         global $CFG;
-          $sloodleid = $sloodle->request->optional_param('sloodleid');
-         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
-         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
-         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
-         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
-         if (!$coursemoduleid){
-            //cmid is the module id of the sloodle activity we are connecting to
-             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
-             $cmid = $cm->id;
-         }
-         else $cmid= $coursemoduleid;
- 
-        //create courseObject
-        $sCourseObj = new sloodleCourseObj($cmid);  
-        //create awards object
-        $awardsObj = new Awards((int)$cmid);
-        
-        if (!function_exists('grade_update')) { //workaround for buggy PHP versions
+     function submitGrade(){
+        global $sloodle;   
+        global $CFG;  
+         //request any variables that were sent from Second Life               
+         $assignmentName =   $sloodle->request->required_param('assignmentname');
+         $assignmentId =   $sloodle->request->required_param('assignmentid');
+         $uuid=   $sloodle->request->required_param('uuid');  
+         $avname= $sloodle->request->required_param('avname');  
+         $mark=   $sloodle->request->required_param('grade');         
+         if (!function_exists('grade_update')) { //workaround for buggy PHP versions
             require_once($CFG->libdir.'/gradelib.php');
-        }
-        
-         $avUuid            = $sloodle->request->required_param('avuuid'); 
-         $avName            = $sloodle->request->required_param('avname'); 
-         $points            = $sloodle->request->required_param('points');          
-         $awardName         = $sloodle->request->required_param('awardname');          
+         }
+         //get the cmid
+         $coursemoduleid= $sloodle->course->controller->cm->id;    
+         //construct sCourseObj 
+         $sCourseObj = new sloodleCourseObj($coursemoduleid);  
+         
          //get moodleId for the avatar which was sent
          $avUser = new SloodleUser( $sloodle );
-         $avUser->load_avatar($avUuid,$avName);
+         $avUser->load_avatar($uuid,$avname);
          $avUser->load_linked_user();
          $userid = $avUser->avatar_data->userid;
          $grade = new object();
          $grade->userid   = $userid;
-         $grade->rawgrade = $points;    
-         $maxgrade = $awardsObj->sloodle_awards_instance->maxpoints;
-         $params=array("itemname"=>$awardName,"grademax"=>$maxgrade);
+         $grade->rawgrade = $mark;             
+         $params=array("itemname"=>$assignmentName);
          //$grade->itemtype="quiz";         
          //$grade->itemname=$awardName;
          // $params= new object;
          //$params->itemname=$awardName;
-         grade_update("mod/sloodle/awards-1.0",$sloodle->course->get_course_id(),'mod','sloodle/mod/awards-1.0',0,$sloodleid,$grade,$params);
+         grade_update("mod/assignment",$sloodle->course->get_course_id(),'mod','assignment',0,$assignmentId,$grade,$params);         
          $sloodle->response->set_status_code(1);             //line 0 
          $sloodle->response->set_status_descriptor('OK'); //line 0 
      }
