@@ -33,6 +33,14 @@ $IMAGICK_CONVERT_PATH = '/usr/bin/convert';
 class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImporter
 {
     /**
+    * This string will contain a description of the plugin's compatibility after the compatibility check function is called.
+    * It will be stored in the current language when the compatibility check function is called, assuming there is a suitable SLOODLE language file installed.
+    * @var string
+    * @access public
+    */
+    var $compatibility_summary = '';
+
+    /**
     * Gets the identifier of this plugin.
     * This function MUST be overridden by sub-classes to return an ID that is unique to the category.
     * It is possible to have different plugins of the same ID in different categories.
@@ -346,7 +354,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
         // Do a security check -- has command-line execution of IMagick been disabled by the admin?
         sloodle_debug("<br/><strong>Attempting to use ImageMagick by command-line.</strong><br/>");
         if (empty($IMAGICK_CONVERT_PATH)) {
-            sloodle_debug(" ERROR: path to ImageMagick \"convert\" program is blank.");
+            sloodle_debug(" ERROR: path to ImageMagick \'convert\' program is blank.");
             return false;
         }
         // Now make sure there are no quotation marks in the source/destination file and path names
@@ -425,7 +433,7 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     */
     function get_version()
     {
-        return 2009063000;
+        return 2010020400;
     }
 
     /**
@@ -439,13 +447,24 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
     {
         global $IMAGICK_CONVERT_PATH;
 
+        $this->compatibility_summary = '';
         // Check to see if the MagickWand extension is already loaded..
-        if (extension_loaded('magickwand')) return true;
+        if (extension_loaded('magickwand'))
+        {
+            $this->compatibility_summary .= get_string('presenter:usingmagickwand', 'sloodle');
+            return true;
+        }
         // Attempt to load the extension, depending on OS.
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') @dl('php_magickwand.dll');
         else @dl('magickwand.so');
         // Check if MagickWand has been successfully loaded now.
-        if (extension_loaded('magickwand')) return true;
+        if (extension_loaded('magickwand'))
+        {
+            $this->compatibility_summary .= get_string('presenter:usingmagickwand', 'sloodle');
+            return true;
+        }
+        
+        $this->compatibility_summary .= get_string('presenter:magickwandnotinstalled', 'sloodle').' ';
 
         // Only do this if the use of ImageMagick via shell commands has not been disabled
         if (!empty($IMAGICK_CONVERT_PATH)) {
@@ -465,15 +484,104 @@ class SloodlePluginPresenterPDFImporter extends SloodlePluginBasePresenterImport
                 $output = array();
                 @exec($cmd, $output);
 
-                // If the output is not empty, then the command must be executable
-                if (!empty($output)) {
+                // Do we have any output? And does it look like ImageMagick output?
+                if (!empty($output) && strpos($output[0], 'ImageMagick') !== false) {
                     // Store this path
+                    $this->compatibility_summary .= get_string('presenter:usingexecutable', 'sloodle');
                     if ($loc != $IMAGICK_CONVERT_PATH) $IMAGICK_CONVERT_PATH = $loc;
                     return true;
                 }
             }
+            $this->compatibility_summary .= get_string('presenter:convertnotfound', 'sloodle');
+        } else {
+            $this->compatibility_summary .= get_string('presenter:convertdisabled', 'sloodle');
         }
 
+        return false;
+    }
+    
+    /**
+    * After check_compatibility() has been called, this function will return a string summarising the compatibility of the plugin.
+    * For example, it may explain that a particular extension is being used, or that it could not be loaded.
+    * @return string A summary of the compatibility of the plugin.
+    */
+    function get_compatibility_summary()
+    {
+        return $this->compatibility_summary;
+    }
+    
+    /**
+    * Run a full compatibility test and output the results to the webpage.
+    * @return bool True if plugin is compatible, or false otherwise.
+    */
+    function run_compatibility_test()
+    {    
+        global $IMAGICK_CONVERT_PATH;
+        
+        // Check to see if the MagickWand extension is already loaded
+        echo "<h3>MagickWand</h3>\n";
+        echo "Checking to see if MagickWand extension is loaded.<br/>";
+        if (extension_loaded('magickwand'))
+        {
+            echo "Success. MagickWand extension was already loaded.<br/>";
+            return true;
+        }
+        echo "MagickWand extension not already loaded.<br/>";
+        
+        // Attempt to load the extension, depending on OS.
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+        {
+            echo "Windows OS detected. Attempting to load 'php_magickwand.dll' extension dynamically.<br/>";
+            @dl('php_magickwand.dll');
+        } else {
+            echo "Attempting to load 'php_magickwand.so' extension dynamically.<br/>";
+            @dl('magickwand.so');
+        }
+        // Check if MagickWand has been successfully loaded now.
+        if (extension_loaded('magickwand'))
+        {
+            echo "Success. MagickWand extension can be loaded dynamically.<br/>";
+            return true;
+        }
+        echo "MagickWand extension could not be loaded. This plugin will attempt to use ImageMagick directly.<br/>";
+        echo "<h3>ImageMagick</h3>\n";
+
+        // Only do this if the use of ImageMagick via shell commands has not been disabled
+        if (!empty($IMAGICK_CONVERT_PATH)) {
+            echo "Attempting to auto-detect location of the ImageMagick 'convert' program.<br/>";
+        
+            // Build a list of locations to check for the ImageMagick program
+            $checkLocs = array();
+            $checkLocs[] = $IMAGICK_CONVERT_PATH;
+            $checkLocs[] = '/usr/bin/convert';
+            $checkLocs[] = '/usr/local/bin/convert';
+			$checkLocs[] = 'convert';
+			$checkLocs[] = 'convert.exe';
+            
+            // Check for the presence of the ImageMagick convert program at each location
+            foreach ($checkLocs as $loc) {
+                echo "<br/>Checking for program at location: \"{$loc}\"...<br/>";
+            
+                // Make sure it's a safe command
+                $cmd = escapeshellarg($loc.' -version');
+                // Attempt to execute it
+                $output = array();
+                @exec($cmd, $output);
+                                
+                if (empty($output)) {
+                    echo " - path is not executable.<br/>";
+                } else if (strpos($output[0], 'ImageMagick') === false) {
+                    echo " - executable does not appear to belong to Imagemagick.<br>";
+                } else {
+                    echo "- success. This appears to be the ImageMagick 'convert' program.<br/>";
+                    return true;
+                }
+            }
+            echo "<br/>Unable to locate the ImageMagick 'convert' program.<br/>";
+            return false;
+        }
+        
+        echo "The use of ImageMagick by shell execution has been disabled.<br/>";
         return false;
     }
 

@@ -113,6 +113,25 @@ class SloodlePluginBase
     {
         return true;
     }
+    
+    /**
+    * After check_compatibility() has been called, this function will return a string summarising the compatibility of the plugin.
+    * For example, it may explain that a particular extension is being used, or that it could not be loaded.
+    * @return string A summary of the compatibility of the plugin.
+    */
+    function get_compatibility_summary()
+    {
+        return '';
+    }
+    
+    /**
+    * Run a full compatibility test and output the results to the webpage.
+    * @return void
+    */
+    function run_compatibility_test()
+    {
+        return get_string('nocompatibilityproblems', 'sloodle');
+    }
 
 }
 

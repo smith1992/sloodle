@@ -27,6 +27,7 @@
 //  - deletemultiple = deleting multiple slides (user has confirmed) (part of 'edit' mode)
 //  - confirmdeletemultiple = asking user to confirm that they want to delete multiple slides (part of 'edit' mode)
 //  - importslides = add new slides using an importer plugin
+//  - compatibility = run a full compatibility check of a specified plugin
 //
 
 
@@ -143,14 +144,11 @@ class sloodle_view_presenter extends sloodle_base_view_module
         if ($this->presenter_mode == 'moveslide') $this->movingentryid = (int)optional_param('entry', 0);
 
         // Make sure Moodle includes our JavaScript files if necessary
-        if ($this->presenter_mode == 'edit') {
-            // Require the jquery javascript files
-            if ($this->presenter_mode == 'addfiles') {
-                require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
-                require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
-                require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
-                require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');
-            }
+        if ($this->presenter_mode == 'edit' || $this->presenter_mode == 'addfiles') {
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');
             require_js($CFG->wwwroot .'/lib/filelib.php');      
         }
 
@@ -178,10 +176,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     // Delete the slide
                     $this->presenter->delete_entry($entryid);
                     // Set our feedback information, so the user knows it has been successful
-                    $_SESSION['sloodle_presenter_feedback'] = get_string('sloodle', 'presenter:deletedslide', $entry->name);
+                    $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslide', 'sloodle', $entry->name);
                 } else {
                     // Set our feedback information, so the user knows it has not been successful;
-                    $_SESSION['sloodle_presenter_feedback'] = get_string('sloodle', 'presenter:deletedslides', 0);
+                    $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslides', 'sloodle', 0);
                 }
                 
                 // Redirect back to the edit tab to get rid of our messy request parameters (and to prevent accidental repeat of the operation)
@@ -206,7 +204,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     if ($this->presenter->delete_entry($entryid)) $numdeleted++;
                 }
                 // Set our feedback information so the user knows whether or not this was successful
-                $_SESSION['sloodle_presenter_feedback'] = get_string('sloodle', 'presenter:deletedslides', $numdeleted);
+                $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslides', 'sloodle', $numdeleted);
                 
                 // Redirect back to the edit tab to get rid of our messy request parameters (and to prevent accidental repeat of the operation)
                 $redirect = true;
@@ -1070,7 +1068,11 @@ class sloodle_view_presenter extends sloodle_base_view_module
         $strselectimporter = get_string('presenter:selectimporter', 'sloodle');
         $strsubmit = get_string('submit');
         $strincompatible = get_string('incompatible', 'sloodle');
+        $strcompatible = get_string('compatible', 'sloodle');
         $strincompatibleplugin = get_string('incompatibleplugin', 'sloodle');
+        $strcheck = get_string('check', 'sloodle');
+        $strclicktocheck = get_string('clicktocheckcompatibility', 'sloodle');
+        $strclicktochecknoperm = get_string('clicktocheckcompatibility:nopermission', 'sloodle');
         
         // Do we have a valid plugin type already specified?
         if (empty($plugintype) || !array_key_exists($plugintype, $availableimporters)) {
@@ -1080,12 +1082,14 @@ class sloodle_view_presenter extends sloodle_base_view_module
             natcasesort($availableimporters);
             // Setup a base link for all importer types
             $baselink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides";
+            // Setup a base link for checking compatibility
+            $checklink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=compatibility";
 
             // Go through each one and display it in a menu
             $table = new stdClass();
-            $table->head = array('Name', 'Description');
-            $table->size = array('25%', '75%');
-            $table->align = array('center', 'left');
+            $table->head = array(get_string('name', 'sloodle'), get_string('description'), get_string('compatibility', 'sloodle'));
+            $table->size = array('20%', '70%', '10%');
+            $table->align = array('center', 'left', 'center');
             $table->data = array();
             foreach ($availableimporters as $importerident => $importername) {
 
@@ -1098,15 +1102,20 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $compatibility = '';
                 if (!$plugin->check_compatibility()) {
                     $linkclass = ' class="dimmed"';
-                    $compatibility = '<abbr title="'.$strincompatibleplugin.'"><span class="highlight2" style="font-weight:bold;">[ '.$strincompatible.' ]</span></abbr>';
+                    $compatibility = '<abbr title="'.$plugin->get_compatibility_summary().'"><span class="highlight2" style="font-weight:bold;">[ '.$strincompatible.' ]</span></abbr>';
                 }
 
+                // Construct this line of the table
+                $line = array();
+                
                 // Add the name of the importer to the table as a link
                 $link = "{$baselink}&amp;sloodleplugintype={$importerident}";
-                $line = array();
                 $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\" {$linkclass}>{$importername}</a></span><br/>{$compatibility}";
                 // Add the description
                 $line[] = $desc;
+                // Add a link to a compatibility check
+                $link = "{$checklink}&amp;sloodleplugintype={$importerident}";
+                $line[] = "<a href=\"{$link}\" title=\"{$strclicktocheck}\">{$strcheck}</a>";
 
                 $table->data[] = $line;
             }
@@ -1127,6 +1136,32 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Render the plugin display
         $importer->render("{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}", $this->presenter);
         
+    }
+    
+    /**
+    * Render a compatibility test of a particular plugin.
+    */
+    function render_compatibility_test()
+    {
+        // Which plugin has been requested?
+        $plugintype = strtolower(required_param('sloodleplugintype', PARAM_CLEAN));
+        // Attempt to load the specified plugin
+        $plugin = $this->_session->plugins->get_plugin('presenter-importer', $plugintype);
+        if ($plugin === false) exit(get_string('pluginloadfailed', 'sloodle'));
+        $name = $plugin->get_plugin_name();
+        
+        // CHECK PERMISSIONS HERE //
+        
+        // Display a heading for this compatibility check
+        echo '<h1>',get_string('runningcompatibilitycheck', 'sloodle'),'</h1>';
+        echo '<h2>'.$name."</h2>\n";
+        // Run the compatibility test
+        echo "<div style=\"text-align:left;\">";
+        $result = $plugin->run_compatibility_test();
+        echo "</div>\n";
+        
+        if ($result) echo "<h1>",get_string('compatibilitytestpassed', 'sloodle'),"</h1>";
+        else echo "<h1>",get_string('compatibilitytestfailed', 'sloodle'),"</h1>";
     }
 
     /**
@@ -1174,6 +1209,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         case 'deletemultiple': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'confirmdeletemultiple': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'importslides': $selectedtab = SLOODLE_PRESENTER_TAB_IMPORT_SLIDES; break;
+        case 'compatibility': $selectedtab = SLOODLE_PRESENTER_TAB_IMPORT_SLIDES; break;
         }
         
         // Display the tabs
@@ -1193,6 +1229,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         case 'deletemultiple': $this->render_edit(); break;
         case 'confirmdeletemultiple': $this->render_edit(); break;
         case 'importslides': $this->render_import_slides(); break;
+        case 'compatibility': $this->render_compatibility_test(); break;
         default: $this->render_view(); break;
         }
         
