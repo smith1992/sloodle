@@ -5,7 +5,7 @@
 //  This fragment is called by /admin/index.php
 ////////////////////////////////////////////////////////////////////////////////
 
-$module->version  = 2009072708; // 
+$module->version  = 2009072710; // First release of SLOODLE 1.0.2
 $module->requires = 2007021500;  // Requires Moodle 1.8
 $module->cron     = 60;
 
