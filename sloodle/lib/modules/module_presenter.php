@@ -112,12 +112,51 @@
             // Format it all nicely into a simple array
             $output = array();
             foreach ($recs as $r) {
-                // Substitute the URL for the name if the name has been left blank (this can particularly happen on Presenters upgraded from an alpha version)
-                $name = $r->name;
+				// Substitute the source data for the name if no name is given.
+                $name = '';
+                if (isset($r->name)){
+                    $name = $r->name;
+                }
                 if (empty($name)) $name = $r->source;
                 $output[$r->id] = array($r->source, $r->type, $name);
             }
             return $output;
+        }
+        
+        /**
+        * Gets a specific slide from the presentation, identified by its database ID.
+        * Note that the slide position is NOT determined by this function so it will be given as -1.
+        * Use "get_slides()" to fetch an array with valid slide positions.
+        * @param int $id The record ID of the sldie in the database.
+        * @return SloodlePresenterSlide|bool A slide object if successful, or false if it could not be found.
+        */
+        function get_slide($id)
+        {
+            // Sanitize the data
+            $id = (int)$id;
+       
+            // Fetch the requested slide
+            $rec = get_record('sloodle_presenter_entry', 'id', $id);
+            if (!$rec) return false;
+            
+            // Substitute the source data for the name if no name is given.
+			$name = '';
+			if (isset($rec->name)){
+				$name = $rec->name;
+			}
+			if (empty($name)) $name = $rec->source;
+            
+            // Convert plugin class names back to legacy slide types.
+            // (The class names were used temporarily, but deemed unnecessary.)
+            $type = strtolower($rec->type);
+            switch ($type)
+            {
+            case 'sloodlepluginpresenterslideimage': case 'presenterslideimage': $type = 'image'; break;
+            case 'sloodlepluginpresenterslideweb': case 'presenterslideweb': $type = 'web'; break;
+            case 'sloodlepluginpresenterslidevideo': case 'presenterslidevideo': $type = 'video'; break;
+            }
+            
+            return new SloodlePresenterSlide($rec->id, $this, $name, $rec->source, $type, $rec->ordering, -1);
         }
 
         /**
@@ -144,12 +183,12 @@
                 
                 // Convert plugin class names back to legacy slide types.
                 // (The class names were used temporarily, but deemed unnecessary.)
-                $type = $r->type;
+                $type = strtolower($r->type);
                 switch ($r->type)
                 {
-                case 'SloodlePluginPresenterSlideImage': case 'PresenterSlideImage': $type = 'image'; break;
-                case 'SloodlePluginPresenterSlideWeb': case 'PresenterSlideWeb': $type = 'web'; break;
-                case 'SloodlePluginPresenterSlideVideo': case 'PresenterSlideVideo': $type = 'video'; break;
+                case 'sloodlepluginpresenterslideimage': case 'presenterslideimage': $type = 'image'; break;
+                case 'sloodlepluginpresenterslideweb': case 'presenterslideweb': $type = 'web'; break;
+                case 'sloodlepluginpresenterslidevideo': case 'presenterslidevideo': $type = 'video'; break;
                 }
 
                 // Add the slide to our list
@@ -230,13 +269,16 @@
         * Deletes the identified entry by ID.
         * Only works if the entry is part of this presentation.
         * @param int $id The ID of an entry record to delete
-        * @return void
+        * @return bool True if successful or false otherwise.
         */
         function delete_entry($id)
         {
-            delete_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
+           $result = delete_records('sloodle_presenter_entry', 'sloodleid', $this->sloodle_instance->id, 'id', $id);
            // Fix the ordering
            $this->validate_ordering();
+           
+           if ($result === false) return false;
+           return true;
         }
 
         /**

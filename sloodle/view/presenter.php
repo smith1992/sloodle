@@ -22,9 +22,12 @@
 //  - addslide = adding a new slide
 //  - addfiles = uploading multiple slides
 //  - moveslide = moving a slide (part of 'edit' mode)
-//  - deleteslide = deleting a particular slide (asking user for confirmation) (part of 'edit' mode)
-//  - confirmdeleteslide = user has confirmed they want to delete a slide (part of 'edit' mode)
+//  - deleteslide = deleting a particular slide (user has confirmed) (part of 'edit' mode)
+//  - confirmdeleteslide = asking user to confirm that they want to delete a slide (part of 'edit' mode)
+//  - deletemultiple = deleting multiple slides (user has confirmed) (part of 'edit' mode)
+//  - confirmdeletemultiple = asking user to confirm that they want to delete multiple slides (part of 'edit' mode)
 //  - importslides = add new slides using an importer plugin
+//  - compatibility = run a full compatibility check of a specified plugin
 //
 
 
@@ -141,15 +144,12 @@ class sloodle_view_presenter extends sloodle_base_view_module
         if ($this->presenter_mode == 'moveslide') $this->movingentryid = (int)optional_param('entry', 0);
 
         // Make sure Moodle includes our JavaScript files if necessary
-        if ($this->presenter_mode == 'addfiles' || $this->presenter_mode == 'edit') {
-            // Require the jquery javascript files
+        if ($this->presenter_mode == 'edit' || $this->presenter_mode == 'addfiles') {
             require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.js');
             require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.uploadify.js');
             require_js($CFG->wwwroot .'/mod/sloodle/lib/jquery/jquery.checkboxes.js');
-            require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');      
-            if ($this->presenter_mode == 'edit') {
-                require_js($CFG->wwwroot .'/lib/filelib.php');      
-            }                    
+            require_js($CFG->wwwroot .'/mod/sloodle/lib/multiplefileupload/extra.js');
+            require_js($CFG->wwwroot .'/lib/filelib.php');      
         }
 
 
@@ -159,7 +159,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
             // We may want to redirect afterwards to prevent an argument showing up in the address bar
             $redirect = false;
         
-            // Are we attempting to delete an entry?
+            // Are we deleting a single slide?
             if ($this->presenter_mode == 'deleteslide') {
                 // Make sure the session key is specified and valid
                 if (required_param('sesskey') != sesskey()) {
@@ -167,10 +167,46 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     exit();
                 }
                 
-                // Delete the slide
+                // Determine what slide is to be deleted
                 $entryid = (int)required_param('entry', PARAM_INT);
-                $this->presenter->delete_entry($entryid);
                 
+                // Get the requested slide from the presentation
+                $entry = $this->presenter->get_slide($entryid);
+                if ($entry) {
+                    // Delete the slide
+                    $this->presenter->delete_entry($entryid);
+                    // Set our feedback information, so the user knows it has been successful
+                    $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslide', 'sloodle', $entry->name);
+                } else {
+                    // Set our feedback information, so the user knows it has not been successful;
+                    $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslides', 'sloodle', 0);
+                }
+                
+                // Redirect back to the edit tab to get rid of our messy request parameters (and to prevent accidental repeat of the operation)
+                $redirect = true;
+            }
+            
+            // Are we deleting multiple slides?
+            if ($this->presenter_mode == 'deletemultiple') {
+                // Make sure the session key is specified and valid
+                if (required_param('sesskey') != sesskey()) {
+                    error('Invalid session key');
+                    exit();
+                }
+                
+                // Fetch the IDs of the slides which are being deleted
+                if (isset($_REQUEST['entries'])) $entryids = $_REQUEST['entries'];
+                else error("Expected HTTP parameter 'entries' not found.");
+                
+                // Go through the given entry IDs and attempt to delete them
+                $numdeleted = 0;
+                foreach ($entryids as $entryid) {
+                    if ($this->presenter->delete_entry($entryid)) $numdeleted++;
+                }
+                // Set our feedback information so the user knows whether or not this was successful
+                $_SESSION['sloodle_presenter_feedback'] = get_string('presenter:deletedslides', 'sloodle', $numdeleted);
+                
+                // Redirect back to the edit tab to get rid of our messy request parameters (and to prevent accidental repeat of the operation)
                 $redirect = true;
             }
             
@@ -238,7 +274,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $redirect = true;
             }
             
-            //are we editing multiple files?  Mode: "Multiple edit"" is set as an input value when the multiple edit select field
+            /*//are we editing multiple files?  Mode: "Multiple edit"" is set as an input value when the multiple edit select field
             // is submitted      
             if (optional_param('mode')=='multiple edit')  {
                 //check what value was submitted from the select input
@@ -251,38 +287,39 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     $fromTheServer = get_string("presenter:fromtheserver",'sloodle');
                     $feedback = "";
                     foreach ($selectedSlides as $selectedSlide) {
+                        // REMOVED SOURCE FILE DELETION -- THIS IS UNSAFE UNLESS WE TRACK EXACTLY WHICH FILES WERE UPLOADED
                         //get slide source so we can delete it from the server   
                         foreach ($slides as $slide) {
-                               if ($slide->id==$selectedSlide) {
-                                    //delete file
-                                    $fileLocation = $CFG->dataroot;
-                                    //here the $slide->source url has moodle's file.php handler in it
-                                    //we must therefore convert the slide source into a real file path
-                                    //do so by removing "file.php" from the file path string
-                                    $floc = strstr($slide->source,"file.php");
-									// Only continue if "file.php" was found -- no point trying to delete other files
-									if ($floc !== false) {
-										//now delete "file.php" from the path
-										$floc = substr($floc,8,strlen($floc));
-										//now add this to the data route to finish re-creating the true file path
-										$fileLocation.=$floc;
-										//finally we can delete the file
-										unlink($fileLocation);
-									}
-                                    //build feedback string
-                                    $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
+                           if ($slide->id==$selectedSlide) {
+                                //delete file
+                                $fileLocation = $CFG->dataroot;
+                                //here the $slide->source url has moodle's file.php handler in it
+                                //we must therefore convert the slide source into a real file path
+                                //do so by removing "file.php" from the file path string
+                                $floc = strstr($slide->source,"file.php");
+                                // Only continue if "file.php" was found -- no point trying to delete other files
+                                if ($floc !== false) {
+                                    //now delete "file.php" from the path
+                                    $floc = substr($floc,8,strlen($floc));
+                                    //now add this to the data route to finish re-creating the true file path
+                                    $fileLocation.=$floc;
+                                    //finally we can delete the file
+                                    unlink($fileLocation);
                                 }
+                                //build feedback string
+                                $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
                             }
-                           //delete from database
-                           $this->presenter->delete_entry($selectedSlide);
-						}
+                        }
+                       //delete from database
+                       $this->presenter->delete_entry($selectedSlide);
+                    }
                       
                     // Store the feedback as a session variable for the next time the page is loaded
                     $_SESSION['sloodle_presenter_feedback'] = $feedback;
                     //set redirect so we go back to the edit tab
                     $redirect = true;
 				}
-			}
+			}*/
             
             // Redirect back to the edit page -- this is used to get rid of intermediate parameters.
             if ($redirect && headers_sent() == false) {
@@ -490,11 +527,38 @@ class sloodle_view_presenter extends sloodle_base_view_module
                     // Construct our links
                     $linkYes = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=deleteslide&amp;entry={$entryid}&amp;sesskey=".sesskey();
                     $linkNo = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=edit";
-    
 
                     // Output our confirmation form
                     notice_yesno(get_string('presenter:confirmdelete', 'sloodle', $entries[$entryid]->name), $linkYes, $linkNo);
                     echo "<br/>";
+                }
+            }
+            
+            // Are we being asked to confirm the deletion of multiple slides?
+            $deletingentries = array();
+            if ($this->presenter_mode == 'confirmdeletemultiple') {
+                // Make sure the session key is specified and valid
+                if (required_param('sesskey') != sesskey()) {
+                    error('Invalid session key');
+                    exit();
+                }
+                // Grab the array of entries to be deleted
+                if (isset($_REQUEST['entries'])) $deletingentries = $_REQUEST['entries'];
+                if (is_array($deletingentries) && count($deletingentries) > 0) {
+                    // Construct our links
+                    $entriesparam = '';
+                    foreach ($deletingentries as $de) {
+                        $entriesparam .= "entries[]={$de}&amp;";
+                    }
+                    $linkYes = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=deletemultiple&amp;{$entriesparam}sesskey=".sesskey();
+                    $linkNo = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=edit";
+                    // Output our confirmation form
+                    notice_yesno(get_string('presenter:confirmdeletemultiple', 'sloodle', count($deletingentries)), $linkYes, $linkNo);
+                    echo "<br/>";
+                } else {
+                    // No slides selected.
+                    // Inform the user to select slides first, and then click the button again.
+                    notify(get_string('presenter:noslidesfordeletion', 'sloodle'));
                 }
             }
             
@@ -512,7 +576,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
             // Setup a table object to display Presenter entries
             $entriesTable = new stdClass();
-            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">Select All</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'));
+            $entriesTable->head = array(get_string('position', 'sloodle'),'<div id="selectboxes"><a href="#"><div style=\'text-align:center;\' id="selectall">'.get_string('selectall','sloodle').'</div></a></div>', get_string('name', 'sloodle'), get_string('type', 'sloodle'), get_string('actions', 'sloodle'));
             $entriesTable->align = array('center', 'center', 'left', 'left', 'center');
             $entriesTable->size = array('5%', '5%', '30%', '20%', '30%');
             
@@ -566,13 +630,15 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
                
                 //create checkbox for multiple edit functions
-                $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"selectedSlides[]\" value=\"{$entryid}\" /></div>";
+                $checked = '';
+                if (in_array($entryid, $deletingentries)) $checked = "checked=\"checked\"";
+                $checkbox = "<div style='text-align:center;'><input  type=\"checkbox\" name=\"entries[]\" {$checked} value=\"{$entryid}\" /></div>";
+                
                 // Add each item of data to our table row.
-                //the first item is a check box for multiple deletes
+                // The first item is a check box for multiple deletes
                 // The second items are the position and the name of the entry, hyperlinked to the resource.
                 // The next is the name of the entry type.
-                // The last is a list of action buttons -- move, edit, view, and delete.
-                
+                // The last is a list of action buttons -- move, edit, view, and delete.                
                 $row[] = $entry->slideposition;
                 $row[] = $checkbox;  
                 $row[] = $entrylink;
@@ -598,33 +664,18 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $movelink = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=setslideposition&amp;entry={$this->movingentryid}&amp;position={$endentrynum}";
                 $movebutton = "<a href=\"{$movelink}\" title=\"{$strmove}\"><img src=\"{$CFG->pixpath}/movehere.gif\" class=\"\" alt=\"{$strmove}\" /></a>\n";
             }
-            //display drop down box with options to actions on a group of slides
-                //build options list for multi action select box
-                //with Selected is used as a UI element so user knows what this select is for
-                $optionList ='<option value="none">     With Selected  </option>';    
-                //add multiple delete option
-                $optionList.='<option value="multidelete">*** DELETE SELECTED ***</option>';    
-                //add options for each slide position
-                foreach ($entries as $curentryid => $curentry) {
-                      // Add this entry to the list
-                      $optionList.= "<option value=\"{$curentry->slideposition}\"";              
-                      $optionList.=">{$sloodleInsert} {$curentry->slideposition}</option>\n"; 
-                }
-                //create select input
-                $selectInput = "<select name='multipleProcessor' id='multipleProcessor'>{$optionList}</select>";
-                //add a submit button
-                $selectInput .= "    <input type='submit' id='Go' name='Go' value='Go'>";                   
-                //add select input to table
-              $deleteButton = "<input value='Delete Selected' type='submit' name='multipleProcessor' id='multipleProcessor'>";                                
-                $entriesTable->data[] = array('',' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">Select All</div></a></div>', $movebutton , '', $deleteButton.'&nbsp;&nbsp;'.$addButtons);
-                //encase in a form
-                echo '<form action="" ,method="POST" id="editform" name="editform">';
-                print_table($entriesTable);
-                //add course module id so moodle knows what to do with this post
-                echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
-                //set the mode for multiple edit so process_form knows what to do
-                echo "<input type=\"hidden\" name=\"mode\" value=\"multiple edit\" />";
-                echo '</form>';                
+            
+            // Add a button to delete all selected slides
+            $deleteButton = '<input type="submit" value="'.get_string('deleteselected','sloodle').'" />';
+            $entriesTable->data[] = array('',' <div id="selectboxes2"><a href="#"><div style=\'text-align:center;\' id="selectall2">'.get_string('selectall','sloodle').'</div></a></div>', $movebutton , '', $deleteButton.'&nbsp;&nbsp;'.$addButtons);
+            
+            // Put our table inside a form to allow us to delete multiple slides based on the checkboxes
+            echo '<form action="" method="get" id="editform" name="editform">';
+            echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />\n"; // Course module ID so that the request comes to the right places
+            echo "<input type=\"hidden\" name=\"mode\" value=\"confirmdeletemultiple\" />\n"; // The operation being conducted
+            print_table($entriesTable);
+            echo "<input type=\"hidden\" name=\"sesskey\" value=\"".sesskey()."\" />\n"; // Session key to ensure unauthorised deletions are not possible (e.g. using XSS)
+            echo '</form>';                
            
         }
         
@@ -1017,7 +1068,11 @@ class sloodle_view_presenter extends sloodle_base_view_module
         $strselectimporter = get_string('presenter:selectimporter', 'sloodle');
         $strsubmit = get_string('submit');
         $strincompatible = get_string('incompatible', 'sloodle');
+        $strcompatible = get_string('compatible', 'sloodle');
         $strincompatibleplugin = get_string('incompatibleplugin', 'sloodle');
+        $strcheck = get_string('check', 'sloodle');
+        $strclicktocheck = get_string('clicktocheckcompatibility', 'sloodle');
+        $strclicktochecknoperm = get_string('clicktocheckcompatibility:nopermission', 'sloodle');
         
         // Do we have a valid plugin type already specified?
         if (empty($plugintype) || !array_key_exists($plugintype, $availableimporters)) {
@@ -1027,12 +1082,18 @@ class sloodle_view_presenter extends sloodle_base_view_module
             natcasesort($availableimporters);
             // Setup a base link for all importer types
             $baselink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides";
+            // Setup a base link for checking compatibility
+            $checklink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=compatibility";
+            
+            // Make sure this user has site configuration permission, as running this test may reveal sensitive information about server architecture
+            $module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+            $cancheckcompatibility = (bool)has_capability('moodle/site:config', $module_context);
 
             // Go through each one and display it in a menu
             $table = new stdClass();
-            $table->head = array('Name', 'Description');
-            $table->size = array('25%', '75%');
-            $table->align = array('center', 'left');
+            $table->head = array(get_string('name', 'sloodle'), get_string('description'), get_string('compatibility', 'sloodle'));
+            $table->size = array('20%', '70%', '10%');
+            $table->align = array('center', 'left', 'center');
             $table->data = array();
             foreach ($availableimporters as $importerident => $importername) {
 
@@ -1045,15 +1106,24 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $compatibility = '';
                 if (!$plugin->check_compatibility()) {
                     $linkclass = ' class="dimmed"';
-                    $compatibility = '<abbr title="'.$strincompatibleplugin.'"><span class="highlight2" style="font-weight:bold;">[ '.$strincompatible.' ]</span></abbr>';
+                    $compatibility = '<abbr title="'.$plugin->get_compatibility_summary().'"><span class="highlight2" style="font-weight:bold;">[ '.$strincompatible.' ]</span></abbr>';
                 }
 
+                // Construct this line of the table
+                $line = array();
+                
                 // Add the name of the importer to the table as a link
                 $link = "{$baselink}&amp;sloodleplugintype={$importerident}";
-                $line = array();
                 $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\" {$linkclass}>{$importername}</a></span><br/>{$compatibility}";
                 // Add the description
                 $line[] = $desc;
+                // Add a link to a compatibility check if the user has permission.
+                if ($cancheckcompatibility) {
+                    $link = "{$checklink}&amp;sloodleplugintype={$importerident}";
+                    $line[] = "<a href=\"{$link}\" title=\"{$strclicktocheck}\">{$strcheck}</a>";
+                } else {
+                    $line[] = "<span title=\"{$strclicktochecknoperm}\">-</span>";
+                }
 
                 $table->data[] = $line;
             }
@@ -1074,6 +1144,38 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Render the plugin display
         $importer->render("{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}", $this->presenter);
         
+    }
+    
+    /**
+    * Render a compatibility test of a particular plugin.
+    */
+    function render_compatibility_test()
+    {
+        global $CFG;
+        
+        // Which plugin has been requested?
+        $plugintype = strtolower(required_param('sloodleplugintype', PARAM_CLEAN));
+        // Attempt to load the specified plugin
+        $plugin = $this->_session->plugins->get_plugin('presenter-importer', $plugintype);
+        if ($plugin === false) exit(get_string('pluginloadfailed', 'sloodle'));
+        $name = $plugin->get_plugin_name();
+        
+        // Make sure this user has site configuration permission, as running this test may reveal sensitive information about server architecture
+        $module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+        if (!has_capability('moodle/site:config', $module_context)) error(get_string('clicktocheckcompatibility:nopermission', 'sloodle'), "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides");
+        
+        // Display a heading for this compatibility check
+        echo '<h1>',get_string('runningcompatibilitycheck', 'sloodle'),'</h1>';
+        echo '<h2>'.$name."</h2>\n";
+        echo "<p>( <a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides\">",get_string('presenter:backtoimporters','sloodle'),"</a> )</p>\n";
+        // Run the compatibility test
+        echo "<div style=\"text-align:left;\">";
+        $result = $plugin->run_compatibility_test();
+        echo "</div>\n";
+        
+        if ($result) echo "<h1>",get_string('compatibilitytestpassed', 'sloodle'),"</h1>";
+        else echo "<h1>",get_string('compatibilitytestfailed', 'sloodle'),"</h1>";
+        echo "<p>( <a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides\">",get_string('presenter:backtoimporters','sloodle'),"</a> )</p>\n";
     }
 
     /**
@@ -1112,14 +1214,16 @@ class sloodle_view_presenter extends sloodle_base_view_module
         switch ($this->presenter_mode)
         {
         case 'edit': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
-        case 'multiple edit': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'addslide': $selectedtab = SLOODLE_PRESENTER_TAB_ADD_SLIDE; break;
         case 'addfiles': $selectedtab = SLOODLE_PRESENTER_TAB_ADD_FILES; break;
         case 'editslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT_SLIDE; break;
         case 'moveslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'deleteslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'confirmdeleteslide': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
+        case 'deletemultiple': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
+        case 'confirmdeletemultiple': $selectedtab = SLOODLE_PRESENTER_TAB_EDIT; break;
         case 'importslides': $selectedtab = SLOODLE_PRESENTER_TAB_IMPORT_SLIDES; break;
+        case 'compatibility': $selectedtab = SLOODLE_PRESENTER_TAB_IMPORT_SLIDES; break;
         }
         
         // Display the tabs
@@ -1130,14 +1234,16 @@ class sloodle_view_presenter extends sloodle_base_view_module
         switch ($this->presenter_mode)
         {
         case 'edit': $this->render_edit(); break;
-        case 'multiple edit': $this->render_edit(); break;
         case 'addslide': $this->render_slide_edit(); break;
         case 'addfiles': $this->render_add_files(); break;
         case 'editslide': $this->render_slide_edit(); break;
         case 'moveslide': $this->render_edit(); break;
         case 'deleteslide': $this->render_edit(); break;
         case 'confirmdeleteslide': $this->render_edit(); break;
+        case 'deletemultiple': $this->render_edit(); break;
+        case 'confirmdeletemultiple': $this->render_edit(); break;
         case 'importslides': $this->render_import_slides(); break;
+        case 'compatibility': $this->render_compatibility_test(); break;
         default: $this->render_view(); break;
         }
         
