@@ -1,43 +1,19 @@
-Date: August 19th 2009
- 
-SLOODLE 1.0
+SLOODLE 1.0.2 README
+
+Thanks for download SLOODLE 1.0.2!
+
 ===============================================================================
-Thanks for trying our 1.0 Release Candidate!  In this readme file you will find a lot of information pertaining to the SLOODLE Project! 
-For your conveniece, we have created a table of contents below, and have used ASCII formating to make 
-this README file more readable.  We hope you find it useful!
-
-Table of Contents:
+CONTENTS
 ===============================================================================
-1. What is Sloodle:
+1. WHAT IS SLOODLE
+2. RELEASE NOTES
+3. INSTALLATION
+4. THE SLOODLE TOOLS
+5. CONTACT INFORMATION
+6. SLOODLE ISLAND INFORMATION
+7. SLOODLE ADDONS
+8. USEFUL LINKS
 
-2. New features in this release
-
-3. Sloodle Tool Set Overview 
-
-4. Contact Informaton
-    a) General Discussion Forum
-    b) Archived Community Chat
-    c) Project Home Page
-    
-5. Sloodle 101 Classes
-
-6. Sloodle Island Information
-    a) Sloodle Market Place
-    b) Sloodle 101 Classroom
-    c) Sloodle Communit Meeting Area
-    d) Sloodle Sandbox
-    
-7. Sloodle Addons
-
-8. Useful Links
-
-9.  Installation
-
-10. Addon Installation
-    a) The Sloodle Awards System Addon
-    b) The Freemail Blogger Addon
-    
-11. The Sloodle Team
 
 ===============================================================================
 1. WHAT IS SLOODLE?
@@ -54,54 +30,66 @@ SLOODLE is free for use under the GNU GPL license - http://www.gnu.org/licenses/
 
 Dr. Daniel Livingstone, University of the West of Scotland, UK is co-founder and Eduserv principle investigator. Jeremy Kemp with SJSU is co-founder.
 
-===============================================================================
-2. NEW AND SPECIAL FEATURES IN THIS RELEASE
-===============================================================================
-Sloodle 1.0 has a great list of new features for educators in Second Life.
-Sloodle 1.0
-New Features
-
-** Presenter
-*    http://www.youtube.com/watch?v=rNuf5aOAm-I
-*    Bulk Upload Capability added
-*    Import Plugin Support added
-*    PDF Importer function added
-*    Presenter Texture can be changed by simply replacing the sloodle_presenter_texture file in the contents of the Presenter
-*    Fixed bug where if user deleted the sloodle_presenter_texture after the presenter was deeded to a group, the parcel media was set to a NULL value.
-*    Owner can prevent others from controlling  the slide show
-
-** Sloodle Set
-*    Updated the design
-*    http://www.youtube.com/watch?v=tdXiKJeWXZg
-
-** Picture Glossary
-*    http://www.youtube.com/watch?v=vRw4AYH9bNE
-*    New tool which Displays Textures in Second Life
-*    Simply create a glossary and copy add the following as the objects description: 
-*    textureUUID:scaleX:scaleY:scultpUUID
-*    Then students can search for the glossary term by typing /pix glossary name - texture then appears in Second Life custom scaled.
-
-** Quiz Chair Updates
-*    The last sloodle_mod_quiz-1.0.lsl (as in sloodle 0.4 revision 10 ) accepted four question types: Multiple Choice, True False, Numerical, and Short Answer question types.  The drawback is that all are presented as Multiple Choice and converted if necessary.  This conversion destroys the nature of the Numerical, and Short Answer question types, as the right answer may become the only option in the question. When teachers select a Numerical or Short Answer question type they want something really different than selecting multiple choice of 2, 3 ,4 ... options. This version keeps the nature of the question types. It listens numerical and short answers through local chat and multiple choice and true-false through the dialog menus. So they run mixed but without loosing their nature.
-
-** Web Intercom
-*    Now chats the location of the archived chat when the intercom is turned off.
-*   http://www.youtube.com/watch?v=8giZ47hA_dg
-
-** Error Messages
-*    All error messages are now translated!
-
-** Access Checker Door 
-*    has been removed due to the fact that it does not actually block access to spaces in Second Life, but simply is a door which opens if the user is a member of the course
-
-** Sloodle Awards System
-*    http://www.youtube.com/watch?v=cvLvq-DIbs4
-*    Motivate your Students by awarding them points in Second Life, and have those points automatically fed into the gradebook and count towards their final grade on MOODLE!
-*    Scavenger Hunt Plugin - Students get points for completing a scavenger hunt in Second Life!
-*    Stipend Giver Plugin - Give stipends to your students for them to get started in the virtual world
 
 ===============================================================================
-3. ALL THE SLOODLE TOOLS WITH WIKI LINKS
+2. RELEASE NOTES
+===============================================================================
+SLOODLE 1.0.2 addresses a few security and compatibility issues, notably relating to the SLOODLE Presenter activity in Moodle.
+
+
+===============================================================================
+3. INSTALLATION
+===============================================================================
+
+You can usually upgrade old versions simply by removing the existing
+SLOODLE folder(s) from your installation, and replacing them with the
+new ones.
+
+There are four parts which you can install. The first is required in
+order to use SLOODLE, but the other two are optional, and simply
+provide some additional functionality.
+
+-----------------
+Module (required)
+-----------------
+1. Navigate to your Moodle's "mod" folder
+2. If a "sloodle" folder exists there already, then delete it
+3. Add the "sloodle" folder from this download
+
+
+----------------
+Block (optional)
+----------------
+1. Navigate to your Moodle's "blocks" folder
+2. If a "sloodle_menu" fodler exists there already, then delete it
+3. Add the "sloodle_menu" folder from this download
+
+
+-------------------------------------------
+Sloodle Object Assignment plugin (optional)
+-------------------------------------------
+(Enables use of the PrimDrop object)
+
+1. Navigate to your Moodle's "mod/assignment/type" folder
+2. If a "sloodleobject" folder exists there already, then delete it
+3. Add the "sloodleobject" folder from this download
+
+You will also need to alter your primary language pack.
+E.g. if your primary language is English, then the  is "en_utf8".
+
+1. Navigate to your Moodle's "lang/" folder
+2. Open the "assignment.php" file
+3. Scroll to the bottom and add this line immediately before the last "?&gt;":
+    $string['typesloodleobject'] = 'Sloodle Object';
+
+You can change the 'Sloodle Object' text to suit your needs.
+You can repeat the process for other languages if necessary.
+
+http://youtube.com/user/fire2006 (for extra videos)
+
+
+===============================================================================
+4. THE SLOODLE TOOLS
 ===============================================================================
 ******************************
 * Sloodle 1.0 Access Checker *  
@@ -120,7 +108,6 @@ http://slisweb.sjsu.edu/sl/index.php/Sloodle_Choice
 ***************************
 Allows users to teleport to their class from their Moodle site
 http://slisweb.sjsu.edu/sl/index.php/Sloodle_Login_Zone
-
 
 ***************************
 * Sloodle 1.0 Metagloss - *
@@ -198,8 +185,9 @@ http://www.youtube.com/user/Sloodle#play/all/uploads-all/2/vRw4AYH9bNE
 Distribute objects to your students through your Moodle class page
 http://slisweb.sjsu.edu/sl/index.php/SLOODLE_Vending_Machine
 
+
 ===============================================================================
-4. CONTACT INFORMATION
+5. CONTACT INFORMATION
 ===============================================================================
 ***************************
 * GENERAL DISCUSSION FORUM  *
@@ -222,16 +210,6 @@ Welcome Area: http://www.sloodle.org/moodle/course/view.php?id=3  <--- join this
 Sloodle 101: http://www.sloodle.org/moodle/course/view.php?id=48  <--- join this course to participate in Sloodle 101!
 http://www.sloodle.org/moodle/course/view.php?id=10 <--- join this course to participate in our development discussions!
 
-===============================================================================
-5. SLOODLE 101 CLASES
-===============================================================================
-Sloodle 101 is offered every Tuesday at 13:30 PST (Second Life Time) by Fire Centaur on Sloodle Island. 
-You can teleport directly here: http://slurl.com/secondlife/Sloodle/110/59/24
-Fire Centaur also utilizes an Adobe Connect Pro Server, whose use has been temporarily lent to him by Dr. PaiChai University in Daejeon, South Korea.  Thanks Pai Chai
-
-http://www.sloodle.org/moodle/course/view.php?id=48
-
-* You can also teleport directly to Sloodle Island  and have a tour around.  Below are SLURL teleport links which you can click on to get to various locations on Sloodle Island:
 
 ===============================================================================
 6. SLOODLE ISLAND INFORMATION
@@ -241,12 +219,6 @@ http://www.sloodle.org/moodle/course/view.php?id=48
 ***********************
 Get the Latest tools here:  http://slurl.com/secondlife/Sloodle/126/94/23
 
-***********************
-* Sloodle 101 Class              * 
-***********************
-Class every Tuesday at 1:30 Pacific Standard Time (Second Life Time)
-http://slurl.com/secondlife/Sloodle/110/59/24
-
 *******************************
 *  Sloodle Community Meeting Area   *
 *******************************
@@ -255,14 +227,14 @@ http://slurl.com/secondlife/Sloodle/175/96/79
 All Chats are archived here: 
 ** Sloodle Sandbox - http://slurl.com/secondlife/Sloodle/236/232/23
 
+
 ===============================================================================
-7. SLOODLE ADDONS:
+7. SLOODLE ADDONS
 ===============================================================================
 Sloodle Addons are additional tools you can install into Sloodle by uploading additional software into your Moodle website, as well
 as rezzing the tool in world.
 Sloodle addons can be found here:
 http://download.socialminds.jp/sloodle/latest/addons.zip
-
 
 *********************************
 Sloodle 1.0 Awards System Addon *
@@ -282,6 +254,7 @@ Take snapshots in Second Life, and have them entered directly into your Moodle B
 * Get the software to install here: http://download.socialminds.jp/sloodle/latest/addons.zip
 *  http://www.youtube.com/user/fire2006#play/search/0/LiXrXA1A_ok
 
+
 ===============================================================================
 8. USEFUL LINKS 
 ===============================================================================
@@ -294,126 +267,4 @@ For your convenience, here are a few useful download links:
 *) Youtube Channel: http://youtube.com/user/sloodle
 *) Fire's Youtube Channel: http://youtube.com/user/fire2006 (for extra videos)
 *) Sloodle Twitter: http://twitter.com/sloodle_news
-
-
-===============================================================================
-9. INSTALLATION
-===============================================================================
-
-You can usually upgrade old versions simply by removing the existing
-SLOODLE folder(s) from your installation, and replacing them with the
-new ones.
-
-There are four parts which you can install. The first is required in
-order to use SLOODLE, but the other two are optional, and simply
-provide some additional functionality.
-
------------------
-Module (required)
------------------
-1. Navigate to your Moodle's "mod" folder
-2. If a "sloodle" folder exists there already, then delete it
-3. Add the "sloodle" folder from this download
-
-
-----------------
-Block (optional)
-----------------
-1. Navigate to your Moodle's "blocks" folder
-2. If a "sloodle_menu" fodler exists there already, then delete it
-3. Add the "sloodle_menu" folder from this download
-
-
--------------------------------------------
-Sloodle Object Assignment plugin (optional)
--------------------------------------------
-(Enables use of the PrimDrop object)
-
-1. Navigate to your Moodle's "mod/assignment/type" folder
-2. If a "sloodleobject" folder exists there already, then delete it
-3. Add the "sloodleobject" folder from this download
-
-You will also need to alter your primary language pack.
-E.g. if your primary language is English, then the  is "en_utf8".
-
-1. Navigate to your Moodle's "lang/" folder
-2. Open the "assignment.php" file
-3. Scroll to the bottom and add this line immediately before the last "?&gt;":
-    $string['typesloodleobject'] = 'Sloodle Object';
-
-You can change the 'Sloodle Object' text to suit your needs.
-You can repeat the process for other languages if necessary.
-
-http://youtube.com/user/fire2006 (for extra videos)
-
-THE SLOODLE TEAM 
-===============================================================================
-There are 5 core members of the Sloodle Team.  
-
-***************************
-* Daniel Livingstone                       *
-***************************
-Co-Founder, Principal Investigator at SLOODLE. 
-Lecturer in Computer Game Development, University of the West of Scotland
-Sloodle developer - SL scripts mainly
-
-SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=52&course=1
-LINKEDIN: http://www.linkedin.com/in/dlivingstone
-TWITTER: http://twitter.com/dlivingstone
-EMAIL: daniel.livingstone@gmail.com
-WEBPAGE: http://cis.paisley.ac.uk/livi-ci0
-
-***************************
-* Jeremy Kemp                                  *
-***************************
-Jeremy W. Kemp is an instructional designer at San José State University and started teaching online in 1999. He keeps the official wiki for educators using the Second Life immersive environment — www.simteach.com. His instructional technology project connecting Moodle and Second Life has attracted hundreds of participants from around the world — www.sloodle.com. He is a doctoral student at Fielding Graduate University in Santa Barbara, CA working on educational and social issues in immersive environments. Kemp has master's degrees from Stanford and Northwestern University, designed the Wikispecies logo has been awarded "Picture of the Day" three times on Wikipedia.com
-
-EMAIL: jkemp@slis.sjsu.edu
-WEBPAGE: http://www.sjsu.edu/people/jeremy.kemp/
-LINKEDIN: http://www.linkedin.com/pub/jeremy-kemp/2/9aa/162
-TWITTER: http://twitter.com/jeremykemp
-YOUTUBE: http://www.youtube.com/user/jeremykemp
-
-***************************
-* Paul Gerhard Preibisch                *
-***************************
-Lead developer and research assistant for SLOODLE,  Community Support - Fire Centaur in Second Life
-Paul is an independant virtual world consultant based out of Vancouver Canada, with a special interest in Education in Second Life.
-Paul works daily on programming SLOODLE tools, addons, and providing community support.  
-
-SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=589&course=1
-EMAIL: fire@b3dmultitech.com
-WEBPAGE: http://b3dmultitech.com/
-SKYPE: eslteacherlink.com
-TWITTER: http://twitter.com/fire
-YOUTUBE: http://youtube.com/user/fire2006
-
-***************************
-* Peter Bloomfield                           *
-***************************
-Core Developer for the SLOODLE project. Currently doing a PhD in the integration of web-based learning systems with immersive virtual worlds at the University of the West of Scotland.
-
-SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=1350&course=1
-EMAIL: sloodle@avid-insight.co.uk
-WEBPAGE: http://peter.avid-insight.co.uk/
-MSN: pete_rb@hotmail.com
-
-***************************
-* Edmund Edgar                                *
-***************************
-Developer / IT consultant based in Tokyo. 
-Involved in developing Sloodle Scripts, and contribution to the project
-
-SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=78&course=1
-EMAIL: online@edochan.com 
-WEBPAGE: http://www.socialminds.co.uk
-LINKEDIN: http://www.linkedin.com/pub/jeremy-kemp/2/9aa/162
-TWITTER: http://twitter.com/jeremykemp
-
-===============================================================================
-10. SLOODLE ADDONS INSTALLATION
-===============================================================================
-There are several addons being released with Sloodle 1.0. Addons are sloodle tools which have not yet been integrated into the Sloodle Core release due to not enough user testing. However, the addons listed are fully functional and extend Sloodle's functionality! We encourage you to try out the Sloodle addons! NOTE: There may be extra installation needed to add these to your Sloodle Website.
-
-Information about Sloodle Addons can be found here: http://slisweb.sjsu.edu/sl/index.php/Download_Sloodle
 
