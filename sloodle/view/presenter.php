@@ -1084,6 +1084,10 @@ class sloodle_view_presenter extends sloodle_base_view_module
             $baselink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides";
             // Setup a base link for checking compatibility
             $checklink = "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=compatibility";
+            
+            // Make sure this user has site configuration permission, as running this test may reveal sensitive information about server architecture
+            $module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+            $cancheckcompatibility = (bool)has_capability('moodle/site:config', $module_context);
 
             // Go through each one and display it in a menu
             $table = new stdClass();
@@ -1113,9 +1117,13 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $line[] = "<span style=\"font-size:120%; font-weight:bold;\"><a href=\"{$link}\" title=\"{$desc}\" {$linkclass}>{$importername}</a></span><br/>{$compatibility}";
                 // Add the description
                 $line[] = $desc;
-                // Add a link to a compatibility check
-                $link = "{$checklink}&amp;sloodleplugintype={$importerident}";
-                $line[] = "<a href=\"{$link}\" title=\"{$strclicktocheck}\">{$strcheck}</a>";
+                // Add a link to a compatibility check if the user has permission.
+                if ($cancheckcompatibility) {
+                    $link = "{$checklink}&amp;sloodleplugintype={$importerident}";
+                    $line[] = "<a href=\"{$link}\" title=\"{$strclicktocheck}\">{$strcheck}</a>";
+                } else {
+                    $line[] = "<span title=\"{$strclicktochecknoperm}\">-</span>";
+                }
 
                 $table->data[] = $line;
             }
@@ -1143,6 +1151,8 @@ class sloodle_view_presenter extends sloodle_base_view_module
     */
     function render_compatibility_test()
     {
+        global $CFG;
+        
         // Which plugin has been requested?
         $plugintype = strtolower(required_param('sloodleplugintype', PARAM_CLEAN));
         // Attempt to load the specified plugin
@@ -1150,11 +1160,14 @@ class sloodle_view_presenter extends sloodle_base_view_module
         if ($plugin === false) exit(get_string('pluginloadfailed', 'sloodle'));
         $name = $plugin->get_plugin_name();
         
-        // CHECK PERMISSIONS HERE //
+        // Make sure this user has site configuration permission, as running this test may reveal sensitive information about server architecture
+        $module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+        if (!has_capability('moodle/site:config', $module_context)) error(get_string('clicktocheckcompatibility:nopermission', 'sloodle'), "{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides");
         
         // Display a heading for this compatibility check
         echo '<h1>',get_string('runningcompatibilitycheck', 'sloodle'),'</h1>';
         echo '<h2>'.$name."</h2>\n";
+        echo "<p>( <a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides\">",get_string('presenter:backtoimporters','sloodle'),"</a> )</p>\n";
         // Run the compatibility test
         echo "<div style=\"text-align:left;\">";
         $result = $plugin->run_compatibility_test();
@@ -1162,6 +1175,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         
         if ($result) echo "<h1>",get_string('compatibilitytestpassed', 'sloodle'),"</h1>";
         else echo "<h1>",get_string('compatibilitytestfailed', 'sloodle'),"</h1>";
+        echo "<p>( <a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?id={$this->cm->id}&amp;mode=importslides\">",get_string('presenter:backtoimporters','sloodle'),"</a> )</p>\n";
     }
 
     /**

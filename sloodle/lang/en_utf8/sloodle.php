@@ -293,6 +293,7 @@ $string['pluginfailedtoload'] = 'Failed to load plugin.';
 $string['playsounds'] = 'Play sounds?';
 $string['position'] = 'Position';
 
+$string['presenter:backtoimporters']  = 'Back to importers list';
 $string['presenter:viewpresentation']  = 'View the presentation';
 $string['presenter:edit'] = 'Edit the presentation';
 $string['presenter:empty'] = 'This presentation does not have any slides in it yet.';
