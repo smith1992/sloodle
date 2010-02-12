@@ -156,7 +156,7 @@
             case 'sloodlepluginpresenterslidevideo': case 'presenterslidevideo': $type = 'video'; break;
             }
             
-            return SloodlePresenterSlide($rec->id, $this, $name, $rec->source, $type, $rec->ordering, -1);
+            return new SloodlePresenterSlide($rec->id, $this, $name, $rec->source, $type, $rec->ordering, -1);
         }
 
         /**
