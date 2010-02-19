@@ -29,6 +29,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       */
       function Awards($courseModuleId){  
           global $sloodle;
+          
           $cm = get_coursemodule_from_id('sloodle',$courseModuleId);              
           $cmid = $cm->instance;
           $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$cmid); 
@@ -39,6 +40,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $this->transactionRecords = $this->awards_getTransactionRecords();          
           
       }
+      
               /*
         * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
         * when debugging.  ie: instead of sending 2|Fire Centaur|1000 we send:  USERID:2|AVNAME:Fire Centaur|POINTS:1000
@@ -609,7 +611,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      /**
      * getAvatarDebits function
      * @desc This function will search through all the transactions 
-     * for this stipend based on avatar uuid and return the TOTAL debits amount
+     * for a sloodle_awards instance based on avatar uuid and return the TOTAL debits amount
      * @staticvar integer $debitAmount will be zero if no debits exist for this user and stipend
      * @param string $avuuid the avatar UUID to search for
      * @link http://sloodle.googlecode.com
