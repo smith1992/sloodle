@@ -63,9 +63,9 @@ class SloodlePluginPresenterSlideWeb extends SloodlePluginBasePresenterSlide
         $url = $this->get_absolute_url($slide->source);
         $framewidth = 500;
         $frameheight = 500;
-        if (isset($this->presenter)) {
-            $framewidth = $this->presenter->get_frame_width();
-            $frameheight = $this->presenter->get_frame_height();
+        if (isset($slide->presenter)) {
+            $framewidth = $slide->presenter->get_frame_width();
+            $frameheight = $slide->presenter->get_frame_height();
         }        
 
         $output = "<iframe src=\"{$url}\" style=\"width:{$framewidth}px; height:{$frameheight}px;\"></iframe>";
