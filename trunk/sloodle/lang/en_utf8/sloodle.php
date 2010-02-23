@@ -76,6 +76,13 @@ $string['clickhere'] = 'click here';
 $string['clicktodeleteentry'] = 'Click here to delete this entry.';
 $string['clicktoteleportanyway'] = 'Click here to teleport to the SLOODLE site in-world anyway.';
 $string['clicktovisitsloodle.org'] = 'Click here to visit SLOODLE.org';
+$string['compatible'] = 'Compatible';
+$string['compatibility'] = 'Compatibility';
+$string['compatibilitytestpassed'] = 'Compatibility test passed.';
+$string['compatibilitytestfailed'] = 'Compatibility test failed.';
+$string['check'] = 'Check';
+$string['clicktocheckcompatibility'] = 'Click here to run a compatibility test.';
+$string['clicktocheckcompatibility:nopermission'] = 'You need to be an administrator to run compatibility checks.';
 $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
@@ -203,6 +210,7 @@ $string['moving'] = 'moving';
 $string['name'] = 'Name';
 $string['needadmin'] = 'You need administrator privileges to continue.';
 $string['No'] = 'No';
+$string['nocompatibilityproblems'] = 'No compatibility problems detected.';
 $string['noobjectconfig'] = 'No additional configuration options for this object.';
 $string['now'] = 'now';
 $string['nodistributorinterface'] = 'No Distributor Interface';
@@ -281,9 +289,11 @@ $string['pendingallocations'] = 'Pending Allocations';
 $string['pendingavatars'] = 'Pending Avatars';
 //$string['pendingavatars:info'] = '';
 
+$string['pluginfailedtoload'] = 'Failed to load plugin.';
 $string['playsounds'] = 'Play sounds?';
 $string['position'] = 'Position';
 
+$string['presenter:backtoimporters']  = 'Back to importers list';
 $string['presenter:viewpresentation']  = 'View the presentation';
 $string['presenter:edit'] = 'Edit the presentation';
 $string['presenter:empty'] = 'This presentation does not have any slides in it yet.';
@@ -299,10 +309,15 @@ $string['presenter:moveslide'] = 'Move this slide';
 $string['presenter:editslide'] = 'Edit this slide';
 $string['presenter:viewslide'] = 'View this slide';
 $string['presenter:deleteslide'] = 'Delete this slide from the presentation';
-$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
 $string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
-$string['presenter:deleted'] = 'Deleted';
-$string['presenter:fromtheserver'] = 'from the server';
+
+$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
+$string['presenter:confirmdeletemultiple'] = 'Are you sure you want to delete $a slide(s) from the presentation?';
+
+$string['presenter:deletedslide'] = 'Deleted slide \"$a\" from the presentation.';
+$string['presenter:deletedslides'] = 'Deleted $a slide(s) from the presentation.';
+$string['presenter:noslidesfordeletion'] = 'No slides selected for deletion. Please select one or more slides by ticking the checkboxes on the left, and then click \"Delete Selected\" again.';
+
 $string['presenter:sloodleinsert'] = 'Insert at position:';                          
 $string['presenter:type:image'] = 'Image';
 $string['presenter:type:video'] = 'Video';
@@ -322,6 +337,12 @@ $string['presenter:importfailed'] = 'Import failed. This plugin may not be compa
 $string['presenter:importneedimagick'] = 'You need ImageMagick installed from http://www.imagemagick.org/ and (optionally) MagickWand to use this plugin. GhostScript is also required.';
 $string['presenter:importsuccessful'] = 'Import successful. $a slide(s) have been added to your presentation.';
 
+$string['presenter:magickwandnotinstalled'] = 'The MagickWand extension could not be loaded.';
+$string['presenter:usingmagickwand'] = 'Using MagickWand extension.';
+$string['presenter:usingexecutable'] = 'Using ImageMagick \'convert\' program.';
+$string['presenter:convertnotfound'] = 'Failed to locate ImageMagick \'convert\' program.';
+$string['presenter:convertdisabled'] = 'Use of the ImageMagick \'convert\' program has been disabled.';
+
 $string['primpass'] = 'Prim Password';
 $string['primpass:invalidtype'] = 'Prim Password was an invalid type. Should be a string.';
 $string['primpass:tooshort'] = 'Prim Password should be at least 5 digits long (or leave field blank to disable it).';
@@ -337,6 +358,7 @@ $string['region'] = 'Region';
 $string['refreshtimeseconds'] = 'Refresh time (seconds)';
 $string['repeatquiz'] = 'Automatically repeat the quiz?';
 $string['relativeresults'] = 'Show relative results?';
+$string['runningcompatibilitycheck'] = 'Running compatibility check...';
 
 $string['save'] = 'Save';
 $string['second'] = 'second';
@@ -345,6 +367,7 @@ $string['secondarytablenotfound'] = 'Secondary SLOODLE module table not found. M
 
 $string['searchaliases'] = 'Search Aliases';
 $string['searchdefinitions'] = 'Search Definitions';
+$string['selectall'] = 'Select All';
 $string['selectchatroom'] = 'Select Chatroom';
 $string['selectchoice'] = 'Select Choice';
 $string['selectglossary'] = 'Select Glossary';
