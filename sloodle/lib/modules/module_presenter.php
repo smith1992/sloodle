@@ -112,8 +112,11 @@
             // Format it all nicely into a simple array
             $output = array();
             foreach ($recs as $r) {
-                // Substitute the URL for the name if the name has been left blank (this can particularly happen on Presenters upgraded from an alpha version)
-                $name = $r->name;
+				// Substitute the source data for the name if no name is given.
+                $name = '';
+                if (isset($r->name)){
+                    $name = $r->name;
+                }
                 if (empty($name)) $name = $r->source;
                 $output[$r->id] = array($r->source, $r->type, $name);
             }
@@ -137,8 +140,11 @@
             if (!$rec) return false;
             
             // Substitute the source data for the name if no name is given.
-            $name = $rec->name;
-            if (empty($name)) $name = $rec->source;
+			$name = '';
+			if (isset($rec->name)){
+				$name = $rec->name;
+			}
+			if (empty($name)) $name = $rec->source;
             
             // Convert plugin class names back to legacy slide types.
             // (The class names were used temporarily, but deemed unnecessary.)

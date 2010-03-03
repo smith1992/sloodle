@@ -462,7 +462,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);                                           
     }     
-      if ($result && $oldversion < 2009073002){
+      if ($result && $oldversion < 2009072707){
          $table = new XMLDBTable('sloodle_ibank');     
          drop_table($table);
          echo "creating new sloodle_awards table";
@@ -494,7 +494,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
         $result = $result && create_table($table);
      }
-     if ($result && $oldversion < 2009073001) {
+     if ($result && $oldversion < 2009072707) {
       echo "Dropping old sloodle_award_trans tables<br/>";
         $table = new XMLDBTable('sloodle_award_trans');
         drop_table($table);
@@ -534,7 +534,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $result = $result && create_table($table);                                           
     }
     
-    if ($result && $oldversion < 2009110500) {
+    if ($result && $oldversion < 2009072708) {
         echo "Converting Presenter slide type IDs... ";
         // Standardize any Presenter slides to use type names "image", "web", and "video".
         // The slide plugins for 1.0 initially used class names, like SloodlePluginPresenterSlideImage.

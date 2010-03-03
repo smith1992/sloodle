@@ -28,18 +28,14 @@ require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
 /** General Sloodle functionality. */
 require_once(SLOODLE_LIBROOT.'/general.php');   
-/** ID of the 'userview' tab for the awards system. */
-
-define('SLOODLE_AWARDS_USER_VIEW', 1);
-define('SLOODLE_AWARDS_TEAM_VIEW', 2);   
-define('SLOODLE_AWARDS_PRIZE_VIEW', 3); 
+               
 /**
 * Class for rendering a view of a Distributor module in Moodle.
 * @package sloodle
 */
 class sloodle_view_awards extends sloodle_base_view_module
 {
-     
+    
     /**
     * SLOODLE course object, retrieved directly from database.
     * @var object
@@ -48,7 +44,7 @@ class sloodle_view_awards extends sloodle_base_view_module
     var $sloodleCourse = null;
     
     var $renderMessage=null;
-    var $awards_mode = 'user'; 
+    
     /**
     * The result number to start displaying from
     * @var integer
@@ -184,7 +180,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             $this->cm = $sCourseObj->cm;
             $this->course = $sCourseObj->courseRec;
             $this->course_context = $sCourseObj->courseContext;
-            $awardsObj = new Awards($sCourseObj->cm->id);
+            $awardsObj = new Awards($sCourseObj->cm->instance);
     }
     /**
     * Check that the user has permission to view this module, and check if they can edit it too.
@@ -217,9 +213,9 @@ class sloodle_view_awards extends sloodle_base_view_module
     
         //====================== Get all course related information
            //coursemodule id
-            $sloodleId = required_param('id', PARAM_INT);      
+            $sloodleid = required_param('id', PARAM_INT);      
             $this->start = optional_param('start', 0, PARAM_INT);
-                     
+            $sloodleId =  $sCourseObj->cm->instance;          
             //get awards Object (Awards Object)
             $awardsObj = new Awards((int)$sloodleId);
             if ($this->start < 0) $this->start = 0;
@@ -232,7 +228,6 @@ class sloodle_view_awards extends sloodle_base_view_module
     }
    function creditAll($amount){
        global $awardsObj,$sCourseObj;
-       $transactions = Array();
        foreach ($this->sCourseObj->getUserList() as $u){ 
             //Ipoints can be various types - ie: real lindens, or just points.                         
             $iTransaction = new stdClass();
@@ -242,81 +237,25 @@ class sloodle_view_awards extends sloodle_base_view_module
             $iTransaction->amount       = (int)$amount;
             $iTransaction->itype = "credit";
             $iTransaction->timemodified = (int)time();
-            $awardsObj->awards_makeTransaction($iTransaction,$sCourseObj);
-            $transactions[]=$iTransaction;
+            $awardsObj->makeTransaction($iTransaction,$sCourseObj);
        }   
-       $awardsObj->synchronizeDisplays($iTransaction);
+        $awards_xmlchannel = $awardsObj->sloodle_awards_instance->xmlchannel;
+        do_xml_post($awards_xmlchannel,"1","UPDATE");
    } 
     
     /**
     * Process any form data which has been submitted.
     */
-    function process_form(){        
+    function process_form()
+    {        
         global $awardsObj;
         global $sCourseObj;
         global $USER;
-        $this->awards_mode = optional_param('mode', 'user');   
         //============== - CHECK TO SEE IF THERE ARE PENDING UPDATES TO EXISTING STUDENTS
            //check if we need to update allocations 
            //if "update" param exists, that means someone submitted a form using the update button in printUserTable function
-           $addteams= optional_param("addteam");            
-           $removeTeams= optional_param("removeteams"); 
-           if (isset($_POST['addteam'])){ 
-                $teamsToAdd = $_POST['availteams']; 
-               if (isset($_POST['availteams'])){
-               
-                foreach ($teamsToAdd as $tAdd){
-                        //first check to see if team already exists
-                        if (!get_record('sloodle_awards_teams','groupid',$tAdd,'sloodleid',$sCourseObj->sloodleId)){
-                            $newT = new stdClass();
-                            $newT->groupid = $tAdd;
-                            $newT->sloodleid = $sCourseObj->sloodleId;                                                
-                            insert_record('sloodle_awards_teams',$newT);
-                        }//end if !get_record
-                   }//endif foreach
-               }//endif isset
-               //update scoreboard displays of newly added teams
-               $scoreboards = $awardsObj->getScoreboards($sCourseObj->sloodleId);
-               if ($scoreboards){
-                   foreach ($scoreboards as $sb){
-                        $displayData ="";
-                        $displayData= $awardsObj->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
-                      if ($displayData){                       
-                        $dataLines = explode("\n", $displayData);
-                        $currentView = $awardsObj->getFieldData($dataLines[0]);
-                        if ($currentView=="Select Teams"||$currentView=="Team Top Scores"){
-                           $response= $awardsObj->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n",10); 
-                        }//endif
-                      }//endif
-                   }//foreach
-               }//endif
-           }//endif isset addteam
-           if (isset($_POST['removeteams'])){ 
-                $teamsToRemove = $_POST['existingteams']; 
-               if (isset($_POST['existingteams'])){
-                foreach ($teamsToRemove as $tRemove){
-                        delete_records('sloodle_awards_teams','groupid',$tRemove,'sloodleid',$sCourseObj->sloodleId);
-                }//end foreach
-               }//endif isset
-                 $scoreboards = $awardsObj->getScoreboards($sCourseObj->sloodleId);
-               if ($scoreboards){
-                   foreach ($scoreboards as $sb){
-                        $displayData ="";
-                        $displayData= $awardsObj->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
-                      if ($displayData){                       
-                        $dataLines = explode("\n", $displayData);
-                        $currentView = $awardsObj->getFieldData($dataLines[0]);
-                        if ($currentView=="Select Teams"||$currentView=="Team Top Scores"){
-                           $response= $awardsObj->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n",10); 
-                        }//endif
-                      }//endif
-                   }//foreach
-               }//endif
-           }//endif isset
-           $addmorefields= optional_param("addmorefields");  
-           $deleteTeam = optional_param("deleteteam");  
            $update= optional_param("update");
-           if ($update){                
+            if ($update){                
                 $balance_updates=optional_param("balanceAdjustment");
                 //get userId's that were posted
                 $userIds = optional_param("userIds");
@@ -327,13 +266,12 @@ class sloodle_view_awards extends sloodle_base_view_module
                 $errorString=''; 
                 //go through each userId posted, and check each update field.  If it's a non-zero
                 //then we must make a transaction for this user
-                $sloodle = new SloodleSession( false );
-                $transactions= Array();
                 foreach ($userIds as $userId) {
                     //Was a non-zero value entered in the balance_update field for this user?
                     if ($balance_updates[$currIndex]!=0){
                         //build a new transaction record for the sloodle_award_trans table
-                            //build sloodle_user object for this user id                            
+                            //build sloodle_user object for this user id
+                            $sloodle = new SloodleSession( false );
                             $avuser = new SloodleUser( $sloodle ); 
                             $userRec = get_record('sloodle_users', 'userid', $userId);  
                             $trans = new stdClass();
@@ -346,29 +284,24 @@ class sloodle_view_awards extends sloodle_base_view_module
                                 $userAccountInfo = $awardsObj->awards_getBalanceDetails($userRec->userid);
                                 if (($userAccountInfo->balance - abs($balance_updates[$currIndex]))<0){
                                     $balance_updates[$currIndex]= $userAccountInfo->balance;
-                                }//endif
-                            }//endif
+                                }
+                            }
                             $trans->amount=abs($balance_updates[$currIndex]);
                             $trans->userid = $userId; 
-                             $trans->avname= $userRec->avname; 
+                            $trans->avname= $userRec->avname; 
                             $trans->idata="DETAILS:webupdate|by moodle user:".$USER->username;
-                            $trans->timemodified=time();    
-                            $awardsObj->awards_makeTransaction($trans,$sCourseObj);  
-                            $transactions[]=$trans;                      
-                    }//endif $balance_updates[$currIndex]!=0
+                            $trans->timemodified=time();       
+                            $awardsObj->awards_makeTransaction($trans,$sCourseObj);                        
+                    }
                     $currIndex++;        
-                }//end foreach
-                //update scoreboards in secondLife
-                if (!empty($transactions)){
-                    $awardsObj->synchronizeDisplays($transactions);
                 }
                 //create and print confirmation message to the user
                 $confirmedMessage = get_string("awards:successfullupdate","sloodle");
                 $confirmedMessage .= $this->addCommas($updatedRecs);
                 //send confirmation Message
                 $this->setRenderMessage($confirmedMessage . $errorString);
-            }//endif update
-       }//end function process_form 
+            }
+       } 
       /**
     * Override the base_view_module print_header for formatting reasons 
     */
@@ -433,7 +366,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             $totalbalances =  $totals->totalbalances;         
             $totalcredits = $totals->totalcredits;
             $totaldebits = $totals->totaldebits;
-//            $totalusers =  $totals->totalusers;  
+//            $totalusers =  $totals->totalusers;
             $sloodletable->head = array(
              get_string('awards:fullname', 'sloodle'),
              get_string('awards:avname', 'sloodle'),             
@@ -444,7 +377,8 @@ class sloodle_view_awards extends sloodle_base_view_module
         //set alignment of table cells                                        
         $sloodletable->align = array('left', 'left','right','right','right');
         //set size of table cells
-        $sloodletable->size = array('15%','35%', '5%','5%','10%');        
+        $sloodletable->size = array('15%','35%', '5%','5%','10%');
+        
         $avs='';
         $debits='';
         $checkBoxId=0; 
@@ -486,9 +420,9 @@ class sloodle_view_awards extends sloodle_base_view_module
                            $debits=$trans_details->debits;
                            $balance=$trans_details->balance;
                        }
-                       $rowData[]='<div style="color:black;text-align:center;"><input type="text" size="10" readonly value="'.$credits.'"></div>';
-                       $rowData[]='<div style="color:red;text-align:center;"><input type="text" size="10" readonly value="'.$debits.'"></div>';
-                       $rowData[]='<div style="color:green;text-align:center;"><input type="text" size="10" readonly value="'.$balance.'"></div>';
+                       $rowData[]='<div style="color:black;text-align:center;">'.$credits.'</div>';
+                       $rowData[]='<div style="color:red;text-align:center;">'.$debits.'</div>';
+                       $rowData[]='<div style="color:green;text-align:center;">'.$balance.'</div>';
                        $rowData[]=$editField;
                     }
                     
@@ -502,65 +436,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             print('</form>');  
         }  
     }  
-     /**
- * printTeamTable function
- * @desc This function will display an HTML table of the team
- * Columns displayed will be:  TeamName | TeamPoints
- */ 
-    function printTeamTable($teamData){        
-        global $CFG;
-        global $USER;
-        global $sCourseObj;
-        global $awardsObj;
-
-        
-         //===================== Build table with headers, set alignment and width of cells
-        //Create HTML table object
-        $sloodletable = new stdClass();
-        $sloodletable->tablealign='center';
-        //Row Data
-        
-        //Create Sloodle Table Column Labels
-        //Team Name | Points 
-      
-         $context = get_context_instance(CONTEXT_MODULE, $sCourseObj->cm->id);          
-         
-            $sloodletable->head = array(
-             get_string('awards:teamname', 'sloodle'),
-             '<h4><div style="color:green;text-align:center;">'.get_string('awards:points', 'sloodle').'</h4>');
-        //set alignment of table cells                                        
-        $sloodletable->align = array('left','right');
-        //set size of table cells
-        $sloodletable->size = array('80%','20%');        
-        if (!empty($teamData)){
-            foreach ($teamData as $t){
-                
-                 //==========print hidden user id for form processing
-                $teamIdFormElement = '<input type="hidden" name="teamIds[]" value="'.$t->id.'">';
-                // Get the Sloodle user data for this Moodle user
-               
-               
-                //build row
-                //col 0: team name
-                //col 1: points
-                $rowData= Array();  
-                $rowData[]= $userIdFormElement;
-                $rowData[]= "<b>".$t->name."<b>";
-                $rowData[]= $awardObj->getTeamPoints($t->id);
-                $sloodletable->data[] = $rowData;
-                $teamMembers = $awardsObj->getTeamMembers($t->id);
-                foreach ($teamMembers as $tm){
-                   $rowData= Array();               
-                   $rowText = $tm->name;
-                   $rowData[]=$rowText;
-                   $sloodletable->data[] = $rowData;
-                }
-            }            
-            print ('<form action="" method="POST">');
-            print_table($sloodletable);  
-            print('</form>');  
-        }  
-    }  
+   
  /**
  * printTransTable function
  * @desc This function will display an HTML table of a single users transactions
@@ -666,194 +542,10 @@ class sloodle_view_awards extends sloodle_base_view_module
             
       
     /**
-    * Render the view of the awards system.
+    * Render the view of the Stipend Giver.
     */
-     function render()
+    function render()              
     {
-        global $CFG;
-        
-        // Setup our list of tabs
-        // We will always have a view option
-        $awardsTabs = array(); // Top level is rows of tabs
-        $awardsTabs[0] = array(); // Second level is individual tabs in a row
-        $awardsTabs[0][] = new tabobject(SLOODLE_AWARDS_USER_VIEW, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=user", get_string('awards:usertab', 'sloodle'), get_string('awards:usertab', 'sloodle'),true);
-        $awardsTabs[0][] = new tabobject(SLOODLE_AWARDS_TEAM_VIEW, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=team", get_string('awards:teams', 'sloodle'), get_string('awards:teamtab', 'sloodle'),true);
-        $awardsTabs[0][] = new tabobject(SLOODLE_AWARDS_PRIZE_VIEW, SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;mode=prizes", get_string('awards:prizes', 'sloodle'), get_string('awards:prizes', 'sloodle'),true);
-        // Does the user have authority to edit this module?
-        // Determine which tab should be active
-        $selectedtab = SLOODLE_AWARDS_USER_VIEW;
-        switch ($this->awards_mode)
-        {
-        case 'user': $selectedtab = SLOODLE_AWARDS_USER_VIEW; break;
-        case 'team': $selectedtab = SLOODLE_AWARDS_TEAM_VIEW; break;
-         case 'prize': $selectedtab = SLOODLE_AWARDS_PRIZE_VIEW; break;
-        }
-        
-        // Display the tabs
-        print_tabs($awardsTabs, $selectedtab);
-        echo "<div style=\"text-align:center;\">\n";
-        
-        // Call the appropriate render function, based on our mode
-        switch ($this->awards_mode)
-        {
-        case 'user': $this->render_userview(); break;
-        case 'team': $this->render_teamview(); break;
-        case 'prizes': $this->render_prizeview(); break;        
-        default: $this->render_userview(); break;
-        }
-        echo "</div>\n";
-    }    
-    function render_teamview()              {
-          global $CFG,$sCourseObj;
-          print ('<form action="" method="POST">');
-          print('<div align="center">');
-                
-                $sloodletable = new stdClass();                
-                $sloodletable->tablealign='center';                
-                //define sloodle icon as separator in breadcrumbs
-                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-                $rowData=Array();  
-                //create breadcrumbs sloodle awards / coursename /view
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:teamview','sloodle');
-                $sloodletable->data[]=$rowData;
-                //print table
-                print_table($sloodletable);    
-                
-                //add the name of the Sloodle Awards Module
-                print('<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'</h2></div>');                
-                 
-                 //if the createTeam button was pressed, display create team form
-                          
-                       //get all groups 
-                      $sloodletable = new stdClass();                
-                      $sloodletable->tablealign='center';            
-                      $sloodletable->width="50%";
-                      $sloodletable->head= array(get_string('awards:existingteams','sloodle'),"",get_string('awards:availteams','sloodle'));
-                      $nonPlayerStr = '<select name="availteams[]" style="width:300px;margin:5px 0 5px 0;" multiple="multiple" size="10">';
-                      $gameTeamsStr = '<select name="existingteams[]" style="width:300px;margin:5px 0 5px 0;" multiple="multiple" size="10">';
-                      $courseGroups = get_records_select('groups','courseid = '. $sCourseObj->courseId );
-                      $gameTeams = Array();//non participating teams
-                      $nonPlayers  = Array(); //participating teams
-                       //get all groups 
-                      if ($courseGroups){
-                          foreach ($courseGroups as $team){
-                              //put teams who are not playing in nonPlayers array
-                              if (!get_record('sloodle_awards_teams','groupid',$team->id,'sloodleid',$sCourseObj->sloodleId))  {
-                                $nonPlayers[]= $team;        //a team that ISN''T connected to the game 
-                                $nonPlayerStr.='<option value="'.$team->id.'">'.$team->name.'</option>';
-                              }
-                              //put teams who are playing in gameTeams array
-                              else {
-                               $gameTeams[] = $team; //a team that is connected to the game
-                               $gameTeamsStr .='<option value="'.$team->id.'">'.$team->name.'</option>';
-                              }
-                          }
-                      }
-                      $nonPlayerStr.='</select>';
-                      $gameTeamsStr.='</select>';
-                      $addRemoveTeamBtn='<input type="submit" name="addteam" value="'.get_string("awards:addteams","sloodle") .'">';
-                      $addRemoveTeamBtn.='<input type="submit" name="removeteams" value="'.get_string("awards:removeteams","sloodle") .'">';  
-                      $addRemoveTeamBtn.='<br><br><a targe="_blank" href="'.$CFG->wwwroot.'/group/group.php?courseid='.$sCourseObj->courseId.'">'.get_string('awards:createnewteam','sloodle').'</a>';
-                      $rowData=Array();                
-                      $rowData[]= $gameTeamsStr;
-                      $rowData[]=$addRemoveTeamBtn;
-                      $rowData[]= $nonPlayerStr;   
-                      $sloodletable->data[]=$rowData; 
-                     
-                      //now print gameTeam members and members of non playing teams
-                      $rowData=Array();                
-                      //print gameteams and members first
-                      //for each team in the group, print there names of the users
-                      $teamGroupStr ="";
-                      foreach ($gameTeams as $gameteam){
-                        //print team name
-                        $teamGroupid = $gameteam->id;
-                        $teamGroupStr .= '<b>'.$gameteam->name.'</b>&nbsp;&nbsp;<a target="blank" href="'.$CFG->wwwroot.'/group/members.php?group='.$gameteam->id.'">'.get_string('awards:modifygroupmembership','sloodle').'</a><br><ul>';
-                        //get all the user ids in the group
-                        $teamMembers = get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
-                        if ($teamMembers){
-                             //have all the team, members now lets print their names
-                            foreach ($teamMembers as $tm){
-                                //get avname                        
-                                $sloodleUser = get_record('sloodle_users', 'userid', $tm->userid);   
-                                if ($sloodleUser){
-                                    $teamGroupStr .='<li>'.$sloodleUser->avname.'</li>';
-                                }                                
-                            }
-                        $teamGroupStr .= "</ul><br>";                                                        
-                        }
-                      }
-                      $rowData[]= $teamGroupStr;
-                      $rowData[]="";
-                      $teamGroupStr ="";
-                      
-                      //now print nonPlaying teams members 
-                      
-                      foreach ($nonPlayers as $np){
-                        //print team name
-                        $teamGroupid = $np->id;
-                        $teamGroupStr .= '<b>'.$np->name.'</b>&nbsp;&nbsp;<a target="blank" href="'.$CFG->wwwroot.'/group/members.php?group='.$np->id.'">'.get_string('awards:modifygroupmembership','sloodle').'</a><br><ul>';
-                        //get all the user ids in the group
-                        $teamMembers = get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
-                        if ($teamMembers){
-                             //have all the team, members now lets print their names
-                            foreach ($teamMembers as $tm){
-                                //get avname                        
-                                $sloodleUser = get_record('sloodle_users', 'userid', $tm->userid);   
-                                if ($sloodleUser){
-                                    $teamGroupStr .='<li>'.$sloodleUser->avname.'</li>';
-                                }                                
-                            }
-                       
-                        } else {
-                           $teamGroupStr .= "<li>".get_string('awards:nomembers','sloodle')."</li>"; 
-                            
-                        }
-                         $teamGroupStr .= "</ul><br>";                                                        
-                      }
-                      $rowData[]= $teamGroupStr;
-                      //add to the table
-                           $sloodletable->data[]=$rowData;  
-                   
-                      print_table($sloodletable);
-                                 
-                print('</div>');    
-                print ('</form>');                
-        
-       
-        
-    }
-    function render_prizeview() {
-          global $CFG,$sCourseObj;
-          print('<div align="center">');
-                $iTable = new stdClass();
-                $iRow = array();
-                $sloodletable = new stdClass();
-                $sloodletable->tablealign='center';                
-                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-                $rowData=Array();                
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:prizes','sloodle');
-                $sloodletable->data[]=$rowData;
-                $rowData=Array();
-                $sloodletable->data[]=$rowData;
-                $rowData[]='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'<h2>'.get_string('awards:prizes','sloodle').'<br>';                
-                $sloodletable->data[]=$rowData;
-                print_table($sloodletable);                  
-           print('</div>'); 
-            
-        
-       
-        
-    }
-    function avnameSort($a, $b){
-        if ($a->avname == $b->avname) {
-            return 0;
-        }
-        return ($a->avname < $b->avname) ? -1 : 1;
-    }
-    function render_userview()              
-    {
-        global $sloodle;
         global $CFG, $USER,$sCourseObj,$awardsObj;   
         $this->courseid = $sCourseObj->courseId;
         $sloodleid=$awardsObj->sloodleId;
@@ -883,7 +575,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                 
                 $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
                 $rowData=Array();
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:userview','sloodle');;
+                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname;
                 $sloodletable->data[]=$rowData;
                 $rowData=Array();
                 $rowData[]='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'<h2>';
@@ -902,41 +594,10 @@ class sloodle_view_awards extends sloodle_base_view_module
            }
            print('</div>'); 
             //======Print STUDENT TRANSACTIONS
-              $userList =$sCourseObj->getUserList();    
-              $newList = array();
-              if (!empty($userList)){
-              foreach ($userList as $u){
-                  $newU = new stdClass();
-                  foreach ($u as $uu=>$val){
-                      $newU->$uu = $val;
-                  }
-                  $sloodledata = get_record('sloodle_users', 'userid', $u->id);
-                  
-                  if (!empty($sloodledata)){
-                      if ($sloodledata->avname)
-                        $newU->avname = $sloodledata->avname;
-                      if ($sloodledata->uuid)                        
-                        $newU->uuid = $sloodledata->uuid;
-                        $trans_details = $awardsObj->awards_getBalanceDetails($u->id);
-                       if (!$trans_details) {
-                           $credits=0; $debits=0;$balance=0;
-                       }else{
-                           $newU->credits=$trans_details->credits;
-                           $newU->debits=$trans_details->debits;
-                           $newU->balance=$trans_details->balance;
-                       }
-                      
-                      $newList[]=$newU;
-                      
-                  }
-                  
-                  }
-              }
               
-            usort($newList,array("sloodle_view_awards",  "avnameSort"));
-            if ($newList){
+            if ($sCourseObj->getUserList()){
               print("<div align='center'>");
-                $this->printUserTable($newList);
+                $this->printUserTable($sCourseObj->getUserList());
                  print("</div>"); 
             }
            
