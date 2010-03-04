@@ -34,7 +34,7 @@
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', '1.0.2'); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', '1.1'); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
