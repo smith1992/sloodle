@@ -448,7 +448,7 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","cmd"], "webintercom:usectrlmenu", ["0", "1", "2","cmd"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","3"], "webintercom:usectrlmenu", ["0", "1", "2","3"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
             sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1","2"], "webintercom:usemenu", ["0", "1","2"], id, "webintercom");
@@ -483,17 +483,19 @@ state logging
                 // Start recording the user
                 sloodle_start_recording_agent(id);
                 
-            } else if (message == "cmd") {
-                // Make sure the user can control this 
-                if (!canctrl) return;                
-                  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");                
             } else if (message == "2") {
                 // Make sure the user can use this
                 if (!(canctrl || canuse)) return;
-                // Display chatroom
-                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [id], "webintercom:enterchatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], id, "webintercom");
-                
-            }           
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
+
+            } else if (message == "3") {
+                // Make sure the user can control this
+                if (!(canctrl)) return;
+                // Stop logging
+                state ready;
+                return;
+            }
+            
         } else if (channel == 0) {
             // Is this an avatar?
             integer isavatar = FALSE;
@@ -595,7 +597,7 @@ state logging
         // Every other line should define a chat message "id|name|text"
         // Start at the line after the status line
         integer i = 1;
-        for (i = (numlines - 1); i > 0; i--) {
+        for (i = 1; i < numlines; i++) {
             // Get all the different fields for this line
             list fields = llParseStringKeepNulls(llList2String(lines,i),["|"],[]);
             // Make sure we have enough fields
