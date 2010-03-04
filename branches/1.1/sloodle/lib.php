@@ -76,20 +76,6 @@
             }
             break;
 
-        case SLOODLE_TYPE_AWARDS:
-            // Create the secondary table for this awards
-            
-            $sec_table->icurrency = (string)$sloodle->icurrency;            
-            $sec_table->assignmentid = (int)$sloodle->assignmentid;
-            $sec_table->maxpoints = (int)$sloodle->maxpoints;
-            if (!insert_record('sloodle_awards', $sec_table)) {
-                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
-            } else {
-                $result = TRUE;
-            }
-
-            break;
-                
         case SLOODLE_TYPE_DISTRIB:
             // Add in a default blank channel number and update time
             $sec_table->channel = '';
@@ -213,19 +199,6 @@
 
             break;
 
-        case SLOODLE_TYPE_AWARDS:
-            // Attempt to fetch the award record
-            $award = get_record('sloodle_awards', 'sloodleid', $sloodle->id);
-            if (!$award) error(get_string('secondarytablenotfound', 'sloodle'));
-            // Add the updates values from the form
-            $award->assignmentid = (int)$sloodle->assignmentid;
-            $award->icurrency = (string)$sloodle->icurrency;       
-            $award->maxpoints = (int)$sloodle->maxpoints;
-
-            // Update the database
-            update_record('sloodle_awards', $award);
-        break;
-
             
         // ADD FURTHER MODULE TYPES HERE!
             
@@ -275,10 +248,6 @@
         // Delete any presenter entries
         delete_records('sloodle_presenter_entry', 'sloodleid', $id);
 
-        // Delete any awards and award transaction entries
-        delete_records('sloodle_awards', 'sloodleid', $id);  
-        delete_records('sloodle_award_trans', 'sloodleid', $id);
-        
         // ADD FURTHER MODULE TYPES HERE!
 
         return $result;
