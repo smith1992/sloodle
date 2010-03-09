@@ -40,6 +40,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
      */ 
      function makeTransaction(){         
          global $sloodle;
+  
          //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
          $sloodleid = $sloodle->request->optional_param('sloodleid');
          //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodle activity as its instance.
@@ -114,7 +115,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("POINTS:".$balance);
         $sloodle->response->add_data_line("ACTION:".$sloodle->request->optional_param('action'));
         $sloodle->response->add_data_line("SECRETWORD:".$sloodle->request->optional_param('secretword'));        
-        $awardsObj->synchronizeDisplays_sl($trans);
+      $awardsObj->synchronizeDisplays_sl($trans);
     }
         /*
      * modifyCash() API command - inserts into the sloodle_awards_trans a record with the sloodleid of -777  this signifies a new type of currency called GameCurrency which can be used as a form of non-monitory or monitory cash system for sloodle
@@ -681,28 +682,34 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
             $sb->url=$url;
             $sb->type=$type;
             $sb->name=$name;
+            
+            $sb->timemodified=time();
             //checl if already registered
-            $alreadyRegistered = get_records_select('sloodle_awards_scoreboards',"url=\"".$url."\" AND name=\"".$name."\"");
+            $alreadyRegistered = get_record('sloodle_awards_scoreboards','name',$name);
             if (!$alreadyRegistered){
                 if (!insert_record('sloodle_awards_scoreboards',$sb)){
                      $sloodle->response->set_status_code(-501200);    //cant insert record in sloodle_awards_scoreboards
                      $sloodle->response->set_status_descriptor('HQ'); //line 0 
                      $sloodle->response->add_data_line($url); //line 1
+                     $sloodle->response->add_data_line("CANT ADD RECORD"); //line 1
                 }//endif
                 else {
                     $sloodle->response->set_status_code(1);    
                     $sloodle->response->set_status_descriptor('OK'); //line 0 
                     $sloodle->response->add_data_line($url); //line 1
+                    $sloodle->response->add_data_line("ADDED RECORD"); //line 1
                 }
             }//alreadyRegistered
             else{
                 //delete all instances of the old urls for this scoreboard 
-                if (!delete_records('sloodle_awards_scoreboards','url',$url,'name',$name)){
+                $sb->id=$alreadyRegistered->id;
+                if (!update_records('sloodle_awards_scoreboards',$sb)){
                     //insert new scoreboard url
                     insert_record('sloodle_awards_scoreboards',$sb);
                     $sloodle->response->set_status_code(1);    
                     $sloodle->response->set_status_descriptor('OK'); //line 0 
                     $sloodle->response->add_data_line($url); //line 1
+                    $sloodle->response->add_data_line("UPDATED SCOREBOARD"); //line 1
                 }
             }//end else
 
@@ -712,20 +719,23 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
      */
      function deregisterScoreboard(){
         global $sloodle;
-        //get data
-        $url=$sloodle->request->required_param('url'); 
         //add scoreboard to sloodle_awards_scoreboard table
         $name=$sloodle->request->required_param('name'); 
+        $sloodleid=$sloodle->request->required_param('sloodleid'); 
+        
             //remove scoreboard            
-            if (!delete_records('sloodle_awards_scoreboards','url',$url,'name',$name)){
+            if (!delete_records('sloodle_awards_scoreboards','name',$name,'sloodleid',$sloodleid)){
                  $sloodle->response->set_status_code(-501300);    //cant delete record in sloodle_awards_scoreboards
                  $sloodle->response->set_status_descriptor('HQ'); //line 0 
-                 $sloodle->response->add_data_line($url); //line 1
+                 $sloodle->response->add_data_line($name); //line 1
+                 $sloodle->response->add_data_line("CANT DEREGISTER SCOREBOARD"); //line 1
+                
             }//endif
             else{
                 $sloodle->response->set_status_code(1);    //deleted record
                 $sloodle->response->set_status_descriptor('OK'); //line 0 
-                $sloodle->response->add_data_line($url); //line 1
+                $sloodle->response->add_data_line("DEREGISTERED SCOREBOARD"); //line 1
+                 echo "deleted";         
             }//end else
         
         
