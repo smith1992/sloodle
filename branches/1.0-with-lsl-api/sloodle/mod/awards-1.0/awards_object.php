@@ -139,6 +139,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
            //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
+                    $expiry = time()-$sb->timemodified;
+                    if ($expiry>60*60*48){
+                        //this is url is a week old, delete it because the inworld scoreboards 
+                        //update their URL atleast once a week
+                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        
+                    }else{
                     //get current display of each scoreboard
                     $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
                     $dataLines = explode("\n", $displayData);
@@ -260,6 +267,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             }
                         }//endif$currentView=="Team Top Scores"
                     }//end if displayData
+                    }//expiry
                 }//foreach scoreboard
             }//endif $scoreboards
        }//function
