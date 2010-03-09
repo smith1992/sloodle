@@ -52,8 +52,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                $tmp = explode(":", $fieldData); 
                return $tmp[1];
         }
-      function getScoreboards($sloodleId){
-        $scoreboardRecs=get_records('sloodle_awards_scoreboards','sloodleid',$sloodleId);    
+      function getScoreboards($name){
+        $scoreboardRecs=get_record('sloodle_awards_scoreboards','name',$name);    
         return $scoreboardRecs;
       }
       
@@ -134,7 +134,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
        function synchronizeDisplays($transactions){
           global $sCourseObj;
            //get all httpIn urls connected to this award
-           $scoreboards = $this->getScoreboards($this->sloodleId);
+            
+           $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);  
            //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
@@ -276,6 +277,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
            $scoreboards = $this->getScoreboards($this->sloodleId);      
+           return $scoreboards;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
                     //get current display of each scoreboard
@@ -385,6 +387,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     }
                 }//foreach scoreboard
             }//endif $scoreboards
+
        }//function
       /**
      * @method awards_makeTransaction
