@@ -284,8 +284,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         function synchronizeDisplays_sl($transaction){
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
-           $scoreboards = $this->getScoreboards($this->sloodleId);      
-           return $scoreboards;
+            $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);
+           
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
                      $expiry = time()-$sb->timemodified;
