@@ -187,7 +187,7 @@ displayModMenu(string name,string userPoints, string row_channel,string avKey){
 makeTransaction(string avname,key avuuid,integer points){    
             //plugin:awards refers to awards.php in sloodle/mod/hq-1.0/plugins/awards.php              
             //send the plugin function request via the plugin_channel
-            llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "awards->makeTransaction"+authenticatedUser+"&sloodleid="+(string)currentAwardId+"&sourceuuid="+(string)owner+"&avuuid="+(string)avuuid+"&avname="+avname+"&points="+(string)points+"&details="+llEscapeURL("owner modified ipoints,OWNER:"+llKey2Name(owner)+",SCOREBOARD:"+(string)llGetKey()+",SCOREBOARDNAME:"+llGetObjectName()), NULL_KEY);     
+            llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "awards->makeTransaction"+authenticatedUser+"&sloodleid="+(string)currentAwardId+"&sourceuuid="+(string)owner+"&avuuid="+(string)avuuid+"&avname="+llEscapeURL(avname)+"&points="+(string)points+"&details="+llEscapeURL("owner modified ipoints,OWNER:"+llKey2Name(owner)+",SCOREBOARD:"+(string)llGetKey()+",SCOREBOARDNAME:"+llGetObjectName()), NULL_KEY);     
 }
 string SLOODLE_EOF = "sloodleeof";
  integer sloodle_handle_command(string str) {
