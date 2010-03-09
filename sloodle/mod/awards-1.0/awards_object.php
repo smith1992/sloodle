@@ -288,6 +288,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
            return $scoreboards;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
+                     $expiry = time()-$sb->timemodified;
+                     if ($expiry>60*60*48){
+                        //this is url is a week old, delete it because the inworld scoreboards 
+                        //update their URL atleast once a week
+                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        
+                    }else {
                     //get current display of each scoreboard
                     $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",8);
                     $dataLines = explode("\n", $displayData);
@@ -393,6 +400,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                         
                     delete_records('sloodle_awards_scoreboards','url',$sb->url);
                     }
+                    }//expiry
                 }//foreach scoreboard
             }//endif $scoreboards
 
