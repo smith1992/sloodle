@@ -360,8 +360,9 @@ class sloodle_view_awards extends sloodle_base_view_module
                 }//end foreach
                 //update scoreboards in secondLife
                 if (!empty($transactions)){
-                    $awardsObj->synchronizeDisplays($transactions);
-                }
+                    
+                   $awardsObj->synchronizeDisplays($transactions);
+                  }
                 //create and print confirmation message to the user
                 $confirmedMessage = get_string("awards:successfullupdate","sloodle");
                 $confirmedMessage .= $this->addCommas($updatedRecs);
