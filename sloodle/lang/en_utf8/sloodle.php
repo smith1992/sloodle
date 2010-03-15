@@ -218,6 +218,7 @@ $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with SLOODLE';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
 $string['noentries'] = 'No entries found.';
+$string['noscriptwarning'] = 'Warning: it looks like your browser does not support JavaScript so this feature may not work properly.';
 $string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
