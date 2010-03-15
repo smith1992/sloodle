@@ -45,8 +45,8 @@ list locstrings = [
     "webintercom:enterchatroom", "You can access the Web Chat room at {{0}}", // Parameter should be link to Moodle chatroom
     "webintercom:touchtorecord", "Touch logger to record your chat",
     "webintercom:ctrlmenu", "Would you like to activate the WebIntercom?\n\n{{0}} = No\n{{1}} = Yes", // Parameters should give the button labels for NO and YES options
-    "webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Go to Web Chatroom", // Parameters: stop and start button labels
-    "webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Deactivate WebIntercom\n{{3}} = Go to Web Chatroom", // Parameters: stop, start, and deactivate button labels
+    "webintercom:usemenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Go to Web Chatroom", // Parameters: stop, start, adn web button labels
+    "webintercom:usectrlmenu", "What would you like to do?\n\n{{0}} = Stop recording me\n{{1}} = Record me\n{{2}} = Go to Web Chatroom\n{{3}} = Deactivate WebIntercom", // Parameters: stop, start, web, and deactivate button labels
     "webintercom:autodeactivate", "Deactivating due to lack of nearby users"
 ];
 

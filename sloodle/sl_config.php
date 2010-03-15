@@ -34,7 +34,7 @@
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', 1.0); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', '1.1'); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
@@ -90,8 +90,6 @@
     // These are the regular module types
     define('SLOODLE_TYPE_DISTRIB', 'distributor');
     define('SLOODLE_TYPE_PRESENTER', 'presenter');
-    define('SLOODLE_TYPE_MAP', 'map');
-    define('SLOODLE_TYPE_AWARDS', 'awards');
     
     // Store the types in an array (used in lists)
     global $SLOODLE_TYPES;   
@@ -100,7 +98,6 @@
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
-  //  $SLOODLE_TYPES[] = SLOODLE_TYPE_AWARDS; 
     
     
     

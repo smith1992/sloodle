@@ -2,46 +2,65 @@
     // This file is part of the Sloodle project (www.sloodle.org)
     
     /**
-    * This file defines the base class for Sloodle modules.
-    * (Each module is effectively a sub-type of the Moodle module).
+    * This file defines a Controller module for Sloodle.
+    * It is not currently used in normal SLOODLE operations.
+    * It is only used for backup and restore purposes.
     *
     * @package sloodle
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @copyright Copyright (c) 2009 Sloodle (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
     */
     
+    /** The Sloodle module base. */
+    require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
+    /** General Sloodle functions. */
+    require_once(SLOODLE_LIBROOT.'/general.php');
+    
     /**
-    * Sloodle module base class.
-    * An abstract class which must be overridden by sub-classes.
+    * The Sloodle Controller module class.
     * @package sloodle
     */
-    class SloodleModule
+    class SloodleModuleController extends SloodleModule
     {
     // DATA //
     
         /**
-        * Reference to the containing {@link SloodleSession} object.
-        * If null, then this module is being used outwith the framework.
-        * <b>Always check the status of the variable before using it!</b>
+        * Internal for Moodle only - course module instance.
+        * Corresponds to one record from the Moodle 'course_modules' table.
         * @var object
-        * @access protected
+        * @access private
         */
-        var $_session = null;
+        var $cm = null;
         
+        /**
+        * Internal only - Sloodle module instance database object. (Primary table)
+        * Corresponds to one record from the Moodle 'sloodle' table.
+        * @var object
+        * @access private
+        */
+        var $sloodle_module_instance = null;
     
+        /**
+        * Internal only - SLOODLE Controller instance object. (Secondary table)
+        * Corresponds to one record from the Moodle 'sloodle_controller' table.
+        * @var object
+        * @access private
+        */
+        var $sloodle_controller_instance = null;
+                
+        
     // FUNCTIONS //
     
         /**
-        * Constructor - initialises the session variable
-        * @param object &$_session A reference to the containing {@link SloodleSession} object, if available.
+        * Constructor
         */
-        function SloodleModule(&$_session)
+        function SloodleModuleController(&$_session)
         {
-            if (!is_null($_session)) $this->_session = &$_session;
+            $constructor = get_parent_class($this);
+            parent::$constructor($_session);
         }
-        
         
         /**
         * Loads data from the database.
@@ -51,6 +70,22 @@
         */
         function load($id)
         {
+            // Make sure the ID is valid
+            if (!is_int($id) || $id <= 0) {
+                echo "<hr><pre>ID = "; print_r($id); echo "</pre><hr>";
+                return false;
+            }
+            
+            // Fetch the course module data
+            if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) return false;
+            // Load from the primary table: Sloodle instance
+            if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
+            // Check that it is the correct type
+            if ($this->sloodle_module_instance->type != SLOODLE_TYPE_CTRL) return false;
+            
+            // Load from the secondary table: Distributor instance
+            if (!($this->sloodle_controller_instance = get_record('sloodle_controller', 'sloodleid', $this->cm->instance))) return false;
+            
             return true;
         }
         
@@ -60,15 +95,26 @@
         /**
         * Backs-up secondary data regarding this module.
         * That includes everything except the main 'sloodle' database table for this instance.
-        * @param object $bf Handle to the file which backup data should be written to.
+        * @param $bf Handle to the file which backup data should be written to.
         * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
         * @return bool True if successful, or false on failure.
         */
         function backup($bf, $includeuserdata)
         {
+            // Backup the basic secondary data
+            $enabled = '0';
+            if (!empty($this->sloodle_controller_instance->enabled) && $this->sloodle_controller_instance->enabled != FALSE) $enabled = '1';
+            fwrite($bf, full_tag('ID', 5, false, $this->sloodle_controller_instance->id));
+            fwrite($bf, full_tag('ENABLED', 5, false, $enabled));
+            fwrite($bf, full_tag('PASSWORD', 5, false, $this->sloodle_controller_instance->password));
+            // Backup user data
+            if ($includeuserdata) {
+                // Layouts and configurations?
+                // They are technically course-based.
+            }
+        
             return true;
         }
-        
         
         /**
         * Restore this module's secondary data into the database.
@@ -80,6 +126,14 @@
         */
         function restore($sloodleid, $info, $includeuserdata)
         {
+            // Construct the database record
+            $controller = new object();
+            $controller->sloodleid = $sloodleid;
+            $controller->enabled = $info['ENABLED']['0']['#'];
+            $controller->password = $info['PASSWORD']['0']['#'];
+            
+            $newid = insert_record('sloodle_controller', $controller);
+        
             return true;
         }
         
@@ -103,7 +157,9 @@
         {
             return 0;
         }
-  
+        
+        
+        
     // ACCESSORS //
     
         /**
@@ -112,7 +168,7 @@
         */
         function get_name()
         {
-            return '';
+            return $this->sloodle_module_instance->name;
         }
         
         /**
@@ -121,7 +177,7 @@
         */
         function get_intro()
         {
-            return '';
+            return $this->sloodle_module_instance->intro;
         }
         
         /**
@@ -130,7 +186,7 @@
         */
         function get_course_id()
         {
-            return 0;
+            return (int)$this->sloodle_module_instance->course;
         }
         
         /**
@@ -139,7 +195,7 @@
         */
         function get_creation_time()
         {
-            return 0;
+            return $this->sloodle_module_instance->timecreated;
         }
         
         /**
@@ -148,7 +204,7 @@
         */
         function get_modification_time()
         {
-            return 0;
+            return $this->sloodle_module_instance->timemodified;
         }
         
         
@@ -158,7 +214,7 @@
         */
         function get_type()
         {
-            return '';
+            return SLOODLE_TYPE_CTRL;
         }
 
         /**
@@ -168,8 +224,11 @@
         */
         function get_type_full()
         {
-            return '';
+            return get_string('moduletype:'.SLOODLE_TYPE_CTRL, 'sloodle');
         }
+
     }
+    
+
 
 ?>
