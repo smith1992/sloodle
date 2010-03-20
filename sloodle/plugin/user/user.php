@@ -69,6 +69,8 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          }
          return $avList;
       } 
+      
+      
      /*
      *   getClassList() will return all users with avatars in a course, along with other data:
      *   UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
@@ -212,98 +214,51 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
                 $sloodle->response->set_status_descriptor('GROUPS');    //line 0    OK                              
                 $sloodle->response->add_data_line("GRPNAME:".$groupName);
                 return;
-           }
-           /*  Send message back into SL
-           *      LINE   MESAGE
-           *      0)     1 | OK
-           *      1)     SENDERUUID:uuid
-           *      2)     GROUPNAME:name
-           *      3)     TOTALUSERS:89
-           *      4)     TOTALMBRS:12 
-           *      3)     INDEX:0
-           *      4)     UUID:uuid|AVNAME:avname|BALANCE:balance|MBR:yes
-           *      5)     UUID:uuid|AVNAME:avname|BALANCE:balance|MBR:yes
-           *      6)     UUID:uuid|AVNAME:avname|BALANCE:balance|MBR:no
-           *      7)     ...
-           *      8)     UUID:uuid|AVNAME:avname|BALANCE:balance|MBR:yes
-           *      9)     EOF
-           */                   
-            $sloodle->response->set_status_code(1);             //line 0    1
-            $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
-            $sloodle->response->add_data_line("SENDER:".$senderUuid);//line 1                     
-            //---sloodledata:
-           //  | avuuid 
-           //  | moodle user name 
-           //  | Avatar Name 
-           //  | stipendAllocation 
-           //  | user debits
-            $userList = $this->getUserList();
-            //getAvatarlist returns an array of stdObj  
-            //$av->userid 
-            //$av->username 
-            //$av->avname 
-            //$av->uuid             
-            $avatarList = $this->getAvatarList($userList);
-            //add balance fields from sloodle_award_trans database then sort
-            $avList= array();             
-            if ($avatarList){
-                foreach ($avatarList as $u){
-                       $av = new stdClass(); 
-                       $av->userid = $u->userid;
-                       $av->username = $u->username;                                      
-                       $av->avname = $u->avname;
-                       $av->uuid = $u->uuid;
-                       $av_balanceDetails= $awardsObj->awards_getBalanceDetails($u->userid);
-                       $av->balance = $av_balanceDetails->balance;                   
-                       $av->credits = $av_balanceDetails->credits;
-                       //get users groups                                              
-                       $mbrStatus= groups_is_member($groupId,$u->userid);
-                       if ($mbrStatus){
-                        $av->memberStatus = "yes";
-                       }else {
-                         $av->memberStatus = "no";
-                       }
-                       $avList[]=$av;
-                }//foreach
-                //sort by points
-                if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
-                if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
-                $sloodleData="";
-                $totalUsers= count($avatarList);
-                $totalMembers= count(groups_get_members($groupId));
-                $i = 0;
-                $currIndex = $index;                                
-                $sloodle->response->add_data_line("USERS:". $totalUsers );   
-                $sloodle->response->add_data_line("MBRS:". $totalMembers );   
-                $sloodle->response->add_data_line("GNAME:". $groupName );   
-                $sloodle->response->add_data_line("INDEX:". $index);   
-                
-                foreach ($avList as $av){                          
-                   //print only the $NUM_USERS_TO_RETURN number of users starting from the current index point
-                   
-                   if (($i < $currIndex) || ($i > ($currIndex + $NUM_USERS_TO_RETURN-1))) {
-                       $i++;                   
-                       continue; //skip the ones which have already been sent                
-                   }                 
-                   else{
-                       $sloodleData = "UUID:".$av->uuid."|";
-                       $sloodleData .="AV:".  $av->avname . "|";
-                       $sloodleData .="BAL:".$av->balance."|";
-                       $sloodleData .= "MBR:".$av->memberStatus;                   
-                       $sloodle->response->add_data_line($sloodleData);   
-                       $i++;
-                       if ($i==$avListLen){                             
-                           $sloodle->response->add_data_line("EOF");
-                       }
-                   }
-                
-              }  //foreach
-            }else{ //avatarList is empty
-                $sloodle->response->set_status_code(80002);             //no avatars
-                $sloodle->response->set_status_descriptor('HQ');    //line 0    OK   
-            } 
-    
-    }//getAwardMbrs
+           }     
+        }
+           
+           
+        function getEnrolledCourses(){           
+           global $sloodle;    
+              
+           $avname= $sloodle->request->required_param('avname');
+             $avuuid= $sloodle->request->required_param('avuuid');
+             $avUser = new SloodleUser( $sloodle );
+             $avUser->load_avatar($avuuid,$avname);
+             $avUser->load_linked_user();
+             $userid = $avUser->avatar_data->userid;    
+             if (!empty($userid)){
+             $is_registered = $sloodle->user->is_user_loaded();             
+                 if ($is_registered) {                    
+                    $usercourses = array();
+                    $courses = get_courses(0);
+                    // Go through each course
+                    $sloodle->response->set_status_code(1);             //line 0    1
+                    $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
+                     
+                    foreach ($courses as $course) {
+                        // Check if the user can view this course and is not a guest in it.
+                        // (Note: the site course is always available to all users.)
+                        $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
+                        $sc = new SloodleCourse();
+                        $sc->load($course);
+                         if ($sc->course_object->id!=1){
+                         $cost=$sc->course_object->cost;
+                         if (empty($cost))$cost=0;
+                        if (has_capability('moodle/course:view', $course_context, $sloodle->user->get_user_id()) && !has_capability('moodle/legacy:guest', $course_context, $sloodle->user->get_user_id(), false)) {
+                           
+                                $sloodle->response->add_data_line($sc->course_object->id."|".$sc->course_object->fullname."|".$cost."|1");
+                                   
+                                }else{
+                                   $sloodle->response->add_data_line($sc->course_object->id."|".$sc->course_object->fullname."|".$cost."|0"); 
+                                }
+                        }
+                        
+                    }
+             }
+             } 
+            
+    }//enrolled
      /**********************************************************
      * addGrpMbr will attempt to add a member to a group 
      * called by: 
@@ -376,7 +331,56 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
         } 
             
      }
-     
+      function enrolUser(){
+        global $sloodle;
+                
+        $avuuid= $sloodle->request->required_param('avuuid');   
+        $avname=$sloodle->request->required_param('avname');
+        $courseid=$sloodle->request->required_param('courseid');
+        $avUser = new SloodleUser( $sloodle );
+        $avUser->load_avatar($avuuid,$avname);
+        $avUser->load_linked_user();
+        $userid= $avUser->avatar_data->userid;
+        $is_enrolled = false;
+        $is_registered = $sloodle->user->is_user_loaded();  
+        if ($is_registered) {
+            $is_enrolled = $sloodle->user->is_enrolled($courseid);
+            if ($is_enrolled){
+                //user is already enrolled
+                   $sloodle->response->set_status_code(401);             //line 0 - User is already enrolled
+                   $sloodle->response->set_status_descriptor('MISC_REGISTER'); //line 0 
+                   return;                
+            }else{
+                //user is not enrolled so enrol them into the course
+                 $sc = new SloodleCourse();
+                 $sc->load((int)$courseid);
+                 $avUser->enrol($sc);
+                 $sloodle->response->set_status_code(1);
+                 $sloodle->response->set_status_descriptor('OK');
+                 $sloodle->response->add_data_line("CourseId:".$courseid);                  
+                 $sloodle->response->add_data_line("avuud:".$avuuid);                  
+                 $sloodle->response->add_data_line("avname:".$avname);                  
+                 $sloodle->response->add_data_line("userid:".$userid);                  
+                
+            }
+        }else{
+            // Add a pending avatar
+            $pa = $sloodle->user->add_pending_avatar($sloodleuuid, $sloodleavname);
+            if (!$pa) {
+                $sloodle->response->set_status_code(-322);
+                $sloodle->response->set_status_descriptor('MISC_REGISTER');
+                $sloodle->response->add_data_line('Failed to add pending avatar details.');
+            } else {
+                // Construct and return a registration URL
+                $url = SLOODLE_WWWROOT."/login/sl_welcome_reg.php?sloodleuuid=$sloodleuuid&sloodlelst={$pa->lst}";
+                if ($sloodlemode == 'regenrol') $url .= '&sloodlecourseid='.$sloodle->course->get_course_id();                
+                $sloodle->response->set_status_code(-321);
+                $sloodle->response->set_status_descriptor('USER_AUTH');
+                $sloodle->response->add_data_line($url);
+            }
+            
+        }
+    }
      /**********************************************************
      * removeGrpMbr will attempt to remove a member to a group 
      * called by: 
@@ -454,4 +458,3 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
      }
 }//class
 ?>
-
