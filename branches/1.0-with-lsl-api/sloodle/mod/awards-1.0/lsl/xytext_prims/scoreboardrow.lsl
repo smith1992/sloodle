@@ -1,4 +1,4 @@
-// LSL script generated: xytext_prims.scoreboardrow.lslp Mon Mar  8 17:03:41 Pacific Standard Time 2010
+// LSL script generated: SLOODLE AWARDS.xytext_prims.scoreboardrow.lslp Fri Mar 19 23:25:21 Pacific Daylight Time 2010
 
 integer GUI_CHANNEL = 89997;
 list commandList;

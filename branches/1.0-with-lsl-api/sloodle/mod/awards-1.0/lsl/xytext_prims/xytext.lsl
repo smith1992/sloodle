@@ -1,4 +1,4 @@
-// LSL script generated: xytext_prims.xytext.lslp Mon Mar  8 17:04:15 Pacific Standard Time 2010
+// LSL script generated: SLOODLE AWARDS.xytext_prims.xytext.lslp Fri Mar 19 23:25:21 Pacific Daylight Time 2010
 /*********************************************
 *  Copyright (c) 2009 Paul Preibisch
 *  Released under the GNU GPL 3.0
