@@ -123,7 +123,7 @@ integer i (string ii){
 vector v (string vv){
     return llList2Vector(llParseString2List(vv, [":"], []),1);
 }//end function
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);
    s="";
@@ -473,7 +473,8 @@ default{
                         //update our rows list with new point data            
                         //name,points,channel,avkey
                         rows_getClassList =  llListReplaceList(rows_getClassList,[avName,points,rowChannel,avUuid], rowNum*4,rowNum*4+3);
-                    }  //endif                                                          
+                    }  //endif     
+                                                                    
          }//awards|makeTransaction response
         }//channel!=PLUGIN_RESPONSE_CHANNEL
     }//linked message event
