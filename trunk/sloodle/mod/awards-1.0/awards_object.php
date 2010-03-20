@@ -29,6 +29,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       */
       function Awards($courseModuleId){  
           global $sloodle;
+          
           $cm = get_coursemodule_from_id('sloodle',$courseModuleId);              
           $cmid = $cm->instance;
           $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$cmid); 
@@ -39,6 +40,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $this->transactionRecords = $this->awards_getTransactionRecords();          
           
       }
+      
               /*
         * getFieldData - string data sent to the awards has descripters built into the message so messages have a context
         * when debugging.  ie: instead of sending 2|Fire Centaur|1000 we send:  USERID:2|AVNAME:Fire Centaur|POINTS:1000
@@ -50,8 +52,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                $tmp = explode(":", $fieldData); 
                return $tmp[1];
         }
-      function getScoreboards($sloodleId){
-        $scoreboardRecs=get_records('sloodle_awards_scoreboards','sloodleid',$sloodleId);    
+      function getScoreboards($name){
+        $scoreboardRecs=get_record('sloodle_awards_scoreboards','name',$name);    
         return $scoreboardRecs;
       }
       
@@ -132,10 +134,18 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
        function synchronizeDisplays($transactions){
           global $sCourseObj;
            //get all httpIn urls connected to this award
-           $scoreboards = $this->getScoreboards($this->sloodleId);
+            
+           $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);  
            //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
+                    $expiry = time()-$sb->timemodified;
+                    if ($expiry>60*60*48){
+                        //this is url is a week old, delete it because the inworld scoreboards 
+                        //update their URL atleast once a week
+                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        
+                    }else{
                     //get current display of each scoreboard
                     $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
                     $dataLines = explode("\n", $displayData);
@@ -257,6 +267,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             }
                         }//endif$currentView=="Team Top Scores"
                     }//end if displayData
+                    }//expiry
                 }//foreach scoreboard
             }//endif $scoreboards
        }//function
@@ -273,9 +284,17 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         function synchronizeDisplays_sl($transaction){
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
-           $scoreboards = $this->getScoreboards($this->sloodleId);      
+            $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);
+           
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
+                     $expiry = time()-$sb->timemodified;
+                     if ($expiry>60*60*48){
+                        //this is url is a week old, delete it because the inworld scoreboards 
+                        //update their URL atleast once a week
+                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        
+                    }else {
                     //get current display of each scoreboard
                     $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",8);
                     $dataLines = explode("\n", $displayData);
@@ -381,8 +400,10 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                         
                     delete_records('sloodle_awards_scoreboards','url',$sb->url);
                     }
+                    }//expiry
                 }//foreach scoreboard
             }//endif $scoreboards
+
        }//function
       /**
      * @method awards_makeTransaction
@@ -609,7 +630,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      /**
      * getAvatarDebits function
      * @desc This function will search through all the transactions 
-     * for this stipend based on avatar uuid and return the TOTAL debits amount
+     * for a sloodle_awards instance based on avatar uuid and return the TOTAL debits amount
      * @staticvar integer $debitAmount will be zero if no debits exist for this user and stipend
      * @param string $avuuid the avatar UUID to search for
      * @link http://sloodle.googlecode.com

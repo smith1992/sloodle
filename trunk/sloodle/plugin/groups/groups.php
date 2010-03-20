@@ -203,4 +203,3 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
      }//function
 }//class
 ?>
-
