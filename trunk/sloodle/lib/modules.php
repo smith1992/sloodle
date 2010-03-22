@@ -15,6 +15,7 @@
     
     /** Base module. */
     require_once(SLOODLE_LIBROOT.'/modules/module_base.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
 
     
     // Now we will go through every file in the "lib/modules" folder which starts "module_", and include it.
@@ -71,13 +72,61 @@
         
         // Load the data from the database, if necessary
         if ($id != null) {
-            if ($module->load($id)) return $module;
+            if ($module->load((int)$id)) return $module;
             sloodle_debug("Failed to load module data from database with ID $id.<br/>");
             return false;
         }
         
         // Everything seems OK
         return $module;
+    }
+    
+    /**
+    * Constructs and loads an appropriate SLOODLE module object, based on the 'sloodle' record (that is, the instance or instance ID).
+    * The appropriate type is detected from the instance data.
+    * The object is provided with a dummy SloodleSession object.
+    * @param int|object $instance Either an integer instance ID, or a record from the 'sloodle' table.
+    * @return SloodleModule|bool Returns the constructed module object, or false if it fails.
+    */
+    function sloodle_quick_load_module_from_instance($instance)
+    {
+        // Get an instance record if necessary
+        if (is_numeric($instance)) {
+            $instance = get_record('sloodle', 'id', (int)$instance);
+            if ($instance === false) return false;
+        }
+        
+        // Attempt to get the course module ID
+        $cm = get_coursemodule_from_instance('sloodle', $instance->id);
+        if ($cm === false) return false;
+        
+        // Attempt to load the module
+        $dummysession = new SloodleSession(false);
+        return sloodle_load_module($instance->type, $dummysession, (int)$cm->id);
+    }
+    
+    /**
+    * Constructs and loads an appropriate SLOODLE module object, based on the course module or course module ID.
+    * The appropriate type is detected automatically.
+    * The object is provided with a dummy SloodleSession object.
+    * @param int|object $cm Either an integer course module ID, or a course module record.
+    * @return SloodleModule|bool Returns the constructed module object, or false if it fails.
+    */
+    function sloodle_quick_load_module_from_cm($cm)
+    {
+        // Obtain a course module object if necessary
+        if (is_numeric($cm)) {
+            $cm = get_coursemodule_from_id('sloodle', $cm);
+            if ($cm === false) return false;
+        }
+    
+        // Get an instance record
+        $instance = get_record('sloodle', 'id', (int)$cm->instance);
+        if ($instance === false) return false;
+        
+        // Attempt to load the module
+        $dummysession = new SloodleSession(false);
+        return sloodle_load_module($instance->type, $dummysession, (int)$cm->id);
     }
 
 ?>
