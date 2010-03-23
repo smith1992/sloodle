@@ -573,7 +573,33 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         }
         echo "{$numupdated} slide(s) updated.<br/>";
     }
-
+ if ($result && $oldversion < 2010032202) {
+      echo "adding sloodle award scoreboards table to house dynamic urls<br/>";
+        $table = new XMLDBTable('sloodle_award_scoreboards');
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $table->addField($field);
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $table->addField($field);
+        $field = new XMLDBField('name');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
+        $table->addField($field);
+        $field = new XMLDBField('url');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null, 'name');
+        $table->addField($field);
+        $field = new XMLDBField('type');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '40', null, null, null, null, null, null, 'url');
+        $table->addField($field);
+        $field = new XMLDBField('enabled');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '0', 'type');
+        $table->addField($field);        
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'enabled');
+        $table->addField($field);           
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);                                           
+    }
 
   return $result; 
 }
