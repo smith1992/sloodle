@@ -29,6 +29,7 @@
 *  fire@b3dMultiTech.com  
 *
 */ 
+integer DEBUG=FALSE
 integer ROW_CHANNEL;
 string stringToPrint;
 list lines;
@@ -123,12 +124,11 @@ integer i (string ii){
 vector v (string vv){
     return llList2Vector(llParseString2List(vv, [":"], []),1);
 }//end function
-integer DEBUG=FALSE;
+
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);
    s="";
 }
-
 /***********************************************
 *  isFacilitator()
 *  |-->is this person's name in the access notecard
@@ -189,6 +189,7 @@ makeTransaction(string avname,key avuuid,integer points){
             //send the plugin function request via the plugin_channel
             llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "awards->makeTransaction"+authenticatedUser+"&sloodleid="+(string)currentAwardId+"&sourceuuid="+(string)owner+"&avuuid="+(string)avuuid+"&avname="+llEscapeURL(avname)+"&points="+(string)points+"&details="+llEscapeURL("owner modified ipoints,OWNER:"+llKey2Name(owner)+",SCOREBOARD:"+(string)llGetKey()+",SCOREBOARDNAME:"+llGetObjectName()), NULL_KEY);     
 }
+list invList;
 string SLOODLE_EOF = "sloodleeof";
  integer sloodle_handle_command(string str) {
          
@@ -223,6 +224,13 @@ string SLOODLE_EOF = "sloodleeof";
     }
 default{    
     state_entry() {
+        invList = getInventoryList();
+        integer j;
+        for (j=0;j<llGetListLength(invList);j++){
+            if (llList2String(invList,j)=="DEBUG"){
+                DEBUG=TRUE;
+            }
+        }
          owner=llGetOwner();
          //llMessageLinked(LINK_SET, UI_CHANNEL, "CMD:REGISTER VIEW|INDEX:0|TOTALITEMS:0|COMMAND:cmd{index}|CHAN:channel",NULL_KEY);
          //create a random ROW_CHANNEL index within a range of 5,000,000 numbers - to avoid conflicts with other scoreboards

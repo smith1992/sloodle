@@ -322,12 +322,12 @@ link_message(integer sender_num, integer channel, string str, key id) {
                         //Got Sound from http://www.freesound.org/samplesViewSingle.php?id=12906
                         // Modified it using audacity
                         //Creative Commons Sampling Plus 1.0 License. see http://creativecommons.org/licenses/sampling+/1.0/
-                        llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 3|VOLUME:0.8", NULL_KEY);
+                        llTriggerSound("interface_open", 1.0);
                         return;
                        }//endif 
                     else {
                         llMessageLinked(LINK_SET, ANIM_CHANNEL, "p0", NULL_KEY);
-                        llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 3|VOLUME:0.8", NULL_KEY);
+                        llTriggerSound("interface_open", 1.0);
                         return;
                    }//endif handle==-1
                 }//endif button=drawerLeft
@@ -339,12 +339,12 @@ link_message(integer sender_num, integer channel, string str, key id) {
                         llMessageLinked(LINK_SET, ANIM_CHANNEL, "p1", NULL_KEY);
                         //execute last button
                        //Creative Commons Sampling Plus 1.0 License. see http://creativecommons.org/licenses/sampling+/1.0/
-                       llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 3|VOLUME:0.8", NULL_KEY);
+                       llTriggerSound("interface_open", 1.0);
                        return;
                    }//endif 
                    else {
                       llMessageLinked(LINK_SET, ANIM_CHANNEL, "p0", NULL_KEY);
-                      llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 3|VOLUME:0.8", NULL_KEY);
+                      llTriggerSound("interface_open", 1.0);
                       return;
                   }//endif handle==-1
               }//endif button=drawerRight   
@@ -354,8 +354,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
               **************************************************/
               if (button=="Students Tab"){
                      clearHighlights();
-                     //play sound
-                     //llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);                     
+                     //play sound                                          
                      //set sub menu
                      llMessageLinked(LINK_SET, UI_CHANNEL,"CMD:SET CURRENT TAB|TAB:Students Tab",NULL_KEY);
                      //activate anim
@@ -380,7 +379,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                      //clear display;
                       clear();
                     //play sound
-                    llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);                     
+                    llTriggerSound("interface_open", 1.0);                     
                     //set sub menu
                     llMessageLinked(LINK_SET, UI_CHANNEL,"CMD:SET CURRENT TAB|TAB:Groups Tab",NULL_KEY);
                     //activate anim
@@ -405,7 +404,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                      //clear display;
                       clear();
                     //play sound
-                    llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:interface_open|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);                     
+                    llTriggerSound("interface_open", 1.0);                     
                     //set sub menu
                     llMessageLinked(LINK_SET, UI_CHANNEL,"CMD:SET CURRENT TAB|TAB:Prizes Tab",NULL_KEY);
                     //activate anim
@@ -458,7 +457,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
               **************************************************/
               if (currentTab=="Students Tab"){
                   if (button=="s0"){                           
-                       llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                      llTriggerSound("beep", 1.0);
                     //clear highlights
                     clearHighlights();
                     //set current button
@@ -479,7 +478,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                    //clear highlights
                    clearHighlights();
                    //play sound
-                   llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                   llTriggerSound("beep", 1.0);
                    //set current button
                    currentSubMenuButton_studentsTab = "s1";
                    currentView = "Sort by Name";
@@ -502,7 +501,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
             if (currentTab=="Groups Tab"){
                 if (button=="s0"){
                     //play sound
-                    llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                    llTriggerSound("beep", 1.0);
                   //clear highlights
                   clearHighlights();                       
                   //set current button
@@ -523,7 +522,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                   if (button=="s1"){
                                if (isFacilitator(avname)){   
                   //play sound
-                  llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                  llTriggerSound("beep", 1.0);
                   //set current button
                   currentView="Select Teams";
                   llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s1|DESCRIPTION:"+currentView,NULL_KEY);
@@ -546,7 +545,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                    //clear highlight
                  clearHighlights();
                  //play sound
-                 llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                 llTriggerSound("beep", 1.0);
                   //set current button
                   currentView="Group Membership";
                   llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s2|DESCRIPTION:"+currentView,NULL_KEY);
@@ -563,7 +562,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                   /*if (button=="s3"){
                   clear();
                   //play sound
-                  llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                  
                   //set current button
                   llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s3|DESCRIPTION:Create Team",NULL_KEY);
                   currentSubMenuButton_groupsTab = "s3";
@@ -588,7 +587,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                 //set instructional text
                 llMessageLinked(LINK_SET, XY_DETAILS_CHANNEL, "Select a Prize Distributer:", NULL_KEY);                           
                 //play sound
-                llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                llTriggerSound("beep", 1.0);
                 //set current button
                 currentView="Select Distributer";
                 llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s0|DESCRIPTION:"+currentView,NULL_KEY);
@@ -612,7 +611,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                 //set instructional text
                 llMessageLinked(LINK_SET, XY_DETAILS_CHANNEL, "Select an Awards activity:", NULL_KEY);                           
                 //play sound
-                llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                llTriggerSound("beep", 1.0);
                 //set current button
                 currentView="Select Award";
                 llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s0|DESCRIPTION:"+currentView,NULL_KEY);
@@ -632,7 +631,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                 //set instructional text
                 llMessageLinked(LINK_SET, XY_DETAILS_CHANNEL, "Rezzing a cup:", NULL_KEY);                           
                 //play sound
-                llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                llTriggerSound("beep", 1.0);
                 //set current button
                 currentView="Rez Cup";
                 llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s0|DESCRIPTION:"+currentView,NULL_KEY);
@@ -654,7 +653,7 @@ link_message(integer sender_num, integer channel, string str, key id) {
                 //set instructional text
                 llMessageLinked(LINK_SET, XY_DETAILS_CHANNEL, "Resetting...", NULL_KEY);                           
                 //play sound
-                llMessageLinked(LINK_SET, SOUND_CHANNEL,"COMMAND:PLAYSOUND|SOUND_NAME:beep|SCRIPT_NAME:soundPlayer 2|VOLUME:1.0", NULL_KEY);
+                llTriggerSound("beep", 1.0);
                 //set current button
                 llMessageLinked(LINK_SET,UI_CHANNEL, "CMD:SET CURRENT BUTTON|BUTTON:s1|DESCRIPTION:Reset",NULL_KEY);
                 currentSubMenuButton_configTab = "s1";
