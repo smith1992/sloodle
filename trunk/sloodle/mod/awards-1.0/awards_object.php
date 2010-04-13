@@ -53,7 +53,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                return $tmp[1];
         }
       function getScoreboards($name){
-        $scoreboardRecs=get_record('sloodle_awards_scoreboards','name',$name);    
+        $scoreboardRecs=get_record('sloodle_award_scoreboards','name',$name);    
         return $scoreboardRecs;
       }
       
@@ -62,7 +62,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $scoreboard = new stdClass();
           $scoreboard->url = $url;
           $scoreboard->sloodleid = $this->sloodleId;          
-          return insert_record("sloodle_awards_scoreboards",$scoreboard);        
+          return insert_record("sloodle_award_scoreboards",$scoreboard);        
       }
       function setAmount($amount){
           $this->sloodle_awards_instance->amount=(int)$amount; 
@@ -124,7 +124,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
     
        /**********************************
        * synchronizeDisplays($transactions)
-       *    This function will get all entries in sloodle_awards_scoreboards that match this award id. It will then send an http request to the each URL 
+       *    This function will get all entries in sloodle_award_scoreboards that match this award id. It will then send an http request to the each URL 
        *    "COMMAND:GET DISPLAY DATA" and will receive a response indication which display is currently being viewed, and the data currently being displayed in SL
        *    If the currently displayed data matches any of the users in the transaction list, then needsUpdating will be set to true, and an update command will be sent
        *    into SL
@@ -135,7 +135,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           global $sCourseObj;
            //get all httpIn urls connected to this award
             
-           $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);  
+           $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);  
            //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
@@ -143,7 +143,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     if ($expiry>60*60*48){
                         //this is url is a week old, delete it because the inworld scoreboards 
                         //update their URL atleast once a week
-                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
                         
                     }else{
                     //get current display of each scoreboard
@@ -274,7 +274,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
        /**********************************
        * synchronizeDisplays_SL($transactions)
        *    This function works the same as the synchronizeDisplays but the transaction object is only one single transaction
-       *    It starts by getting all entries in sloodle_awards_scoreboards that match this award id. It will then send an http request to the each URL 
+       *    It starts by getting all entries in sloodle_award_scoreboards that match this award id. It will then send an http request to the each URL 
        *    "COMMAND:GET DISPLAY DATA" and will receive a response indication which display is currently being viewed, and the data currently being displayed in SL
        *    If the currently displayed data matches the user in the transaction list, then needsUpdating will be set to true, and an update command will be sent
        *    into SL
@@ -284,7 +284,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         function synchronizeDisplays_sl($transaction){
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
-            $scoreboards = get_records('sloodle_awards_scoreboards','sloodleid',$this->sloodleId);
+            $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);
            
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
@@ -292,7 +292,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                      if ($expiry>60*60*48){
                         //this is url is a week old, delete it because the inworld scoreboards 
                         //update their URL atleast once a week
-                        delete_records('sloodle_awards_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
                         
                     }else {
                     //get current display of each scoreboard
@@ -398,7 +398,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     }//end if displayData
                     else {
                         
-                    delete_records('sloodle_awards_scoreboards','url',$sb->url);
+                    delete_records('sloodle_award_scoreboards','url',$sb->url);
                     }
                     }//expiry
                 }//foreach scoreboard
