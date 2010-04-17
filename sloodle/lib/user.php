@@ -334,7 +334,7 @@
                 // The Moodle "get_complete_user_data" function loads lots of extra stuff which is usually not necessary for SLOODLE functionality.
                 $this->user_data = get_complete_user_data('id', $id);
             } else {
-                $this->user = get_record('user', 'id', $id);
+                $this->user_data = get_record('user', 'id', $id);
             }
             
             // Was the load successful?
