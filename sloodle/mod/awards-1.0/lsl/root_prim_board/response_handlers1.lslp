@@ -27,8 +27,6 @@
 *  fire@b3dMultiTech.com  
 *
 */ 
-
-integer DEBUG=FALSE;
 integer ROW_CHANNEL;
 string stringToPrint;
 list lines;
@@ -124,7 +122,7 @@ integer i (string ii){
 vector v (string vv){
     return llList2Vector(llParseString2List(vv, [":"], []),1);
 }//end function
-
+integer DEBUG=FALSE;
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);
    s="";

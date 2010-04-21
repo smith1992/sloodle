@@ -4,20 +4,17 @@
 *  This script can be used in your scripts, but you must include this copyright header as per the GPL Licence
 *  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
 * 
-* 
+*
 *  This script is part of the SLOODLE Project see http://sloodle.org
 *
 *  Copyright:
 *  Paul G. Preibisch (Fire Centaur in SL)
 *  fire@b3dMultiTech.com  
 *
-* _sloodle_api.lsl
-*
-* This script is responsible for forwarding any API requests to Sloodle.  It receives requests off of the PLUGIN_CHANNEL
-* and forwards responses to the response_handler1,2 scripts via the PLUGIN_RESPONSE_CHANNEL 
+* _sloodle_api.lsl 
 *
 /**********************************************************************************************/
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 string  SLOODLE_HQ_LINKER = "/mod/sloodle/mod/hq-1.0/linker.php";
 key http; 
 //linked message channels we use to communicate with the other scripts 
