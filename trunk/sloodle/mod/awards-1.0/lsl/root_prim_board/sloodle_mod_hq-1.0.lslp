@@ -59,7 +59,7 @@ clearHighlights(){
         llMessageLinked(LINK_SET,PRIM_PROPERTIES_CHANNEL,"COMMAND:HIGHLIGHT|ROW:"+(string)(c)+"|POWER:OFF|COLOR:GREEN",NULL_KEY);
     } 
 }
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+" "+ s);
    s="";
@@ -144,7 +144,6 @@ state chooseAward{
         llResetScript();     
     }
     state_entry() {
-        debug("_-------------------- ready");
         //send button press to btn_handler        
         llMessageLinked(LINK_SET,UI_CHANNEL, "COMMAND:BUTTON PRESS|BUTTON:Config Tab|UUID:"+(string)llGetOwner(),NULL_KEY);
         llMessageLinked(LINK_SET,SETTEXT_CHANNEL, "Opening Config Tab",NULL_KEY);
