@@ -36,7 +36,7 @@
         
         // We need to fetch a list of visible chatrooms on the course
         // Get the ID of the chat type
-        $rec = get_record('modules', 'name', 'chat');
+        $rec = sloodle_get_record('modules', 'name', 'chat');
         if (!$rec) {
             sloodle_debug("Failed to get chatroom module type.");
             exit();
@@ -44,7 +44,7 @@
         $chatmoduleid = $rec->id;
         
         // Get all visible chatrooms in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $chatmoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $chatmoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('nochatrooms','sloodle'));
             exit();
@@ -52,7 +52,7 @@
         $chatrooms = array();
         foreach ($recs as $cm) {
             // Fetch the chatroom instance
-            $inst = get_record('chat', 'id', $cm->instance);
+            $inst = sloodle_get_record('chat', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the chatroom details
             $chatrooms[$cm->id] = $inst->name;

@@ -41,7 +41,7 @@
         // If your object is going to link into an existing module in Moodle, e.g. chatrooms, then you need to get a list all such module instances in the course.
         // We will be using chatrooms for this example.
         // First, we need to figure out what the ID number for the 'chat' type is.
-        $rec = get_record('modules', 'name', 'chat');
+        $rec = sloodle_get_record('modules', 'name', 'chat');
         if (!$rec) {
             sloodle_debug("Failed to get chatroom module type.");
             exit();
@@ -49,7 +49,7 @@
         $chatmoduleid = $rec->id;
         
         // Get all visible chatrooms in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $chatmoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $chatmoduleid AND visible = 1");
         if (!$recs) {
             // No visible chatrooms -- output an error message
             error(get_string('nochatrooms','sloodle')); // This comes from the SLOODLE language pack
@@ -59,7 +59,7 @@
         $chatrooms = array();
         foreach ($recs as $cm) {
             // Fetch the chatroom instance
-            $inst = get_record('chat', 'id', $cm->instance);
+            $inst = sloodle_get_record('chat', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the chatroom details
             $chatrooms[$cm->id] = $inst->name;

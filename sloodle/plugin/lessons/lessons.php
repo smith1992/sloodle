@@ -30,7 +30,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         $index =  $sloodle->request->required_param('index');   
         $lessonsPerPage = $sloodle->request->required_param('maxitems');   
         //get all lessons in the course
-        $lessons = get_records('lesson','course',$courseid);
+        $lessons = sloodle_get_records('lesson','course',$courseid);
         if ($lessons){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
@@ -49,7 +49,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
             //in how many characters you can send back into SL. 
              if (($counter>=($index*$lessonsPerPage))&&($counter<($index*$lessonsPerPage+$lessonsPerPage))){                
                  //Get all the pages of this lessone from mdl_lesson_pages table and return the number of pages
-                $pages = get_records('lesson_pages','lessonid',$les->id);                
+                $pages = sloodle_get_records('lesson_pages','lessonid',$les->id);                
                 if ($pages){
                     $numPages = count($lessons);                
                 }//endif
@@ -135,7 +135,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         /****************************
         * get all lesson pages in the course for this lesson
         ******************************/
-        $lessonPages = get_records('lesson_pages','lessonid',(int)$lessonId);
+        $lessonPages = sloodle_get_records('lesson_pages','lessonid',(int)$lessonId);
         if ($lessonPages){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
@@ -208,7 +208,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         /****************************
         * get all lesson answers in the course for this lesson
         ******************************/
-        $lessonAnswers = get_recordset_select('lesson_answers','lessonid='.(int)$lessonId. ' AND pageid='.(int)$pageId);        
+        $lessonAnswers = sloodle_get_recordset_select('lesson_answers','lessonid='.(int)$lessonId. ' AND pageid='.(int)$pageId);        
         if ($lessonAnswers){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 

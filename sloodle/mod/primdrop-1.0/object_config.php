@@ -36,7 +36,7 @@
         
         // We need to fetch a list of visible Sloodle Object assignments on the course
         // Get the ID of the assignment type
-        $rec = get_record('modules', 'name', 'assignment');
+        $rec = sloodle_get_record('modules', 'name', 'assignment');
         if (!$rec) {
             sloodle_debug("Failed to get assignment module type.");
             exit();
@@ -44,7 +44,7 @@
         $assignmentmoduleid = $rec->id;
         
         // Get all visible assignments in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $assignmentmoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $assignmentmoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('noassignments','sloodle'));
             exit();
@@ -52,7 +52,7 @@
         $assignments = array();
         foreach ($recs as $cm) {
             // Fetch the assignment instance
-            $inst = get_record('assignment', 'id', $cm->instance);
+            $inst = sloodle_get_record('assignment', 'id', $cm->instance);
             if (!$inst) continue;
             // Ignore anything except Sloodle Object assignments
             if ($inst->assignmenttype != 'sloodleobject') continue;

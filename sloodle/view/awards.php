@@ -267,12 +267,12 @@ class sloodle_view_awards extends sloodle_base_view_module
                
                 foreach ($teamsToAdd as $tAdd){
                         //first check to see if team already exists
-                        if (!get_record('sloodle_awards_teams','groupid',$tAdd,'sloodleid',$sCourseObj->sloodleId)){
+                        if (!sloodle_get_record('sloodle_awards_teams','groupid',$tAdd,'sloodleid',$sCourseObj->sloodleId)){
                             $newT = new stdClass();
                             $newT->groupid = $tAdd;
                             $newT->sloodleid = $sCourseObj->sloodleId;                                                
-                            insert_record('sloodle_awards_teams',$newT);
-                        }//end if !get_record
+                            sloodle_insert_record('sloodle_awards_teams',$newT);
+                        }//end if !sloodle_get_record
                    }//endif foreach
                }//endif isset
                //update scoreboard displays of newly added teams
@@ -295,7 +295,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                 $teamsToRemove = $_POST['existingteams']; 
                if (isset($_POST['existingteams'])){
                 foreach ($teamsToRemove as $tRemove){
-                        delete_records('sloodle_awards_teams','groupid',$tRemove,'sloodleid',$sCourseObj->sloodleId);
+                        sloodle_delete_records('sloodle_awards_teams','groupid',$tRemove,'sloodleid',$sCourseObj->sloodleId);
                 }//end foreach
                }//endif isset
                  $scoreboards = $awardsObj->getScoreboards($sCourseObj->sloodleId);
@@ -335,7 +335,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                         //build a new transaction record for the sloodle_award_trans table
                             //build sloodle_user object for this user id                            
                             $avuser = new SloodleUser( $sloodle ); 
-                            $userRec = get_record('sloodle_users', 'userid', $userId);  
+                            $userRec = sloodle_get_record('sloodle_users', 'userid', $userId);  
                             $trans = new stdClass();
                             $trans->sloodleid=$awardsObj->sloodleId;
                             $trans->avuuid= $userRec->uuid;        
@@ -469,7 +469,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                 $rowData[]= $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$u->firstname} {$u->lastname}</a>";
                 //create a url to the transaction list of each avatar the user owns
                 
-                 $ownedAvatars = get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
+                 $ownedAvatars = sloodle_get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
                 if ($ownedAvatars){
                     $trans_url ='';   
                     foreach ($ownedAvatars as $av){
@@ -579,7 +579,7 @@ class sloodle_view_awards extends sloodle_base_view_module
          $permissions = has_capability('moodle/course:manageactivities',$context, $USER->id);
       
         //get sloodle_record
-        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        $userRec = sloodle_get_record('sloodle_users', 'userid', $userid);  
         //build table
         print("<div align='center'>");
         $sloodletable = new stdClass();            
@@ -601,7 +601,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             if ($totals->debits==NULL) $totaldebits = 0;
             else $totaldebits = $totals->debits;
             
-        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        $userRec = sloodle_get_record('sloodle_users', 'userid', $userid);  
         $avName = $userRec->avname; 
         
        $tsloodletable = new stdClass(); 
@@ -731,14 +731,14 @@ class sloodle_view_awards extends sloodle_base_view_module
                       $sloodletable->head= array(get_string('awards:existingteams','sloodle'),"",get_string('awards:availteams','sloodle'));
                       $nonPlayerStr = '<select name="availteams[]" style="width:300px;margin:5px 0 5px 0;" multiple="multiple" size="10">';
                       $gameTeamsStr = '<select name="existingteams[]" style="width:300px;margin:5px 0 5px 0;" multiple="multiple" size="10">';
-                      $courseGroups = get_records_select('groups','courseid = '. $sCourseObj->courseId );
+                      $courseGroups = sloodle_get_records_select('groups','courseid = '. $sCourseObj->courseId );
                       $gameTeams = Array();//non participating teams
                       $nonPlayers  = Array(); //participating teams
                        //get all groups 
                       if ($courseGroups){
                           foreach ($courseGroups as $team){
                               //put teams who are not playing in nonPlayers array
-                              if (!get_record('sloodle_awards_teams','groupid',$team->id,'sloodleid',$sCourseObj->sloodleId))  {
+                              if (!sloodle_get_record('sloodle_awards_teams','groupid',$team->id,'sloodleid',$sCourseObj->sloodleId))  {
                                 $nonPlayers[]= $team;        //a team that ISN''T connected to the game 
                                 $nonPlayerStr.='<option value="'.$team->id.'">'.$team->name.'</option>';
                               }
@@ -770,12 +770,12 @@ class sloodle_view_awards extends sloodle_base_view_module
                         $teamGroupid = $gameteam->id;
                         $teamGroupStr .= '<b>'.$gameteam->name.'</b>&nbsp;&nbsp;<a target="blank" href="'.$CFG->wwwroot.'/group/members.php?group='.$gameteam->id.'">'.get_string('awards:modifygroupmembership','sloodle').'</a><br><ul>';
                         //get all the user ids in the group
-                        $teamMembers = get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
+                        $teamMembers = sloodle_get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
                         if ($teamMembers){
                              //have all the team, members now lets print their names
                             foreach ($teamMembers as $tm){
                                 //get avname                        
-                                $sloodleUser = get_record('sloodle_users', 'userid', $tm->userid);   
+                                $sloodleUser = sloodle_get_record('sloodle_users', 'userid', $tm->userid);   
                                 if ($sloodleUser){
                                     $teamGroupStr .='<li>'.$sloodleUser->avname.'</li>';
                                 }                                
@@ -794,12 +794,12 @@ class sloodle_view_awards extends sloodle_base_view_module
                         $teamGroupid = $np->id;
                         $teamGroupStr .= '<b>'.$np->name.'</b>&nbsp;&nbsp;<a target="blank" href="'.$CFG->wwwroot.'/group/members.php?group='.$np->id.'">'.get_string('awards:modifygroupmembership','sloodle').'</a><br><ul>';
                         //get all the user ids in the group
-                        $teamMembers = get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
+                        $teamMembers = sloodle_get_records_select('groups_members','groupid = "'.$teamGroupid.'"') ;
                         if ($teamMembers){
                              //have all the team, members now lets print their names
                             foreach ($teamMembers as $tm){
                                 //get avname                        
-                                $sloodleUser = get_record('sloodle_users', 'userid', $tm->userid);   
+                                $sloodleUser = sloodle_get_record('sloodle_users', 'userid', $tm->userid);   
                                 if ($sloodleUser){
                                     $teamGroupStr .='<li>'.$sloodleUser->avname.'</li>';
                                 }                                
@@ -910,7 +910,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                   foreach ($u as $uu=>$val){
                       $newU->$uu = $val;
                   }
-                  $sloodledata = get_record('sloodle_users', 'userid', $u->id);
+                  $sloodledata = sloodle_get_record('sloodle_users', 'userid', $u->id);
                   
                   if (!empty($sloodledata)){
                       if ($sloodledata->avname)

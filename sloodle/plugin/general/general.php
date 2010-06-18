@@ -29,10 +29,10 @@ class SloodleApiPluginGeneral  extends SloodleApiPluginBase{
         $counter = 0;
         $courseId = $sloodle->course->get_course_id();
         if ($type!="null"){
-         $sloodleObjects= get_records_select('sloodle','course='.$courseId.' AND type=\''.$type.'\'');   
+         $sloodleObjects= sloodle_get_records_select('sloodle','course='.$courseId.' AND type=\''.$type.'\'');   
         }//endif
         else {
-           $sloodleObjects= get_records_select('sloodle','course='.$courseId); 
+           $sloodleObjects= sloodle_get_records_select('sloodle','course='.$courseId); 
         }//end else
         
         if ($sloodleObjects){

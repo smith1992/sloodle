@@ -37,7 +37,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         
         $itemsPerPage = getFieldData($bits[1]);
         //get all lessons in the course
-        $quizes= get_records('quiz','course',$courseid);
+        $quizes= sloodle_get_records('quiz','course',$courseid);
         if ($quizes){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
@@ -55,7 +55,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
             //in how many characters you can send back into SL. 
              if (($counter>=($index*$itemsPerPage))&&($counter<($index*$itemsPerPage+$itemsPerPage))){                
                  //Get all the pages of this lessone from mdl_lesson_pages table and return the number of pages
-                $questions = get_records('quiz','course',$courseid);                
+                $questions = sloodle_get_records('quiz','course',$courseid);                
                 if ($pages){
                     $numPages = count($lessons);                
                 }//endif
@@ -170,7 +170,7 @@ class SloodleApiPluginLessons  extends SloodleApiPluginBase{
         /****************************
         * get all lesson pages in the course for this lesson
         ******************************/
-        $lessonPages = get_records('lesson_pages','lessonid',(int)$lessonId);
+        $lessonPages = sloodle_get_records('lesson_pages','lessonid',(int)$lessonId);
         if ($lessonPages){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 

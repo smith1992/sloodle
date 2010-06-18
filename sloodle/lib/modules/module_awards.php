@@ -87,9 +87,9 @@
             // Fetch the course module data
             if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) return false;
             // Load from the primary table: Sloodle instance
-            if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) return false;
+            if (!($this->sloodle_module_instance = sloodle_get_record('sloodle', 'id', $this->cm->instance))) return false;
             // Load from the primary table: sloodle instance
-            if (!($this->sloodle_instance = get_record('sloodle', 'id', $this->cm->instance))) {
+            if (!($this->sloodle_instance = sloodle_get_record('sloodle', 'id', $this->cm->instance))) {
                 sloodle_debug("Failed to load Sloodle module with instance ID #{$cm->instance}.<br/>");
                 return false;
             }
@@ -99,7 +99,7 @@
             if ($this->sloodle_module_instance->type != SLOODLE_TYPE_AWARDS) return false;
             
             // Load from the secondary table: StipendGiver instance
-            if (!($this->sloodle_awards_instance = get_record('sloodle_awards', 'sloodleid', $this->cm->instance))) return false;
+            if (!($this->sloodle_awards_instance = sloodle_get_record('sloodle_awards', 'sloodleid', $this->cm->instance))) return false;
             
             return true;
         }
@@ -112,7 +112,7 @@
         function get_objects()
         {
             // Get all StipendGiver record entries for this StipendGiver
-            $recs = get_records('sloodle_award_trans', 'sloodleid', $this->sloodle_awards_instance->id);
+            $recs = sloodle_get_records('sloodle_award_trans', 'sloodleid', $this->sloodle_awards_instance->id);
             if (!$recs) return array();
             // Convert it to an array of strings
             $entries = $recs;
@@ -227,7 +227,7 @@
             $id = (int)$id;
        
             // Fetch the requested slide
-            $r = get_record('sloodle_award_trans', 'id', $id);
+            $r = sloodle_get_record('sloodle_award_trans', 'id', $id);
             if (!$r) return false;
             return new SloodleAwardTransaction($r->id, $this, $r->avuuid,$r->avname,$r->userid,$r->itype,$r->amount,$r->idata);                
         }
@@ -240,7 +240,7 @@
         {
             
             // Fetch the database records
-            $recs = get_records_select('sloodle_award_trans', "sloodleid = {$this->sloodle_awards_instance->id}");
+            $recs = sloodle_get_records_select('sloodle_award_trans', "sloodleid = {$this->sloodle_awards_instance->id}");
             if (!$recs) return array();
             // Construct the array of objects
             $output = array();
@@ -311,7 +311,7 @@
             $award->sloodleid = $info['ID']['0']['#'];
             $award->icurrency= $info['ICURRENCY']['0']['#'];
             $award->maxpoints= $info['MAXPOINTS']['0']['#'];           
-            $award->id = insert_record('sloodle_awards', $award);
+            $award->id = sloodle_insert_record('sloodle_awards', $award);
             
             
             
@@ -330,7 +330,7 @@
                 $trans->itype= $info['ITYPE']['0']['#'];
                 $trans->amount= $info['AMOUNT']['0']['#'];
                 $trans->idata= $info['IDATA']['0']['#'];
-                $trans->id = insert_record('sloodle_award_trans', $trans);
+                $trans->id = sloodle_insert_record('sloodle_award_trans', $trans);
             }
         
             return true;
