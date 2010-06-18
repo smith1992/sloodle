@@ -126,4 +126,16 @@
     
 
 //---------------------------------------------------------------------
+
+    // Debugging contants 
+
+    /** The following will turn on logging of requests coming from LSL and responses going back */
+    /*   
+        On a production server, this should usually be off ('').
+        Your web server user (usually apache or www-data) will need to be able to write to this file.
+        It will contain all data sent to and from the server by LSL scripts, including sensitive data like prim passwords
+        ...so if you turn this on, be careful about who has access to the file it creates.
+    */
+    define('SLOODLE_DEBUG_REQUEST_LOG', '');
+
 ?>
