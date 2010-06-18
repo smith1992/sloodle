@@ -161,7 +161,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
          //add details to this transaction into the mysql db
         $trans->idata = $details; 
         //insert transaction
-        if (!insert_record('sloodle_award_trans',$trans)) {
+        if (!sloodle_insert_record('sloodle_award_trans',$trans)) {
             $sloodle->response->set_status_code(-500100);             //line 0 tried to insert Sloodle_awards_teams but got an error
             $sloodle->response->set_status_descriptor('HQ'); //line 0 
             return;            
@@ -169,7 +169,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         //retrieve new balance
         $cashCredits=0;
         $cashDebits=0;
-        $balance = get_records('sloodle_award_trans','userid',$userid);
+        $balance = sloodle_get_records('sloodle_award_trans','userid',$userid);
         foreach ($balance as $b){
             if ($b->itype=="cashCredit"){
                 $cashCredits+=$b->amount;
@@ -268,7 +268,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                  
          $counter = 0;
         //get all groups in sloodle_awards_teams for this sloodleid
-         $assignments= get_records('assignment','course',$sloodle->course->get_course_id());       
+         $assignments= sloodle_get_records('assignment','course',$sloodle->course->get_course_id());       
         if (!empty($assignments)){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0         
@@ -328,8 +328,8 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $dataLine="";
         $counter = 0;
         //get all groups in sloodle_awards_teams for this sloodleid
-        $awardGroups = get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);        
-        //get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);        
+        $awardGroups = sloodle_get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);        
+        //sloodle_get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);        
         foreach($groups as $g){
              if (($counter>=($index*$maxItems))&&($counter<($index*$maxItems+$maxItems))){
                 if ($counter!=0) $dataLine.="|";
@@ -339,7 +339,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                 $dataLine .= ",MBRS:".$numMembers;                
                 if ($awardGroups){
                     //search to see if group is in the awards group
-                    $found = get_records_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId.' AND groupid='.$g->id);
+                    $found = sloodle_get_records_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId.' AND groupid='.$g->id);
                     if ($found) { 
                         $dataLine .= ",Connected:yes";                    
                     }else {
@@ -386,7 +386,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
         if ($groupId){
             //first check to see if the group has already been added        
-            $groups = get_records_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId .' AND groupid='.$groupId);
+            $groups = sloodle_get_records_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId .' AND groupid='.$groupId);
             if ($groups){
                 //-500300 group already exists for this award
                 $sloodle->response->set_status_code(-500300);             
@@ -397,7 +397,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
             $awdGrp= new stdClass();
             $awdGrp->sloodleid=$sCourseObj->sloodleId;
             $awdGrp->groupid=$groupId;
-            if (insert_record('sloodle_awards_teams',$awdGrp)){
+            if (sloodle_insert_record('sloodle_awards_teams',$awdGrp)){
                 $sloodle->response->set_status_code(1);             //line 0 
                 $sloodle->response->set_status_descriptor('OK'); //line 0 
                 $dataLine="GROUPNAME:".$grpName;
@@ -457,7 +457,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $groupId = groups_get_group_by_name($sCourseObj->courseId,$grpName);
         if ($groupId){
             //first check to see if the group has already been added        
-            $groups = get_record_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId.' AND groupid='.$groupId);
+            $groups = sloodle_get_record_select('sloodle_awards_teams','sloodleid='.$sCourseObj->sloodleId.' AND groupid='.$groupId);
             if (!$groups){
                 //-500400 group doesnt exist for this award
                 $sloodle->response->set_status_code(-500400);             
@@ -465,7 +465,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                 $dataLine="GROUPNAME:".$grpName;
                 return;
             }//group exists
-            if (!delete_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId,'groupid',$groups->groupid)){
+            if (!sloodle_delete_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId,'groupid',$groups->groupid)){
                 //delete failed
                 //-500500 could not delete the group from the sloodle_awards_teams table
                 $sloodle->response->set_status_code(-500500);             
@@ -525,7 +525,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $dataLine="";
         $counter = 0;
         //get all groups in sloodle_awards_teams for this sloodleid
-        $awardGroups = get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);                
+        $awardGroups = sloodle_get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);                
         if ($awardGroups){
             $sloodle->response->set_status_code(1);             //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0 
@@ -646,7 +646,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $dataLine="";
         $counter = 0;
         $courseId = $sloodle->course->get_course_id();
-        $awards = get_records_select('sloodle','course='.$courseId.' AND type=\'Awards\'');
+        $awards = sloodle_get_records_select('sloodle','course='.$courseId.' AND type=\'Awards\'');
         if ($awards){
             $sloodle->response->set_status_code(1);          //line 0 
             $sloodle->response->set_status_descriptor('OK'); //line 0
@@ -686,11 +686,11 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
             $sb->timemodified=time();
             //check if already registered
        
-            $alreadyRegistered = get_record('sloodle_award_scoreboards','name',$name);
+            $alreadyRegistered = sloodle_get_record('sloodle_award_scoreboards','name',$name);
                 
                 
             if (!$alreadyRegistered){
-                if (!insert_record('sloodle_award_scoreboards',$sb)){
+                if (!sloodle_insert_record('sloodle_award_scoreboards',$sb)){
                      $sloodle->response->set_status_code(-501200);    //cant insert record in sloodle_award_scoreboards
                      $sloodle->response->set_status_descriptor('HQ'); //line 0 
                      $sloodle->response->add_data_line($url); //line 1
@@ -707,7 +707,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                            
                 //delete all instances of the old urls for this scoreboard 
                 $sb->id=$alreadyRegistered->id;
-                if (update_record('sloodle_award_scoreboards',$sb)){
+                if (sloodle_update_record('sloodle_award_scoreboards',$sb)){
 echo "updated";       
                     $sloodle->response->set_status_code(1);    
                     $sloodle->response->set_status_descriptor('OK'); //line 0 
@@ -736,7 +736,7 @@ echo "updated";
         $sloodleid=$sloodle->request->required_param('sloodleid'); 
         
             //remove scoreboard            
-            if (!delete_records('sloodle_award_scoreboards','name',$name,'sloodleid',$sloodleid)){
+            if (!sloodle_delete_records('sloodle_award_scoreboards','name',$name,'sloodleid',$sloodleid)){
                  $sloodle->response->set_status_code(-501300);    //cant delete record in sloodle_award_scoreboards
                  $sloodle->response->set_status_descriptor('HQ'); //line 0 
                  $sloodle->response->add_data_line($name); //line 1
@@ -889,7 +889,7 @@ echo "updated";
            $sloodle->response->set_status_descriptor('USER_AUTH'); //line 0  
            return; 
         }      
-         $userData = get_records('sloodle_award_trans','userid',$userid);
+         $userData = sloodle_get_records('sloodle_award_trans','userid',$userid);
          $pointTotal=0;
          $pointCredits=0;
          $pointDebits=0;

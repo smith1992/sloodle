@@ -32,7 +32,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           
           $cm = get_coursemodule_from_id('sloodle',$courseModuleId);              
           $cmid = $cm->instance;
-          $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$cmid); 
+          $this->sloodle_awards_instance = sloodle_get_record('sloodle_awards','sloodleid',$cmid); 
           $this->sloodleId=$cmid;           
           if ($this->sloodle_awards_instance->icurrency){
               $this->icurrency=$this->sloodle_awards_instance->icurrency;
@@ -53,7 +53,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                return $tmp[1];
         }
       function getScoreboards($name){
-        $scoreboardRecs=get_record('sloodle_award_scoreboards','name',$name);    
+        $scoreboardRecs=sloodle_get_record('sloodle_award_scoreboards','name',$name);    
         return $scoreboardRecs;
       }
       
@@ -62,12 +62,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $scoreboard = new stdClass();
           $scoreboard->url = $url;
           $scoreboard->sloodleid = $this->sloodleId;          
-          return insert_record("sloodle_award_scoreboards",$scoreboard);        
+          return sloodle_insert_record("sloodle_award_scoreboards",$scoreboard);        
       }
       function setAmount($amount){
           $this->sloodle_awards_instance->amount=(int)$amount; 
           $this->timeupdated = (int)time();
-          return update_record('sloodle_awards', $this->sloodle_awards_instance);
+          return sloodle_update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
 
@@ -114,12 +114,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       function setIcurrency($icurrency){
         $this->sloodle_awards_instance->icurrency=$icurrency; 
         $this->timeupdated = time();
-        return update_record('sloodle_awards', $this->sloodle_awards_instance);  
+        return sloodle_update_record('sloodle_awards', $this->sloodle_awards_instance);  
       }      
       function setTimemodified($timemodified){
         $this->sloodle_awards_instance->timemodified=$timemodified;  
         $this->timeupdated = time();
-        return update_record('sloodle_awards', $this->sloodle_awards_instance);  
+        return sloodle_update_record('sloodle_awards', $this->sloodle_awards_instance);  
       } 
     
        /**********************************
@@ -135,7 +135,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           global $sCourseObj;
            //get all httpIn urls connected to this award
             
-           $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);  
+           $scoreboards = sloodle_get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);  
            //$sendData='COMMAND:WEB UPDATE|DESCRIPTION:transactionProcessed|AWARDID:'.$sCourseObj->sloodleId."|AVKEY:".$iTransaction->avuuid."|AVNAME:".$iTransaction->avname."|ITYPE:".$iTransaction->itype.'|AMOUNT:'.$iTransaction->amount."|".$iTransaction->idata;
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
@@ -143,7 +143,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     if ($expiry>60*60*48){
                         //this is url is a week old, delete it because the inworld scoreboards 
                         //update their URL atleast once a week
-                        delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        sloodle_delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
                         
                     }else{
                     //get current display of each scoreboard
@@ -284,7 +284,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         function synchronizeDisplays_sl($transaction){
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
-            $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);
+            $scoreboards = sloodle_get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);
            
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
@@ -292,7 +292,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                      if ($expiry>60*60*48){
                         //this is url is a week old, delete it because the inworld scoreboards 
                         //update their URL atleast once a week
-                        delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
+                        sloodle_delete_records('sloodle_award_scoreboards','sloodleid',$sb->sloodleid,'timemodified',$sb->timemodified);
                         
                     }else {
                     //get current display of each scoreboard
@@ -398,7 +398,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                     }//end if displayData
                     else {
                         
-                    delete_records('sloodle_award_scoreboards','url',$sb->url);
+                    sloodle_delete_records('sloodle_award_scoreboards','url',$sb->url);
                     }
                     }//expiry
                 }//foreach scoreboard
@@ -426,13 +426,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             if (!function_exists('grade_update')) { //workaround for buggy PHP versions
             require_once($CFG->libdir.'/gradelib.php');
         }
-        if (insert_record('sloodle_award_trans',$iTransaction)) {
+        if (sloodle_insert_record('sloodle_award_trans',$iTransaction)) {
             $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid);          
             if ($balanceDetails->balance<0){
               $iTransaction->amount=  $balanceDetails->balance*-1;
               $iTransaction->itype="credit";
               $iTransaction->idata="DETAILS:System Modified Balance adjustment"; 
-              insert_record('sloodle_award_trans',$iTransaction); 
+              sloodle_insert_record('sloodle_award_trans',$iTransaction); 
             }//endif
             
             //get maxpoint limit
@@ -471,10 +471,10 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       function awards_getTransactionRecords($userId=null){
           global $CFG,$awardsObj;
          if (!$userId){
-            return get_records_select('sloodle_award_trans','sloodleid='.$this->sloodleId,'Timemodified DESC');
+            return sloodle_get_records_select('sloodle_award_trans','sloodleid='.$this->sloodleId,'Timemodified DESC');
          }
          else {
-            return get_records_select('sloodle_award_trans','userid='.$userId.' AND sloodleid='.$awardsObj->sloodleId,'Timemodified ASC');
+            return sloodle_get_records_select('sloodle_award_trans','userid='.$userId.' AND sloodleid='.$awardsObj->sloodleId,'Timemodified ASC');
             
             
          }
@@ -485,13 +485,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
        */
        function getTotals(){
          global $CFG; 
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId);
+         $totalAmountRecs = sloodle_get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId);
          $credits=0;
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userCredits){
                  $credits+=$userCredits->amount;
             }
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId);
+         $totalAmountRecs = sloodle_get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId);
          $debits=0;         
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userDebits){
@@ -521,10 +521,10 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      */
      
      function awards_removeTransaction($userId,$iType){
-         return delete_records("sloodle_award_trans",'sloodleid',$this->getSloodleId(),'itype',$iType,'userid',$userId);
+         return sloodle_delete_records("sloodle_award_trans",'sloodleid',$this->getSloodleId(),'itype',$iType,'userid',$userId);
      }
      function awards_updateTransaction($transRec){
-        if (!update_record("sloodle_award_trans",$transRec))
+        if (!sloodle_update_record("sloodle_award_trans",$transRec))
             error(get_string("cantupdate","sloodle"));
      }
      function get_assignment_id(){
@@ -532,13 +532,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      }
      function get_assignment_cmid($courseId){
          
-          $recs = get_record('course_modules','instance',(int)$this->sloodle_awards_instance->assignmentid,'course',(int)$courseId);
+          $recs = sloodle_get_record('course_modules','instance',(int)$this->sloodle_awards_instance->assignmentid,'course',(int)$courseId);
          if ($recs)
             return $recs->id;
          else return null;
      }
      function get_assignment_name(){
-         $recs = get_record('assignment','id',(int)$this->sloodle_awards_instance->assignmentid);
+         $recs = sloodle_get_record('assignment','id',(int)$this->sloodle_awards_instance->assignmentid);
          if ($recs)
             return $recs->name;
          else return null;
@@ -557,7 +557,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          //get the maximum id (the last transaction) of a user with the details in idata in transaction db - this is the last transaction
         
          //get id of user         
-         $awardTrans = get_records_select('sloodle_award_trans','avuuid',addSlashes($avuuid),'sloodleid',$this->sloodleId);         
+         $awardTrans = sloodle_get_records_select('sloodle_award_trans','avuuid',addSlashes($avuuid),'sloodleid',$this->sloodleId);         
          $maxId = 0;         
          foreach ($awardTrans as $trans){
              //find records with the $details in the idata
@@ -569,7 +569,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             }
          }
          if ($maxId!=0){
-             $rec = get_record('sloodle_award_trans','id',$maxId);            
+             $rec = sloodle_get_record('sloodle_award_trans','id',$maxId);            
              return $rec;
          }else {             
              return "";
@@ -588,7 +588,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          //get the maximum id (the last transaction) of a user with the details in idata in transaction db - this is the last transaction
         
          //get id of user         
-         $awardTrans = get_records_select('sloodle_award_trans',"avuuid='".addSlashes($avuuid)."'".' AND sloodleid='.$this->sloodleId);         
+         $awardTrans = sloodle_get_records_select('sloodle_award_trans',"avuuid='".addSlashes($avuuid)."'".' AND sloodleid='.$this->sloodleId);         
          $foundArray = Array();      
          foreach ($awardTrans as $trans){
              //find records with the $details in the idata
@@ -607,13 +607,13 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      */       
      function awards_getBalanceDetails($userid){
          global $CFG;
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $totalAmountRecs = sloodle_get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
          $credits=0;
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userCredits){
                  $credits+=$userCredits->amount;
             }
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $totalAmountRecs = sloodle_get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
          $debits=0;         
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userDebits){

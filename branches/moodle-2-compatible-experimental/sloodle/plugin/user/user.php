@@ -40,7 +40,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
            //get all the users from the users table in the moodle database that are members in this class   
            $sql = "select u.*, ra.roleid from ".$CFG->prefix."role_assignments ra, ".$CFG->prefix."context con, ".$CFG->prefix."course c, ".$CFG->prefix."user u ";
            $sql .= " where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=".$sloodle->course->controller->cm->course;
-           $fullUserList = get_records_sql($sql);          
+           $fullUserList = sloodle_get_records_sql($sql);          
            return $fullUserList;                          
       }
         /**
@@ -52,7 +52,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          $avList = array();
          if ($userList){
          foreach ($userList as $u){             
-             $sloodledata = get_records('sloodle_users', 'userid', $u->id);   
+             $sloodledata = sloodle_get_records('sloodle_users', 'userid', $u->id);   
              //only adds users who have a linked avatar
              if ($sloodledata){
                 foreach ($sloodledata as $sd){

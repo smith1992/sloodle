@@ -272,7 +272,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
                             //build sloodle_user object for this user id
                             $sloodle = new SloodleSession( false );
                             $avuser = new SloodleUser( $sloodle ); 
-                            $userRec = get_record('sloodle_users', 'userid', $userId);  
+                            $userRec = sloodle_get_record('sloodle_users', 'userid', $userId);  
                             $trans = new stdClass();
                             $trans->sloodleid=$ibankObj->sloodleId;
                             $trans->avuuid= $userRec->uuid;        
@@ -402,7 +402,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
                 $rowData[]= $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$u->firstname} {$u->lastname}</a>";
                 //create a url to the transaction list of each avatar the user owns
                 
-                 $ownedAvatars = get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
+                 $ownedAvatars = sloodle_get_records('sloodle_users', 'userid', $u->id,'avname DESC','userid,uuid,avname');                        
                 if ($ownedAvatars){
                     $trans_url ='';   
                     foreach ($ownedAvatars as $av){
@@ -454,7 +454,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
          $permissions = has_capability('moodle/course:manageactivities',$context, $USER->id);
       
         //get sloodle_record
-        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        $userRec = sloodle_get_record('sloodle_users', 'userid', $userid);  
         //build table
         print("<div align='center'>");
         $sloodletable = new stdClass();            
@@ -476,7 +476,7 @@ class sloodle_view_ibank extends sloodle_base_view_module
             if ($totals->debits==NULL) $totaldebits = 0;
             else $totaldebits = $totals->debits;
             
-        $userRec = get_record('sloodle_users', 'userid', $userid);  
+        $userRec = sloodle_get_record('sloodle_users', 'userid', $userid);  
         $avName = $userRec->avname; 
         
        $tsloodletable = new stdClass(); 

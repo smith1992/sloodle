@@ -36,7 +36,7 @@
         
         // We need to fetch a list of visible quizzes on the course
         // Get the ID of the chat type
-        $rec = get_record('modules', 'name', 'quiz');
+        $rec = sloodle_get_record('modules', 'name', 'quiz');
         if (!$rec) {
             sloodle_debug("Failed to get quiz module type.");
             exit();
@@ -44,7 +44,7 @@
         $quizmoduleid = $rec->id;
         
         // Get all visible quizzes in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $quizmoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $quizmoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('noquizzes','sloodle'));
             exit();
@@ -52,7 +52,7 @@
         $quizzes = array();
         foreach ($recs as $cm) {
             // Fetch the quiz instance
-            $inst = get_record('quiz', 'id', $cm->instance);
+            $inst = sloodle_get_record('quiz', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the quiz details
             $quizzes[$cm->id] = $inst->name;

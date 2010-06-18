@@ -90,7 +90,7 @@
             }
             
             // Load from the primary table: assignment instance
-            if (!($this->moodle_assignment_instance = get_record('assignment', 'id', $this->cm->instance))) {
+            if (!($this->moodle_assignment_instance = sloodle_get_record('assignment', 'id', $this->cm->instance))) {
                 sloodle_debug("Failed to load assignment with instance ID #{$cm->instance}.<br/>");
                 return false;
             }

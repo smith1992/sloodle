@@ -36,7 +36,7 @@
         
         // We need to fetch a list of visible glossaries on the course
         // Get the ID of the chat type
-        $rec = get_record('modules', 'name', 'glossary');
+        $rec = sloodle_get_record('modules', 'name', 'glossary');
         if (!$rec) {
             sloodle_debug("Failed to get glossary module type.");
             exit();
@@ -44,7 +44,7 @@
         $glossarymoduleid = $rec->id;
         
         // Get all visible glossary in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $glossarymoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $glossarymoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('noglossaries','sloodle'));
             exit();
@@ -52,7 +52,7 @@
         $glossaries = array();
         foreach ($recs as $cm) {
             // Fetch the chatroom instance
-            $inst = get_record('glossary', 'id', $cm->instance);
+            $inst = sloodle_get_record('glossary', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the glossary details
             $glossaries[$cm->id] = $inst->name;

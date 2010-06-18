@@ -328,7 +328,7 @@
             }
             
             // Attempt to retreive a record matching the avatar and object UUID's
-            $rec = get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
+            $rec = sloodle_get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
             if (!$rec) {
                 if ($require) {
                     $this->response->quick_output(-216, 'OBJECT_AUTH', 'Object not found in database.', false);
@@ -597,8 +597,8 @@
             
             // Attempt to find an avatar matching the given details
             $rec = false;
-            if (!empty($sloodleuuid)) $rec = get_record('sloodle_users', 'uuid', $sloodleuuid);
-            if (!$rec) $rec = get_record('sloodle_users', 'avname', $sloodleavname);
+            if (!empty($sloodleuuid)) $rec = sloodle_get_record('sloodle_users', 'uuid', $sloodleuuid);
+            if (!$rec) $rec = sloodle_get_record('sloodle_users', 'avname', $sloodleavname);
             // Did we find a matching entry?
             if (!$rec) {
                 // No - avatar is not validated

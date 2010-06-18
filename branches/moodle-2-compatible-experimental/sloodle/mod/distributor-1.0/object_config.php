@@ -36,19 +36,19 @@
         
         // We need to fetch a list of visible distributors on the course
         // Get the ID of the Sloodle type
-        $rec = get_record('modules', 'name', 'sloodle');
+        $rec = sloodle_get_record('modules', 'name', 'sloodle');
         if (!$rec) {
             sloodle_debug("Failed to get Sloodle module type.");
             exit();
         }
         
         // Get all visible Sloodle modules in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = {$rec->id} AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = {$rec->id} AND visible = 1");
         if (!is_array($recs)) $recs = array();
         $distributors = array();
         foreach ($recs as $cm) {
             // Fetch the distributor instance
-            $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_DISTRIB);
+            $inst = sloodle_get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_DISTRIB);
             if (!$inst) continue;
             // Store the distributor details
             $distributors[$cm->id] = $inst->name;

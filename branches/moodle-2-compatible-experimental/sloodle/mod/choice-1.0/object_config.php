@@ -36,7 +36,7 @@
         
         // We need to fetch a list of visible choices on the course
         // Get the ID of the choice type
-        $rec = get_record('modules', 'name', 'choice');
+        $rec = sloodle_get_record('modules', 'name', 'choice');
         if (!$rec) {
             sloodle_debug("Failed to get choice module type.");
             exit();
@@ -44,7 +44,7 @@
         $choicemoduleid = $rec->id;
         
         // Get all visible choices in the current course
-        $recs = get_records_select('course_modules', "course = $courseid AND module = $choicemoduleid AND visible = 1");
+        $recs = sloodle_get_records_select('course_modules', "course = $courseid AND module = $choicemoduleid AND visible = 1");
         if (!$recs) {
             error(get_string('nochoices','sloodle'));
             exit();
@@ -52,7 +52,7 @@
         $choices = array();
         foreach ($recs as $cm) {
             // Fetch the choice instance
-            $inst = get_record('choice', 'id', $cm->instance);
+            $inst = sloodle_get_record('choice', 'id', $cm->instance);
             if (!$inst) continue;
             // Store the choice details
             $choices[$cm->id] = $inst->name;
