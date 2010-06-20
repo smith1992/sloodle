@@ -181,7 +181,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
             } 
     
     } //getClassList
-    
+        
         /*
         * getAwardMbrs will return a list of users with 
         * avatars in the course along with a tag indicating if they are a member of the group
@@ -202,6 +202,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
                  $cmid = $cm->id;
              }
              else $cmid= $coursemoduleid;
+             
            $sCourseObj = new sloodleCourseObj($cmid);  
            $awardsObj = new Awards((int)$cmid);           
            $senderUuid= $sloodle->request->required_param('sloodleuuid'); 
@@ -209,12 +210,71 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
            $index      = $sloodle->request->required_param('index'); 
            $sortMode   = $sloodle->request->required_param('sortmode'); 
            $groupId = groups_get_group_by_name($sCourseObj->courseId,$groupName);
-           if (!$groupId){
+           $userList = $this->getUserList();
+            //getAvatarlist returns an array of stdObj  
+            //$av->userid 
+            //$av->username 
+            //$av->avname 
+            //$av->uuid             
+            if (!$groupId){
                 $sloodle->response->set_status_code(-500401); //group doesnt exist in course 
                 $sloodle->response->set_status_descriptor('GROUPS');    //line 0    OK                              
                 $sloodle->response->add_data_line("GRPNAME:".$groupName);
                 return;
-           }     
+           }else   {
+               $avatarList = $this->getAvatarList($userList);
+                //add balance fields from ipoint_trans database then sort
+                $avList= array();
+                if ($avatarList){
+                    $sloodle->response->set_status_code(1);             //line 0    1
+                    $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
+                    $sloodle->response->add_data_line("INDEX:". $index);//1
+                    $sloodle->response->add_data_line("TUSERS:". count($userList));//3
+                    $sloodle->response->add_data_line("TMBRS:". count(groups_get_members($groupId)));//4
+                    $sloodle->response->add_data_line("GNAME:". $groupName);//5
+                    foreach ($avatarList as $u){
+                       $av = new stdClass(); 
+                       $av->userid = $u->userid;
+                       $av->username = $u->username;                                      
+                       $av->avname = $u->avname;
+                       $av->uuid = $u->uuid;
+                       $av_balanceDetails= $awardsObj->awards_getBalanceDetails($u->userid);
+                       $av->balance = $av_balanceDetails->balance;                   
+                       $av->credits = $av_balanceDetails->credits;
+                       $av->debits = $av_balanceDetails->debits;  
+                       $mbrShip = groups_get_user_groups($sCourseObj->courseId,$av->userid);
+                       if (groups_is_member($groupId,$u->userid)) $av->mbrship="yes"; else $av->mbrship="no"; 
+                       $avList[]=$av;
+                    }//foreach                   
+                   if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
+                   if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
+                   $sloodleData="";
+                   $i = 0;
+                   $currIndex = $index;                
+                   foreach ($avList as $av){                          
+                       //print only the NUM_USERS_TO_RETURN number of users starting from the current index point                   
+                       if (($i < $currIndex) || ($i > ($currIndex + $NUM_USERS_TO_RETURN-1))) {
+                           $i++;                   
+                           continue; //skip the ones which have already been sent                
+                       }                 
+                       else{
+                           $sloodleData = "UUID:".$av->uuid."|";
+                           $sloodleData .="AV:".  $av->avname . "|";
+                           $sloodleData .="BAL:".  $av->balance. "|";
+                           $sloodleData .="MBR:".  $av->mbrship;
+                           $sloodle->response->add_data_line($sloodleData);   
+                           $i++;
+                           if ($i==$avListLen){                             
+                               $sloodle->response->add_data_line("EOF");
+                           }
+                       }
+                   }        
+           }
+           else {
+              $sloodle->response->set_status_code(80002);             //no avatars
+              $sloodle->response->set_status_descriptor('HQ');    //line 0    OK  
+           }
+        }
         }
            
            
