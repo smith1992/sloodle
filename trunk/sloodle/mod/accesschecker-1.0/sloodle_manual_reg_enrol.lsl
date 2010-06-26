@@ -157,6 +157,7 @@ default
         // Check for standard status codes
         if (statuscode == -321) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av, "regenrol");
+            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "enrolfailed:notreg", av);            
             return;
             
         } else if (statuscode == 301) {
@@ -186,4 +187,5 @@ default
         sloodle_translation_request(SLOODLE_TRANSLATE_LOAD_URL_PARALLEL, [url], "regenrolurl", [], av, "regenrol");
     }
 }
+
 
