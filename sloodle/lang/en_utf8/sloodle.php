@@ -188,7 +188,6 @@ $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
 $string['moduletype:awards'] = 'Sloodle Award System'; 
-
 $string['moduletype:tracker'] = 'tracker';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
@@ -219,6 +218,7 @@ $string['noguestaccess'] = 'Sorry, you cannot use guest login here.';
 $string['nosloodleusers'] = 'No users registered with SLOODLE';
 $string['nodeletepermission'] = 'You do not have permission to delete this entry.';
 $string['noentries'] = 'No entries found.';
+$string['noscriptwarning'] = 'Warning: it looks like your browser does not support JavaScript so this feature may not work properly.';
 $string['nouserdata'] = 'There is no user data to display.';
 $string['nowenrol'] = 'Please continue to enrol in this course.';
 $string['notenrolled'] = 'User not enrolled in this course.';
@@ -253,7 +253,6 @@ $string['object:regenrolbooth'] = 'Registration/Enrolment Booth';
 $string['object:set'] = 'SLOODLE Set';
 $string['object:demo'] = 'SLOODLE Demo Object';
 $string['object:awards'] = 'Sloodle Award System';
-$string['object:hq'] = 'Sloodle API HQ'; 
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
 $string['object:picturegloss'] = 'Picture Gloss';
@@ -563,25 +562,4 @@ $string['awards:othersettings'] = 'Other Settings';
 $string['awards:assignment'] = 'Attach earned points to an assignment';
 $string['awards:refresh'] = 'This is the time in seconds that the awards will refresh the display in Second Life<br>';
 $string['awards:selectassignment'] = 'Assignment';
-$string['awards:teams'] = 'Teams';
-$string['awards:teamview'] = 'Team View';
-$string['awards:usertab'] = 'Users';
-$string['awards:userview'] = 'User View';
-$string['awards:prizes'] = 'Prizes';  
-$string['awards:createteambtn'] = 'Create Team';   
-$string['awards:teamname'] = 'Team Name';  
-$string['awards:'] = 'Points'; 
-$string['awards:addteams']    = '&#x25C4;&nbsp;Add';   
-$string['awards:removeteams'] = 'Remove&nbsp;&#x25BA;';   
-$string['awards:addmorefields'] = 'Add more fields';   
-$string['awards:teamalreadyexists'] = 'You have entered a team name already exists';       
-$string['awards:teamlist'] = 'Playing Teams';       
-$string['awards:nopermission'] = 'Sorry, you do not have permission to delete teams!';       
-$string['awards:nomembers'] = 'no members';       
-$string['awards:modifygroupmembership'] = 'edit members'; 
-$string['awards:existingteams'] = 'Players'; 
-$string['awards:availteams'] = 'Non Players'; 
-$string['awards:createnewteam'] = 'Create new team'; 
-
-
 
