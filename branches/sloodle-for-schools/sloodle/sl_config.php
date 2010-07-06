@@ -62,7 +62,6 @@
         if (defined('SLOODLE_LINKER_SCRIPT') && SLOODLE_LINKER_SCRIPT == true) {
             // Yes - suppress the display of messages
             @ini_set('display_errors', '0');
-            //@error_reporting(0); // Possibly don't do this - it may interfere with log files?
         }
     }
     
