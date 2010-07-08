@@ -56,28 +56,16 @@
         // Identifies the active question number (index into question_ids list)
         // (Next question will always be this value +1)
         integer active_question = -1;
-        
-        // Identifies which question we are currently requesting (index into question_ids list)
-        integer requesting_question = -1;
-        
-        // Number of the loaded 'next' question (corresponds to 'active_question')
-        integer qloaded_next = -1;
-        
+                    
         // Text and type of the current and next question
         string qtext_current = "";
         string qtype_current = "";
-        string qtext_next = "";
-        string qtype_next = "";
+
         // Lists of option information for the current question
         list opids_current = []; // IDs
         list optext_current = []; // Texts
         list opgrade_current = []; // Grades
         list opfeedback_current = []; // Feedback if this option is selected
-        // Lists of option information for the next question
-        list opids_next = []; // IDs
-        list optext_next = []; // Texts
-        list opgrade_next = []; // Grades
-        list opfeedback_next = []; // Feedback if this option is selected
         
         // Avatar currently using this cahir
         key sitter = null_key;
@@ -282,8 +270,6 @@
             // Clear the big nasty chunks of data
             optext_current = [];
             opfeedback_current = [];
-            optext_next = [];
-            opfeedback_next = [];  
             
             // Notify the server that the attempt was finished
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -448,18 +434,11 @@
                 
                 qtext_current = "";
                 qtype_current = "";
-                qtext_next = "";
-                qtype_next = "";
                 
                 opids_current = [];
                 optext_current = [];
                 opgrade_current = [];
-                opfeedback_current = [];
-                
-                opids_next = [];
-                optext_next = [];
-                opgrade_next = [];
-                opfeedback_next = [];        
+                opfeedback_current = [];                  
                 
                 // Request the quiz data from Moodle
                 string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -585,25 +564,6 @@
             }
         }
         
-        // Dummy state -- goes straight back into the quiz
-        state repeat_quiz
-        {
-            state_entry()
-            {
-                state quizzing;
-            }
-            
-            on_rez(integer par)
-            {
-                llResetScript();
-            }
-            
-            changed(integer change)
-            {
-                reinitialise();
-            }
-        }
-        
         
         // Running the quiz
         state quizzing
@@ -633,8 +593,7 @@
                 
                 // Start from the beginning
                 active_question = 0;
-                requesting_question = 0;
-                httpquizquery = request_question(llList2Integer(question_ids, requesting_question));
+                httpquizquery = request_question(llList2Integer(question_ids, active_question));
             }
             
             state_exit()
@@ -646,10 +605,10 @@
             {
                 // If using dialogs, then only listen to the dialog channel
                 if (doDialog && ((qtype_current == "multichoice") || (qtype_current == "truefalse"))) {
-                    if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG){
-                             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "usedialogs", [llKey2Name(sitter)], sitter, "quiz");
-                         return;
-                         }
+                    if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG) {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "usedialogs", [llKey2Name(sitter)], sitter, "quiz");
+                        return;
+                    }
                 } else {
                     if (channel != 0) return;
                 }
@@ -707,62 +666,41 @@
                         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
                     }
 
-                            // Give the user feedback, and add their score
-                            move_vertical(scorechange); // Visual feedback
-                            play_sound(scorechange); // Audio feedback
+                    // Give the user feedback, and add their score
+                    move_vertical(scorechange); // Visual feedback
+                    play_sound(scorechange); // Audio feedback
                             
-                            if(scorechange>0) num_correct++; // SAL added this
-                            if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
-                            else if (scorechange > 0.0) {                    
-                                
-                            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "correct", [llKey2Name(sitter)], sitter, "quiz");
-                            //num_correct += 1; SAL commented out this
-                            } else {
-                            sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "incorrect",  [llKey2Name(sitter)], sitter, "quiz");
-                            }
-                            llSleep(1.);  //wait to finish the sloodle_translation_request before next question.
-        
+                    if(scorechange>0) num_correct++; // SAL added this
+                    if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
+                    else if (scorechange > 0.0) {                                                    
+                        sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "correct", [llKey2Name(sitter)], sitter, "quiz");
+                        //num_correct += 1; SAL commented out this
+                    } else {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "incorrect",  [llKey2Name(sitter)], sitter, "quiz");
+                    }
+                    llSleep(1.);  //wait to finish the sloodle_translation_request before next question.
+                    
+                    // Clear out our current data (a feeble attempt to save memory!)
+                    qtext_current = "";
+                    qtype_current = "";
+                    opids_current = [];
+                    optext_current = [];
+                    opgrade_current = [];
+                    opfeedback_current = [];                                           
                     
                     // Are we are at the end of the quiz?
                     if ((active_question + 1) >= num_questions) {
                         // Yes - finish off
                         finish_quiz();
                         // Do we want to repeat the quiz?
-                        if (doRepeat) state repeat_quiz;
+                        if (doRepeat) state quizzing;
                         return;
-                    }
-                    
+                    }           
+
                     // Advance to the next question
-                    active_question++;
-                    // Has our 'next' question been loaded?
-                    if (qloaded_next == active_question) {
-                        // Yes
-                        // Clear out our current data (a feeble attempt to save memory!)
-                        qtext_current = "";
-                        qtype_current = "";
-                        opids_current = [];
-                        optext_current = [];
-                        opgrade_current = [];
-                        opfeedback_current = [];
-                        // Transfer all our 'next' question data into the 'current' question variables
-                        qtext_current = qtext_next;
-                        qtype_current = qtype_next;
-                        opids_current = opids_next;
-                        optext_current = optext_next;
-                        opgrade_current = opgrade_next;
-                        opfeedback_current = opfeedback_next;
-                        
-                        // Ask the current question, and request the next (if there is one)
-                        ask_current_question();
-                        
-                        if ((active_question + 1) < num_questions) {
-                            requesting_question = active_question + 1;
-                            httpquizquery = request_question(llList2Integer(question_ids, requesting_question));
-                        }
-                    } else {
-                        // No - still waiting on our next question.
-                        // It is now technically our 'current' question, so the http_response will automatically ask it when it arrives.
-                    }
+                    active_question++;                                                                         
+                    httpquizquery = request_question(llList2Integer(question_ids, active_question));
+    
                 }
             }
             
@@ -771,6 +709,10 @@
                 // There has been a timeout of the HTTP request
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], null_key, "");
                 llSetTimerEvent(0.0);
+                
+                if (active_question > -1) {
+                    httpquizquery = request_question(llList2Integer(question_ids, active_question));
+                }
             }
             
             touch_start(integer num)
@@ -831,9 +773,6 @@
                 
                 // Save a tiny bit of memory!
                 statusfields = [];
-                
-                // Are we loading the current question?
-                integer iscurrent = (active_question == requesting_question);
         
                 // Go through each line of the response
                 list thisline = [];
@@ -849,7 +788,7 @@
                     if ( rowtype == "question" ) {
                         
                         // Grab the question information and reset the options
-                        if (iscurrent) {
+
                             qtext_current = llList2String(thisline, 4);
                             qtype_current = llList2String(thisline, 7);
                             
@@ -865,56 +804,18 @@
                                 state default;
                                 return;
                             }
-                        } else {
-                            qloaded_next = requesting_question;
                         
-                            qtext_next = llList2String(thisline, 4);
-                            qtype_next = llList2String(thisline, 7);
-                        
-                            opids_next = [];
-                            optext_next = [];
-                            opgrade_next = [];
-                            opfeedback_next = [];
-                            
-                            // Make sure it's a valid question type
-                            if ((qtype_current != "multichoice") && (qtype_current != "truefalse") && (qtype_current != "numerical") && (qtype_current != "shortanswer")) {
-                                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_next], null_key, "quiz");
-                                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], null_key, "");
-                                state default;
-                                return;
-                            }
-                        }
-                        
-                    } else if ( rowtype == "questionoption" ) {
-                        
+                    } else if ( rowtype == "questionoption" ) {                        
                         // Add this option to the appropriate place
-                        if (iscurrent) {
-                            opids_current += [(integer)llList2String(thisline, 2)];
-                            optext_current += [llList2String(thisline, 4)];
-                            opgrade_current += [(float)llList2String(thisline, 5)];
-                            opfeedback_current += [llList2String(thisline, 6)];
-                        } else {
-                            opids_next += [(integer)llList2String(thisline, 2)];
-                            optext_next += [llList2String(thisline, 4)];
-                            opgrade_next += [(float)llList2String(thisline, 5)];
-                            opfeedback_next += [llList2String(thisline, 6)];
-                        }
+                        opids_current += [(integer)llList2String(thisline, 2)];
+                        optext_current += [llList2String(thisline, 4)];
+                        opgrade_current += [(float)llList2String(thisline, 5)];
+                        opfeedback_current += [llList2String(thisline, 6)];
                     }
                 }
                 
-                // Our response now depends on whether or not we just loaded the current question
-                if (iscurrent) {
-                    // Just loaded the current question.
-                    // Is there another question after this one?
-                    if ((active_question + 1) < num_questions) {
-                        // Yes - load it
-                        requesting_question = active_question + 1;
-                        httpquizquery = request_question(llList2Integer(question_ids, requesting_question));
-                    }
-                    
-                    // Automatically ask this question
-                    ask_current_question();
-                }
+                // Automatically ask this question
+                ask_current_question();
             }
             
             changed(integer change)
