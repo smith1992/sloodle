@@ -70,7 +70,51 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           return update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
-
+            function getScores($gameid,$sortMode,$userid=NULL){
+         
+         global $CFG;
+          $scoreData= array();
+         //get players for the game
+         if ($userid!=NULL){
+          $p= get_record_select('sloodle_award_players','gameid='.(int)$gameid." AND userid=".$userid);         
+          $score=$this->awards_getBalanceDetails((int)$userid,(int)$gameid);                            
+          $p->score =$score->balance;
+          $p->credits=$score->credits;
+          $p->debits=$score->debits;
+          $scoreData[]=$p;
+           
+         }
+         else{
+         
+          $players= get_records('sloodle_award_players','gameid',(int)$gameid);         
+             //get score final score for each player
+          foreach ($players as $p){             
+              $score=$this->awards_getBalanceDetails($p->userid,(int)$gameid);               
+              $p->score =$score->balance;
+              $p->credits=$score->credits;
+              $p->debits=$score->debits;
+              //p is now id,gameid,avuuid,userid,avname,score,credits,debits,timemodified
+              $scoreData[]=$p;
+              
+              
+          }
+          
+          //sort final scores                   
+          if ($sortMode=="balance") usort($scoreData,array("Awards",  "scoreSort"));else
+          if ($sortMode=="name") usort($scoreData,array("Awards",  "nameSort"));
+          
+         }
+         
+         return $scoreData;
+         
+     } 
+     
+     function scoreSort($a, $b){
+        if ($a->score== $b->score) {
+            return 0;
+        }
+        return ($a->score< $b->score) ? -1 : 1;
+    }
         //Function by Simba Fuhr
         //Use under the GPL License
         function callLSLScript($URL, $Data, $Timeout = 10)
@@ -422,12 +466,10 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       function awards_makeTransaction($iTransaction,$sCourseObject){      
          global $USER,$COURSE,$CFG; 
          
-         //check to see if the transaction will result in a negative balace
-            if (!function_exists('grade_update')) { //workaround for buggy PHP versions
-            require_once($CFG->libdir.'/gradelib.php');
-        }
+         
         if (insert_record('sloodle_award_trans',$iTransaction)) {
-            $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid);          
+            $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);   
+            var_dump($iTransaction);
             if ($balanceDetails->balance<0){
               $iTransaction->amount=  $balanceDetails->balance*-1;
               $iTransaction->itype="credit";
@@ -439,18 +481,9 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             $maxPoints = $this->sloodle_awards_instance->maxpoints;
             //Get balance 
             $newGrade=0;
-            $detailsRec = $this->awards_getBalanceDetails($iTransaction->userid);
+            $detailsRec = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);
             //make sure we dont give more points than max points
             $pointsEarned = $detailsRec->balance;
-            if ($pointsEarned > $maxPoints) $pointsEarned =$maxPoints;
-            $newGrade = $pointsEarned / $maxPoints *100;
-            //now make the insert newGrade into the gradebook.
-            $grade = new object();
-            $grade->userid   = $iTransaction->userid;
-            $grade->rawgrade = $newGrade;    
-            $maxgrade = $this->sloodle_awards_instance->maxpoints;
-            $params=array("itemname"=>$sCourseObject->sloodleRec->name,"grademax"=>$maxgrade);            
-            grade_update("mod/sloodle/awards-1.0",$sCourseObject->courseId,'mod','sloodle/mod/awards-1.0',$sloodleid,0,$grade,$params);
             return true;
         }
         else return false;
@@ -605,15 +638,15 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      * @package sloodle
      * @return returns a stdObj with credits, debits, balance for the given userid
      */       
-     function awards_getBalanceDetails($userid){
+     function awards_getBalanceDetails($userid,$gameid){
          global $CFG;
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid.' AND gameid='.$gameid);
          $credits=0;
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userCredits){
                  $credits+=$userCredits->amount;
             }
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid);
+         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid.' AND gameid='.$gameid);
          $debits=0;         
          if ($totalAmountRecs)
             foreach ($totalAmountRecs as $userDebits){

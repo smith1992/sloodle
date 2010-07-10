@@ -210,14 +210,6 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->addElement('header', 'typeheader', $sloodletypefull);           
             //get all the assignments for the course
             $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
-           //add icurrency
-            $pTypes=array('iPoints'=>'iPoints','Lindens'=>'Lindens');
-            $mform->addElement('select', 'icurrency',get_string('awards:typeofcurrency','sloodle'),$pTypes);
-            $mform->setHelpButton('icurrency', array('icurrency', get_string('awards:help:icurrency','sloodle'), 'sloodle'));
-            //maxpoints            
-            $mform->addElement('text', 'maxpoints', get_string('awards:maxpoints', 'sloodle'),'100');
-            $mform->setDefault('maxpoints', 100);
-            $mform->setHelpButton('maxpoints', array('maxpoints', get_string('help:maxpoints','sloodle'), 'sloodle'));            
             break;  
          } 
 //-------------------------------------------------------------------------------

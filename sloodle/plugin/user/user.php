@@ -96,6 +96,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          $NUM_USERS_TO_RETURN=10;          
          $senderUuid= $sloodle->request->required_param('sloodleuuid');    
          $index        = $sloodle->request->required_param('index');    
+         $gameid= $sloodle->request->required_param('gameid');    
          $sortMode     = $sloodle->request->required_param('sortmode');    
           /*  Send message back into SL
            *      LINE   MESSAGE
@@ -114,58 +115,32 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
             $sloodle->response->set_status_code(1);             //line 0    1
             $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
             $sloodle->response->add_data_line("SENDER:".$senderUuid);//line 1                     
-            //---sloodledata:
-           //  | avuuid 
-           //  | moodle user name 
-           //  | Avatar Name 
-           //  | stipendAllocation 
-           //  | user debits
-            $userList = $this->getUserList();
-            //getAvatarlist returns an array of stdObj  
-            //$av->userid 
-            //$av->username 
-            //$av->avname 
-            //$av->uuid             
+                      
+                       
            
-            $avatarList = $this->getAvatarList($userList);
-              
-            //add balance fields from ipoint_trans database then sort
-            $avList= array();
-             
-            if ($avatarList){
-                foreach ($avatarList as $u){
-                       $av = new stdClass(); 
-                       $av->userid = $u->userid;
-                       $av->username = $u->username;                                      
-                       $av->avname = $u->avname;
-                       $av->uuid = $u->uuid;
-                       $av_balanceDetails= $awardsObj->awards_getBalanceDetails($u->userid);
-                       $av->balance = $av_balanceDetails->balance;                   
-                       $av->credits = $av_balanceDetails->credits;
-                       $av->debits = $av_balanceDetails->debits;  
-                       $avList[]=$av;
-  
-                }//foreach
-                 //sort by points
-                 if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
-                 if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
+                 $avatarList = array();
+                 
+                 if ($sortMode=="balance")  $avatarList = $awardsObj->getScores((int)$gameid,"balance"); 
+                 if ($sortMode=="name")  $avatarList = $awardsObj->getScores((int)$gameid,"name");   
                 $sloodleData="";
                 $size = count($avatarList);
                 $i = 0;
+           if ($size>0){
                 $currIndex = $index;                
                 $sloodle->response->add_data_line("INDEX:". $index);                  
                 $sloodle->response->add_data_line("USERS:". $size );    
                 $sloodle->response->add_data_line("SMODE:". $sortMode);   
-                foreach ($avList as $av){                          
+                foreach ($avatarList as $av){                          
                    //print only the NUM_USERS_TO_RETURN number of users starting from the current index point                   
                    if (($i < $currIndex) || ($i > ($currIndex + $NUM_USERS_TO_RETURN-1))) {
                        $i++;                   
                        continue; //skip the ones which have already been sent                
                    }                 
                    else{
-                       $sloodleData = "UUID:".$av->uuid."|";
+                   
+                       $sloodleData = "UUID:".$av->avuuid."|";
                        $sloodleData .="AV:".  $av->avname . "|";
-                       $sloodleData .="BAL:".$av->balance."|";
+                       $sloodleData .="SCORE:".$av->score."|";
                        $sloodleData .= "DEBITS:".$av->debits;                   
                        $sloodle->response->add_data_line($sloodleData);   
                        $i++;
@@ -181,7 +156,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
             } 
     
     } //getClassList
-        
+    
         /*
         * getAwardMbrs will return a list of users with 
         * avatars in the course along with a tag indicating if they are a member of the group
@@ -202,79 +177,65 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
                  $cmid = $cm->id;
              }
              else $cmid= $coursemoduleid;
-             
            $sCourseObj = new sloodleCourseObj($cmid);  
            $awardsObj = new Awards((int)$cmid);           
            $senderUuid= $sloodle->request->required_param('sloodleuuid'); 
            $groupName  = $sloodle->request->required_param('grpname'); 
+           $gameid = $sloodle->request->required_param('gameid'); 
            $index      = $sloodle->request->required_param('index'); 
            $sortMode   = $sloodle->request->required_param('sortmode'); 
            $groupId = groups_get_group_by_name($sCourseObj->courseId,$groupName);
-           $userList = $this->getUserList();
-            //getAvatarlist returns an array of stdObj  
-            //$av->userid 
-            //$av->username 
-            //$av->avname 
-            //$av->uuid             
-            if (!$groupId){
+           if (!$groupId){
                 $sloodle->response->set_status_code(-500401); //group doesnt exist in course 
                 $sloodle->response->set_status_descriptor('GROUPS');    //line 0    OK                              
                 $sloodle->response->add_data_line("GRPNAME:".$groupName);
                 return;
-           }else   {
-               $avatarList = $this->getAvatarList($userList);
-                //add balance fields from ipoint_trans database then sort
-                $avList= array();
-                if ($avatarList){
-                    $sloodle->response->set_status_code(1);             //line 0    1
-                    $sloodle->response->set_status_descriptor('OK');    //line 0    OK  
-                    $sloodle->response->add_data_line("INDEX:". $index);//1
-                    $sloodle->response->add_data_line("TUSERS:". count($userList));//3
-                    $sloodle->response->add_data_line("TMBRS:". count(groups_get_members($groupId)));//4
-                    $sloodle->response->add_data_line("GNAME:". $groupName);//5
-                    foreach ($avatarList as $u){
-                       $av = new stdClass(); 
-                       $av->userid = $u->userid;
-                       $av->username = $u->username;                                      
-                       $av->avname = $u->avname;
-                       $av->uuid = $u->uuid;
-                       $av_balanceDetails= $awardsObj->awards_getBalanceDetails($u->userid);
-                       $av->balance = $av_balanceDetails->balance;                   
-                       $av->credits = $av_balanceDetails->credits;
-                       $av->debits = $av_balanceDetails->debits;  
-                       $mbrShip = groups_get_user_groups($sCourseObj->courseId,$av->userid);
-                       if (groups_is_member($groupId,$u->userid)) $av->mbrship="yes"; else $av->mbrship="no"; 
-                       $avList[]=$av;
-                    }//foreach                   
-                   if ($sortMode=="balance") usort($avList, array("SloodleApiPluginUser", "balanceSort")); else
-                   if ($sortMode=="name") usort($avList,  array("SloodleApiPluginUser", "nameSort"));
-                   $sloodleData="";
-                   $i = 0;
-                   $currIndex = $index;                
-                   foreach ($avList as $av){                          
-                       //print only the NUM_USERS_TO_RETURN number of users starting from the current index point                   
-                       if (($i < $currIndex) || ($i > ($currIndex + $NUM_USERS_TO_RETURN-1))) {
-                           $i++;                   
-                           continue; //skip the ones which have already been sent                
-                       }                 
-                       else{
-                           $sloodleData = "UUID:".$av->uuid."|";
-                           $sloodleData .="AV:".  $av->avname . "|";
-                           $sloodleData .="BAL:".  $av->balance. "|";
-                           $sloodleData .="MBR:".  $av->mbrship;
-                           $sloodle->response->add_data_line($sloodleData);   
-                           $i++;
-                           if ($i==$avListLen){                             
-                               $sloodle->response->add_data_line("EOF");
-                           }
-                       }
-                   }        
+           } 
+           //response line 1                           
+           $sloodle->response->set_status_code(1);
+           $sloodle->response->set_status_descriptor('OK');    //line 0    OK         
+             //index line 2
+           $sloodle->response->add_data_line("INDEX:".$index);
+           //total users line 3                           
+           $players= get_records('sloodle_award_players','gameid',$gameid);
+           $members = array();
+           $line=array();
+           if ($players){
+               foreach($players as $p){
+                   if (groups_is_member($groupId,$p->userid)){
+                       //avuuid|avname|balance|membershipstatus
+                       $line[]="uuid:".$p->avuuid."|avname:".$p->avname."|balance:".$p->score."|mbr:yes";
+                        $members[]=$p;   
+                   }
+                   else{
+                       $line[]="uuid:".$p->avuuid."|avname:".$p->avname."|balance:".$p->score."|mbr:no";
+
+                   }
+               }
            }
-           else {
-              $sloodle->response->set_status_code(80002);             //no avatars
-              $sloodle->response->set_status_descriptor('HQ');    //line 0    OK  
+           else{
+            $sloodle->response->set_status_code(80002);             //no avatars
+            $sloodle->response->set_status_descriptor('HQ');    //line 0    OK      
+             //line 3
+           $sloodle->response->add_data_line("TOTALusers:".count($line));
+           //line 4
+           $sloodle->response->add_data_line("TOTALMBRS:".count($members));
+           //line 5
+           $sloodle->response->add_data_line("GRPNAME:".$groupName);   
+           $sloodle->response->add_data_line("RESP:".get_string('awards:noplayers','sloodle'));   
+            return;           
+           }        
+           //line 3
+           $sloodle->response->add_data_line("TOTALusers:".count($line));
+           //line 4
+           $sloodle->response->add_data_line("TOTALMBRS:".count($members));
+           //line 5
+           $sloodle->response->add_data_line("GRPNAME:".$groupName);
+           foreach ($line as $l){
+               $sloodle->response->add_data_line($l);
            }
-        }
+           return;
+           
         }
            
            

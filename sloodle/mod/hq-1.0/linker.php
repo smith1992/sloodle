@@ -66,7 +66,7 @@
         //got path now, so include each file in that path
         $apiFiles = sloodle_get_files($apiPath);
         if (!$apiFiles) {
-             $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api filesexist in specified api plugin path', false);
+             $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api files exist in specified api plugin path', false);
              exit();
         }
         
@@ -83,6 +83,7 @@
         
             $functionName = $sloodle->request->required_param('function');        
             $data=$sloodle->request->optional_param('data');//request data from the LSL request
+            $time_sent=$sloodle->request->optional_param('time_sent');
             // Attempt to include the relevant  class
                
             // Create and execute the plugin instance
@@ -103,7 +104,11 @@
         //retrieve output data from the plugin
      
               
-        //send output back to SL           
+        //send output back to SL  
+        
+        $sloodle->response->set_request_descriptor($pluginName."->".$functionName);
+         $sloodle->response->set_response_timestamp(time());
+         if(!empty($time_sent))$sloodle->response->set_request_timestamp((int)$time_sent);
         $sloodle->response->add_data_line("RESPONSE:".$pluginName."|".$functionName);//line 1
         $plugin->{$functionName}($data);  
         $sloodle->response->render_to_output();
