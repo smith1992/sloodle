@@ -134,9 +134,9 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
         //cmid is the module id of the sloodle activity we are connecting to        
         $avname=  $sloodle->request->required_param('avname');   
         $uuid =$sloodle->request->required_param('avuuid');    
-        $availGrps =$sloodle->request->required_param('groups'); 
+        
         //http://englishvillage.asia/sloodle/mod/sloodle/mod/hq-1.0/linker.php?&plugin=groups&function=addToRandomGrp&sloodlecontrollerid=2&sloodlepwd=299749874&sloodleserveraccesslevel=0&sloodleuuid=2102f5ab-6854-4ec3-aec5-6cd6233c31c6&sloodleavname=Fire%20Centaur&sourceuuid=&avuuid=&avname=&groups=Group%20C,%20%20%20Group%20A,%20%20%20Group%20D,%20%20%20Group%20B,%20%20%20Team%20A,%20%20%20Group%20E,%20%20%20Team%20B
-        $availGrps = explode(",",$availGrps);
+        
         $user = new SloodleUser( $sloodle );
         if (!$user->load_avatar($uuid, null)) {
              $sloodle->response->set_status_code(-321);             //line 0 
@@ -153,23 +153,23 @@ class SloodleApiPluginGroups  extends SloodleApiPluginBase{
         $groups = groups_get_all_groups($sloodle->course->get_course_id());
         $usersGroups = groups_get_all_groups($sloodle->course->get_course_id(),$user->get_user_id());
         $numUsersGrps=0;
-        if ($usersGroups){
-            foreach ($usersGroups as $ug){
-                if (in_array($ug->name,$availGrps)) $numUsersGrps++;
-            }
-        }
-      if ($numUsersGrps==0){
+      //  if ($usersGroups){
+        //    foreach ($usersGroups as $ug){
+        //        if (in_array($ug->name,$availGrps)) $numUsersGrps++;
+        //    }
+       // }
+      if (empty($usersGroups)){
             //add to random group;
             $numGroups = count($groups);
             $allGrps = array();
             foreach ($groups as $g){
-                if (in_array($g->name,$availGrps)){
+             
                     $newGrp = new stdClass();
                     $newGrp->numMembers = count(groups_get_members($g->id));
                     $newGrp->name = $g->name;
                     $newGrp->id = $g->id;
                     array_push($allGrps,$newGrp);
-                }
+              
             }
             //sort with group with lowest member count first
             usort($allGrps,array("SloodleApiPluginGroups",  "memberSort"));

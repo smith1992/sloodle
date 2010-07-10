@@ -47,6 +47,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
          //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
          //There may be some instances, where the course module is sent instead of the instance. We account for that here.
          $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         
          //if the sloodlemoduleid is not specified, get the course module from the sloodle instance
          if (!$coursemoduleid){
             //cmid is the module id of the sloodle activity we are connecting to
@@ -75,6 +76,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
          $avName            = $sloodle->request->required_param('avname'); 
          $points            = $sloodle->request->required_param('points'); 
          $details           = $sloodle->request->optional_param('details'); 
+         $gameid= $sloodle->request->optional_param('gameid');    
          //get moodleId for the avatar which was sent
          $avUser = new SloodleUser( $sloodle );
          $avUser->load_avatar($avUuid,$avName);
@@ -87,6 +89,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $trans->userid          = $userid;
         $trans->avname          = $avName;           
         $trans->idata           = $details;
+        $trans->gameid          = $gameid;     
         $trans->timemodified=time();       
         if ($points<0) {            
             $trans->itype="debit";
@@ -117,11 +120,10 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("SECRETWORD:".$sloodle->request->optional_param('secretword'));        
       $awardsObj->synchronizeDisplays_sl($trans);
     }
-        /*
+     /*
      * modifyCash() API command - inserts into the sloodle_awards_trans a record with the sloodleid of -777  this signifies a new type of currency called GameCurrency which can be used as a form of non-monitory or monitory cash system for sloodle
      * This will enable us to insert moodle-site-wide curency into the awards table.
      */ 
-     
      function modifyCashBalance(){         
          global $sloodle;         
          //get avatar details of who this award is awarded to
@@ -259,6 +261,67 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                    $counter++;  
                 }//foreach  
      }
+      
+      /*
+      * joingame will add a user to the sloodle_award_players table - which means that the user has joined the game specified
+      * If the user is already in the game, a record wont be added
+      * 
+      */
+     function joingame(){      
+      global $sloodle;   
+            $gameid=$sloodle->request->required_param('gameid');
+            $avuuid=$sloodle->request->required_param('avuuid');
+            $avname=$sloodle->request->required_param('avname');
+            //we need the userid to build the user
+            $avuser = new SloodleUser( $sloodle );
+            //load the user, if failed, respond
+            if (!$avuser->load_avatar($avuuid, null)) {
+               $sloodle->response->set_status_code(-331 );             //line 0 
+               $sloodle->response->set_status_descriptor('USER'); //line 0            
+               return;
+           }
+           else {
+               $avuser->load_linked_user();                                    
+               if (!$avuser->is_enrolled($sloodle->course->get_course_id())){
+                    $sloodle->response->set_status_code(-321 );             //line 0 
+                    $sloodle->response->set_status_descriptor('USER');//line 0     
+                    return;
+                }
+                else{
+                    //OK, user is enrolled and register, 
+                    //check if user record is already in the game
+                    $userid = $avuser->avatar_data->userid;         
+                    $inGame = get_record_select('sloodle_award_players','gameid='.(int)$gameid. " AND userid=".(int)$userid);
+                    
+                    if (!$inGame){
+                        //now create insert object
+                         
+                         $n = new stdClass();
+                         $n->avuuid=$avuuid;
+                         $n->avname=$avname;
+                         $n->userid=$userid;
+                         $n->gameid=$gameid;
+                         $gamePlayerId=insert_record('sloodle_award_players',$n);
+                         //was the insert unsuccessful?
+                         if (!$gamePlayerId){
+                            $sloodle->response->set_status_code(-500001);             //couldnt insert
+                            $sloodle->response->set_status_descriptor('OK'); //line 0            
+                            return;                
+                         }//insert unsuccessful                         
+                         $sloodle->response->add_data_line("GAMEPLAYERID:".$gamePlayerId);       
+                    }//user was NOT in the game yet, so we inserted them
+                     //if we reached this far - the user was either already IN the game or we added them
+                     else $sloodle->response->add_data_line("GAMEPLAYERID:".$inGame->id);       
+                    $sloodle->response->set_status_code(1);             //line 0 
+                    $sloodle->response->set_status_descriptor('OK'); //line 0                             
+                    $sloodle->response->add_data_line("AVNAME:".$avname);
+                    $sloodle->response->add_data_line("AVUUID:".$avuuid);
+                    $sloodle->response->add_data_line("GAMEID:".$gameid);
+                }
+               }
+     }
+     
+     
      function getAssignments(){      
       global $sloodle;   
         global $CFG;  
