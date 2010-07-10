@@ -47,8 +47,7 @@
         integer SLOODLE_CHANNEL_QUIZ_LOADED_QUESTION = -1639271108;
         integer SLOODLE_CHANNEL_QUIZ_LOADING_QUIZ = -1639271109;
         integer SLOODLE_CHANNEL_QUIZ_LOADED_QUIZ = -1639271110;
-        integer SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION = -1639271111;
-                
+        integer SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION = -1639271111;                
         integer SLOODLE_CHANNEL_QUIZ_ASK_QUESTION = -1639271112;
 
 
@@ -66,28 +65,20 @@
         
         float request_timeout = 20.0;
         
-        // ID and name of the current quiz
-        integer quizid = -1;
-        string quizname = "";
-        // This stores the list of question ID's (global ID's)
-        list question_ids = [];
-        integer num_questions = 0;
-        // Identifies the active question number (index into question_ids list)
-        // (Next question will always be this value +1)
-        integer active_question = -1;
+        integer question_id = -1;
                     
         // Text and type of the current and next question
-        string qtext_current = "";
-        string qtype_current = "";
+        string qtext = "";
+        string qtype = "";
 
         // Lists of option information for the current question
-        list opids_current = []; // IDs
-        list optext_current = []; // Texts
-        list opgrade_current = []; // Grades
-        list opfeedback_current = []; // Feedback if this option is selected
+        list opids = []; // IDs
+        list optext = []; // Texts
+        list opgrade = []; // Grades
+        list opfeedback = []; // Feedback if this option is selected
         
         // Avatar currently using this cahir
-        key sitter = null_key;
+        key sitter = null_key; 
 
                     
         ///// FUNCTIONS /////
@@ -217,7 +208,7 @@
         
         
         // Ask the current question
-        ask_current_question() 
+        ask_question() 
         {     
                  
             llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", sitter, "");
@@ -231,17 +222,17 @@
                 integer qi;
                 list qdialogoptions = [];
                 
-                string qdialogtext = qtext_current + "\n";
+                string qdialogtext = qtext + "\n";
                 // Go through each option
-                integer num_options = llGetListLength(optext_current);
+                integer num_options = llGetListLength(optext);
                 
-                if ((qtype_current == "numerical")|| (qtype_current == "shortanswer")) {
+                if ((qtype == "numerical")|| (qtype == "shortanswer")) {
                    // Ask the question via IM
-                   llInstantMessage(sitter, qtext_current);
+                   llInstantMessage(sitter, qtext);
             } else {
             for (qi = 1; qi <= num_options; qi++) {
                 // Append this option to the main dialog (remebering buttons are 1-based, but lists 0-based)
-                qdialogtext += (string)qi + ": " + llList2String(optext_current,qi-1) + "\n";
+                qdialogtext += (string)qi + ": " + llList2String(optext,qi-1) + "\n";
                 // Add a button for this option
                 qdialogoptions = qdialogoptions + [(string)qi];
             }
@@ -251,12 +242,12 @@
             } else {
                 
                 // Ask the question via IM
-                llInstantMessage(sitter, qtext_current);
+                llInstantMessage(sitter, qtext);
                 // Offer the options via IM
                 integer x = 0;
-                integer num_options = llGetListLength(optext_current);
+                integer num_options = llGetListLength(optext);
                 for (x = 0; x < num_options; x++) {
-                    llInstantMessage(sitter, (string)(x + 1) + ". " + llList2String(optext_current, x));
+                    llInstantMessage(sitter, (string)(x + 1) + ". " + llList2String(optext, x));
                 }        
             }
             
@@ -359,7 +350,7 @@
             link_message(integer sender_num, integer num, string str, key id)
             {
                 if (num == SLOODLE_CHANNEL_QUIZ_ASK_QUESTION) {
-                    active_question = (integer)str;
+                    question_id = (integer)str;
                     sitter = id;
                     httpquizquery = request_question((integer)str);                    
                 }
@@ -378,7 +369,7 @@
             listen(integer channel, string name, key id, string message)
             {
                 // If using dialogs, then only listen to the dialog channel
-                if (doDialog && ((qtype_current == "multichoice") || (qtype_current == "truefalse"))) {
+                if (doDialog && ((qtype == "multichoice") || (qtype == "truefalse"))) {
                     if (channel != SLOODLE_CHANNEL_AVATAR_DIALOG) {
                         sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "usedialogs", [llKey2Name(sitter)], sitter, "quiz");
                         return;
@@ -396,58 +387,58 @@
                     string feedback = "";
                     
                     // Check the type of question this was
-                    if ((qtype_current == "multichoice") || (qtype_current == "truefalse")) {
+                    if ((qtype == "multichoice") || (qtype == "truefalse")) {
                         // Multiple choice - the response should be a number from the dialog box (1-based)
                         integer answer_num = (integer)message;
                         // Make sure it's valid
-                        if ((answer_num > 0) && (answer_num <= llGetListLength(opids_current))) {
+                        if ((answer_num > 0) && (answer_num <= llGetListLength(opids))) {
                             // Correct to 0-based
                             answer_num -= 1;
                             
-                            feedback = llList2String(opfeedback_current, answer_num);
-                            scorechange = llList2Float(opgrade_current, answer_num);
-                            feedback_id = llList2String(opids_current, answer_num);
+                            feedback = llList2String(opfeedback, answer_num);
+                            scorechange = llList2Float(opgrade, answer_num);
+                            feedback_id = llList2String(opids, answer_num);
 
                             // Notify the server of the response
-                            notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(opids_current, answer_num));
+                            notify_server(qtype, question_id, llList2String(opids, answer_num));
                         } else {
                             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");
-                            ask_current_question();
+                            ask_question();
                         }        
-                     } else if (qtype_current == "shortanswer") {
+                     } else if (qtype == "shortanswer") {
                                // Notify the server of the response 
                                integer x = 0;
-                               integer num_options = llGetListLength(optext_current);
+                               integer num_options = llGetListLength(optext);
                                for (x = 0; x < num_options; x++) {
-                                   if (llToLower(message) == llToLower(llList2String(optext_current, x))) {
-                                      feedback = llList2String(opfeedback_current, x);
-                                      scorechange = llList2Float(opgrade_current, x);
-                                      feedback_id = llList2String(opids_current, x);
+                                   if (llToLower(message) == llToLower(llList2String(optext, x))) {
+                                      feedback = llList2String(opfeedback, x);
+                                      scorechange = llList2Float(opgrade, x);
+                                      feedback_id = llList2String(opids, x);
                                    }
-                               notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
+                               notify_server(qtype, question_id, message);
                                }        
-                    } else if (qtype_current == "numerical") {
+                    } else if (qtype == "numerical") {
                                // Notify the server of the response
                                float number = (float)message;
                                integer x = 0;
-                               integer num_options = llGetListLength(optext_current);
+                               integer num_options = llGetListLength(optext);
                                for (x = 0; x < num_options; x++) {
-                                   if (number == (float)llList2String(optext_current, x)) {
-                                      feedback = llList2String(opfeedback_current, x);
-                                      scorechange = llList2Float(opgrade_current, x);
-                                      feedback_id = llList2String(opids_current, x);                                      
+                                   if (number == (float)llList2String(optext, x)) {
+                                      feedback = llList2String(opfeedback, x);
+                                      scorechange = llList2Float(opgrade, x);
+                                      feedback_id = llList2String(opids, x);                                      
                                    }
-                                   notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
+                                   notify_server(qtype, question_id, message);
                                }        
                     } 
                     
                     
                      else {
-                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
+                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype], null_key, "quiz");
                     }                
                     
                     if (feedback == "[[LONG]]") // special long feedback placeholder for when there is too much feedback to give to the script
-                        feedbackreq = request_feedback( llList2Integer(question_ids, active_question), feedback_id );
+                        feedbackreq = request_feedback( question_id, feedback_id );
                     else if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
                     else if (scorechange > 0.0) {                                                    
                         sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "correct", [llKey2Name(sitter)], sitter, "quiz");
@@ -458,12 +449,12 @@
                     llSleep(1.);  //wait to finish the sloodle_translation_request before next question.
                     
                     // Clear out our current data (a feeble attempt to save memory!)
-                    qtext_current = "";
-                    qtype_current = "";
-                    opids_current = [];
-                    optext_current = [];
-                    opgrade_current = [];
-                    opfeedback_current = [];              
+                    qtext = "";
+                    qtype = "";
+                    opids = [];
+                    optext = [];
+                    opgrade = [];
+                    opfeedback = [];              
                     
                     llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUESTION_ANSWERED_AVATAR, (string)scorechange, sitter);                                                                              
     
@@ -476,8 +467,8 @@
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], null_key, "");
                 llSetTimerEvent(0.0);
                 
-                if (active_question > -1) {
-                    httpquizquery = request_question(active_question);
+                if (question_id > -1) {
+                    httpquizquery = request_question(question_id);
                 }
             }            
         
@@ -558,17 +549,17 @@
                         
                         // Grab the question information and reset the options
 
-                            qtext_current = llList2String(thisline, 4);
-                            qtype_current = llList2String(thisline, 7);
+                            qtext = llList2String(thisline, 4);
+                            qtype = llList2String(thisline, 7);
                             
-                            opids_current = [];
-                            optext_current = [];
-                            opgrade_current = [];
-                            opfeedback_current = [];
+                            opids = [];
+                            optext = [];
+                            opgrade = [];
+                            opfeedback = [];
                             
                             // Make sure it's a valid question type
-                            if ((qtype_current != "multichoice") && (qtype_current != "truefalse") && (qtype_current != "numerical") && (qtype_current != "shortanswer")) {
-                                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
+                            if ((qtype != "multichoice") && (qtype != "truefalse") && (qtype != "numerical") && (qtype != "shortanswer")) {
+                                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype], null_key, "quiz");
                                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], null_key, "");
                                 state default;
                                 return;
@@ -576,15 +567,15 @@
                         
                     } else if ( rowtype == "questionoption" ) {                        
                         // Add this option to the appropriate place
-                        opids_current += [(integer)llList2String(thisline, 2)];
-                        optext_current += [llList2String(thisline, 4)];
-                        opgrade_current += [(float)llList2String(thisline, 5)];
-                        opfeedback_current += [llList2String(thisline, 6)];
+                        opids += [(integer)llList2String(thisline, 2)];
+                        optext += [llList2String(thisline, 4)];
+                        opgrade += [(float)llList2String(thisline, 5)];
+                        opfeedback += [llList2String(thisline, 6)];
                     }
                 }
                 
                 // Automatically ask this question
-                ask_current_question();
+                ask_question();
             }
             
         }
