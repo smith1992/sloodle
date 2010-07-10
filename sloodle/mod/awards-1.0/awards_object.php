@@ -469,7 +469,6 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          
         if (insert_record('sloodle_award_trans',$iTransaction)) {
             $balanceDetails = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);   
-            var_dump($iTransaction);
             if ($balanceDetails->balance<0){
               $iTransaction->amount=  $balanceDetails->balance*-1;
               $iTransaction->itype="credit";
