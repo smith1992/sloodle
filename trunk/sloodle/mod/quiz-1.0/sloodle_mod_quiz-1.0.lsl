@@ -31,9 +31,22 @@
         integer eof = FALSE; // Have we reached the end of the configuration data?
         
         integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-        integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343; // an arbitrary channel the sloodle scripts will use to talk to each other. Doesn't atter what it is, as long as the same thing is set in the sloodle_slave script. 
+        integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857353; // an arbitrary channel the sloodle scripts will use to talk to each other. Doesn't atter what it is, as long as the same thing is set in the sloodle_slave script. 
         integer SLOODLE_CHANNEL_AVATAR_IGNORE = -1639279999;
         
+        integer SLOODLE_CHANNEL_QUIZ_FETCH_FEEDBACK = -1639271101;
+        integer SLOODLE_CHANNEL_QUIZ_START_FOR_AVATAR = -1639271102;
+        integer SLOODLE_CHANNEL_QUIZ_STARTED_FOR_AVATAR = -1639271103;
+        integer SLOODLE_CHANNEL_QUIZ_COMPLETED_FOR_AVATAR = -1639271104;
+        integer SLOODLE_CHANNEL_QUESTION_ASKED_AVATAR = -1639271105;
+        integer SLOODLE_CHANNEL_QUESTION_ANSWERED_AVATAR = -1639271106;
+        integer SLOODLE_CHANNEL_QUIZ_LOADING_QUESTION = -1639271107;
+        integer SLOODLE_CHANNEL_QUIZ_LOADED_QUESTION = -1639271108;
+        integer SLOODLE_CHANNEL_QUIZ_LOADING_QUIZ = -1639271109;
+        integer SLOODLE_CHANNEL_QUIZ_LOADED_QUIZ = -1639271110;
+        integer SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION = -1639271111;
+                
+
         integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
         integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
         integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
@@ -42,8 +55,9 @@
         string SLOODLE_EOF = "sloodleeof";
         
         string sloodle_quiz_url = "/mod/sloodle/mod/quiz-1.0/linker.php";
-        
+                        
         key httpquizquery = null_key;
+        key feedbackreq = null_key;
         
         float request_timeout = 20.0;
         
@@ -69,8 +83,8 @@
         
         // Avatar currently using this cahir
         key sitter = null_key;
-        // The lowest point of the char
-        float lowestvector = 0.0; 
+        // The position where we started. The Chair will use this to get the lowest vertical position it used.
+        vector startingposition;
         
         // Stores the number of questions the user got correct on a given attempt
         integer num_correct = 0;
@@ -143,6 +157,9 @@
         // Query the server for the identified question (request by global question ID)
         key request_question( integer qid )
         {
+            
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUIZ_LOADING_QUESTION, (string)qid, sitter);            
+            
             // Request the identified question from Moodle
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
@@ -158,6 +175,27 @@
             llSetTimerEvent(request_timeout);
             
             return newhttp;
+        }
+        
+        // Query the server for the feedback for a particular choice.
+        // This is only called if the server has told us that the feedback is too long to go in the regular request
+        // It does this by substituting the feedback [[[LONG]]]
+        key request_feedback( integer qid, string fid ) {
+            // Request the identified question from Moodle
+            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+            body += "&sloodlepwd=" + sloodlepwd;
+            body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+            body += "&sloodleuuid=" + (string)sitter;
+            body += "&sloodleavname=" + llEscapeURL(llKey2Name(sitter));
+            body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+            body += "&ltq=" + (string)qid;
+            body += "&fid=" + (string)fid;                                    
+            
+            key reqid = llHTTPRequest(sloodleserverroot + sloodle_quiz_url, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+            llSleep(3.0); // Hopefully the message will come back before the next question is asked. But if it comes back out of order, we won't insist.
+            
+            return reqid;
+            
         }
         
         // Notify the server of a response
@@ -217,49 +255,15 @@
                     llInstantMessage(sitter, (string)(x + 1) + ". " + llList2String(optext_current, x));
                 }        
             }
-        }
-        
-        // Play a sound as audio feedback
-        play_sound(float multiplier)
-        {
-            // Do nothing if sound is disabled
-            if (doPlaySound == 0) return;
-            string sound_file;
-            float volume;
-        
-            // Determine what our sound file and volume should be
-            if (multiplier > 0) {
-                sound_file = "Correct";
-            } else {
-                sound_file = "Incorrect";
-                multiplier = multiplier * -1;
-            }
-            // Cap our volume
-            if (multiplier > 1) {
-                volume = 1.0;
-            } else {
-                volume = (float)multiplier;
-            }    
             
-            // Make sure the sound file exists, and then play it
-            if (llGetInventoryType(sound_file) == INVENTORY_SOUND) llPlaySound(sound_file,multiplier);
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUESTION_ASKED_AVATAR, "ASKED QUESTION", sitter);
+            
         }
         
-        // Move the chair up or down as visual feedback
-        move_vertical(float multiplier)
-        {
-            vector position = llGetPos();
-            position.z += 0.5 * multiplier;
-            llSetPos(position);
-        }
+
         
         // Move the Quiz Chair back to the starting position
-        move_to_start()
-        {
-            vector position = llGetPos();
-            position.z = lowestvector;
-            llSetPos(position);
-        }
+
         
         // Report completion to the user
         finish_quiz() 
@@ -281,6 +285,9 @@
             body += "&finishattempt=1";
             
             llHTTPRequest(sloodleserverroot + sloodle_quiz_url, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+            
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUIZ_COMPLETED_FOR_AVATAR, (string)num_correct + "/" + (string)num_questions, sitter);
+            
         }
         
         // Reinitialise (e.g. after one person has finished an attempt)
@@ -386,36 +393,31 @@
                 // llSitTarget(<0,0,.5>, ZERO_ROTATION);
             }
             
-            changed(integer change)
+            link_message(integer sender_num, integer num, string str, key id)
             {
-                // Something changed - was it a link?
-                if (change & CHANGED_LINK)
-                {
-                    llSleep(0.5); // Allegedly llUnSit works better with this delay
+                if (num == SLOODLE_CHANNEL_QUIZ_START_FOR_AVATAR) {
                     
-                    // Has an avatar sat down?
-                    if (llAvatarOnSitTarget() != null_key) {
-                        
-                        // Store the new sitter
-                        sitter = llAvatarOnSitTarget();
-                        
-                        // Make sure the given avatar is allowed to use this object
-                        if (!sloodle_check_access_use(sitter)) {
-                            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(sitter)], null_key, "");
-                            llUnSit(sitter);
-                            sitter = null_key;
-                            return;
-                        }
-                        
-                        // Our current position as the lowest point
-                        vector thispos = llGetPos();
-                        lowestvector = (float)thispos.z;
-                        // Start the quiz
-                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "starting", [llKey2Name(sitter)], null_key, "quiz");
-                        state check_quiz;
-                    }
-                }
+                    sitter = id;
+                                    
+                    // Make sure the given avatar is allowed to use this object
+                    if (!sloodle_check_access_use(sitter)) {
+                        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(sitter)], null_key, "");
+                        llUnSit(sitter);
+                        sitter = null_key;
+                        return;
+                    }                
+    
+                    // Our current position as the lowest point
+                    startingposition = llGetPos();             
+                                            
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "starting", [llKey2Name(sitter)], null_key, "quiz");                                                     
+                                                
+                    state check_quiz;
+                    
+                }                
+                
             }
+            
         }
         
         
@@ -577,7 +579,8 @@
             {
                 llSetText("", <0.0,0.0,0.0>, 0.0);
                 num_correct = 0;
-                move_to_start();
+                
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION, (string)startingposition, sitter);                        
                 
                 // Make sure we have some questions
                 if (num_questions == 0) {
@@ -613,6 +616,8 @@
                     if (channel != 0) return;
                 }
             
+                string feedback_id; // used when the feedback is too long, and we have to fetch it off the server
+            
                 // Only listen to the sitter
                 if (id == sitter) {
                     // Handle the answer...
@@ -630,6 +635,8 @@
                             
                             feedback = llList2String(opfeedback_current, answer_num);
                             scorechange = llList2Float(opgrade_current, answer_num);
+                            feedback_id = llList2String(opids_current, answer_num);
+
                             // Notify the server of the response
                             notify_server(qtype_current, llList2Integer(question_ids, active_question), llList2String(opids_current, answer_num));
                         } else {
@@ -637,13 +644,14 @@
                             ask_current_question();
                         }        
                      } else if (qtype_current == "shortanswer") {
-                               // Notify the server of the response
+                               // Notify the server of the response 
                                integer x = 0;
                                integer num_options = llGetListLength(optext_current);
                                for (x = 0; x < num_options; x++) {
                                    if (llToLower(message) == llToLower(llList2String(optext_current, x))) {
                                       feedback = llList2String(opfeedback_current, x);
                                       scorechange = llList2Float(opgrade_current, x);
+                                      feedback_id = llList2String(opids_current, x);
                                    }
                                notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
                                }        
@@ -656,8 +664,9 @@
                                    if (number == (float)llList2String(optext_current, x)) {
                                       feedback = llList2String(opfeedback_current, x);
                                       scorechange = llList2Float(opgrade_current, x);
+                                      feedback_id = llList2String(opids_current, x);                                      
                                    }
-                               notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
+                                   notify_server(qtype_current, llList2Integer(question_ids, active_question), message);
                                }        
                     } 
                     
@@ -665,13 +674,14 @@
                      else {
                         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidtype", [qtype_current], null_key, "quiz");
                     }
+                    
+                    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUESTION_ANSWERED_AVATAR, (string)scorechange, sitter);                                
 
-                    // Give the user feedback, and add their score
-                    move_vertical(scorechange); // Visual feedback
-                    play_sound(scorechange); // Audio feedback
-                            
                     if(scorechange>0) num_correct++; // SAL added this
-                    if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
+                    
+                    if (feedback == "[[LONG]]") // special long feedback placeholder for when there is too much feedback to give to the script
+                        feedbackreq = request_feedback( llList2Integer(question_ids, active_question), feedback_id );
+                    else if (feedback != "") llInstantMessage(sitter, feedback); // Text feedback
                     else if (scorechange > 0.0) {                                                    
                         sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "correct", [llKey2Name(sitter)], sitter, "quiz");
                         //num_correct += 1; SAL commented out this
@@ -732,9 +742,13 @@
                 // As soon as that is loaded, it will get asked.
             
                 // Is this the response we are expecting?
-                if (request_id != httpquizquery) return;
-                httpquizquery = null_key;
-                llSetTimerEvent(0.0);
+                if (request_id == httpquizquery) {                
+                    httpquizquery = null_key;
+                    llSetTimerEvent(0.0);
+                } else if (request_id != feedbackreq) {
+                    return;
+                }
+                
                 // Make sure the response was OK
                 if (status != 200) {
                     sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
@@ -768,6 +782,11 @@
                      sloodle_error_code(SLOODLE_TRANSLATE_IM, sitter,statuscode); //send message to error_message.lsl
                     // Check if an error message was reported
                     if (numlines > 1) sloodle_debug(llList2String(lines, 1));
+                    return;
+                }
+                
+                if (request_id == feedbackreq) {
+                    llInstantMessage( sitter, llList2String(lines, 1) );
                     return;
                 }
                 
@@ -819,8 +838,8 @@
             }
             
             changed(integer change)
-            {
-                move_to_start();
+            {                
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION, (string)startingposition, sitter);                                        
                 reinitialise();
             }
         }

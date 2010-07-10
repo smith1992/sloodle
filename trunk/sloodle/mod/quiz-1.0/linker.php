@@ -47,6 +47,9 @@
     /** Include the Moodle quiz code.  */
     require_once($CFG->dirroot.'/mod/quiz/locallib.php');
 
+
+    $maxfeedbacktoscript = 60; // If the feedback is longer than this, send the placeholder [[LONG]] and fetch it when we need it in a separate message
+
     // Authenticate the request and login the user
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
@@ -67,6 +70,9 @@
     $finishattempt = optional_param('finishattempt', 0, PARAM_BOOL);
     $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
     $forcenew = optional_param('forcenew', false, PARAM_BOOL); // Teacher has requested new preview
+
+    $feedbackid= optional_param('fid', 0, PARAM_INT); // Request for a specific piece of feedback - used when the feedback is too long to put in the body of the question
+    $onlyshowfeedback = ( $feedbackid > 0 );
 
     $isnotify = ( optional_param( 'action', false, PARAM_RAW ) == 'notify' ) ;
 
@@ -466,6 +472,7 @@
                 $shuffleanswers = 0;
                 if (isset($q->options->shuffleanswers) && $q->options->shuffleanswers) $shuffleanswers = 1;
             
+                if (!$onlyshowfeedback) {
                 $output[] = array(
                     'question',
                     $localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
@@ -481,6 +488,7 @@
                     $shuffleanswers,
                     0 //$deferred   // This variable doesn't seem to be mentioned anywhere else in the file
                 );
+                }
 
                 // Create an output array for our options (available answers) so that we can shuffle them later if necessary
                 $outputoptions = array();
@@ -490,6 +498,11 @@
                    
                    if (!is_array($op)) continue; // Ignore this if there are no options (Prevents nasty PHP notices!)
                    foreach($op as $ok=>$ov) {
+                      $feedback = $ov->feedback;
+                      if (!$onlyshowfeedback && ( strlen($feedback) > $maxfeedbacktoscript) ) {
+                         $feedback = "[[LONG]]";
+                      }
+                      if (!$onlyshowfeedback) {
                       $outputoptions[] = array(
                         'questionoption',
                         $i,
@@ -497,8 +510,13 @@
                         $ov->question,
                         sloodle_clean_for_output($ov->answer),
                         $ov->fraction,
-                        sloodle_clean_for_output($ov->feedback)
+                        sloodle_clean_for_output($feedback)
                       );
+                      }
+                      //if ($onlyshowfeedback && ( $ov->id == $feedbackid ) ) {
+                      if ($onlyshowfeedback  ) {
+                         $outputoptions[] = array( $feedback );
+                      }
                    }
                 }
                 
