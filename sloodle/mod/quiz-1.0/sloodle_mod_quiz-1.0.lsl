@@ -44,8 +44,7 @@
         integer SLOODLE_CHANNEL_QUIZ_LOADED_QUESTION = -1639271108;
         integer SLOODLE_CHANNEL_QUIZ_LOADING_QUIZ = -1639271109;
         integer SLOODLE_CHANNEL_QUIZ_LOADED_QUIZ = -1639271110;
-        integer SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION = -1639271111;
-            
+        integer SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION = -1639271111;            
         integer SLOODLE_CHANNEL_QUIZ_ASK_QUESTION = -1639271112;                
 
         integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
@@ -58,7 +57,6 @@
         string sloodle_quiz_url = "/mod/sloodle/mod/quiz-1.0/linker.php";
                         
         key httpquizquery = null_key;
-        key feedbackreq = null_key;
         
         float request_timeout = 20.0;
         
@@ -71,17 +69,7 @@
         // Identifies the active question number (index into question_ids list)
         // (Next question will always be this value +1)
         integer active_question = -1;
-                    
-        // Text and type of the current and next question
-        string qtext_current = "";
-        string qtype_current = "";
 
-        // Lists of option information for the current question
-        list opids_current = []; // IDs
-        list optext_current = []; // Texts
-        list opgrade_current = []; // Grades
-        list opfeedback_current = []; // Feedback if this option is selected
-        
         // Avatar currently using this cahir
         key sitter = null_key;
         // The position where we started. The Chair will use this to get the lowest vertical position it used.
@@ -161,10 +149,6 @@
         {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "complete", [llKey2Name(sitter), (string)num_correct + "/" + (string)num_questions], sitter, "quiz");
             //move_to_start(); // Taking this out here leaves the quiz chair at its final position until the user stands up.
-            
-            // Clear the big nasty chunks of data
-            optext_current = [];
-            opfeedback_current = [];
             
             // Notify the server that the attempt was finished
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
@@ -323,15 +307,7 @@
                 quizname = "";
                 question_ids = [];
                 num_questions = 0;
-                active_question = -1;
-                
-                qtext_current = "";
-                qtype_current = "";
-                
-                opids_current = [];
-                optext_current = [];
-                opgrade_current = [];
-                opfeedback_current = [];                  
+                active_question = -1;                
                 
                 // Request the quiz data from Moodle
                 string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
