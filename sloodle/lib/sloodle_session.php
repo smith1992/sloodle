@@ -50,18 +50,25 @@
         var $response = null;
         
         /**
-        * Current user information.
+        * Current owner information - this is the owner of the object that initiated the current HTTP request.
+        * $var SloodleUser
+        * @access public
+        */
+        var $owner = null;
+        
+        /**
+        * Current user information - this is the user identified by parameters sloodleavname and sloodleuuid.
         * @var SloodleUser
         * @access public
         */
         var $user = null;
         
         /**
-        * The Sloodle course structure for the course this session is accessing
-        * @var SloodleCourse
+        * A course object direct from the Moodle database.
+        * @var object
         * @access public
         */
-        var $course = null;
+        var $courseobj = null;
         
         /**
         * The Sloodle module this session relates to, if any.
@@ -89,9 +96,9 @@
         {
             // Construct the different parts of the session, as far as possible
             $this->user = new SloodleUser($this);
+            $this->owner = new SloodleUser($this);
             $this->response = new SloodleResponse();
             $this->request = new SloodleRequest($this);
-            $this->course = new SloodleCourse();
             $this->plugins = new SloodlePluginManager($this);
             
             // Process the basic request data
@@ -101,47 +108,27 @@
         
         /**
         * Constructs and loads the appropriate module part of the session.
-        * Note that this function will fail if the current VLE user (in the $user member) does not have permission to access it.
         * @param string $type The expected type of module - function fails if type is not correctly matched
         * @param bool $db If true then the system will also try to load appropriate data from the database, as specified in the module ID request parameter
         * @param bool $require If true, then if something goes wrong, the script will be terminated with an error message
-        * @param bool $override_access If true, then access can be gained to a module on a separate course from the current controller
         * @return bool True if successful, or false otherwise. (Note, if parameter $require was true, then the script will terminate before this function returns if something goes wrong)
         */
-        function load_module($type, $db, $require = true, $override_access = false)
+        function load_module($type, $db, $require = true)
         {
             // If the database loading is requested, then make sure we have a parameter to load with
             $db_id = null;
-            if ($db) {
+            if ($db)
+            {
                 $db_id = $this->request->get_module_id($require);
                 if ($db_id == null) return false;
-                
-                // Is access being overridden?
-                if (!$override_access) {
-                	// No
-                	// Make sure we have a controller loaded
-                	if (!$this->course->is_loaded() || !$this->course->controller->is_loaded()) {
-                		if ($require) {
-                			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Access has not been authenticated through a Controller. Access prohibited.', false);
-                    		exit();
-                		}
-                		return false;
-                	}
-                	// Does the specified module instance exist in this course?
-                	if (!record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
-                		if ($require) {
-                			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Module not found in requested course.', false);
-                    		exit();
-                		}
-                		return false;
-                	}
-                }
             }
 
             // Construct the module
             $this->module = sloodle_load_module($type, $this, $db_id);
-            if (!$this->module) {
-                if ($require) {
+            if (!$this->module)
+            {
+                if ($require)
+                {
                     $this->response->quick_output(-601, 'MODULE', 'Failed to construct module object', false);
                     exit();
                 }
@@ -151,9 +138,8 @@
         
         
         /**
-        * Verifies security for the incoming request (but does not check user access).
-        * Initially ensures that the request is coming in on a valid and enabled course/controller (rejects it if not).
-        * The password is then checked, and it can handle prim-passwords and object-specific passwords.
+        * Verifies that the incoming request is from a authorised source.
+        * This checks for the authentication token in the HTTP headers.
         *
         * @param bool $require If true, the function will NOT return on authentication failure. Rather, it will terminate the script with an error message.
         * @return bool true if successful in authenticating the request, or false if not.
@@ -161,197 +147,38 @@
         function authenticate_request( $require = true )
         {
             // Make sure that the request data has been processed
-            if (!$this->request->is_request_data_processed()) {
+            if (!$this->request->is_request_data_processed())
+            {
                 $this->request->process_request_data();
             }
             
-            // Make sure the controller ID parameter was specified
-            if ($this->request->get_controller_id($require) === null) return false;
-            
-            // Make sure we've got a valid course and controller object
-            if (!$this->course->controller->is_loaded()) {
-                if ($require) {
-                    $this->response->quick_output(-514, 'COURSE', 'Course controller could not be accessed.', false);
-                    exit();
-                }
+            // Compare the provide authentication tokens with the one stored in the database
+            $token = $this->request->get_auth_token(false);
+            if ($token === null)
+            {
+                if ($require) $this->response->quick_output(-4440001, 'SFS', 'Authentication token not provided in request.');
                 return false;
             }
-            if (!$this->course->is_loaded()) {
-                if ($require) {
-                    $this->response->quick_output(-512, 'COURSE', 'Course could not be accessed.', false);
-                    exit();
-                }
+            $storedToken = sloodle_get_stored_auth_token();
+            if (!$storedToken)
+            {
+                if ($require) $this->response->quick_output(-4440003, 'SFS', 'Failed to retrieve correct authentication token from database');
                 return false;
             }
-            
-            // Make sure the course is available
-            if (!$this->course->is_available()) {
-                if ($require) {
-                    $this->response->quick_output(-513, 'COURSE', 'Course not available.', false);
-                    exit();
-                }
-                return false;
-            }
-            // Make sure the contrller is available
-            if (!$this->course->controller->is_available()) {
-                if ($require) {
-                    $this->response->quick_output(-514, 'COURSE', 'Course controller not available.', false);
-                    exit();
-                }
+            if ($storedToken != $token)
+            {
+                if ($require) $this->response->quick_output(-4440002, 'SFS', 'Provided authentication token was invalid');
                 return false;
             }
             
-            // Make sure the controller is enabled
-            if (!$this->course->controller->is_enabled()) {
-                if ($require) {
-                    $this->response->quick_output(-514, 'COURSE', 'Course controller disabled.', false);
-                    exit();
-                }
-                return false;
-            }
-        
-            // Get the password parameter
-            $password = $this->request->get_password($require);
-            if ($password == null) {
-                if ($require) {
-                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Prim Password cannot be empty.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Does the password contain an object UUID?
-            $parts = explode('|', $password);
-            if (count($parts) >= 2) {
-                $objuuid = $parts[0];
-                $objpwd = $parts[1];
-                // Make sure the password was provided
-                if (empty($objpwd)) {
-                    if ($require) {
-                        $this->response->quick_output(-212, 'OBJECT_AUTH', 'Object-specific password not specified.', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // Verify the object's authorisation
-                if ($this->course->controller->check_authorisation($objuuid, $objpwd)) {
-                    // Passed authorisation - make sure the object is registered as being still active
-                    $this->course->controller->ping_object($objuuid);
-                    return true;
-                }
-                if ($require) {
-                    $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
-                    exit();
-                }
-                return false;
-    		}
-            
-            // Get the controller password
-            $controllerpwd = $this->course->controller->get_password();
-            // Prim Password access is disabled if no password has been specified
-            if (strlen($controllerpwd) == 0) {
-                if ($require) {
-                    $this->response->quick_output(-213, 'OBJECT_AUTH', 'Access to this Controller by prim password has been disabled.', false);
-                    exit();
-                }
-                return false;
-            }
-            // Check that the passwords match
-            if ($password != $this->course->controller->get_password()) {
-                if ($require) {
-                    $this->response->quick_output(-213, 'OBJECT_AUTH', 'Prim password was invalid.', false);
-                    exit();
-                }
-                return false;
-            }
-
             return true;
         }
-        
         
         /**
-        * Verifies security for the incoming user-centric request.
-        * This ensures that the identified object is authorised for user-centric activities with the specified user.
-        * @param bool $require If TRUE (default) then the script will terminate with an error message on failure. Otherwise, it will return false on failure.
-        * @return bool TRUE if successful, or FALSE on failure (unless parameter $require was TRUE).
-        */
-        function authenticate_user_request( $require = true )
-        {
-            // Get the avatar UUID parameter
-            $avuuid = $this->request->get_avatar_uuid($require);
-            if ($avuuid == null) {
-                if ($require) {
-                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Avatar UUID required for user-centric request authentication.', false);
-                    exit();
-                }
-                return false;
-            }
+        * Verifies that the incoming request is from an object owned by a teacher or admin on the current course or module.
         
-            // Get the password parameter
-            $password = $this->request->get_password($require);
-            if ($password == null) {
-                if ($require) {
-                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Password cannot be empty.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Does the password contain an object UUID?
-            $parts = explode('|', $password);
-            if (count($parts) < 2) {
-                if ($require) {
-                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Expected UUID and password, separated by pipe character.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Extract the parts
-            $objuuid = $parts[0];
-            $objpwd = $parts[1];
-            
-            // Make sure the password was provided
-            if (empty($objpwd)) {
-                if ($require) {
-                    $this->response->quick_output(-212, 'OBJECT_AUTH', 'Object-specific password cannot be empty.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Attempt to retreive a record matching the avatar and object UUID's
-            $rec = get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
-            if (!$rec) {
-                if ($require) {
-                    $this->response->quick_output(-216, 'OBJECT_AUTH', 'Object not found in database.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Make sure the object is authorised
-            if (empty($rec->authorised) || $rec->authorised == "0") {
-                if ($require) {
-                    $this->response->quick_output(-214, 'OBJECT_AUTH', 'Object is not yet authorised.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Make sure the passwords match
-            if ($objpwd != $rec->password) {
-				if ($require) {
-	                $this->response->quick_output(-213, 'OBJECT_AUTH', 'Object-specific password was invalid.', false);
-	                exit();
-				}
-				return false;
-            }
-            
-            // Everything looks fine
-            return true;
-        }
+        */
+        //TODO
         
         
         /**
@@ -377,238 +204,43 @@
                 return false;
             }
             
-            // Was a server access level specified in the request?
-            $sal = $this->request->get_server_access_level(false);
-            if ($sal != null) {
-                // Check what level was specified
-                $sal = (int)$sal;
-                $allowed = false;
-                $reason = 'Unknown.';
-                switch ($sal) {
-                case SLOODLE_SERVER_ACCESS_LEVEL_PUBLIC:
-                    // Always allowed
-                    $allowed = true;
-                    break;
-                
-                case SLOODLE_SERVER_ACCESS_LEVEL_COURSE:
-                    // Is a course already loaded?
-                    if (!$this->course->is_loaded()) {
-                        $reason = 'No course loaded.';
-                        break;
-                    }
-                
-                    // Was a user account already fully loaded?
-                    if ($this->user->is_avatar_linked()) {
-                        // Is the user enrolled on the current course?
-                        if ($this->user->is_enrolled($this->course->get_course_id())) $allowed = true;
-                        else $reason = 'User not enrolled in course.';
-                    } else {
-                        $reason = 'User not registered on site.';
-                    }
-                    break;
-                    
-                case SLOODLE_SERVER_ACCESS_LEVEL_SITE:
-                    // Was a user account already fully loaded?
-                    if ($this->user->is_avatar_linked()) $allowed = true;
-                    else $reason = 'User not registered on site.';
-                    break;
-                    
-                case SLOODLE_SERVER_ACCESS_LEVEL_STAFF:
-                    // Is a course already loaded?
-                    if (!$this->course->is_loaded()) {
-                        $reason = 'No course loaded.';
-                        break;
-                    }
-                
-                    // Was a user account already fully loaded?
-                    if ($this->user->is_avatar_linked()) {
-                        // Is the user staff on the current course?
-                        if ($this->user->is_staff($this->course->get_course_id())) $allowed = true;
-                        else $reason = 'User not staff in course.';
-                    } else {
-                        $reason = 'User not registered on site.';
-                    }
-                    break;
-                    
-                default:
-                    // Unknown access level
-                    $reason = 'Access level not recognised';
-                    break;
+            // Ensure the avatar is linked to a user
+            if (!$this->user->is_avatar_linked())
+            {
+                // TODO: if necessary, lookup authentication server here to create Moodle user data
+                //...
+                if ($require)
+                {
+                    $this->response->quick_output(-321, 'USER_AUTH', 'User authentication failure. Avatar not found on system.', false);
+                    exit();
                 }
-                
-                // Was the user blocked by access level?
-                if (!$allowed) {
-                    if ($require) {
-                        $this->response->quick_output(-331, 'USER_AUTH', $reason, false);
-                        exit();
-                    }
-                    return false;
-                }
-            }
-        
-        // REGISTRATION //
-        
+                return false;
+            }            
+            
             // Make sure a the course is loaded
-            if (!$this->course->is_loaded()) {
-                if ($require) {
+            if ($this->courseobj == null)
+            {
+                if ($require)
+                {
                     $this->response->quick_output(-511, 'COURSE', 'Cannot validate user - no course data loaded.', false);
                     exit();
                 }
                 return false;
             }
-        
-            // Is the user already loaded?
-            if (!$this->user->is_avatar_linked())
+            
+           // Is the user enrolled on the current course?
+            if ($this->user->is_enrolled($this->course->id))
             {
-                // If an avatar is loaded, but the user isn't, then we probably have a deleted Moodle user
-                if ($this->user->is_avatar_loaded() == true && $this->user->is_user_loaded() == false) {
-                    $this->response->quick_output(-301, 'USER_AUTH', 'Avatar linked to deleted user account', false);
+                if ($require)
+                {
+                    $this->response->quick_output(-421, 'USER_AUTH', 'Error: '.$this->user->get_avatar_name().' is not enrolled in this course.', false);
                     exit();
                 }
-            
-                // Make sure avatar details were provided
-                $uuid = $this->request->get_avatar_uuid(false);
-                $avname = $this->request->get_avatar_name(false);
-                // Is validation required?
-                if ($require) {
-                    // Check the UUID
-                    if (empty($uuid)) {
-                        $this->response->quick_output(-311, 'USER_AUTH', 'User UUID required', false);
-                        exit();
-                    }
-                    // Check the name
-                    if (empty($avname)) {
-                        $this->response->quick_output(-311, 'USER_AUTH', 'Avatar name required', false);
-                        exit();
-                    }
-                } else if (empty($uuid) || empty($avname)) {
-                    // If there was a problem, just stop
-                    return false;
-                }
-            
-                // Ensure autoreg is not suppressed, and that it is permitted on that course and on the site
-                if ($suppress_autoreg == true || $this->course->check_autoreg() == false) {
-                    if ($require) {
-                        $this->response->quick_output(-321, 'USER_AUTH', 'User not registered, and auto-registration of users was not permitted', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // It is important that we also check auto-enrolment here.
-                // If that is not enabled, but the call here requires it, then there is no point registering the user.
-                if ($suppress_autoenrol == true || $this->course->check_autoenrol() == false) {
-                    if ($require) {
-                        $this->response->quick_output(-421, 'USER_ENROL', 'User not enrolled, and auto-enrolment of users was not permitted', false);
-                        exit();
-                    }
-                    return false;
-                }
-            
-                // Is there an avatar loaded?
-                if (!$this->user->is_avatar_loaded()) {
-                    // Add the avatar details, linked to imaginary user 0
-                    if (!$this->user->add_linked_avatar(0, $uuid, $avname)) {
-                        if ($require) {
-                            $this->response->quick_output(-322, 'USER_AUTH', 'Failed to add new avatar', false);
-                            exit();
-                        }
-                        return false;
-                    }
-                }
-                
-                // If we reached here then we definitely have an avatar
-                // Create a matching Moodle user
-                $password = $this->user->autoregister_avatar_user();
-                if ($password === FALSE) {
-                    if ($require) {
-                        $this->response->quick_output(-322, 'USER_AUTH', 'Failed to register new user account', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // Add a side effect code to our response data
-                $this->response->add_side_effect(322);
-                // The user needs to be notified of their new username/password
-                if (isset($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'])) {
-                    sloodle_login_notification($_SERVER['HTTP_X_SECONDLIFE_OBJECT_KEY'], $uuid, $this->user->get_username(), $password);
-                }
+                return false;
             }
             
-        // ENROLMENT //
-            
-            // Is the user already enrolled on the course?
-            if (!$this->user->is_enrolled($this->course->get_course_id())) {
-                // Ensure auto-enrolment is not suppressed, and that it is permitted on that course and on the site
-                if ($suppress_autoenrol == true || $this->course->check_autoenrol() == false) {
-                    if ($require) {
-                        $this->response->quick_output(-421, 'USER_ENROL', 'Auto-enrolment of users was not permitted', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // Attempt to enrol the user
-                if (!$this->user->enrol()) {
-                    if ($require) {
-                        $this->response->quick_output(-422, 'USER_ENROL', 'Auto-enrolment failed', false);
-                        exit();
-                    }
-                    return false;
-                }
-                
-                // Add a side effect code to our response data
-                $this->response->add_side_effect(422);
-            }
-            
-            // Make sure the user is logged-in
             return ($this->user->login());
         }
-        
-        /**
-        * Validate the avatar specified in the request, to ensure it is registered to a Moodle account.
-        * (Also ensures that avatar details were in fact provided in the request).
-        * This is effectively a less strict version of {@link validated_user()}, which also checks enrolment and such like.
-        * This function will NOT perform auto-registration or auto-enrolment.
-        * @param bool $require If true, the script will be terminated with an error message if validation fails
-        * @return bool Returns true if validation was successful. Returns false on failure (unless $require was true).
-        * @see SloodleSession::validate_user()
-        */
-        function validate_avatar( $require = true )
-        {
-            // Attempt to fetch avatar details
-            $sloodleuuid = $this->request->get_avatar_uuid(false);
-            $sloodleavname = $this->request->get_avatar_name(false);
-            // We need at least one of the values
-            if (empty($sloodleuuid) && empty($sloodleavname)) {
-                if ($require) {
-                    $this->response->quick_output(-311, 'USER_AUTH', 'Require avatar UUID and/or name.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            // Attempt to find an avatar matching the given details
-            $rec = false;
-            if (!empty($sloodleuuid)) $rec = get_record('sloodle_users', 'uuid', $sloodleuuid);
-            if (!$rec) $rec = get_record('sloodle_users', 'avname', $sloodleavname);
-            // Did we find a matching entry?
-            if (!$rec) {
-                // No - avatar is not validated
-                if ($require) {
-                    $this->response->quick_output(-321, 'USER_AUTH', 'Require avatar UUID and/or name.', false);
-                    exit();
-                }
-                return false;
-            }
-            
-            return true;
-        }
-        
-        
-        
-        //... Add functions for verifying user access to resources?
     }
     
 

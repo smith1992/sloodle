@@ -61,31 +61,6 @@ $mod_sloodle_capabilities = array(
             'admin' => CAP_ALLOW
         )
     ),
-
-    // Authorising objects to access Sloodle
-    'mod/sloodle:objectauth' => array(
-        'riskbitmask' => RISK_CONFIG,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
-            'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
-        )
-    ),
-    
-    // Authorising user objects to access user-specific parts of Sloodle (e.g. blogging)
-    'mod/sloodle:userobjectauth' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
-            'user' => CAP_ALLOW,
-            'guest' => CAP_PREVENT,
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
-        )
-    ),
     
     
     // Access and use classroom layout profiles
@@ -108,22 +83,7 @@ $mod_sloodle_capabilities = array(
             'admin' => CAP_ALLOW
         )
     ),
-    
-    
-    // Register an avatar with their own account
-    'mod/sloodle:registeravatar' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
-            'user' => CAP_ALLOW,
-            'guest' => CAP_PREVENT,
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
-        )
-    ),
-    
+        
     // Distribute objects to own avatar
     'mod/sloodle:distributeself' => array(
         'captype' => 'write',
