@@ -290,6 +290,12 @@
         // Waiting on initialisation
         default
         {
+            
+            on_rez(integer par)
+            {
+                llResetScript();
+            }
+                        
             state_entry()
             {
                 // Starting again with a new configuration
@@ -328,8 +334,8 @@
                             state ready;
                         } else {
                             // Go all configuration but, it's not complete... request reconfiguration
-                            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], null_key, "");
-                            //llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", null_key);
+                            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], null_key, "");
+                            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", null_key);
                             eof = FALSE;
                         }
                     }
@@ -353,6 +359,12 @@
                     question_id = (integer)str;
                     sitter = id;
                     httpquizquery = request_question((integer)str);                    
+                } else if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+                    // Is it a reset command?
+                    if (str == "do:reset") {
+                        llResetScript();
+                    }
+                    return;
                 }
             }
                         
