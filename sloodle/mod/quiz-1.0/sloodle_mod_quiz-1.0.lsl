@@ -268,6 +268,10 @@
                 // llSitTarget(<0,0,.5>, ZERO_ROTATION);
             }
             
+            // Wait for the script that handles the sitting to tell us that somebody has sat on us.
+            // Normally a sit will immediately produce a link message
+            // But variations on the script may do things differently, 
+            // eg. the awards script doesn't want to start the quiz until it's got a Game ID
             link_message(integer sender_num, integer num, string str, key id)
             {
                 if (num == SLOODLE_CHANNEL_QUIZ_START_FOR_AVATAR) {
@@ -282,9 +286,10 @@
                         return;
                     }                
     
-                    // Our current position as the lowest point
+                    // Our current position
+                    // We'll report this to the UI scripts when they may need to move to it, etc.
                     startingposition = llGetPos();             
-                                            
+
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "starting", [llKey2Name(sitter)], null_key, "quiz");                                                     
                                                 
                     state check_quiz;
@@ -292,7 +297,12 @@
                 }                
                 
             }
-            
+
+            on_rez(integer par)
+            {
+                llResetScript();
+            }            
+                                    
         }
         
         
@@ -429,6 +439,7 @@
             
             changed(integer change)
             {
+                llMessageLinked(LINK_SET, SLOODLE_CHANNEL_QUIZ_GO_TO_STARTING_POSITION, (string)startingposition, sitter);                                                        
                 reinitialise();
             }
         }
@@ -459,6 +470,7 @@
                 // Start from the beginning
                 active_question = 0;
                 llMessageLinked( LINK_SET, SLOODLE_CHANNEL_QUIZ_ASK_QUESTION, (string)llList2Integer(question_ids, active_question), sitter );
+                llSetTimerEvent( 10.0 ); // The other script should let us know that it's heard us and asked the question. If it doesn't, we'll keep on retrying until it hears us, if it ever does.
             }
             
             link_message(integer sender_num, integer num, string str, key id)
@@ -487,7 +499,22 @@
                                                                                 
                     llMessageLinked( LINK_SET, SLOODLE_CHANNEL_QUIZ_ASK_QUESTION, (string)llList2Integer(question_ids, active_question), sitter );
                     
-                }
+                } else if (num == SLOODLE_CHANNEL_QUESTION_ASKED_AVATAR) {
+                    
+                    // Cancel the timer that we used to make sure the question script heard us and asked its question.
+                    // At this point the question script should ask the question then wait for a response.
+                    // If it doesn't get one, nothing will happen until the sitter touches us, and we'll ask the question script to fetch and ask the question again.
+                    llSetTimerEvent(0.0);
+                    
+                } else if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
+                    // Is it a reset command?
+                    if (str == "do:reset") {
+                        llResetScript();
+                    }
+                    return;
+                }                        
+                
+                // TODO: What happens if loading the question fails?
             }
             
             state_exit()
@@ -496,13 +523,11 @@
             }
             
             timer()
-            {
-                // There has been a timeout of the HTTP request
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httptimeout", [], null_key, "");
-                llSetTimerEvent(0.0);
-                
+            {       
+                llSetTimerEvent( 0.0 );         
                 if (active_question > -1) {
                     llMessageLinked( LINK_SET, SLOODLE_CHANNEL_QUIZ_ASK_QUESTION, (string)llList2Integer(question_ids, active_question), sitter );
+                    llSetTimerEvent( 10.0 ); // The other script should let us know that it's heard us and answered the question. If it doesn't, we'll keep on retrying until it hears us, if it ever does.
                 }
             }
             
