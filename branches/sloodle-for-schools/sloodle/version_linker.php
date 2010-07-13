@@ -38,31 +38,29 @@ require_once('sl_config.php');
 require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
 // Process the request
-sloodle_debug('Processing request...<br/>');
-$sloodle = new SloodleSession();
+sloodle_debug("Processing request...\n");
+$sloodle = new SloodleSession(false);
 
 // Check the installed Sloodle version
-sloodle_debug('Checking for installed Sloodle version...<br/>');
+sloodle_debug("Checking for installed Sloodle version...\n");
 $moduleinfo = get_record('modules', 'name', 'sloodle');
 if (!$moduleinfo) {
- sloodle_debug('ERROR: Sloodle not installed<br/>');
+ sloodle_debug("ERROR: Sloodle not installed\n");
  $sloodle->response->quick_output(-106, 'SYSTEM', 'The Sloodle module is not installed on this Moodle site.', false);
  exit();
 }
 
 // Extract the module version number
 $moduleversion = (string)$moduleinfo->version;
-sloodle_debug('Sloodle version: '.(string)SLOODLE_VERSION.'<br/>');
+sloodle_debug('Sloodle version: '.(string)SLOODLE_VERSION."\n");
 sloodle_debug("Module version: $moduleversion<br/>");
 
 // Construct and render the response
-sloodle_debug('Rendering response...<br/>');
+sloodle_debug("Rendering response...\n");
 $sloodle->response->set_status_code(1);
 $sloodle->response->set_status_descriptor('OK');
 $sloodle->response->add_data_line(array((string)SLOODLE_VERSION, $moduleversion));
-sloodle_debug('<br/><pre>');
 $sloodle->response->render_to_output();
-sloodle_debug('</pre>');
 
 exit();
 

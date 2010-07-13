@@ -22,12 +22,8 @@
     require_once(SLOODLE_DIRROOT . '/lib/general.php');
     
           
-    /** Defines the HTTP parameter name for a Sloodle password. */
-    define('SLOODLE_PARAM_PASSWORD', 'sloodlepwd');
     /** Defines the HTTP parameter name for a course ID. */
     define('SLOODLE_PARAM_COURSE_ID', 'sloodlecourseid');
-    /** Defines the HTTP parameter name for a Sloodle controller ID. */
-    define('SLOODLE_PARAM_CONTROLLER_ID', 'sloodlecontrollerid');
     /** Defines the HTTP parameter name for a module ID. */
     define('SLOODLE_PARAM_MODULE_ID', 'sloodlemoduleid');
     /** Defines the HTTP parameter name for an avatar UUID. */
@@ -41,6 +37,17 @@
     define('SLOODLE_PARAM_IS_OBJECT', 'sloodleisobject');
     /** Defines the HTTP parameter name for specifying server access level. */
     define('SLOODLE_PARAM_SERVER_ACCESS_LEVEL', 'sloodleserveraccesslevel');
+    
+    /** Defines the HTTP header name for an object UUID */
+    define('SLOODLE_HEADER_OBJECT_UUID', 'HTTP_X_SECONDLIFE_OBJECT_KEY');
+    /** Defines the HTTP header name for an object name */
+    define('SLOODLE_HEADER_OBJECT_NAME', 'HTTP_X_SECONDLIFE_OBJECT_NAME');
+    /** Defines the HTTP header name for an owner UUID */
+    define('SLOODLE_HEADER_OWNER_UUID', 'HTTP_X_SECONDLIFE_OWNER_KEY');
+    /** Defines the HTTP header name for an owner name */
+    define('SLOODLE_HEADER_OWNER_NAME', 'HTTP_X_SECONDLIFE_OWNER_NAME');
+    /** Defines the HTTP header name for an authentication token */
+    define('SLOODLE_HEADER_AUTH_TOKEN', 'HTTP_X_SLOODLE_AUTH_TOKEN');
 
     
     /**
@@ -756,6 +763,31 @@
         return $par;
     }
     
+    /**
+    * Get an optional named value from request headers.
+    * Returns a default value if the specified one was not found.
+    * @param string $name Name of the header to retrieve
+    * @param mixed $default Default value to be returned if the specified header was not found (default: empty string)
+    * @return mixed
+    */
+    function sloodle_optional_header($name, $default = '')
+    {
+        if (!isset($_SERVER[$name])) return $_SERVER[$name];
+        return $default;
+    }
+    
+    /**
+    * Get a named value from request headers.
+    * Terminate the script with an error message if it does not exist.
+    * @param stirng $name Name of the header to retrieve
+    * @return mixed
+    */
+    function sloodle_required_header($name)
+    {
+        if (!isset($_SERVER[$name])) return $_SERVER[$name];
+        exit("-4440011|SFS\nExpected header '{$name}' not found in request");
+    }
+    
     
     // This class handles an HTTP request
     /**
@@ -800,16 +832,6 @@
         {
             return $this->request_data_processed;
         }
-
-        /**
-        * Fetches the password request parameter.
-        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
-        * @return string|null The password provided in the request parameters, or null if there wasn't one
-        */
-        function get_password($required = true)
-        {
-            return $this->get_param(SLOODLE_PARAM_PASSWORD, $required);
-        }
         
         /**
         * Fetches the course ID request parameter.
@@ -819,16 +841,6 @@
         function get_course_id($required = true)
         {
             return (int)$this->get_param(SLOODLE_PARAM_COURSE_ID, $required);
-        }
-        
-        /**
-        * Fetches the controller ID request parameter.
-        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
-        * @return int|null The controller ID provided in the request parameters, or null if there wasn't one
-        */
-        function get_controller_id($required = true)
-        {
-            return (int)$this->get_param(SLOODLE_PARAM_CONTROLLER_ID, $required);
         }
         
         /**
@@ -883,13 +895,53 @@
         }
         
         /**
-        * Fetches the server access level parameter, if specified.
-        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP request parameter was not specified.
-        * @return string|null The server access level provided in the request parameters, or null if there wasn't one
+        * Fetches the UUID of the object that initiated the request from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
         */
-        function get_server_access_level($required = true)
+        function get_object_uuid($required = true)
         {
-            return (int)$this->get_param(SLOODLE_PARAM_SERVER_ACCESS_LEVEL, $required);
+            return $this->get_header(SLOODLE_HEADER_OBJECT_UUID, $required);
+        }
+        
+        /**
+        * Fetches the name of the object that initiated the request from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
+        */
+        function get_object_name($required = true)
+        {
+            return $this->get_header(SLOODLE_HEADER_OBJECT_NAME, $required);
+        }
+        
+        /**
+        * Fetches the UUID of the owner whose object that initiated the request from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
+        */
+        function get_owner_uuid($required = true)
+        {
+            return $this->get_header(SLOODLE_HEADER_OWNER_UUID, $required);
+        }
+        
+        /**
+        * Fetches the name of the owner whose object that initiated the request from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
+        */
+        function get_owner_name($required = true)
+        {
+            return $this->get_header(SLOODLE_HEADER_OWNER_NAME, $required);
+        }
+        
+        /**
+        * Fetches the authentication token from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
+        */
+        function get_auth_token($required = true)
+        {
+            return $this->get_header(SLOODLE_HEADER_AUTH_TOKEN, $required);
         }
         
         
@@ -911,41 +963,50 @@
         * Process all of the standard data provided by the HTTP request, and write it into our {@link SloodleSession} object.
         * Requires that a {@link SloodleSession} object was provided at construction, and is stored in the $_session member.
         * NOTE: this does not load the module part of the session. That must be done separately, using the {@link SloodleSession::load_module()} member function.
-        * @param bool $require_auth If true, then the function will terminate the script with an error message if it cannot authenticate the request through a course, controller and password
-        * @param bool $require_user If true, then the function will terminate the script with an error message if a legitimate user was not identified or could not be auto-registered
         * @return bool True if successful, or false otherwise.
         */
-        function process_request_data($require_auth = true, $require_user = true)
+        function process_request_data()
         {
             // Do we have a session object?
             if (!isset($this->_session)) return false;
             
             // Store the request descriptor
             $this->_session->response->set_request_descriptor($this->get_request_descriptor(false));
-            // Attempt to load the controller, then the course
-            // (there is a shortcut, using course->load_by_controller(), 
-            //  however, that makes it harder to locate problems)
-            if ($this->_session->course->controller->load( $this->get_controller_id(false) )) {
-                // Got the controller... now the course
-                $this->_session->course->load( $this->_session->course->controller->get_course_id() );
-            } else {
-                // Perhaps a course was specified in the request instead?
-                $this->_session->course->load( $this->get_course_id(false) );
+            
+            // If a course ID and module ID have been specified, they should correspond
+            // (the module should be in the same course)
+            $courseid = $this->get_course_id(false);
+            $moduleid = $this->get_module_id(false);
+            $modulecourseid = null;
+            // Load the course ID the module expects
+            if (!empty($moduleid)) $modulecourseid = get_field('course_modules', 'course', 'id', $moduleid);
+            // Verify that the specified course and the expected course correspond
+            if (!empty($courseid) && !empty($moduleid))
+            {
+                if ($modulecourseid != $courseid)
+                {
+                    $this->_session->response->quick_output(-712, 'MODULE_INSTANCE', 'Module and course specified in request do not correspond');
+                    exit();
+                }
+            }
+            
+            // Load the course data if possible
+            if (empty($courseid)) $courseid = $modulecourseid; // Infer course from module if course was not explicitly specified
+            if (!empty($courseid))
+            {
+                $this->_session->courseobj = get_record('course', 'id', $courseid);
+                if ($this->_session->courseobj === false) $this->_session->courseobj = null;
             }
             
             // Get the avatar details
             $uuid = $this->get_avatar_uuid(false);
             $avname = $this->get_avatar_name(false);
             
-            // Attempt to load an avatar
-            if ($this->_session->user->load_avatar($uuid, $avname)) {
+            // Attempt to load an avatar from the request parameters
+            if ($this->_session->user->load_avatar($uuid, $avname))
+            {
                 // Success - now attempt to load the linked VLE user
                 $this->_session->user->load_linked_user();
-                // If we didn't already have a UUID then get it from the user data
-                if (empty($uuid)) {
-                    $uuid = $this->_session->user->get_avatar_uuid();
-                }
-                
                 // Update the user's activity listing
                 $this->_session->user->set_avatar_last_active();
                 $this->_session->user->write_avatar();
@@ -954,131 +1015,19 @@
             // If we now have a UUID, then add it to our response data
             if (!empty($uuid)) $this->_session->response->set_avatar_uuid($uuid);
             
+            // Attempt to load an avatar representing the owner of the object which initiated the current request
+            // This information comes from headers
+            $owneruuid = $this->get_owner_uuid(false);
+            $owneravname = $this->get_owner_name(false);
+            if ($this->_session->owner->load_avatar($owneruuid, $owneravname))
+            {
+                $this->_session->owner->load_linked_user();
+                $this->_session->owner->set_avatar_last_active();
+                $this->_session->owner->write_avatar();
+            }
+            
             $this->request_data_processed = true;
             return true;
-        }
-      
-        
-        /**
-        * Gets a database record for the course identified in the request.
-        * (Note: this function does not check whether or not the user is enrolled in the course)
-        *
-        * @param bool $require If true, the function will NOT return failure. Rather, it will terminate the script with an error message.
-        * @return object A record directly from the database, or null if the course is not found.
-        */
-        function get_course_record($require = true)
-        {
-            // Make sure the request data is processed
-            $this->process_request_data();
-            // Make sure the course ID was specified
-            if (is_null($this->course_id)) {
-                if ($require) {
-                    $this->response->set_status_code(-501);
-                    $this->response->set_status_descriptor('COURSE');
-                    $this->response->add_data_line('No course specified in request.');
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return null;
-            }
-            // Attempt to get the course data
-            $course_record = get_record('course', 'id', $this->course_id);
-            if ($course_record === false) {
-                // Course not found
-                if ($require) {
-                    $this->response->set_status_code(-512);
-                    $this->response->set_status_descriptor('COURSE');
-                    $this->response->add_data_line("Course {$this->course_id} not found.");
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return null;
-            }
-            // Make sure the course is visible
-            // TODO: any availability other checks here?
-            if ((int)$course_record->visible == 0) {
-                // Course not available
-                if ($require) {
-                    $this->response->set_status_code(-513);
-                    $this->response->set_status_descriptor('COURSE');
-                    $this->response->add_data_line("Course {$this->course_id} is not available.");
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return null;
-            }
-            // TODO: in future, we need to check that the course is Sloodle-enabled
-            // TODO: in future, make sure we are authenticated for this particular course
-            
-            // Seems fine... return the object
-            return $course_record;
-        }
-        
-        /**
-        * Get a course module instance for the module specified in the request
-        * Uses the ID specified in {@link $module_id}.
-        *
-        * @param string $type specifies the name of the module type (e.g. 'forum', 'choice' etc.) - ignored if blank (default).
-        * @param bool $require If true, the function will NOT return failure. Rather, it will terminate the script with an error message.
-        * @return object A database record if successful, or false if not (e.g. if instance is not found, is not visible, or is not of the correct type)
-        */
-        function get_course_module_instance( $type = '', $require = true )
-        {
-            // Make sure the request data is processed
-            $this->process_request_data();
-            
-            // Make sure the module ID was specified
-            if ($this->module_id == null) {
-                if ($require) {
-                    $this->response->set_status_code(-711);
-                    $this->response->set_status_descriptor('MODULE_DESCRIPTOR');
-                    $this->response->add_data_line('Course module instance ID not specified.');
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return false;
-            }
-            
-            // Attempt to get the instance
-            if (!($cmi = sloodle_get_course_module_instance($this->module_id))) {
-                if ($require) {
-                    $this->response->set_status_code(-712);
-                    $this->response->set_status_descriptor('MODULE_DESCRIPTOR');
-                    $this->response->add_data_line('Could not find course module instance.');
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return false;
-            }
-            
-            // If the type was specified, then verify it
-            if (!empty($type)) {
-                if (!sloodle_check_course_module_instance_type($cmi, strtolower($type))) {
-                    if ($require) {
-                        $this->response->set_status_code(-712);
-                        $this->response->set_status_descriptor('MODULE_DESCRIPTOR');
-                        $this->response->add_data_line("Course module instance not of expected type. (Expected: '$type').");
-                        $this->response->render_to_output();
-                        exit();
-                    }
-                    return false;
-                }
-            }
-            
-            // Make sure the instance is visible
-            if (!sloodle_is_course_module_instance_visible($cmi)) {
-                if ($require) {
-                    $this->response->set_status_code(-713);
-                    $this->response->set_status_descriptor('MODULE_DESCRIPTOR');
-                    $this->response->add_data_line('Specified course module instance is not available.');
-                    $this->response->render_to_output();
-                    exit();
-                }
-                return false;
-            }
-            
-            // Everything looks fine
-            return $cmi;
         }
         
         
@@ -1124,6 +1073,42 @@
         }
         
         /**
+        * Obtains a named HTTP request header, or NULL if it has not been provided.
+        * Return values are always strings.
+        * @param string $name The name of the header to fetch
+        * @param mixed $default The value to return if the header cannot be found
+        * @return string|mixed The raw header value (will be a string if the header was found, or the value of parameter $default otherwise)
+        */
+        function optional_header($name, $default = null)
+        {
+            if (isset($_SERVER[$name])) return (string)$_SERVER[$name];
+            return $default;
+        }
+    
+        /**
+        * Obtains a named HTTP request header, or terminates with an error message if it has not been provided.
+        * Also note that this function always returned values in the string type. They must be cast if other types are required.
+        * @param string $name The name of the header to get.
+        * @return string The raw header value
+        */
+        function required_header($name)
+        {
+            // Is the header provided?
+            if (!isset($_SERVER[$name])) {
+                // No - report the error
+                if (isset($this->_session)) {
+                    $this->_session->response->set_status_code(-4440011);
+                    $this->_session->response->set_status_descriptor('SFS');
+                    $this->_session->response->add_data_line("Expected header not provided: '{$name}'.");
+                    $this->_session->response->render_to_output();
+                }
+                exit();
+            }
+            
+            return $_SERVER[$name];
+        }
+        
+        /**
         * Obtains a named HTTP request parameter, optionally requiring it or not
         * @param string $parname The name of the parameter to get
         * @param bool $required Indicates whether or not to 'require' the parameter (if it is required, but cannot be found, then the script is terminated with an error message)
@@ -1135,6 +1120,20 @@
             // Use the existing functions to fetch the parameter
             if ($required) return $this->required_param($parname);
             return $this->optional_param($parname, $default);
+        }
+        
+        /**
+        * Obtains a named HTTP header value.
+        * If it is 'required' then the script will terminate with an error message if the header was not found.
+        * @param string $name The name of the header to get
+        * @param bool $required Indicates whether or not to 'require' the header (if it is required, but cannot be found, then the script is terminated with an error message)
+        * @param mixed $default If the $require parameter is false, and the header cannot be found, then this value will be returned instead
+        * @return string|mixed The raw value of the header if found, or the value of parameter $default if it was not found and parameter $require was false
+        */
+        function get_header($name, $required, $default = null)
+        {
+            if ($required) return $this->required_header($name);
+            return $this->optional_header($name, $default);
         }
     }
 ?>

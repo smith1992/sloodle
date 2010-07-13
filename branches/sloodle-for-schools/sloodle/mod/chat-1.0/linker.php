@@ -1,6 +1,6 @@
 <?php
     /**
-    * SLOODLE chat linker
+    * SLOODLE chat linker, modified for SLOODLE for Schools.
     * Allows a Sloodle WebIntercom tool link into a Moodle chatroom.
     * Fetches a recent chat history, and optionally inserts a new message.
     *
@@ -16,14 +16,12 @@
     */
     
     // This script should be called with the following parameters:
-    //  sloodlecontrollerid = ID of a Sloodle Controller through which to access Moodle
-    //  sloodlepwd = the prim password or object-specific session key to authenticate the request
     //  sloodlemoduleid = ID of a chatroom
     //
     // If adding a new message, the following parameters should be provided:
-    //  sloodleuuid = UUID of the avatar
-    //  sloodleavname = name of the avatar
-    //  message = the body of the message.
+    //  sloodleuuid = UUID of the avatar writing the message
+    //  sloodleavname = name of the avatar writing the message
+    //  message = the body of the message to be added to the chatroom
     //
     // The following parameters are optional:
 	//  firstmessageid = if specified, only messages whose ID number is greater than or equal to this value will be returned in the chat history
@@ -39,22 +37,29 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    // Authenticate the request, and load a chat module
+    /** Include our SLOODLE for Schools functionality. */
+    require_once(SLOODLE_LIBROOT.'/sloodle_for_schools.php');
+    
+    // Verify that this request is coming from a legitimate source
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
+    // Load a chat module - this provides our functionality for accessing the chatroom data
     $sloodle->load_module('chat', true);
-    // Attempt to validate the user
-    // (this will auto-register/enrol users where necessary and allowed)
-    // If server access level is public, then validation is not essential... otherwise, it is
-    $sloodleserveraccesslevel = $sloodle->request->get_server_access_level(false);
-    if ($sloodleserveraccesslevel == 0) $sloodle->validate_user(false);
-    else $sloodle->validate_user(true);
+    
+    // Make sure the owner of this object is a teacher in the module context
+    //$sloodle->validate_owner(SLOODLE_CONTEXT_MODULE, SLOODLE_TEACHER);
+    
     
     // Has an incoming message been provided?
     $message = sloodle_clean_for_db($sloodle->request->optional_param('message', null));
-    if ($message != null) {
+    if ($message != null)
+    {
+        // Ensure we know which Moodle user is associated with the avatar who wrote the message
+        $sloodle->validate_user(true);
+    
         // Add it to the chatroom.
-        if (!$sloodle->module->add_message($message)) {
+        if (!$sloodle->module->add_message($message))
+        {
 			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
         } else {
 			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());

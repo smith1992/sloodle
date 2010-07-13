@@ -1119,5 +1119,23 @@
         return min($upload_max_filesize, $post_max_size);
     }
 
+     /**
+    * Set the token which OpenSim provides to authenticate HTTP requests.
+    * @param string $token The token to store. Should be alphanumeric.
+    * @return bool True on success, or false on failure (may fail if database query encountered an error)
+    */
+    function sloodle_set_stored_auth_token($token)
+    {
+        return sloodle_set_config('sloodle_for_schools_auth_token', $token);
+    }
+    
+    /**
+    * Get the token which needs to be provided to authenticate requests.
+    * @return string|bool A string containing the configuration value, or false if the query failed (e.g. if the named value didn't exist)
+    */
+    function sloodle_get_stored_auth_token()
+    {
+        return sloodle_get_config('sloodle_for_schools_auth_token');
+    }
 
 ?>

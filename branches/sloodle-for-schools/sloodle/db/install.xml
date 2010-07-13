@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="sloodle" COMMENT="Defines instances of Sloodle modules." NEXT="sloodle_controller">
+    <TABLE NAME="sloodle" COMMENT="Defines instances of Sloodle modules." NEXT="sloodle_distributor">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="type"/>
@@ -23,22 +23,7 @@
       </INDEXES>
 
     </TABLE>
-    <TABLE NAME="sloodle_controller" COMMENT="Defines instances of Sloodle controllers." PREVIOUS="sloodle" NEXT="sloodle_distributor">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
-        <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Identifies which Sloodle instance this refers to." PREVIOUS="id" NEXT="enabled"/>
-        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Indicates whether or not this Controller is enabled.." PREVIOUS="sloodleid" NEXT="password"/>
-        <FIELD NAME="password" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" ENUM="false" COMMENT="Prim Password for this instance. If left blank, it should use the site default." PREVIOUS="enabled"/>
-      </FIELDS>
-      <KEYS>
-
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="sloodleid" UNIQUE="true" FIELDS="sloodleid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="sloodle_distributor" COMMENT="Defines instances of Sloodle distributors." PREVIOUS="sloodle_controller" NEXT="sloodle_distributor_entry">
+    <TABLE NAME="sloodle_distributor" COMMENT="Defines instances of Sloodle distributors." PREVIOUS="sloodle" NEXT="sloodle_distributor_entry">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
 
@@ -62,7 +47,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_distributor_entry" NEXT="sloodle_course">
+    <TABLE NAME="sloodle_users" COMMENT="Associates Moodle user IDs with Second Life avatar UUIDs and names" PREVIOUS="sloodle_distributor_entry" NEXT="sloodle_layout">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" COMMENT="Primary index field" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Index of the associated Moodle user account." PREVIOUS="id" NEXT="uuid"/>
@@ -79,63 +64,8 @@
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid" PREVIOUS="uuid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="sloodle_course" COMMENT="Stores Sloodle data about each course" PREVIOUS="sloodle_users" NEXT="sloodle_pending_avatars">
-      <FIELDS>
 
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" COMMENT="Primary index field" NEXT="course"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Index of the Moodle course this record relates to" PREVIOUS="id" NEXT="autoreg"/>
-        <FIELD NAME="autoreg" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Indicates whether or not auto-registration is enabled for this course" PREVIOUS="course" NEXT="autoenrol"/>
-        <FIELD NAME="autoenrol" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Indicates whether or not auto-enrolment is enabled for this course" PREVIOUS="autoreg" NEXT="loginzonepos"/>
-        <FIELD NAME="loginzonepos" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" ENUM="false" COMMENT="Position vector of the LoginZone for this course" PREVIOUS="autoenrol" NEXT="loginzonesize"/>
-        <FIELD NAME="loginzonesize" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" ENUM="false" COMMENT="Size vector of the LoginZone for this course" PREVIOUS="loginzonepos" NEXT="loginzoneregion"/>
-        <FIELD NAME="loginzoneregion" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" ENUM="false" COMMENT="Name of the region where the LoginZone is rezzed" PREVIOUS="loginzonesize" NEXT="loginzoneupdated"/>
-        <FIELD NAME="loginzoneupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Timestamp of the last time the LoginZone was updated" PREVIOUS="loginzoneregion"/>
-      </FIELDS>
-
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for sloodle_users"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="sloodle_active_object" COMMENT="Lists objects which have been authorised to access specific controllers" PREVIOUS="sloodle_pending_avatars" NEXT="sloodle_object_config">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" COMMENT="Primary index field" NEXT="controllerid"/>
-        <FIELD NAME="controllerid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="The controller which this object is authorised for." PREVIOUS="id" NEXT="userid"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="ID of the user who authorised this object, directly or indirectly. If 0, then it is not yet authorised." PREVIOUS="controllerid" NEXT="uuid"/>
-
-        <FIELD NAME="uuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="UUID of the object" PREVIOUS="userid" NEXT="password"/>
-        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Object-specific password" PREVIOUS="uuid" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Name of the object" PREVIOUS="password" NEXT="type"/>
-        <FIELD NAME="type" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Type identifier of the object. Used to determine which configuration script to use." PREVIOUS="name" NEXT="timeupdated"/>
-        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period." PREVIOUS="type"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
-      </KEYS>
-
-      <INDEXES>
-        <INDEX NAME="uuid" UNIQUE="true" FIELDS="uuid" COMMENT="Objects cannot be authorised more than once, although their authorisation can change."/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="sloodle_object_config" COMMENT="Configuration settings for registered active objects" PREVIOUS="sloodle_active_object" NEXT="sloodle_login_notifications">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" COMMENT="Primary index field" NEXT="object"/>
-        <FIELD NAME="object" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Identifies which object this setting refers to." PREVIOUS="id" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Name of the setting" PREVIOUS="object" NEXT="value"/>
-
-        <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Value of the setting" PREVIOUS="name"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="object-name" UNIQUE="true" FIELDS="object, name" COMMENT="Setting names must be unique for a given object"/>
-      </INDEXES>
-    </TABLE>
-
-   <TABLE NAME="sloodle_layout" COMMENT="Defines classroom layout profiles" PREVIOUS="sloodle_login_notifications" NEXT="sloodle_layout_entry">
+   <TABLE NAME="sloodle_layout" COMMENT="Defines classroom layout profiles" PREVIOUS="sloodle_users" NEXT="sloodle_layout_entry">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="course"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Identifies which course this profile belongs to. Relates to the Moodle course table" PREVIOUS="id" NEXT="name"/>
@@ -167,7 +97,7 @@
         <INDEX NAME="layout" UNIQUE="false" FIELDS="layout"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="sloodle_layout_entry_config" COMMENT="Defines configuration parameters for layout entries, providing defaults for active_object configurations" PREVIOUS="sloodle_layout_entry" NEXT="sloodle_loginzone_allocation">
+    <TABLE NAME="sloodle_layout_entry_config" COMMENT="Defines configuration parameters for layout entries, providing defaults for active_object configurations" PREVIOUS="sloodle_layout_entry" NEXT="sloodle_presenter">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="layout_entry"/>
         <FIELD NAME="layout_entry" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Foreign key of layout_entry item" PREVIOUS="id" NEXT="name"/>
@@ -179,26 +109,8 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="sloodle_user_object" COMMENT="Lists user-centric objects which individual users have authorised for use with their own accounts, such as blogging" PREVIOUS="sloodle_loginzone_allocation" NEXT="sloodle_presenter">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" COMMENT="Primary index field" NEXT="avuuid"/>
-        <FIELD NAME="avuuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="UUID of the avatar" PREVIOUS="id" NEXT="objuuid"/>
 
-        <FIELD NAME="objuuid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="UUID of the object" PREVIOUS="avuuid" NEXT="objname"/>
-        <FIELD NAME="objname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Name of the object" PREVIOUS="objuuid" NEXT="password"/>
-        <FIELD NAME="password" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" COMMENT="Object- and avatar-specific password" PREVIOUS="objname" NEXT="authorised"/>
-        <FIELD NAME="authorised" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Indicates whether or not this object has been authorised.." PREVIOUS="password" NEXT="timeupdated"/>
-        <FIELD NAME="timeupdated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" COMMENT="Timestamp for when this entry was created or updated. Entries expire after a certain period." PREVIOUS="authorised"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for table"/>
-      </KEYS>
-
-      <INDEXES>
-        <INDEX NAME="objuuid" UNIQUE="true" FIELDS="objuuid" COMMENT="User objects can only be authorised against one avatar at a time."/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="sloodle_presenter" COMMENT="Each record stores data about a Presenter instance." PREVIOUS="sloodle_user_object" NEXT="sloodle_presenter_entry">
+    <TABLE NAME="sloodle_presenter" COMMENT="Each record stores data about a Presenter instance." PREVIOUS="sloodle_layout_entry_config" NEXT="sloodle_presenter_entry">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="sloodleid"/>
         <FIELD NAME="sloodleid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Indicates which SLOODLE module instance this Presenter information relates to." PREVIOUS="id" NEXT="framewidth"/>
