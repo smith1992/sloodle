@@ -6,6 +6,17 @@
 * @package sloodlelang
 */
 
+// SLOODLE for Schools specific //
+
+$string['sfs_auth_token'] = 'Authentication token';
+$string['sfs_auth_token:info'] = 'The token which OpenSim uses to authenticate itself with this site.';
+
+// End SLOODLE for Schools specific //
+
+
+$string['modulename'] = 'SLOODLE Module';
+$string['modulenameplural'] = 'SLOODLE Modules';
+
 $string['accesslevel'] = 'Access Level';
 $string['accesslevel:public'] = 'Public';
 $string['accesslevel:owner'] = 'Owner';
@@ -192,8 +203,6 @@ $string['moduletype:tracker'] = 'tracker';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
-$string['modulename'] = 'SLOODLE Module';
-$string['modulenameplural'] = 'SLOODLE Modules';
 $string['modulenotfound'] = 'SLOODLE module not found.';
 $string['modulesetup'] = 'Module Setup';
 $string['moduletypemismatch'] = 'SLOODLE module type mismatch. You cannot change the SLOODLE module type after it is created.';

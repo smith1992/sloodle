@@ -26,6 +26,21 @@
     require_once(SLOODLE_DIRROOT.'/lib/user_object.php');
     
     
+    /** Simple cross-platform role definitions for SLOODLE.
+    * Guests are not enrolled and cannot usually view any data.
+    * This might be used when you want to see if a user can access a resource without being logged-in. */
+    define('SLOODLE_ROLE_GUEST', 10);
+    /** Simple cross-platform role definitions for SLOODLE.
+    * Students are enrolled in courses and can typically view data, with limited interaction. */
+    define('SLOODLE_ROLE_STUDENT', 20);
+    /** Simple cross-platform role definitions for SLOODLE.
+    * Teachers can view and modify content. */
+    define('SLOODLE_ROLE_TEACHER', 30);
+    /** Simple cross-platform role definitions for SLOODLE.
+    * Admins can basically do anything. */
+    define('SLOODLE_ROLE_ADMIN', 40);
+    
+    
     /**
     * A class to represent a single user, including Moodle and Sloodle data.
     * @package sloodle
