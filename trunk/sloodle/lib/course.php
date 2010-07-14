@@ -698,25 +698,15 @@
 
         }
         function get_enrolled_users(){
-            //$contextid = get_context_instance(CONTEXT_COURSE,$this->course_object->id);
-            $contextid = get_context_instance(CONTEXT_COURSE,$this->course_object->id);
-            $sql = "SELECT u.id, u.username
-            FROM mdl_user u, mdl_role_assignments r
-            WHERE u.id=r.userid AND r.contextid = {$contextid->id}";
-            $enrolledUsers = get_records_sql($sql);
+            global $CFG;          
+             $contextid = get_context_instance(CONTEXT_COURSE,$this->course_object->id);
+             $cid=$contextid->id;
+             $sql= "SELECT sl.*, u.firstname, u.lastname FROM {$CFG->prefix}user u INNER JOIN {$CFG->prefix}sloodle_users sl ON sl.userid=u.id INNER JOIN {$CFG->prefix}role_assignments ra ON ra.userid=u.id AND ra.contextid={$cid}";
+             $enrolledUsers = get_records_sql($sql);
             //return $enrolledUsers
             return $enrolledUsers;
         }
-        //translate to avatar names
-        function get_enrolled_avatars(){ 
-            $enrolledUsers = $this->get_enrolled_users();
-            $avatars = Array();
-            foreach ($enrolledUsers as $e){
-                $av = get_record('sloodle_users','userid',$e->id);
-                if (!empty($av))$avatars[]=$av->avname;
-            }
-            return $avatars;
-        }
+        
             
         function get_layout($layoutid) {
 

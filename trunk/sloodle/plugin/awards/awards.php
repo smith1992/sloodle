@@ -14,6 +14,7 @@
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 /** SLOODLE awards object data structure */
 require_once(SLOODLE_DIRROOT.'/mod/awards-1.0/awards_object.php');
+require_once(SLOODLE_LIBROOT.'/currency.php');    
 
 class SloodleApiPluginAwards extends SloodleApiPluginBase{
 
@@ -120,6 +121,52 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("SECRETWORD:".$sloodle->request->optional_param('secretword'));        
       $awardsObj->synchronizeDisplays_sl($trans);
     }
+     function addTransaction(){         
+         global $sloodle;
+         $cObject = new SloodleCurrency();
+         $currency="Credits";
+         $avuuid            = $sloodle->request->required_param('avuuid'); 
+         $avname            = $sloodle->request->optional_param('avname'); 
+         $amount            = $sloodle->request->required_param('amount'); 
+         $currency          = $sloodle->request->required_param('currency'); 
+         $sloodleid            = $sloodle->request->optional_param('sloodleid'); 
+         $details           = $sloodle->request->optional_param('details'); 
+         $gameid            =   $sloodle->request->optional_param('gameid');    
+         //get moodleId for the avatar which was sent
+         $avuser = new SloodleUser( $sloodle );
+            //load the user, if failed, respond
+            if (!$avuser->load_avatar($avuuid, null)) {
+               $sloodle->response->set_status_code(-331 );             //line 0 
+               $sloodle->response->set_status_descriptor('USER'); //line 0            
+               return;
+           }
+           else {
+               $avuser->load_linked_user();                                    
+               if (!$avuser->is_enrolled($sloodle->course->get_course_id())){
+                    $sloodle->response->set_status_code(-321 );             //line 0 
+                    $sloodle->response->set_status_descriptor('USER');//line 0     
+                    return;
+                }
+                else{
+                    //OK, user is enrolled and register, 
+                    $userid = $avuser->avatar_data->userid;         
+                    if ($cObject->addTransaction($userid,$avname,$avuuid,$gameid,$currency,$amount,$details,$sloodleid)){
+                        $sloodle->response->set_status_code(1);             //line 0    1
+                        $sloodle->response->add_data_line("AVNAME:".$avname);
+                        $sloodle->response->add_data_line("AVUUID:".$avuuid);
+                        $sloodle->response->add_data_line("GAMEID:".$gameid);
+                        $sloodle->response->set_status_descriptor('OK'); 
+                        $sloodle->response->add_data_line("CURRENCY:".$currency);
+                        $sloodle->response->add_data_line("BALANCE:".$cObject->get_balance($currency,$userid,$avuuid));
+                        
+                    }else
+                    {
+                        $sloodle->response->set_status_code(-1);             //line 0    1
+                        $sloodle->response->set_status_descriptor('HQ'); 
+                    }
+                }
+           }
+     }              
      /*
      * modifyCash() API command - inserts into the sloodle_awards_trans a record with the sloodleid of -777  this signifies a new type of currency called GameCurrency which can be used as a form of non-monitory or monitory cash system for sloodle
      * This will enable us to insert moodle-site-wide curency into the awards table.
