@@ -27,6 +27,18 @@
     require_once(SLOODLE_LIBROOT.'/plugins.php');
     
     
+    /** Used to indicate that a test is to be done at the level of a module.
+    * For example, checking if a user is a teacher on a module (activity), rather than a whole course. */
+    define('SLOODLE_CONTEXT_MODULE', 10);
+    /** Used to indicate that a test is to be done at the level of a course.
+    * For example, checking if a user is a teacher on a course, rather than just a module. */
+    define('SLOODLE_CONTEXT_COURSE', 20);
+    /** Used to indicate that a test is to be done at the level of a site.
+    * For example, checking if a user is a teacher on the whole site. */
+    define('SLOODLE_CONTEXT_SITE', 30);
+    
+    
+    
     /**
     * The primary API class, which manages all other parts.
     * @package sloodle
@@ -156,18 +168,30 @@
             $token = $this->request->get_auth_token(false);
             if ($token === null)
             {
-                if ($require) $this->response->quick_output(-4440001, 'SFS', 'Authentication token not provided in request.');
+                if ($require)
+                {
+                    $this->response->quick_output(-4440001, 'SFS', 'Authentication token not provided in request.');
+                    exit;
+                }
                 return false;
             }
             $storedToken = sloodle_get_stored_auth_token();
             if (!$storedToken)
             {
-                if ($require) $this->response->quick_output(-4440003, 'SFS', 'Failed to retrieve correct authentication token from database');
+                if ($require)
+                {
+                    $this->response->quick_output(-4440003, 'SFS', 'Failed to retrieve correct authentication token from database');
+                    exit;
+                }
                 return false;
             }
             if ($storedToken != $token)
             {
-                if ($require) $this->response->quick_output(-4440002, 'SFS', 'Provided authentication token was invalid');
+                if ($require)
+                {
+                    $this->response->quick_output(-4440002, 'SFS', 'Provided authentication token was invalid');
+                    exit;
+                }
                 return false;
             }
             
@@ -175,10 +199,57 @@
         }
         
         /**
-        * Verifies that the incoming request is from an object owned by a teacher or admin on the current course or module.
-        
+        * Checks that the owner of the object originating the current request has certain permissions.
+        * This can check the site, course, or module context for permission.
+        * It will return true if the owner can be verified as having at least the given role in the context.
+        * @param int $context The context to check for permissions: SLOODLE_CONTEXT_SITE, SLOODLE_CONTEXT_COURSE, SLOODLE_CONTEXT_MODULE
+        * @param int $role The minimum role required: SLOODLE_ROLE_GUEST, SLOODLE_ROLE_STUDENT, SLOODLE_ROLE_TEACHER, SLOODLE_ROLE_ADMIN
+        * @param bool $require If true (default) the script will terminate with an error message if the check fails. Otherwise, it will return a boolean to indicate success.
+        * @return bool True if the owner has the specified permission, or false otherwise.
         */
-        //TODO
+        function validate_owner($context, $role, $require = true)
+        {
+            // Check that we have the owner's avatar data, and an associated user account
+            if (!$this->owner->is_avatar_loaded())
+            {
+                if ($require)
+                {
+                    $this->response->quick_output(-311, 'OWNER_AUTH', 'Owner avatar data not provided.'); // Owner avatar could just be not in the database here
+                    exit;
+                }
+                return false;
+            }
+            // Do we have associated Moodle user data?
+            if (!$this->owner->is_user_loaded())
+            {
+                // No
+                // TODO: if necessary and possible, search for user data in authentication system
+                if ($require)
+                {
+                    $this->response->quick_output(-321, 'OWNER_AUTH', 'Owner avatar data is not linked to a known Moodle user account.');
+                    exit;
+                }
+            }
+            
+            // Generate a context
+            $context_instance = null;
+            switch ($context)
+            {
+            case SLOODLE_CONTEXT_MODULE:
+                break;
+                
+            case SLOODLE_CONTEXT_COURSE:
+                break;
+                
+            case SLOODLE_CONTEXT_SITE:
+                break;
+                
+            default:
+                //error
+                break;
+            }
+            return true;
+        }
         
         
         /**
@@ -193,7 +264,7 @@
         * @return bool Returns true if validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
         * @see SloodleSession::validate_avatar()
         */
-        function validate_user($require = true, $suppress_autoreg = false, $suppress_autoenrol = false)
+        function validate_user($require = true)
         {
             // Is it an object request?
             if ($this->request->is_object_request()) {

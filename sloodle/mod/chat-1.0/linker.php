@@ -37,9 +37,6 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    /** Include our SLOODLE for Schools functionality. */
-    require_once(SLOODLE_LIBROOT.'/sloodle_for_schools.php');
-    
     // Verify that this request is coming from a legitimate source
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
@@ -47,7 +44,7 @@
     $sloodle->load_module('chat', true);
     
     // Make sure the owner of this object is a teacher in the module context
-    //$sloodle->validate_owner(SLOODLE_CONTEXT_MODULE, SLOODLE_TEACHER);
+    //$sloodle->validate_owner(SLOODLE_CONTEXT_MODULE, SLOODLE_ROLE_TEACHER);
     
     
     // Has an incoming message been provided?

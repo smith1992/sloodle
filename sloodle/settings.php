@@ -1,6 +1,7 @@
 <?php
 
 require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
+require_once(SLOODLE_LIBROOT.'/general.php');
 
 
 // // VERSION INFO // //
@@ -25,45 +26,17 @@ $settings->add(new admin_setting_heading('sloodle_version_header', "Version Info
 // // GENERAL SETTINGS // //
 
 // General settings section
-$settings->add(new admin_setting_heading('sloodle_settings_header', "Sloodle Settings", ''));
+$settings->add(new admin_setting_heading('sloodle_settings_header', "SLOODLE for Schools Settings", ''));
 
-// Get some localization strings
-$stryes = get_string('yes');
-$strno = get_string('no');
+// Do we already have an auth token? Add it if not. (There must be a better place to do this)
+$storedAuth = sloodle_get_stored_auth_token();
+if (empty($storedAuth)) sloodle_set_stored_auth_token( sloodle_generate_random_auth_token() );
 
-    
-// This selection box determines whether or not auto-registration is allowed on the site
-$settings->add( new admin_setting_configselect(
-                'sloodle_allow_autoreg',
-                '',
-                get_string('autoreg:allowforsite','sloodle').helpbutton('auto_registration', get_string('help:autoreg','sloodle'), 'sloodle', true, false, '', true),
-                0,
-                array(0 => $strno, 1 => $stryes)
-));
-
-    
-// This selection box determines whether or not auto-enrolment is allowed on the site
-$settings->add( new admin_setting_configselect(
-                'sloodle_allow_autoenrol',
-                '',
-                get_string('autoenrol:allowforsite','sloodle').helpbutton('auto_enrolment', get_string('help:autoenrol','sloodle'), 'sloodle', true, false, '', true),
-                0,
-                array(0 => $strno, 1 => $stryes)
-));
-
-// This text box will let the user set a number of days after which active objects should expire
+// This text box will let the user see and change the OpenSim authentication token
 $settings->add( new admin_setting_configtext(
-                'sloodle_active_object_lifetime',
-                get_string('activeobjectlifetime', 'sloodle'),
-                get_string('activeobjectlifetime:info', 'sloodle').helpbutton('object_authorization', get_string('activeobjects','sloodle'), 'sloodle', true, false, '', true),
-                7));
-                
-
-// This text box will let the user set a number of days after which user objects should expire
-$settings->add( new admin_setting_configtext(
-                'sloodle_user_object_lifetime',
-                get_string('userobjectlifetime', 'sloodle'),
-                get_string('userobjectlifetime:info', 'sloodle').helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', true),
-                21));
+                'sloodle_for_schools_auth_token',
+                get_string('sfs_auth_token', 'sloodle'),
+                get_string('sfs_auth_token:info', 'sloodle'),
+                null, PARAM_RAW, 40));
 
 ?>

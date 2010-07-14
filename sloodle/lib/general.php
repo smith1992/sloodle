@@ -1137,5 +1137,37 @@
     {
         return sloodle_get_config('sloodle_for_schools_auth_token');
     }
+    
+    /**
+    * Generate a random character for the authentication token.
+    * @return string A single character string
+    */
+    function sloodle_generate_random_auth_token_char()
+    {
+        // We will allow upper/lower-case letters and numbers.
+        // That gives us 61 possibilities which we will convert into an ASCII character code.
+        $rnd = mt_rand(0, 61);
+        $charCode = 0;
+        if ($rnd < 10) $charCode = $rnd + 48; // A number
+        else if ($rnd < 36) $charCode = $rnd + 55; // Upper case letter
+        else if ($rnd < 62) $charCode = $rnd + 61; // Lower case letter
+        return chr($charCode);
+    }
+    
+    /**
+    * Generate a random OpenSim authentication token (used by SLOODLE for Schools).
+    * It will be a random length string, containing random letters and numbers.
+    * @return string A string containing a random token
+    */
+    function sloodle_generate_random_auth_token()
+    {
+        $token = '';
+        $len = mt_rand(20, 30);
+        for ($i = 0; $i < $len; $i++)
+        {
+            $token .= sloodle_generate_random_auth_token_char();
+        }
+        return $token;
+    }
 
 ?>

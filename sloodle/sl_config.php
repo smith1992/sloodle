@@ -33,8 +33,12 @@
     /** The data path for the root of the Sloodle library folder. */
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
-    /** The Sloodle version number. */
-    define('SLOODLE_VERSION', '1.1'); // This is the release version, not the module version (which is in version.php)
+    /** The SLOODLE release version number.
+    * Note that this is a SLOODLE for Schools version based on SLOODLE 1.1.
+    * Non-SFS versions of SLOODLE will not be compatible.
+    */
+    define('SLOODLE_VERSION', 'sfs1.1'); // This is the release version, not the module version (which is in version.php)
+    
     
 //---------------------------------------------------------------------
 
