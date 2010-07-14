@@ -25,9 +25,9 @@ $string['nameunknown'] = 'name unknown';
 $string['noavatar'] = 'no avatar';
 $string['notecardsetuppage'] = 'Notecard Setup page';
 
-$string['oldmodule'] = 'Your SLOODLE module is out-of-date. Please upgrade it to at least 0.4.';
-
 $string['pleaselogin'] = 'Please login to use SLOODLE.';
+
+$string['requiressfs'] = 'This SLOODLE menu block is only designed for use with a SLOODLE for Schools installation.';
 
 $string['savesettings'] = 'Save Settings';
 $string['show'] = 'Show';
