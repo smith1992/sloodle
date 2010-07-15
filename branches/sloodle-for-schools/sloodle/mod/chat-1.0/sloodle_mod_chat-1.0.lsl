@@ -1,4 +1,4 @@
-// Sloodle WebIntercom
+// SLOODLE WebIntercom - modified for SLOODLE for Schools.
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)
 //
@@ -16,31 +16,18 @@
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
-string SLOODLE_EOF = "sloodleeof";
+//string SLOODLE_CHAT_LINKER = "mod/sloodle/mod/chat-1.0/linker.php";
+string SLOODLE_CHAT_LINKER = "mod/chat-1.0/linker.php";
 
 string SLOODLE_OBJECT_TYPE = "chat-1.0";
 
-integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
-
-string sloodleserverroot = "";
-string sloodlepwd = "";
-integer sloodlecontrollerid = 0;
+string sloodleserverroot = "URL_NOT_STORED";
 integer sloodlemoduleid = 0;
 integer sloodlelistentoobjects = 0; // Should this object listen to other objects?
-integer sloodleobjectaccessleveluse = 0; // Who can use this object?
-integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
-integer sloodleserveraccesslevel = 0; // Who can use the server resource? (Value passed straight back to Moodle)
 integer sloodleautodeactivate = 1; // Should the WebIntercom auto-deactivate when not in use?
 
-string SoundFile = ""; // Sound file used for the beep
 string MOODLE_NAME = "(SL)";
 string MOODLE_NAME_OBJECT = "(SL-object)";
-
-integer isconfigured = FALSE; // Do we have all the configuration data we need?
-integer eof = FALSE; // Have we reached the end of the configuration data?
 
 integer listenctrl = 0; // Listening for initial control... i.e. activation/deactivation
 list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a command dialog (during logging) and when
@@ -96,49 +83,10 @@ sloodle_debug(string msg)
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
-// Configure by receiving a linked message from another script in the object
-// Returns TRUE if the object has all the data it needs
-integer sloodle_handle_command(string str) 
-{
-    list bits = llParseString2List(str,["|"],[]);
-    integer numbits = llGetListLength(bits);
-    string name = llList2String(bits,0);
-    string value1 = "";
-    string value2 = "";
-    
-    if (numbits > 1) value1 = llList2String(bits,1);
-    if (numbits > 2) value2 = llList2String(bits,2);
-    
-    if (name == "set:sloodleserverroot") sloodleserverroot = value1;
-    else if (name == "set:sloodlepwd") {
-        // The password may be a single prim password, or a UUID and a password
-        if (value2 != "") sloodlepwd = value1 + "|" + value2;
-        else sloodlepwd = value1;
-        
-    } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
-    else if (name == "set:sloodlemoduleid") sloodlemoduleid = (integer)value1;
-    else if (name == "set:sloodlelistentoobjects") sloodlelistentoobjects = (integer)value1;
-    else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
-    else if (name == "set:sloodleobjectaccesslevelctrl") sloodleobjectaccesslevelctrl = (integer)value1;
-    else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
-    else if (name == "set:sloodleautodeactivate") sloodleautodeactivate = (integer)value1;
-    else if (name == SLOODLE_EOF) eof = TRUE;
-    
-    return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
-}
-
 // Checks if the given agent is permitted to control this object
 // Returns TRUE if so, or FALSE if not
 integer sloodle_check_access_ctrl(key id)
 {
-    // Check the access mode
-    if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-        return llSameGroup(id);
-    } else if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-        return TRUE;
-    }
-    
-    // Assume it's owner mode
     return (id == llGetOwner());
 }
 
@@ -146,15 +94,7 @@ integer sloodle_check_access_ctrl(key id)
 // Returns TRUE if so, or FALSE if not
 integer sloodle_check_access_use(key id)
 {
-    // Check the access mode
-    if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
-        return llSameGroup(id);
-    } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
-        return TRUE;
-    }
-    
-    // Assume it's owner mode
-    return (id == llGetOwner());
+    return TRUE;
 }
 
 // Add the given agent to our command dialog list
@@ -259,79 +199,45 @@ default
 {
     state_entry()
     {
-        // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("sloodle_chat_off",ALL_SIDES);
-        // Starting again with a new configuration
+        // Reset our data 
+        llSetTexture("webintercom-off",ALL_SIDES);
         llSetText("", <0.0,0.0,0.0>, 0.0);
-        isconfigured = FALSE;
-        eof = FALSE;
-        // Reset our data
-        sloodleserverroot = "";
-        sloodlepwd = "";
-        sloodlecontrollerid = 0;
-        sloodlemoduleid = 0;
-        sloodlelistentoobjects = 0;
-        sloodleobjectaccessleveluse = 0;
-        sloodleobjectaccesslevelctrl = 0;
-        sloodleserveraccesslevel = 0;
-    }
-    
-    link_message( integer sender_num, integer num, string str, key id)
-    {
-        // Check the channel
-        if (num == SLOODLE_CHANNEL_OBJECT_DIALOG) {
-            // Split the message into lines
-            list lines = llParseString2List(str, ["\n"], []);
-            integer numlines = llGetListLength(lines);
-            integer i = 0;
-            for (; i < numlines; i++) {
-                isconfigured = sloodle_handle_command(llList2String(lines, i));
-            }
-            
-            // If we've got all our data AND reached the end of the configuration data, then move on
-            if (eof == TRUE) {
-                if (isconfigured == TRUE) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
-                    state ready;
-                } else {
-                    // Go all configuration but, it's not complete... request reconfiguration
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
-                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
-                    eof = FALSE;
-                }
-            }
-        }
+        sloodlemoduleid = (integer)llGetObjectDesc();
+        
+        // We're ready to go if we have a module ID
+        if (sloodlemoduleid != 0) state ready;
     }
     
     touch_start(integer num_detected)
     {
-        // Attempt to request a reconfiguration
-        if (llDetectedKey(0) == llGetOwner()) {
-            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
+        sloodlemoduleid = (integer)llGetObjectDesc();
+        // Is our module ID missing?
+        if (sloodlemoduleid == 0)
+        {
+            // Ask the user for it
+            llSay(0, "Please insert the CMID of the chatroom into the description field of this object.");
+            return;
         }
+        
+        state ready;
     }
 }
 
 state ready
 {
-    on_rez( integer param)
-    {
-        state default;
-    }    
-    
     state_entry()
     {
         llSetTimerEvent(0);
         // Set the texture on the sides to indicate we're deactivated
-        llSetTexture("sloodle_chat_off",ALL_SIDES);
+        llSetTexture("webintercom-off",ALL_SIDES);
+        
         // Reset the list of recorded keys and names
         recordingkeys = [];
         recordingnames = [];
         cmddialog = [];
 
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "");
-        // Determine our "beep" sound file name
-        SoundFile = llGetInventoryName(INVENTORY_SOUND, 0);
+        //sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "off", [], NULL_KEY, "");
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0, 1.0, 1.0>, 1.0], "webintercom:inactive", [], NULL_KEY, "webintercom");
     }
     
     state_exit()
@@ -389,13 +295,14 @@ state logging
 {
     on_rez( integer param)
     {
-        state default;
+        state ready;
     }
     
     state_entry()
     {
         // Udpate the texture on the side to indicate we're logging
-        llSetTexture("sloodle_chat_on",ALL_SIDES);
+        llSetTexture("webintercom-on",ALL_SIDES);
+        
         // Listen for chat and commands
         llListen(0,"",NULL_KEY,"");
         llListen(SLOODLE_CHANNEL_AVATAR_DIALOG, "", NULL_KEY, "");
@@ -412,31 +319,25 @@ state logging
         nosensorcount = 0;
         
         // Inform the Moodle chatroom
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        string body = "sloodlemoduleid=" + (string)sloodlemoduleid;
         body += "&sloodleuuid=" + (string)llGetKey();
         body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
         body += "&firstmessageid=" + (string)(message_id + 1);
-        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llList2String(recordingnames, 0) + " has activated this WebIntercom";
+        body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llList2String(recordingnames, 0) + " has activated this WebIntercom.";
         
-        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        httpchat = llHTTPRequest("sloodle://" + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
     }
     
     state_exit()
     {
         // Inform the Moodle chatroom
-        string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-        body += "&sloodlepwd=" + sloodlepwd;
-        body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+        string body = "sloodlemoduleid=" + (string)sloodlemoduleid;
         body += "&sloodleuuid=" + (string)llGetKey();
         body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-        body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
         body += "&firstmessageid=" + (string)(message_id + 1);
         body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " WebIntercom deactivated";
         
-        httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+        httpchat = llHTTPRequest("sloodle://" + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
     }
     
     touch_start( integer total_number)
@@ -520,18 +421,15 @@ state logging
             }
             
             // Send the request as POST data
-            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-            body += "&sloodlepwd=" + sloodlepwd;
-            body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+            string body = "sloodlemoduleid=" + (string)sloodlemoduleid;
             body += "&sloodleuuid=" + (string)id;
             body += "&sloodleavname=" + llEscapeURL(name);
-            body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
             body += "&firstmessageid=" + (string)(message_id + 1);
             if (isavatar) body += "&message=" + MOODLE_NAME + " ";
             else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
             body += name + ": " + message;
             
-            httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+            httpchat = llHTTPRequest("sloodle://" + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
     }
     
@@ -539,12 +437,10 @@ state logging
     {
         // Get updated chat from Moodle
         if (httpchat == NULL_KEY) {
-            string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-            body += "&sloodlepwd=" + sloodlepwd;
-            body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+            string body = "sloodlemoduleid=" + (string)sloodlemoduleid;
             body += "&firstmessageid=" + (string)(message_id + 1);
             
-            httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
+            httpchat = llHTTPRequest("sloodle://" + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
         
         // Purge any expired command dialogs
@@ -559,7 +455,7 @@ state logging
         // Make sure the request worked
         if (status != 200) {
             sloodle_debug("Failed HTTP response. Status: " + (string)status);
-            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY, status); // send message to error_message.lsl
             return;
         }
 
@@ -612,18 +508,6 @@ state logging
                     message_id = msgnum;
                     // Make sure this wasn't an SL message originally
                     if (llSubStringIndex(text, MOODLE_NAME) != 0 && llSubStringIndex(text, MOODLE_NAME_OBJECT) != 0) {
-                        // Is this a Moodle beep?
-                        if (llSubStringIndex(text, "beep ") == 0) {
-                            // Yes - play a beep sound
-                            llStopSound();
-                            if (SoundFile == "") 
-                            { // There is no sound file in inventory - plsy default
-                                llPlaySound("34b0b9d8-306a-4930-b4cd-0299959bb9f4", 1.0);
-                            } else { // Play the included one
-                                llPlaySound(SoundFile, 1.0);
-                            }
-                        }
-                        // Finally... just an ordinary chat message... output it
                         llSay(0, name + ": " + text);
                     }
                 }

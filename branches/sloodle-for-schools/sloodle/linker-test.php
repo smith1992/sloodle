@@ -24,6 +24,8 @@
     
     // Get our default expected values
     $target = get_session_val('formval_target');
+    if (empty($target)) $target = SLOODLE_WWWROOT.'/';
+    
     $authToken = get_session_val('formval_auth_token');
     $objectUUID = get_session_val('formval_object_uuid');
     $objectName = get_session_val('formval_object_name');
@@ -85,10 +87,11 @@
         
 
         // grab URL and pass it to the browser
-        $response = curl_exec($ch);        
+        $response = curl_exec($ch);
+        $responseTimestamp = time();
         
         // Output the result
-        echo "<h2>Linker Test Response</h2><pre style=\"border:solid 1px black;padding:4px;\">";
+        echo "<h2>Linker Test Response</h2><em>Response timestamp: {$responseTimestamp}</em><br/><pre style=\"border:solid 1px black;padding:4px;\">";
         if ($response === false)
         {
             echo "An error occurred while requesting the linker script.\n\n";
@@ -96,7 +99,7 @@
         } else {
             echo $response;
         }
-        echo "</pre><br/>";
+        echo "</pre>";
         
         // close cURL resource, and free up system resources
         curl_close($ch);
@@ -104,12 +107,45 @@
     
 ?>
 
+<script type="text/javascript">
+function selectStandardTarget()
+{
+    try
+    {
+        var elemTarget = document.getElementById('target');
+        var elemList = document.getElementById('select_target');
+        
+        if (elemList.value != "")
+        {
+            elemTarget.value = "<?php echo SLOODLE_WWWROOT; ?>/mod" + elemList.value;
+        }
+    }
+    catch(e)
+    {
+        alert("Failed to get elements from DOM.");
+    }
+}
+</script>
+
 <h2>Linker Test Input</h2>
 <form method="post" action="">
 <fieldset>
 
 <label for="target">Target: </label>
-<input type="text" name="target" id="target" value="<?php echo $target; ?>" size="100" maxlength="255" /><br/><br/>
+<input type="text" name="target" id="target" value="<?php echo $target; ?>" size="100" maxlength="255" />&nbsp;
+
+<select onchange="selectStandardTarget();" id="select_target">
+ <option selected="selected" disabled="disabled">Select a standard linker...</option>
+ <option value="/chat-1.0/linker.php">chat-1.0</option>
+ <option value="/choice-1.0/linker.php">choice-1.0</option>
+ <option value="/distributor-1.0/linker.php">distributor-1.0</option>
+ <option value="/glossary-1.0/linker.php">glossary-1.0</option>
+ <option value="/presenter-2.0/linker.php">presenter-2.0</option>
+ <option value="/primdrop-1.0/linker.php">primdrop-1.0</option>
+ <option value="/quiz-1.0/linker.php">quiz-1.0</option>
+</select>
+
+<br/><br/>
 
 <label for="auth_token">Auth Token: </label>
 <input type="text" name="auth_token" id="auth_token" value="<?php echo $authToken; ?>" size="50" maxlength="255" /><br/><br/>

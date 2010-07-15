@@ -11,6 +11,8 @@
 $string['sfs_auth_token'] = 'Authentication token';
 $string['sfs_auth_token:info'] = 'The token which OpenSim uses to authenticate itself with this site.';
 
+$string['sfs_ownernopermission:access'] = 'Sorry, this object is not owned by an authorised avatar.';
+
 // End SLOODLE for Schools specific //
 
 

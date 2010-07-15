@@ -43,23 +43,26 @@
     // Load a chat module - this provides our functionality for accessing the chatroom data
     $sloodle->load_module('chat', true);
     
-    // Make sure the owner of this object is a teacher in the module context
-    //$sloodle->validate_owner(SLOODLE_CONTEXT_MODULE, SLOODLE_ROLE_TEACHER);
+    // Make sure the avatar owner of this object is linked to a Moodle user account
+    $sloodle->validate_owner();
+    // Check that the owner has privileges to create an object which links into a chatroom
+    // We will assume that anybody who is able to manage activities at the module context is permitted to do that
+    $module_context = get_context_instance(CONTEXT_MODULE, $sloodle->request->get_module_id());
+    $sloodle->require_capability('moodle/course:manageactivities', $module_context, $sloodle->owner->get_user_id(), true, 'sfs_ownernopermission:access', 'sloodle');
     
     
     // Has an incoming message been provided?
     $message = sloodle_clean_for_db($sloodle->request->optional_param('message', null));
-    if ($message != null)
+    if (!empty($message))
     {
-        // Ensure we know which Moodle user is associated with the avatar who wrote the message
-        $sloodle->validate_user(true);
+        $sloodle->validate_user(false);
     
         // Add it to the chatroom.
         if (!$sloodle->module->add_message($message))
         {
-			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
+			add_to_log($sloodle->courseobj->id, 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
         } else {
-			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());
+			add_to_log($sloodle->courseobj->id, 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());
         }
     }
     
