@@ -38,7 +38,8 @@ list locstrings = [
     "webintercom:stoppedrecording", "Stopped recording {{0}}",
     "webintercom:alreadyrecording", "Already recording {{0}}",
     "webintercom:notrecording", "Not recording {{0}}",
-    "webintercom:recording", "Recording:\n{{0}}",
+    "webintercom:recording", "WebIntercom active\nRecording:\n{{0}}",
+    "webintercom:inactive", "WebIntercom inactive",
     "webintercom:chatloggingon", "Chat logging is on!",
     "webintercom:joinchat", "Join this Moodle chat at {{0}}", // Parameter should be link to Moodle chatroom
     "webintercom:anouncechatroom", "An archive of this session can be found at {{0}}", // Parameter should be link to Moodle chatroom

@@ -199,22 +199,34 @@
         }
         
         /**
-        * Checks that the owner of the object originating the current request has certain permissions.
-        * This can check the site, course, or module context for permission.
-        * It will return true if the owner can be verified as having at least the given role in the context.
-        * @param int $context The context to check for permissions: SLOODLE_CONTEXT_SITE, SLOODLE_CONTEXT_COURSE, SLOODLE_CONTEXT_MODULE
-        * @param int $role The minimum role required: SLOODLE_ROLE_GUEST, SLOODLE_ROLE_STUDENT, SLOODLE_ROLE_TEACHER, SLOODLE_ROLE_ADMIN
+        * Checks that the avatar owner of the object originating the current request is linked to a Moodle account.
+        * It does NOT check any permissions / capabilities.
         * @param bool $require If true (default) the script will terminate with an error message if the check fails. Otherwise, it will return a boolean to indicate success.
         * @return bool True if the owner has the specified permission, or false otherwise.
         */
-        function validate_owner($context, $role, $require = true)
+        function validate_owner($require = true)
         {
             // Check that we have the owner's avatar data, and an associated user account
             if (!$this->owner->is_avatar_loaded())
             {
+                // Was the data specified?
+                if ($this->request->get_owner_uuid() == '' || $this->request->get_owner_name() == '')
+                {
+                    if ($require)
+                    {
+                        $this->response->quick_output(-811, 'REQUEST', 'Owner avatar data not provided.');
+                        exit;
+                    }
+                    return false;
+                }
+                
+                // Looks like the avatar data just wasn't in the database.
+                // We could try to add the avatar data from an authentication source here.
+                //...
+                // If it fails:
                 if ($require)
                 {
-                    $this->response->quick_output(-311, 'OWNER_AUTH', 'Owner avatar data not provided.'); // Owner avatar could just be not in the database here
+                    $this->response->quick_output(-311, 'OWNER_AUTH', 'Owner avatar not recognised.');
                     exit;
                 }
                 return false;
@@ -231,38 +243,33 @@
                 }
             }
             
-            // Generate a context
-            $context_instance = null;
-            switch ($context)
-            {
-            case SLOODLE_CONTEXT_MODULE:
-                break;
-                
-            case SLOODLE_CONTEXT_COURSE:
-                break;
-                
-            case SLOODLE_CONTEXT_SITE:
-                break;
-                
-            default:
-                //error
-                break;
-            }
             return true;
+        }
+        
+        /**
+        * Check that the specified user has the given Moodle capability.
+        * Use this instead of Moodle's "require_capability" function when in a linker script.
+        * Behaviour is the same except the it will report an LSL-friendly error message on failure.
+        * @param string $capability - name of the capability
+        * @param object $context - a context object (record from context table)
+        * @param integer $userid - a userid number
+        * @param bool $doanything - if false, ignore do anything
+        * @return void
+        */
+        function require_capability($capability, $context, $userid = NULL, $doanything = true, $errormessage = 'nopermissions', $stringfile = '')
+        {
+            if (has_capability($capability, $context, $userid, $doanything)) return;
+            $this->response->quick_output(-331, 'USER_AUTH', get_string($errormessage, $stringfile));
+            exit();
         }
         
         
         /**
         * Validates the user account and enrolment (ensures there is an avatar linked to a VLE account, and that the VLE account is enrolled in the current course).
-        * Attempts auto-registration/enrolment if that is allowed and required, and logs-in the user.
-        * Server access level is checked if it is specified in the request parameters.
-        * If the request indicates that it relates to an object, then the validation fails.
-        * Note: if you only require to ensure that an avatar is registered, then use {@link validate_avatar()}.
-        * @param bool $require If true, the script will be terminated with an error message if validation fails
-        * @param bool $suppress_autoreg If true, auto-registration will be completely suppressed for this function call
-        * @param bool $suppress_autoenrol If true, auto-enrolment will be completely suppressed for this function call
-        * @return bool Returns true if validation and/or autoregistration were successful. Returns false on failure (unless $require was true).
+        * @return bool Returns true if validation was successful. Returns false on failure (unless $require was true).
         * @see SloodleSession::validate_avatar()
+        *
+        * @todo: possibly include a querying shared authentication mechanism, depending on auth architecture?
         */
         function validate_user($require = true)
         {
@@ -300,7 +307,7 @@
             }
             
            // Is the user enrolled on the current course?
-            if ($this->user->is_enrolled($this->course->id))
+            if (!$this->user->is_enrolled($this->courseobj->id))
             {
                 if ($require)
                 {
