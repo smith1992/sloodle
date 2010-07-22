@@ -41,8 +41,18 @@
     // Fetch the expected data
     $sloodleavname = sloodle_clean_for_db($sloodle->request->get_avatar_name(true)); // Avatar name
     $sloodleuuid = sloodle_clean_for_db($sloodle->request->get_avatar_uuid(true)); // Avatar UUID
-    $idnumber = sloodle_clean_for_db($sloodle->request->required_param('idnumber')); // Uniquely identifies the VLE user
+    $idnumber = sloodle_clean_for_db(trim($sloodle->request->required_param('idnumber'))); // Uniquely identifies the VLE user
     $override = (bool)optional_param('override', false); // Should the avatar be forced into the system?
+    
+    // Make sure the ID number isn't blank (or space-filled)
+    if (empty($idnumber))
+    {
+        $sloodle->response->set_status_code(-811);
+        $sloodle->response->set_status_descriptor('USER_AUTH');
+        $sloodle->response->add_data_line('EMPTY_ID_NUMBER');
+        $sloodle->response->render_to_output();
+        exit();
+    }
     
     // Can we find the specified user?
     $vleUserRecs = get_records('user', 'idnumber', $idnumber);
