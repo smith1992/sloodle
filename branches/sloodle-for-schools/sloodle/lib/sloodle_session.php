@@ -164,7 +164,7 @@
                 $this->request->process_request_data();
             }
             
-            // Compare the provide authentication tokens with the one stored in the database
+            // Compare the provided authentication token with the one stored in the database
             $token = $this->request->get_auth_token(false);
             if ($token === null)
             {
@@ -190,6 +190,56 @@
                 if ($require)
                 {
                     $this->response->quick_output(-4440002, 'SFS', 'Provided authentication token was invalid');
+                    exit;
+                }
+                return false;
+            }
+            
+            return true;
+        }
+        
+        /**
+        * Verifies that the incoming request is from an authorised adminstration source.
+        * This checks for the administration token in the HTTP headers.
+        * The token is the same as it is for an ordinary request, but it is placed in a different header.
+        *
+        * @param bool $require If true, the function will NOT return on authentication failure. Rather, it will terminate the script with an error message.
+        * @return bool true if successful in authenticating the request, or false if not.
+        */
+        function authenticate_admin_request( $require = true )
+        {
+            // Make sure that the request data has been processed
+            if (!$this->request->is_request_data_processed())
+            {
+                $this->request->process_request_data();
+            }
+            
+            // Compare the provided administration token with the one stored in the database
+            $token = $this->request->get_admin_token(false);
+            if ($token === null)
+            {
+                if ($require)
+                {
+                    $this->response->quick_output(-4440001, 'SFS', 'Administration token not provided in request.');
+                    exit;
+                }
+                return false;
+            }
+            $storedToken = sloodle_get_stored_auth_token(); // The actual token is the same for regular auth and for admin
+            if (!$storedToken)
+            {
+                if ($require)
+                {
+                    $this->response->quick_output(-4440003, 'SFS', 'Failed to retrieve correct Administration token from database');
+                    exit;
+                }
+                return false;
+            }
+            if ($storedToken != $token)
+            {
+                if ($require)
+                {
+                    $this->response->quick_output(-4440002, 'SFS', 'Provided Administration token was invalid');
                     exit;
                 }
                 return false;

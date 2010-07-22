@@ -27,6 +27,7 @@
     if (empty($target)) $target = SLOODLE_WWWROOT.'/';
     
     $authToken = get_session_val('formval_auth_token');
+    $adminToken = get_session_val('formval_admin_token');
     $objectUUID = get_session_val('formval_object_uuid');
     $objectName = get_session_val('formval_object_name');
     $ownerUUID = get_session_val('formval_owner_uuid');
@@ -73,6 +74,7 @@
         $headers[] = 'X-SecondLife-Owner-Key:'.$ownerUUID;
         $headers[] = 'X-SecondLife-Owner-Name:'.$ownerName;
         $headers[] = 'X-SLOODLE-Auth-Token:'.$authToken;
+        $headers[] = 'X-SLOODLE-Admin-Token:'.$adminToken;
         
         // Create a new cURL resource
         $ch = curl_init();
@@ -148,7 +150,9 @@ function selectStandardTarget()
 <br/><br/>
 
 <label for="auth_token">Auth Token: </label>
-<input type="text" name="auth_token" id="auth_token" value="<?php echo $authToken; ?>" size="50" maxlength="255" /><br/><br/>
+<input type="text" name="auth_token" id="auth_token" value="<?php echo $authToken; ?>" size="50" maxlength="255" /><br/>
+<label for="auth_token">Admin Token: </label>
+<input type="text" name="admin_token" id="admin_token" value="<?php echo $adminToken; ?>" size="50" maxlength="255" /><br/><br/>
 
 <label for="auth_token">Object UUID: </label>
 <input type="text" name="object_uuid" id="object_uuid" value="<?php echo $objectUUID; ?>" size="36" maxlength="255" /><br/>
