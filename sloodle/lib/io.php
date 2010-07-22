@@ -48,6 +48,8 @@
     define('SLOODLE_HEADER_OWNER_NAME', 'HTTP_X_SECONDLIFE_OWNER_NAME');
     /** Defines the HTTP header name for an authentication token */
     define('SLOODLE_HEADER_AUTH_TOKEN', 'HTTP_X_SLOODLE_AUTH_TOKEN');
+    /** Defines the HTTP header name for an administration token */
+    define('SLOODLE_HEADER_ADMIN_TOKEN', 'HTTP_X_SLOODLE_ADMIN_TOKEN');
 
     
     /**
@@ -942,6 +944,16 @@
         function get_auth_token($required = true)
         {
             return $this->get_header(SLOODLE_HEADER_AUTH_TOKEN, $required);
+        }
+        
+        /**
+        * Fetches the administration token from HTTP headers.
+        * @param bool $required If true (default) then the function will terminate the script with an error message if the HTTP header was not specified.
+        * @return string|null
+        */
+        function get_admin_token($required = true)
+        {
+            return $this->get_header(SLOODLE_HEADER_ADMIN_TOKEN, $required);
         }
         
         
