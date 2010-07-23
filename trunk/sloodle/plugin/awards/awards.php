@@ -41,57 +41,21 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
      */ 
      function makeTransaction(){         
          global $sloodle;
-  
-         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
-         $sloodleid = $sloodle->request->optional_param('sloodleid');
-         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodle activity as its instance.
-         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
-         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
          $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
-         
-         //if the sloodlemoduleid is not specified, get the course module from the sloodle instance
-         if (!$coursemoduleid){
-            //cmid is the module id of the sloodle activity we are connecting to
-             if ($sloodleid) {
-              $cm = get_coursemodule_from_instance('sloodle',$sloodleid);                 
-              $cmid = $cm->id;                                            
-             }
-             else {
-                 //&sloodlemoduleid or &sloodleid must be defined and included in the url 
-                 //request so we can connect to an awards activity to complete this transaction
-                 $sloodle->response->set_status_code(-500900); 
-                 $sloodle->response->set_status_descriptor('HQ'); 
-             }
-         }
-         else $cmid= $coursemoduleid;
-         //create sCourseObj, and awardsObj
-         $sCourseObj = new sloodleCourseObj($cmid);  
-         $awardsObj = new Awards((int)$cmid);
-         //get the controller id
          $sloodlecontrollerid=$sloodle->request->required_param('sloodlecontrollerid');    
-         //get the course module id of the activity we are working with
-         $sloodleid=(int)$sCourseObj->cm->instance;
-
          $sourceUuid        = $sloodle->request->required_param('sourceuuid'); 
          $avUuid            = $sloodle->request->required_param('avuuid'); 
          $avName            = $sloodle->request->required_param('avname'); 
          $points            = $sloodle->request->required_param('points'); 
          $details           = $sloodle->request->optional_param('details'); 
-         $gameid= $sloodle->request->optional_param('gameid');    
-         //get moodleId for the avatar which was sent
+         $gameid            = $sloodle->request->optional_param('gameid');    
+         $currency          = $sloodle->request->optional_param('currency');  
          $avUser = new SloodleUser( $sloodle );
          $avUser->load_avatar($avUuid,$avName);
          $avUser->load_linked_user();
          $userid = $avUser->avatar_data->userid;
-        //build transaction record 
-        $trans = new stdClass();
-        $trans->sloodleid       = $sloodleid;
-        $trans->avuuid          = $avUuid;        
-        $trans->userid          = $userid;
-        $trans->avname          = $avName;           
-        $trans->idata           = $details;
-        $trans->gameid          = $gameid;     
-        $trans->timemodified=time();       
+         /*
+         $currency_object = new SloodleCurrency();        
         if ($points<0) {            
             $trans->itype="debit";
             $points*=-1;;
@@ -102,12 +66,11 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $trans->amount=$points; 
          //add details to this transaction into the mysql db
          $trans->idata = $details; 
-        //insert transaction
-        $awardsObj->awards_makeTransaction($trans,$sCourseObj);
-        
+        //insert transaction                                                                       
+        $currency_object->addTransaction($userid,$avName,$avUuid,$gameid,$currency,$points,$details,$sloodlemoduleid);
         //retrieve new balance
-        $rec = $awardsObj->awards_getBalanceDetails($userid);
-        $balance = $rec->balance;
+        $balance = $currency_object->get_balance($currency,$userid,null,$gameid);
+        */
         $sloodle->response->set_status_code(1);             //line 0    1
         $sloodle->response->set_status_descriptor('OK'); 
         //line2: uuid who made the transaction        
@@ -116,22 +79,120 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
         $sloodle->response->add_data_line("SOURCE_UUID:".$sourceUuid);
         $sloodle->response->add_data_line("AVUUID:".$avUuid);
         $sloodle->response->add_data_line("AVNAME:".trim($avName));
-        $sloodle->response->add_data_line("POINTS:".$balance);
+        $sloodle->response->add_data_line("BALANCE:".$balance);
+        $sloodle->response->add_data_line("CURRENCY:".$currency);
         $sloodle->response->add_data_line("ACTION:".$sloodle->request->optional_param('action'));
         $sloodle->response->add_data_line("SECRETWORD:".$sloodle->request->optional_param('secretword'));        
       $awardsObj->synchronizeDisplays_sl($trans);
     }
+     function sendUrl(){      
+      global $sloodle;
+  
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $url = $sloodle->request->optional_param('url');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodle activity as its instance.
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $post= $sloodle->request->optional_param('post');    
+             $ch = curl_init(); 
+             //curl_setopt($ch, CURLOPT_URL, 'http://sim5468.agni.lindenlab.com:12046/cap/48c6c5fc-f19d-4dc2-6a50-fc3566186508'); 
+             // FIND BOOKS ON PHP AND MYSQL ON AMAZON 
+            $ch = curl_init();    // initialize curl handle 
+            curl_setopt($ch, CURLOPT_URL,$url); // set url to post to 
+            curl_setopt($ch, CURLOPT_FAILONERROR, 1); 
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects 
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable 
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3); // times out after 4s 
+            curl_setopt($ch, CURLOPT_POST, 1); // set POST method 
+             curl_setopt($ch, CURLOPT_POSTFIELDS,$post); // add POST fields        
+            $result = curl_exec($ch); // run the whole process 
+            curl_close($ch);   
+              $sloodle->response->set_status_code(1);             //line 0    1
+              $sloodle->response->set_status_descriptor('OK');        
+              $sloodle->response->add_data_line("result:".$result);
+     }
+     /*
+     *   getClassList() will return all users with avatars in a course, along with other data:
+     *   UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
+     llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "user->getClassList&sloodleid="+(string)currentAwardId+"&senderuuid="+(string)owner+"&index="+(string)index_getClassList+"&sortmode="+sortMode, NULL_KEY);
+     */ 
+      function getPlayerScores(){
+         global $sloodle;
+         global $CFG;
+         $currency= $sloodle->request->optional_param('currency');
+         $index        = $sloodle->request->required_param('index');    
+         $gameid= $sloodle->request->required_param('gameid');    
+         
+         if ($currency=="")$currency="Credits";
+         $NUM_USERS_TO_RETURN=10;          
+
+          /*  Send message back into SL
+           *      LINE   MESSAGE
+           *      0)     1 | OK
+           *      2)     NUMUSERS:12
+           *      3)     INDEX:0
+           *      4)     SORTMODE:name/balance
+           *      4)     UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
+           *      5)     UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
+           *      6)     UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
+           *      7)     ...
+           *      8)     UUID:uuid|AVNAME:avname|BALANCE:balance|DEBITS:debits
+           *      9)     EOF
+           */
+            $sloodle->response->set_status_code(1);             //line 0    1
+            $sloodle->response->set_status_descriptor('OK');    //line 0    OK                                
+            $sql = "select avname, avuuid, userid, sum(case itype when 'debit' then cast(amount*-1 as signed) else amount end) as balance from {$CFG->prefix}sloodle_award_trans";
+            $sql.=" where gameid={$gameid} AND currency='{$currency}' group by userid ORDER BY avname asc";
+            
+            $avatarList = get_records_sql($sql);
+            
+            
+            
+            $i = 0;
+           if ($avatarList){
+             
+                $currIndex = $index;                
+                $sloodle->response->add_data_line("INDEX:". $index);                  
+                $sloodle->response->add_data_line("USERS:". $size );       
+                
+                foreach ($avatarList as $av){    
+                      $sloodleData="";   
+                   //print only the NUM_USERS_TO_RETURN number of users starting from the current index point                   
+                   if (($i < $currIndex) || ($i > ($currIndex + $NUM_USERS_TO_RETURN-1))) {
+                       $i++;                   
+                       continue; //skip the ones which have already been sent                
+                   }                 
+                   else{                   
+                       $sloodleData .="AV:".  $av->avname . "|";
+                       $sloodleData .="UUID:".  $av->avuuid. "|";
+                       $sloodleData .="BAL:".$av->balance."|";
+                       $sloodle->response->add_data_line($sloodleData);   
+                       $i++;
+                       if ($i==$avListLen){                             
+                           $sloodle->response->add_data_line("EOF");
+                       }
+                   }
+                
+                }//foreach  
+            } else{//$avatarList is empty
+                $sloodle->response->set_status_code(80002);             //no avatars
+                $sloodle->response->set_status_descriptor('HQ');    //line 0    OK   
+            } 
+    
+    } //getClassList
      function addTransaction(){         
          global $sloodle;
+       
          $cObject = new SloodleCurrency();
          $currency="Credits";
          $avuuid            = $sloodle->request->required_param('avuuid'); 
          $avname            = $sloodle->request->optional_param('avname'); 
          $amount            = $sloodle->request->required_param('amount'); 
          $currency          = $sloodle->request->required_param('currency'); 
-         $sloodleid            = $sloodle->request->optional_param('sloodleid'); 
+         $sloodlemoduleid         = $sloodle->request->optional_param('sloodlemoduleid'); 
          $details           = $sloodle->request->optional_param('details'); 
-         $gameid            =   $sloodle->request->optional_param('gameid');    
+         $gameid            =   $sloodle->request->optional_param('gameid');  
+         
          //get moodleId for the avatar which was sent
          $avuser = new SloodleUser( $sloodle );
             //load the user, if failed, respond
@@ -149,7 +210,8 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                 }
                 else{
                     //OK, user is enrolled and register, 
-                    $userid = $avuser->avatar_data->userid;         
+                    $userid = $avuser->avatar_data->userid;     
+                   
                     if ($cObject->addTransaction($userid,$avname,$avuuid,$gameid,$currency,$amount,$details,$sloodleid)){
                         $sloodle->response->set_status_code(1);             //line 0    1
                         $sloodle->response->add_data_line("AVNAME:".$avname);
@@ -157,7 +219,13 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                         $sloodle->response->add_data_line("GAMEID:".$gameid);
                         $sloodle->response->set_status_descriptor('OK'); 
                         $sloodle->response->add_data_line("CURRENCY:".$currency);
-                        $sloodle->response->add_data_line("BALANCE:".$cObject->get_balance($currency,$userid,$avuuid));
+                        $sloodle->response->add_data_line("BALANCE:".$cObject->get_balance($currency,$userid,$avuuid,$gameid));
+                          
+                       
+                        if ($sloodlemoduleid){
+                            $cObject->refreshScoreboard($sloodlemoduleid);
+                            
+                        }
                         
                     }else
                     {
@@ -597,7 +665,91 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                 return;
         }  //else
      } // function removeAwardGrp
-     
+       /**********************************************************
+     * getTeamPlayerScores will return a total for the group of all players scores 
+     * 
+     * @param string|mixed $data - should be in the format: GROUPNAME:grpname
+     * @output: 1|OK|||||2102f5ab-6854-4ec3-aec5-6cd6233c31c6
+     * @output: RESPONSE:awards|getTeamScores
+     * @output: GRP:name,BALANCE:100|GRP:name,BALANCE:200
+     * @output: INDEX:0
+     * @output: NUMGROUPS:10
+     * 
+     */
+            function getTeamPlayerScores(){
+        global $sloodle;    
+        global $CFG; 
+        $teamScores = array();                  
+         //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
+         $sloodleid = $sloodle->request->optional_param('sloodleid');
+         //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
+         //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
+         //There may be some instances, where the course module is sent instead of the instance. We account for that here.
+         $coursemoduleid= $sloodle->request->optional_param('sloodlemoduleid');    
+         if (!$coursemoduleid){
+            //cmid is the module id of the sloodle activity we are connecting to
+             $cm = get_coursemodule_from_instance('sloodle',$sloodleid);
+             $cmid = $cm->id;
+         }
+         else $cmid= $coursemoduleid;
+        //create courseObject
+        $sCourseObj = new sloodleCourseObj($cmid);  
+        //create awards object
+        $awardsObj = new Awards((int)$cmid);
+        $index =  $sloodle->request->required_param('index');    
+        $maxitems= $sloodle->request->required_param('maxitems');  
+        $sortMode =$sloodle->request->required_param('sortmode');            
+        $gameid=$sloodle->request->required_param('gameid');        
+        $currency=$sloodle->request->required_param('currency');        
+        $dataLine="";
+        $counter = 0;
+        //get all groups in sloodle_awards_teams for this sloodleid
+        $awardGroups = get_records('sloodle_awards_teams','sloodleid',$sCourseObj->sloodleId);                
+        if ($awardGroups){
+            $sloodle->response->set_status_code(1);             //line 0 
+            $sloodle->response->set_status_descriptor('OK'); //line 0 
+           $sql = "select avname, avuuid, userid, sum(case itype when 'debit' then cast(amount*-1 as signed) else amount end) as balance from {$CFG->prefix}sloodle_award_trans";
+            $sql.=" where gameid={$gameid} AND currency='{$currency}' group by userid ORDER BY avname asc";
+            $avatarList = get_records_sql($sql);
+              
+            foreach($awardGroups as $awdGrp){
+                $total=0;
+                foreach ($avatarList as $av){
+                    if (groups_is_member($awdGrp->groupid,$av->userid)){
+                         
+                    
+                        $total+=$av->balance;
+                    }                                        
+                }
+                $teamData = new stdClass();
+                if (($counter>=($index*$maxitems))&&($counter<($index*$maxitems+$maxitems))){                    
+                    $groupName = groups_get_group_name($awdGrp->groupid);                   
+                    $teamData->name=$groupName;
+                    $teamData->balance=$total;
+                   
+                    $teamScores[]=$teamData;
+                    $counter++;
+               }//(($counter>=($index*$groupsPerPage))&&($counter<($index*$groupsPerPage+$groupsPerPage)))
+            } //foreach
+        } else{ //no groups exist for this award in sloodle_awards_teams
+            $sloodle->response->set_status_code(-500700);//no awards groups exist for this sloodle module id
+            $sloodle->response->set_status_descriptor('HQ'); //line 0 
+        }//else
+         
+        if ($sortMode=="balance") usort($teamScores,array("SloodleApiPluginAwards",  "balanceSort")); else
+        if ($sortMode=="name") usort($teamScores, array("SloodleApiPluginAwards",  "nameSort"));  
+        foreach($teamScores as $ts){
+            $dataLine .= "GRP:".$ts->name; 
+            $dataLine .= ",BALANCE:".$ts->balance;
+           
+            $dataLine.="|";
+        }
+        $dataLine = substr($dataLine,0,strlen($dataLine)-1);
+        $sloodle->response->add_data_line("INDEX:". $index);   
+        $sloodle->response->add_data_line("numGroups:".$counter);//line 
+        $sloodle->response->add_data_line($dataLine);//line 
+                
+     } //function getTeamScore()
      /**********************************************************
      * getTeamScores will return a total for the group of all users scores 
      * 
@@ -645,6 +797,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                  if (($counter>=($index*$maxitems))&&($counter<($index*$maxitems+$maxitems))){                    
                     $groupName = groups_get_group_name($awdGrp->groupid);                   
                     $groupMembers =groups_get_members($awdGrp->groupid);
+                    
                     $total=0;
                     foreach ($groupMembers as $gMbr){
                          $balanceDetails = $awardsObj->awards_getBalanceDetails($gMbr->id);

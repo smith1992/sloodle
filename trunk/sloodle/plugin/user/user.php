@@ -69,7 +69,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          }
          return $avList;
       } 
-      
+       
       
      /*
      *   getClassList() will return all users with avatars in a course, along with other data:
@@ -80,6 +80,8 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
          global $sloodle;
          //sloodleid is the id of the record in mdl_sloodle of this sloodle activity
          $sloodleid = $sloodle->request->optional_param('sloodleid');
+         $currency= $sloodle->request->optional_param('currency');
+         if ($currency="")$currency="Credits";
          //coursemoduleid is the id of course module in sdl_course_modules which refrences a sloodleid as a field in its row called ""instance.""
          //when a notecard is generated from a sloodle awards activity, the course module id is given instead of the id in the sloodle table
          //There may be some instances, where the course module is sent instead of the instance. We account for that here.
