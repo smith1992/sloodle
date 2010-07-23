@@ -10,7 +10,6 @@
     */
 global $CFG;    
 
-@include_once($CFG->dirroot.'/mod/assignment/type/sloodleaward/assignment.class.php');
 require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
   class Awards {
@@ -21,8 +20,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
       * @var $awardRec - the actual record of the stipendgiver from sloodle_stipengiver
       */
       var $sloodle_awards_instance = null;     
-      var $xmlchannel; 
-      var $icurrency;
+      var $currency;
       /*
       * The class Contstructor
       * @var $id - the sloodle id of this stipendgiver
@@ -33,12 +31,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $cm = get_coursemodule_from_id('sloodle',$courseModuleId);              
           $cmid = $cm->instance;
           $this->sloodle_awards_instance = get_record('sloodle_awards','sloodleid',$cmid); 
-          $this->sloodleId=$cmid;           
-          if ($this->sloodle_awards_instance->icurrency){
-              $this->icurrency=$this->sloodle_awards_instance->icurrency;
-          }
-          $this->transactionRecords = $this->awards_getTransactionRecords();          
-          
+          $this->sloodleId=$cmid;                     
       }
       
               /*
@@ -56,7 +49,29 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         $scoreboardRecs=get_record('sloodle_award_scoreboards','name',$name);    
         return $scoreboardRecs;
       }
-      
+        function refreshScoreboard($gameid){
+            $scoreboards = get_records('sloodle_award_scoreboards','gameid',$gameid);
+            if ($scoreboards){
+                foreach ($scoreboards as $sb){
+                     $expiry = time()-$sb->timemodified;
+                     if ($expiry>60*60*48){
+                        //this is url is a week old, delete it because the inworld scoreboards 
+                        //update their URL atleast once a week
+                        delete_records('sloodle_award_scoreboards','gameid',$sb->gameid);
+                    }
+                    //get current display of each scoreboard
+                    $displayData = $this->sendUrl($sb->url,"COMMAND:GET DISPLAY DATA\n");
+                    
+                    $dataLines = explode("\n", $displayData);
+                    if ($displayData!=FALSE){
+                        $currentView = $this->getFieldData($dataLines[0]);
+                        if ($currentView=="Top Scores"||$currentView=="Sort by Name"){
+                            $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
+                        }
+                    }
+                }//foreach scoreboard
+            }//endif $scoreboards
+     }
       //set functions
       function setUrl($url){        
           $scoreboard = new stdClass();
@@ -70,7 +85,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           return update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
-            function getScores($gameid,$sortMode,$userid=NULL){
+      function getScores($gameid,$sortMode,$userid=NULL){
          
          global $CFG;
           $scoreData= array();
@@ -115,46 +130,33 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         }
         return ($a->score< $b->score) ? -1 : 1;
     }
-        //Function by Simba Fuhr
-        //Use under the GPL License
-        function callLSLScript($URL, $Data, $Timeout = 10)
-        {
-         //Parse the URL into Server, Path and Port
-         $Host = str_ireplace("http://", "", $URL);
-         $Path = explode("/", $Host, 2);
-         $Host = $Path[0];
-         $Path = $Path[1];
-         $PrtSplit = explode(":", $Host);
-         $Host = $PrtSplit[0];
-         $Port = $PrtSplit[1];
-         
-         //Open Connection
-         $Socket = fsockopen($Host, $Port, $Dummy1, $Dummy2, $Timeout);
-         if ($Socket)
-         {
-          //Send Header and Data
-          fputs($Socket, "POST /$Path HTTP/1.1\r\n");
-          fputs($Socket, "Host: $Host\r\n");
-          fputs($Socket, "Content-type: application/x-www-form-urlencoded\r\n");
-          fputs($Socket, "User-Agent: Opera/9.01 (Windows NT 5.1; U; en)\r\n");
-          fputs($Socket, "Accept-Language: de-DE,de;q=0.9,en;q=0.8\r\n");
-          fputs($Socket, "Content-length: ".strlen($Data)."\r\n");
-          fputs($Socket, "Connection: close\r\n\r\n");
-          fputs($Socket, $Data);
-           $res="";
-          //Receive Data
-          while(!feof($Socket))
-           {$res .= fgets($Socket, 128);}
-          fclose($Socket);
-         }
-         
-         //ParseData and return it
-         if (isset($res)){
-            $res = explode("\r\n\r\n", $res);
-            return $res[1];
-         }else return false;
-         
-        }
+        /**********************************
+       * synchronizeDisplays_SL($transactions)
+       *    This function works the same as the synchronizeDisplays but the transaction object is only one single transaction
+       *    It starts by getting all entries in sloodle_award_scoreboards that match this award id. It will then send an http request to the each URL 
+       *    "COMMAND:GET DISPLAY DATA" and will receive a response indication which display is currently being viewed, and the data currently being displayed in SL
+       *    If the currently displayed data matches the user in the transaction list, then needsUpdating will be set to true, and an update command will be sent
+       *    into SL
+       * 
+       * @param mixed $transactions
+       */
+       function sendUrl($url,$post){         
+             $ch = curl_init(); 
+             //curl_setopt($ch, CURLOPT_URL, 'http://sim5468.agni.lindenlab.com:12046/cap/48c6c5fc-f19d-4dc2-6a50-fc3566186508'); 
+             // FIND BOOKS ON PHP AND MYSQL ON AMAZON 
+            $ch = curl_init();    // initialize curl handle 
+            curl_setopt($ch, CURLOPT_URL,$url); // set url to post to 
+            curl_setopt($ch, CURLOPT_FAILONERROR, 1); 
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects 
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable 
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3); // times out after 4s 
+            curl_setopt($ch, CURLOPT_POST, 1); // set POST method 
+             curl_setopt($ch, CURLOPT_POSTFIELDS,$post); // add POST fields        
+            $result = curl_exec($ch); // run the whole process 
+            curl_close($ch);   
+             return $result;          
+     }
+     
       function setIcurrency($icurrency){
         $this->sloodle_awards_instance->icurrency=$icurrency; 
         $this->timeupdated = time();
@@ -191,7 +193,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                         
                     }else{
                     //get current display of each scoreboard
-                    $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",10);
+                    $displayData = $this->sendUrl($sb->url,"COMMAND:GET DISPLAY DATA\n");
                     $dataLines = explode("\n", $displayData);
                     if ($displayData){
                         $currentView = $this->getFieldData($dataLines[0]);
@@ -235,7 +237,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             }//for
                             if ($updateString!=""){
                                 //this means one or more of the groups points has changed
-                                 $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                                 $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }
                         }//endif $currentView=="Control Station"
                         else
@@ -271,7 +273,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             //scoreboard send update command into sl
                             if ($needsUpdating){
                                 //send update into SL for this scoreboard
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                                $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }//endif $needsUpdating
                         }//endif $currentView=="Top Scores"||$currentView=="Sort by Name"
                         else                         
@@ -307,7 +309,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             }//for
                             if ($needsUpdating){
                                 //this means one or more of the groups points has changed
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,8);
+                                $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }
                         }//endif$currentView=="Team Top Scores"
                     }//end if displayData
@@ -328,8 +330,8 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
         function synchronizeDisplays_sl($transaction){
           global $sloodle,$sCourseObj;
            //get all httpIn urls connected to this award
-            $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',$this->sloodleId);
-           
+            $scoreboards = get_records('sloodle_award_scoreboards','sloodleid',(int)$this->sloodleId);
+               
             if ($scoreboards){
                 foreach ($scoreboards as $sb){
                      $expiry = time()-$sb->timemodified;
@@ -340,7 +342,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                         
                     }else {
                     //get current display of each scoreboard
-                    $displayData = $this->callLSLScript($sb->url,"COMMAND:GET DISPLAY DATA\n",8);
+                    $displayData = $this->sendUrl($sb->url,"COMMAND:GET DISPLAY DATA\n");
                     $dataLines = explode("\n", $displayData);
                     if ($displayData!=FALSE){
                         $currentView = $this->getFieldData($dataLines[0]);
@@ -368,7 +370,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             //scoreboard send update command into sl
                             if ($needsUpdating){
                                 //send update into SL for this scoreboard
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,8);
+                                $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }//endif $needsUpdating
                         }//endif $currentView=="Top Scores"||$currentView=="Sort by Name"
                         else                         
@@ -399,7 +401,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
 
                             if ($needsUpdating){
                                 //this means one or more of the groups points has changed
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                                $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }
                         }//endif$currentView=="Team Booth"
                         else                         
@@ -435,7 +437,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                             }//for
                             if ($needsUpdating){
                                 //this means one or more of the groups points has changed
-                                $result = $this->callLSLScript($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString,10);
+                                $result = $this->sendUrl($sb->url,"COMMAND:UPDATE DISPLAY\n".$updateString);
                             }
                         }//endif$currentView=="Team Top Scores"
                         
@@ -480,9 +482,9 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             $maxPoints = $this->sloodle_awards_instance->maxpoints;
             //Get balance 
             $newGrade=0;
-            $detailsRec = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);
+            $detailsRec = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);            
             //make sure we dont give more points than max points
-            $pointsEarned = $detailsRec->balance;
+            $pointsEarned = $detailsRec->balance;            
             return true;
         }
         else return false;
@@ -637,26 +639,29 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      * @package sloodle
      * @return returns a stdObj with credits, debits, balance for the given userid
      */       
-     function awards_getBalanceDetails($userid,$gameid){
+     function awards_getBalanceDetails($userid,$gameid,$currency="Credits"){
          global $CFG;
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'credit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid.' AND gameid='.$gameid);
+         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='credit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}'");
          $credits=0;
-         if ($totalAmountRecs)
+         if (!empty($totalAmountRecs))
             foreach ($totalAmountRecs as $userCredits){
                  $credits+=$userCredits->amount;
             }
-         $totalAmountRecs = get_records_select('sloodle_award_trans','itype=\'debit\' AND sloodleid='.$this->sloodleId.' AND userid='.$userid.' AND gameid='.$gameid);
+            $totalAmountRecs=null;
+         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='debit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}'");
          $debits=0;         
-         if ($totalAmountRecs)
+         if (!empty($totalAmountRecs))
             foreach ($totalAmountRecs as $userDebits){
                  $debits+=$userDebits->amount;
             }
+            
           $balance = $credits-$debits;
-          $acountInfo = new stdClass();
-          $acountInfo->credits = $credits;
-          $acountInfo->debits = $debits;          
-          $acountInfo->balance = $balance;
-         return $acountInfo;      
+          $accountInfo = new stdClass();
+          $accountInfo->credits = $credits;
+          $accountInfo->debits = $debits;          
+          $accountInfo->balance = $balance;
+          
+         return $accountInfo;      
      } 
    
      /**
