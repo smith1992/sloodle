@@ -15,6 +15,10 @@
     //
     //  sloodleavname = name of the avatar to add to the database
     //  sloodleuuid = UUID of the avatar to add to the database
+    //
+    // One of the following parameters is also required (if both are given then username is used and id number is ignored):
+    //
+    //  username = the username indentifying the VLE user (under SSO systems, the username may be the same as the idnumber)
     //  idnumber = 'ID number' uniquely identifying the VLE user (this is NOT a database primary key... it is a portable unique identifier, such as education number)
     //
     // The following parameters are optional:
@@ -41,21 +45,24 @@
     // Fetch the expected data
     $sloodleavname = sloodle_clean_for_db($sloodle->request->get_avatar_name(true)); // Avatar name
     $sloodleuuid = sloodle_clean_for_db($sloodle->request->get_avatar_uuid(true)); // Avatar UUID
-    $idnumber = sloodle_clean_for_db(trim($sloodle->request->required_param('idnumber'))); // Uniquely identifies the VLE user
+    $idnumber = sloodle_clean_for_db(trim(optional_param('idnumber', ''))); // Uniquely identifies the VLE user
+    $username = sloodle_clean_for_db(trim(optional_param('username', ''))); // Uniquely identifies the VLE user
     $override = (bool)optional_param('override', false); // Should the avatar be forced into the system?
-    
-    // Make sure the ID number isn't blank (or space-filled)
-    if (empty($idnumber))
+
+    // Make sure we have either username or ID number
+    if (empty($username) && empty($idnumber))
     {
         $sloodle->response->set_status_code(-811);
-        $sloodle->response->set_status_descriptor('USER_AUTH');
-        $sloodle->response->add_data_line('EMPTY_ID_NUMBER');
+        $sloodle->response->set_status_descriptor('REQUEST');
+        $sloodle->response->add_data_line('Expected either parameter \'username\' or \'idnumber\'.');
         $sloodle->response->render_to_output();
         exit();
     }
     
     // Can we find the specified user?
-    $vleUserRecs = get_records('user', 'idnumber', $idnumber);
+    $vleUserRecs = false;
+    if (empty($username)) $vleUserRecs = get_records('user', 'idnumber', $idnumber);
+    else $vleUserRecs = get_records('user', 'username', $username);
     if (!$vleUserRecs)
     {
         // No - we cannot continue
@@ -67,6 +74,7 @@
     }
     
     // Did we find multiple users with a matching ID number?
+    // (The database schema should prevent multiple users with the same username)
     if (count($vleUserRecs) > 1)
     {
         // Yes - we cannot continue
