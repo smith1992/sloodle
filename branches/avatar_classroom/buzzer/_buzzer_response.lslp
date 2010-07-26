@@ -127,7 +127,7 @@ integer i (string ii){
 vector v (string vv){
     return llList2Vector(llParseString2List(vv, [":"], []),1);
 }//end function
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);
    s="";
@@ -238,22 +238,28 @@ string scoreboardname;
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
         }
 default{
-	state_entry() {
-		
-	}
-	 link_message(integer sender_num, integer channel, string str, key id) {      
+	 on_rez(integer start_param) {
+        llResetScript();
+    }
+    state_entry() {
+        
+    }
+     link_message(integer sender_num, integer channel, string str, key id) {      
 
              if (channel==SLOODLE_CHANNEL_OBJECT_DIALOG){
                 if (sloodle_handle_command(str)==TRUE) state ready;
             }//endif SLOODLE_CHANNEL_OBJECT_DIALOG
-	 }
+     }
 }        
 state ready{    
+	 on_rez(integer start_param) {
+        llResetScript();
+    }
     state_entry() {
-    	 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "buzzer");
-    	    llListen(scoreboardchannel, "", "", "");
-    	    debug("listening to: "+(string)scoreboardchannel);
-    	 llRegionSay(scoreboardchannel, "CMD:REQUEST GAME ID|UUID:"+(string)llGetKey());
+         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "buzzer");
+            llListen(scoreboardchannel, "", "", "");
+            debug("listening to: "+(string)scoreboardchannel);
+         llRegionSay(scoreboardchannel, "CMD:REQUEST GAME ID|UUID:"+(string)llGetKey());
         wNames=["none","none","none"];
          owner=llGetOwner();
          //llMessageLinked(LINK_SET, UI_CHANNEL, "CMD:REGISTER VIEW|INDEX:0|TOTALITEMS:0|COMMAND:cmd{index}|CHAN:channel",NULL_KEY);
@@ -351,7 +357,7 @@ state ready{
         }//channel!=PLUGIN_RESPONSE_CHANNEL
     }//linked message event
      listen(integer channel, string name, key id, string str) {   
-     	debug(str);
+         debug(str);
          if (channel==scoreboardchannel){
                   list cmdList = llParseString2List(str, ["|"], []);        
                   string cmd = s(llList2String(cmdList,0));    
