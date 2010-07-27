@@ -4,6 +4,7 @@
     //session_start();
     
     require_once('sl_config.php');
+    require_once(SLOODLE_LIBROOT.'/general.php');
 
     // If this page has been POSTed then convert data to SESSION values and reload
     if (!empty($_POST['submit']))
@@ -110,6 +111,8 @@
 ?>
 
 <script type="text/javascript">
+var auth_token = "<?php if ($_SERVER['SERVER_NAME'] == 'localhost') echo sloodle_get_stored_auth_token(); ?>";
+
 function selectStandardTarget()
 {
     try
@@ -125,6 +128,26 @@ function selectStandardTarget()
     catch(e)
     {
         alert("Failed to get elements from DOM.");
+    }
+}
+
+function useServerToken(elemID)
+{
+    if (auth_token == "")
+    {
+        alert("For security purposes, the authentication token is not available.");
+        return;
+    }
+
+    try
+    {
+        var elemTarget = document.getElementById(elemID);
+        
+        elemTarget.value = auth_token;
+    }
+    catch (e)
+    {
+        alert("Failed to get element from DOM.");
     }
 }
 </script>
@@ -150,9 +173,11 @@ function selectStandardTarget()
 <br/><br/>
 
 <label for="auth_token">Auth Token: </label>
-<input type="text" name="auth_token" id="auth_token" value="<?php echo $authToken; ?>" size="50" maxlength="255" /><br/>
+<input type="text" name="auth_token" id="auth_token" value="<?php echo $authToken; ?>" size="50" maxlength="255" />
+&nbsp;<input type="button" value="Use server token" onclick="useServerToken('auth_token');" /><br/>
 <label for="auth_token">Admin Token: </label>
-<input type="text" name="admin_token" id="admin_token" value="<?php echo $adminToken; ?>" size="50" maxlength="255" /><br/><br/>
+<input type="text" name="admin_token" id="admin_token" value="<?php echo $adminToken; ?>" size="50" maxlength="255" />
+&nbsp;<input type="button" value="Use server token" onclick="useServerToken('admin_token');" /><br/><br/>
 
 <label for="auth_token">Object UUID: </label>
 <input type="text" name="object_uuid" id="object_uuid" value="<?php echo $objectUUID; ?>" size="36" maxlength="255" /><br/>
