@@ -85,19 +85,23 @@ class SloodleApiPluginCourse  extends SloodleApiPluginBase{
             case "autoenrol":
                 if ($setting=="on"){
                     $sloodleCourse->enable_autoenrol();
+                    $sloodleCourse->write();                                        
                 }
                 else
                 if ($setting=="off"){
                     $sloodleCourse->disable_autoenrol();
+                    $sloodleCourse->write();
                 }
             break;
             case "autoreg":
                 if ($setting=="on"){
                     $sloodleCourse->enable_autoreg();
+                    $sloodleCourse->write();
                 }
                 else
                 if ($setting=="off"){
                     $sloodleCourse->disable_autoreg();
+                    $sloodleCourse->write();
                 }
             break;
             default:
