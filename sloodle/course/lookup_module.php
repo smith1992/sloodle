@@ -1,7 +1,7 @@
 <?php
     /**
     * SLOODLE for Schools.
-    * This script allows an object in-world to lookup module instances by type and name.
+    * This script allows an object in-world to lookup module instances by type, name, and ID.
     *
     * @package sloodle
     * @copyright Copyright (c) 2010 (various contributors)
@@ -13,15 +13,19 @@
     // This script should be called with the authentication token in the header.
     // It also requires the following HTTP parameters (GET or POST):
     //
-    //  sloodlecourse = database record ID of the course to search in
+    //  sloodlecourseid = database record ID of the course to search in
     //  type = the type of module to search for
     //
-    // The following parameter is optional:
+    // The following parameters are optional (only one should be provided, ID takes priority):
     //
     //  name = the name of module to search for
+    //  sloodlemoduleid = the site-specific ID of the module instance to lookup
     //
-    // If the name parameter is not specified, then all module instances of a particular type in the specifeid course will be returned.
+    // If the name and sloodlemoduleid parameters are not specified, then all module instances of a particular type in the specifeid course will be returned.
     // If name is specified, then any names partially or fully matching the module will be returned.
+    // If sloodlemoduleid is specified then the data about a specific module instance will be returned.
+    //
+    // The 'sloodlecourseid' parameter is not required if 'sloodlemoduleid' is specified, but it is recommended anyway.
     //
     // Some modules have a sub-type, such as SLOODLE modules.
     // The primary and secondary parts of the type should be delimited by a colon in the type parameter, such as "sloodle:presenter".
@@ -48,9 +52,13 @@
     $sloodle->authenticate_request();
     
     // Fetch the expected data
-    $courseid = (int)$sloodle->request->get_course_id(true);
     $type = strtolower(sloodle_clean_for_db($sloodle->request->required_param('type')));
     $name = sloodle_clean_for_db(optional_param('name', '', PARAM_RAW));
+    $sloodlemoduleid = (integer)$sloodle->request->get_module_id(false);
+    
+    $courseid = 0;
+    if (empty($sloodlemoduleid)) $courseid = (int)$sloodle->request->get_course_id(true);
+    else $courseid = $sloodle->courseobj->id;
     
     // Make sure the specified course can be found
     if (!record_exists('course', 'id', $courseid))
@@ -108,7 +116,72 @@
     
     // What kind of search are we doing?
     $recs = null;
-    if (empty($name))
+    if (!empty($sloodlemoduleid))
+    {
+        // ID lookup
+        $sql = "
+            SELECT cm.id, mit.name {$subTypeSelect}
+            FROM {$CFG->prefix}course_modules cm
+            
+            LEFT JOIN {$CFG->prefix}modules m
+            ON cm.module = m.id
+            
+            LEFT JOIN {$moduleInstanceTable} mit
+            ON cm.instance = mit.id
+            
+            WHERE cm.course = $courseid
+             AND m.name = '{$mainType}'
+             {$subTypeCondition}
+             AND cm.id = {$sloodlemoduleid}
+            ORDER BY mit.name
+        ";
+        $recs = get_records_sql($sql);
+    }
+    else if (!empty($name))
+    {
+        // Name search - try an exact match first
+        $sql = "
+            SELECT cm.id, mit.name {$subTypeSelect}
+            FROM {$CFG->prefix}course_modules cm
+            
+            LEFT JOIN {$CFG->prefix}modules m
+            ON cm.module = m.id
+            
+            LEFT JOIN {$moduleInstanceTable} mit
+            ON cm.instance = mit.id
+            
+            WHERE cm.course = $courseid
+             AND m.name = '{$mainType}'
+             {$subTypeCondition}
+             AND mit.name {$SQL_LIKE} '{$name}'
+            ORDER BY mit.name
+        ";
+        $recs = get_records_sql($sql);
+        
+        if ($recs == false || (is_array($recs) && count($recs) > 1))
+        {
+            // No exact match was found, or there were multiple exact matches.
+            // Do a partial search instead.
+            $sql = "
+                SELECT cm.id, mit.name {$subTypeSelect}
+                FROM {$CFG->prefix}course_modules cm
+                
+                LEFT JOIN {$CFG->prefix}modules m
+                ON cm.module = m.id
+                
+                LEFT JOIN {$moduleInstanceTable} mit
+                ON cm.instance = mit.id
+                
+                WHERE cm.course = $courseid
+                 AND m.name = '{$mainType}'
+                 {$subTypeCondition}
+                 AND mit.name {$SQL_LIKE} '{$name}%'
+                ORDER BY mit.name
+            ";
+            $recs = get_records_sql($sql);
+        }
+    }
+    else
     {
         // Type search
         $sql = "
@@ -124,27 +197,6 @@
             WHERE cm.course = $courseid
              AND m.name = '{$mainType}'
              {$subTypeCondition}
-            ORDER BY mit.name
-        ";
-        $recs = get_records_sql($sql);
-    }
-    else
-    {
-        // Name search
-        $sql = "
-            SELECT cm.id, mit.name {$subTypeSelect}
-            FROM {$CFG->prefix}course_modules cm
-            
-            LEFT JOIN {$CFG->prefix}modules m
-            ON cm.module = m.id
-            
-            LEFT JOIN {$moduleInstanceTable} mit
-            ON cm.instance = mit.id
-            
-            WHERE cm.course = $courseid
-             AND m.name = '{$mainType}'
-             {$subTypeCondition}
-             AND mit.name {$SQL_LIKE} '{$name}%'
             ORDER BY mit.name
         ";
         $recs = get_records_sql($sql);

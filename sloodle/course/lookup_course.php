@@ -8,6 +8,7 @@
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
+    *
     */
     
     // This script should be called with the authentication token in the header.
@@ -127,7 +128,7 @@
                 ORDER BY fullname
     ");
     
-    // If there was a single exact match on any of the fields then use it - priorities IDs
+    // If there was a single exact match on any of the fields then use it - prioritise IDs
     $rec = null;
     if (is_array($recs_id) && count($recs_id) == 1)
     {

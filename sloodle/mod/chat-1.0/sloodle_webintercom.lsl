@@ -16,7 +16,6 @@
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-//string SLOODLE_CHAT_LINKER = "mod/sloodle/mod/chat-1.0/linker.php";
 string SLOODLE_CHAT_LINKER = "mod/chat-1.0/linker.php";
 
 string SLOODLE_OBJECT_TYPE = "chat-1.0";
@@ -202,24 +201,65 @@ default
         // Reset our data 
         llSetTexture("webintercom-off",ALL_SIDES);
         llSetText("", <0.0,0.0,0.0>, 0.0);
-        sloodlemoduleid = (integer)llGetObjectDesc();
         
-        // We're ready to go if we have a module ID
-        if (sloodlemoduleid != 0) state ready;
+        // Request configuration data from our module finder
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "module_info_request|chat", NULL_KEY);
+    }
+    
+    link_message(integer sender, integer channel, string msg, key id)
+    {
+        // Only pay attention to the relevant channel
+        if (channel != SLOODLE_CHANNEL_OBJECT_DIALOG) return;
+        
+        // Parse the data into lines
+        list lines = llParseStringKeepNulls(msg, ["\n"], []);
+        integer numLines = llGetListLength(lines);
+        
+        // We are looking for a module info response
+        if (llList2String(lines, 0) == "module_info_response")
+        {
+            // We need 2 more lines: one for course and one for module data
+            if (numLines < 3)
+            {
+                llSay(DEBUG_CHANNEL, "Incomplete configuration received internally. Expecting 3 lines.");
+                return;
+            }
+            
+            // Parse the course information
+            list fields = llParseStringKeepNulls(llList2String(lines, 1), ["|"], []);
+            integer numFields = llGetListLength(fields);
+            if (numFields < 3)
+            {
+                llSay(DEBUG_CHANNEL, "Incomplete configuration received internally. Expecting 3 fields on course line.");
+                return;
+            }
+            //courseDatabaseID = (integer)llList2String(fields, 0);
+            //courseExternalID = llList2String(fields, 1);
+            //courseFullName = llList2String(fields, 2);
+            
+            // Parse the module information
+            fields = llParseStringKeepNulls(llList2String(lines, 2), ["|"], []);
+            numFields = llGetListLength(fields);
+            if (numFields < 3)
+            {
+                llSay(DEBUG_CHANNEL, "Incomplete configuration received internally. Expecting 3 fields on module line.");
+                return;
+            }
+            sloodlemoduleid = (integer)llList2String(fields, 0);
+            //moduleName = llList2String(fields, 2);
+            
+            // We're ready to go
+            llSay(0, "Connected to VLE.");
+            state ready;
+        }
+        
     }
     
     touch_start(integer num_detected)
     {
-        sloodlemoduleid = (integer)llGetObjectDesc();
-        // Is our module ID missing?
-        if (sloodlemoduleid == 0)
-        {
-            // Ask the user for it
-            llSay(0, "Please insert the CMID of the chatroom into the description field of this object.");
-            return;
-        }
-        
-        state ready;
+        // Re-attempt to get the configuration
+        llSay(0, "Attempting to connect to VLE...");
+        llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "module_info_request|chat", NULL_KEY);
     }
 }
 
@@ -269,7 +309,7 @@ state ready
             // Has chat logging been activated?
             if (message == "1") {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:chatloggingon", [llDetectedName(0)], NULL_KEY, "webintercom");
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
+                // sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:joinchat", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:touchtorecord", [], NULL_KEY, "webintercom");
                 
                 // Initially record the one who activated us
@@ -349,10 +389,10 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","3"], "webintercom:usectrlmenu", ["0", "1", "2","3"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2"], "webintercom:usectrlmenu", ["0", "1", "2"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1","2"], "webintercom:usemenu", ["0", "1","2"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1"], "webintercom:usemenu", ["0", "1"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "webintercom");
@@ -383,13 +423,8 @@ state logging
                 if (!(canctrl || canuse)) return;
                 // Start recording the user
                 sloodle_start_recording_agent(id);
-                
-            } else if (message == "2") {
-                // Make sure the user can use this
-                if (!(canctrl || canuse)) return;
-                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
 
-            } else if (message == "3") {
+            } else if (message == "2") {
                 // Make sure the user can control this
                 if (!(canctrl)) return;
                 // Stop logging
@@ -407,17 +442,6 @@ state logging
             } else {
                 // No - it is an object - ignore it if necessary
                 if (sloodlelistentoobjects == 0) return;
-            }
-            
-            // Is this a SLurl command?
-            if(message == "/slurl")     {        
-                string region = llEscapeURL(llGetRegionName());
-                vector vec = llGetPos();
-                string posX = (string)((integer)vec.x);
-                string posY = (string)((integer)vec.y);
-                string posZ = (string)((integer)vec.z);
-                // Replace the message with a SLurl
-                message = "http://slurl.com/secondlife/" + region + "/" + posX + "/" + posY + "/" + posZ + "/?title=" + region;
             }
             
             // Send the request as POST data

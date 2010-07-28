@@ -990,6 +990,27 @@
             $courseid = $this->get_course_id(false);
             $moduleid = $this->get_module_id(false);
             $modulecourseid = null;
+            
+            // If a course ID was given then make sure the course exists
+            if (!empty($courseid))
+            {
+                if (!record_exists('course', 'id', $courseid))
+                {
+                    $this->_session->response->quick_output(-512, 'COURSE', 'The requested course could not be found');
+                    exit();
+                }
+            }
+            
+            // If a course module ID was given then make sure the course exists
+            if (!empty($moduleid))
+            {
+                if (!record_exists('course_modules', 'id', $moduleid))
+                {
+                    $this->_session->response->quick_output(-712, 'COURSE', 'The requested module could not be found');
+                    exit();
+                }
+            }
+            
             // Load the course ID the module expects
             if (!empty($moduleid)) $modulecourseid = get_field('course_modules', 'course', 'id', $moduleid);
             // Verify that the specified course and the expected course correspond
@@ -997,7 +1018,7 @@
             {
                 if ($modulecourseid != $courseid)
                 {
-                    $this->_session->response->quick_output(-712, 'MODULE_INSTANCE', 'Module and course specified in request do not correspond');
+                    $this->_session->response->quick_output(-712, 'MODULE_INSTANCE', 'Requsted module is in the wrong course');
                     exit();
                 }
             }
