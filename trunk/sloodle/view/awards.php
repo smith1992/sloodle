@@ -906,7 +906,9 @@ class sloodle_view_awards extends sloodle_base_view_module
             print_box_end();
             
            }
+           
            print('</div>'); 
+        
             //======Print Games list
             $tsloodletable = new stdClass();  
              $tsloodletable->head = array(             
@@ -926,7 +928,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             if (!empty($games)){
               foreach ($games as $g){
                     $trowData= Array();            
-                            
+                     
                     $link_url=' <a href="'.$CFG->wwwroot.'/mod/sloodle/view.php?id=';
                     $link_url.=$sCourseObj->cm->id.'&';
                     $link_url.='action=getgame&gameid='.$g->id.'">(details)</a>';                    

@@ -72,6 +72,10 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
                 }//foreach scoreboard
             }//endif $scoreboards
      }
+     function awards_getGames(){
+         return get_records('sloodle_award_games','sloodleid',$this->sloodleId,'id DESC');
+         
+     }
       //set functions
       function setUrl($url){        
           $scoreboard = new stdClass();
@@ -91,7 +95,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $scoreData= array();
          //get players for the game
          if ($userid!=NULL){
-          $p= get_record_select('sloodle_award_players','gameid='.(int)$gameid." AND userid=".$userid);         
+          $p= get_record_select('sloodle_award_players','gameid='.(int)$gameid." AND userid=".$userid );         
           $score=$this->awards_getBalanceDetails((int)$userid,(int)$gameid);                            
           $p->score =$score->balance;
           $p->credits=$score->credits;
@@ -508,7 +512,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             return get_records_select('sloodle_award_trans','sloodleid='.$this->sloodleId,'Timemodified DESC');
          }
          else {
-            return get_records_select('sloodle_award_trans','userid='.$userId.' AND sloodleid='.$awardsObj->sloodleId,'Timemodified ASC');
+            return get_records_select('sloodle_award_trans','userid='.$userId.' AND sloodleid='.$awardsObj->sloodleId,'Timemodified DESC');
             
             
          }
@@ -641,14 +645,14 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
      */       
      function awards_getBalanceDetails($userid,$gameid,$currency="Credits"){
          global $CFG;
-         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='credit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}'");
+         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='credit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}' ORDER BY id DESC");
          $credits=0;
          if (!empty($totalAmountRecs))
             foreach ($totalAmountRecs as $userCredits){
                  $credits+=$userCredits->amount;
             }
             $totalAmountRecs=null;
-         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='debit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}'");
+         $totalAmountRecs = get_records_select('sloodle_award_trans',"itype='debit' AND sloodleid={$this->sloodleId} AND userid={$userid} AND gameid={$gameid} AND currency='{$currency}' ORDER BY id DESC");
          $debits=0;         
          if (!empty($totalAmountRecs))
             foreach ($totalAmountRecs as $userDebits){

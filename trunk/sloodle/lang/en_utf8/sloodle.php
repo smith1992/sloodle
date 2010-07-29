@@ -639,3 +639,11 @@ $string['backpack:rations'] = 'Rations';
 $string['backpack:units'] = 'Units';
 $string['backpack:coins'] = 'Coins';
 $string['backpack:amount'] = 'Amount';
+$string['backpack:details'] = 'Details';
+$string['backpack:date'] = 'Date';
+$string['backpack:selectcurrencytype'] = 'Select Currency Type';
+$string['backpack:selectusergroup'] = 'Select User Group';
+$string['backpack:backpackcontents'] = 'User Backpack Contents';
+$string['backpack:modifycontents'] = 'Modify Backpack Contents';
+$string['backpack:instructions_backpack_contentsview'] = 'On this page you can see the contents of users backpacks.  Select a user group, and currency type you would like to view below:';        
+
