@@ -317,10 +317,15 @@ class sloodle_view_awards extends sloodle_base_view_module
            $addmorefields= optional_param("addmorefields");  
            $deleteTeam = optional_param("deleteteam");  
            $update= optional_param("update");
+           $gameid= optional_param("gameid");
+             
            if ($update){                
+                   
                 $balance_updates=optional_param("balanceAdjustment");
+                
                 //get userId's that were posted
                 $userIds = optional_param("userIds");
+                
                 //get user names that were posted
                 $userNames = optional_param("usernames");
                 $currIndex=0;   
@@ -338,13 +343,15 @@ class sloodle_view_awards extends sloodle_base_view_module
                             $avuser = new SloodleUser( $sloodle ); 
                             $userRec = get_record('sloodle_users', 'userid', $userId);  
                             $trans = new stdClass();
-                            $trans->sloodleid=$awardsObj->sloodleId;
+                            $trans->gameid=$gameid;
+                            $trans->currency="Credits";
                             $trans->avuuid= $userRec->uuid;        
                             if ($balance_updates[$currIndex]>0)$trans->itype='credit'; else 
                             if ($balance_updates[$currIndex]<0){
                                 $trans->itype='debit';
                                 //check to see if this debit will make a negative amount
-                                $userAccountInfo = $awardsObj->awards_getBalanceDetails($userRec->userid);
+                                
+                                $userAccountInfo = $awardsObj->awards_getBalanceDetails($userRec->userid,$gameid);
                                 if (($userAccountInfo->balance - abs($balance_updates[$currIndex]))<0){
                                     $balance_updates[$currIndex]= $userAccountInfo->balance;
                                 }//endif
@@ -457,6 +464,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             foreach ($userData as $u){
                  //==========print hidden user id for form processing
                 $userIdFormElement = '<input type="hidden" name="userIds[]" value="'.$u->userid.'">';
+                $gameidelement = "<input type=\"hidden\" name=\"gameid\" value='{$gameid}'>";
                 // Get the Sloodle user data for this Moodle user
                 if ($sCourseObj->is_teacher($USER->id))
                   $editField = '<input style="text-align:right;" type="text" size="6" name="balanceAdjustment[]" value=0>';
@@ -471,7 +479,7 @@ class sloodle_view_awards extends sloodle_base_view_module
                 // Construct URLs to this user's Moodle and SLOODLE profile pages
                 $userinfo = get_record('user','id',$u->userid);
                 $url_moodleprofile= $sCourseObj->get_moodleUserProfile($userinfo);
-                $rowData[]= $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$userinfo->firstname} {$userinfo->lastname}</a>";
+                $rowData[]= $gameidelement. $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$userinfo->firstname} {$userinfo->lastname}</a>";
                 //create a url to the transaction list of each avatar the user owns
                 
                  $ownedAvatars = get_records('sloodle_users', 'userid', $u->userid,'avname DESC','userid,uuid,avname');                        
@@ -598,7 +606,7 @@ class sloodle_view_awards extends sloodle_base_view_module
         $text='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'</div>';
         $text.='<div style="color:black;text-align:center;">'.get_string('awards:gamescoreboard','sloodle').$gameid.'</div></h2>';
         $text.='<h3><div style="color:black;text-align:center;">'.get_string('awards:usertransactions','sloodle').$userRec->avname.'</div>';
-        
+                                         
         $userscore = $awardsObj->getScores($gameid,'balance',$userid);
         if ($userscore[0]->score<0)$color='<div style="color:red;text-align:center;">';
         else$color='<div style="color:green;text-align:center;">';
