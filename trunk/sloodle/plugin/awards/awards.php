@@ -676,7 +676,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
      * @output: NUMGROUPS:10
      * 
      */
-            function getTeamPlayerScores(){
+     function getTeamPlayerScores(){
         global $sloodle;    
         global $CFG; 
         $teamScores = array();                  
