@@ -99,14 +99,15 @@
         function get_transactions($avname=null,$currency){
             global $CFG;
             if ($avname!=null){
-                $sql= "select  t.id, t.idata, t.avname,t.currency,t.amount,t.itype,t.amount,t.timemodified, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.avname='{$avname}' ORDER BY t.timemodified DESC"; //gets a particular currency
+                $sql= "select t.avname, t.userid, t.currency,t.amount,t.itype,t.amount,t.timemodified, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.avname='{$avname}' ORDER BY t.timemodified DESC"; //gets a particular currency
                 //$sql= "select t.id, t.avname,t.amount,t.currency,t.itype,sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as amount, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency AND t.avname='{$avname}' GROUP BY c.name";
-                
+               
                 $trans = get_records_sql($sql);    
                  
                     return $trans;          
             }else{
-                $sql= "select t.id, t.idata, t.avname,t.currency,t.amount,t.itype,t.timemodified, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as amount, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' GROUP BY t.avname ORDER BY t.amount DESC";
+                $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as amount, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' GROUP BY t.avname ORDER BY t.amount DESC";
+               
                 $trans = get_records_sql($sql);    
                 return $trans;          
                 
