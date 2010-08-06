@@ -646,4 +646,7 @@ $string['backpack:selectusergroup'] = 'Select User Group';
 $string['backpack:backpackcontents'] = 'User Backpack Contents';
 $string['backpack:modifycontents'] = 'Modify Backpack Contents';
 $string['backpack:instructions_backpack_contentsview'] = 'On this page you can see the contents of users backpacks.  Select a user group, and currency type you would like to view below:';        
+$string['backpack:instructions_backpack_contentsview_edit_amount'] = 'On this page you can edit the currency amount of the user. ';        
+$string['backpack:current_balance'] = 'Current Balance: ';
+$string['backpack:add_transaction'] = 'Add Transaction: ';        
 
