@@ -97,16 +97,16 @@
                 return $currencyTypes;
         }
         function get_transactions($avname=null,$currency){
-            global $CFG;
+            global $CFG,$COURSE;
             if ($avname!=null){
-                $sql= "select t.avname, t.userid, t.currency,t.amount,t.itype,t.amount,t.timemodified, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.avname='{$avname}' ORDER BY t.timemodified DESC"; //gets a particular currency
+                $sql= "select t.*,t.amount as balance from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.avname='{$avname}' AND t.courseid={$COURSE->id} ORDER BY t.timemodified DESC"; //gets a particular currency
                 //$sql= "select t.id, t.avname,t.amount,t.currency,t.itype,sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as amount, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency AND t.avname='{$avname}' GROUP BY c.name";
                
                 $trans = get_records_sql($sql);    
                  
                     return $trans;          
             }else{
-                $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as amount, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' GROUP BY t.avname ORDER BY t.amount DESC";
+                $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.courseid={$COURSE->id} GROUP BY t.avname ORDER BY t.amount DESC";
                
                 $trans = get_records_sql($sql);    
                 return $trans;          
@@ -118,20 +118,20 @@
         }
          
         function get_balance($currency_name,$userid=null,$avuuid=null,$gameid=null){
-               global $CFG;
+               global $CFG,$COURSE;
             //$currency = get_record('sloodle_currency_types','name',$currency_name);            
             //if (!$currency) return null;//currency doesnt exist
             $gameid_str="";
             if (!empty($gameid))$gameid_str=" AND gameid={$gameid}";
             if ($userid){
-                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where userid={$userid} AND currency='{$currency_name}' AND itype='credit'".$gameid_str;
+                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where userid={$userid} AND courseid={$COURSE->id} AND currency='{$currency_name}' AND itype='credit'".$gameid_str;
               
                 $credits= get_records_sql($sql);
                 $cr=0;
                 foreach ($credits as $key =>$val){
                     $cr=$val->amt;
                 }
-                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where userid={$userid} AND currency='{$currency_name}' AND itype='debit'".$gameid_str;
+                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where userid={$userid} AND currency='{$currency_name}'  AND courseid={$COURSE->id}  AND itype='debit'".$gameid_str;
                
                 $dbts=0;
                 $debits= get_records_sql($sql);
@@ -144,13 +144,13 @@
             }
             else
             if ($avuuid!=null){
-                  $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where avuuid={$avuuid} AND currency='{$currency_name}' AND itype='credit'".$gameid_str;
+                  $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where avuuid={$avuuid} AND currency='{$currency_name}'  AND courseid={$COURSE->id} AND itype='credit'".$gameid_str;
                 $credits= get_records_sql($sql);
                 $cr=0;
                 foreach ($credits as $key =>$val){
                     $cr=$val->amt;
                 }
-                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where avuuid={$avuuid} AND currency='{$currency_name}' AND itype='debit'".$gameid_str;
+                $sql = "select SUM(amount) as amt from {$CFG->prefix}sloodle_award_trans where avuuid={$avuuid} AND currency='{$currency_name}'  AND courseid={$COURSE->id} AND itype='debit'".$gameid_str;
                 $dbts=0;
                 $debits= get_records_sql($sql);
                 foreach ($debits as $key =>$val){
@@ -165,6 +165,7 @@
             global $USER,$COURSE,$CFG; 
             $t= new stdClass();
             $t->sloodleid=$sloodleid;            
+            $t->courseid=$COURSE->id;
             $t->gameid=(int)$gameid;                  
             $t->avuuid=$avuuid;                  
             $t->userid=(int)$userid;            

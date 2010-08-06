@@ -290,7 +290,7 @@ class sloodle_view_backpack extends sloodle_base_view
     *  for that particular currency will be displayed, otherwise a list of all users for the selected currency will be displayed
     */
     function render_backpack_contents_view(){
-        global $CFG;
+        global $CFG,$COURSE;
         global $sloodle;
         $id = required_param('id', PARAM_INT);
         $action= optional_param('action', "");                 
@@ -357,8 +357,20 @@ class sloodle_view_backpack extends sloodle_base_view
              //set size of table cells
              $sloodletable->size = array('15%','10%', '10%','30%','20%','10%');            
              //get all the sum totals of the selected currency for each user if "ALL" is selected
+              $trans = Array();
              if ($currentUser=="ALL"){
-               $trans = $sloodle_currency->get_transactions(null,$currentCurrency);               
+               //$trans = $sloodle_currency->get_transactions(null,$currentCurrency);               
+                $enrolled=$this->sloodle_course->get_enrolled_users();
+               
+                foreach ($enrolled as $e){                    
+                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$COURSE->id}";                    
+                    $tran = get_record_sql($sql);    
+                    $tran->avname=$e->avname;
+                    $tran->avuuid=$e->avuuid;
+                    $tran->userid=$e->userid;
+                    $tran->currency=$currentCurrency;
+                    $trans[]=$tran;
+                }
              }else{
              //otherwise only get the transactions for the selected user for the selected currency
                $trans = $sloodle_currency->get_transactions($currentUser,$currentCurrency);
@@ -367,8 +379,7 @@ class sloodle_view_backpack extends sloodle_base_view
             if ($this->can_edit)        
                   $editField = '<input style="text-align:right;" type="text" size="6" name="balanceAdjustment[]" value=0>';
                   else $editField ='';
-            foreach ($trans as $t){
-               
+            foreach ($trans as $t){               
                 $trowData= Array();
                 $userIdFormElement = 
                 '<input type="hidden" name="userIds[]" value="'.$t->userid.'">
@@ -378,9 +389,11 @@ class sloodle_view_backpack extends sloodle_base_view
                 $trowData[]=$userIdFormElement.$t->avname;  
                 $trowData[]=$t->currency;  
                 $trowData[]=$t->units;  
-                $trowData[]=$t->idata;  
+                if ($currentUser=="ALL")
+                    $trowData[]="";  
+                else $trowData[]=$t->idata;
                 $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
-                $trowData[]=$t->amount;
+                $trowData[]=$t->balance;
                 $trowData[]=$editField;                                                                                                                                                                    
                 $sloodletable->data[] = $trowData;     
             }
