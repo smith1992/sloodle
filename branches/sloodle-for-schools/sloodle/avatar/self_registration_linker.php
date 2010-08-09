@@ -61,7 +61,7 @@
             $sloodle->response->add_data_line('Failed to add pending avatar details.');
         } else {
             // Construct and return a registration URL
-            $url = SLOODLE_WWWROOT."/login/sl_welcome_reg.php?sloodleuuid={$sloodleuuid}&sloodlelst={$pa->lst}";
+            $url = SLOODLE_WWWROOT."/avatar/self_registration_complete.php?sloodleuuid={$sloodleuuid}&sloodlelst={$pa->lst}";
             $sloodle->response->set_status_code(1);
             $sloodle->response->set_status_descriptor('OK');
             $sloodle->response->add_data_line($url);
