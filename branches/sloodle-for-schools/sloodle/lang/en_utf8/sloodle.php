@@ -441,8 +441,8 @@ $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
 
 $string['user'] = 'User';
-$string['userlinkfailed'] = 'There was an error while trying to link your avatar to your Moodle account.';
-$string['userlinksuccessful'] = 'Your avatar was successfully linked to your Moodle account. All SLOODLE objects linked to this site should now recognised you automatically.';
+$string['userlinkfailed'] = 'There was an error while trying to complete your avatar registration. Please try again, or contact an administrator.';
+$string['userlinksuccessful'] = 'Thank you. Your avatar has been successfully registered.';
 $string['usersearch'] = 'User search (within course)';
 $string['userobjects'] = 'User Objects';
 $string['userobjectlifetime'] = 'User object lifetime (days)';

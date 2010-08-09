@@ -1,7 +1,7 @@
 <?php                          
 
     /**
-    * Sloodle module core library functionality.
+    * Sloodle module core library functionality, modified for the SLOODLE for Schools project.
     *
     * This script is required by Moodle to contain certain key functionality for the module.
     *
@@ -308,49 +308,9 @@
         $expirytime = time() - 1800;
         echo "Removing expired pending avatar entries...\n";
         delete_records_select('sloodle_pending_avatars', "timeupdated < $expirytime");
-        
-        // Delete any LoginZone allocations which have expired (more than 15 minutes old)
-        $expirytime = time() - 900;
-        echo "Removing expired LoginZone allocations...\n";
-        delete_records_select('sloodle_loginzone_allocation', "timecreated < $expirytime");
-        
-        // Fetch our configuration settings, if they exist
-        $active_object_days = 7; // Give active objects a week by default
-        if (!empty($CFG->sloodle_active_object_lifetime)) $active_object_days = $CFG->sloodle_active_object_lifetime;
-        $user_object_days = 21; // Give user objects 3 weeks by default
-        if (!empty($CFG->sloodle_user_object_lifetime)) $user_object_days = $CFG->sloodle_user_object_lifetime;
-        
-        // Delete any active objects and session keys which have expired
-        // Deletes any authorised objects which have not checked-in for more than X days (where X is specified in module config)
-        // Deletes any unauthorised objects which have not checked-in for more than 1 hour
-        $expirytime_auth = time() - (86400 * $active_object_days);
-        $expirytime_unauth = time() - 3600;
-        echo "Searching for expired active objects...\n";
-        $recs = get_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
-        if ($recs) {
-            // Go through each object
-            echo "Removing " . count($recs) . " expired active objects and associated configuration settings...\n";
-            foreach ($recs as $r) {
-                delete_records('sloodle_object_config', 'object', $r->id);
-                delete_records('sloodle_active_object', 'id', $r->id);
-            }            
-        }
-        
-        // Delete any user-authorised objects which have expired
-        // (will eventually use custom expiry times, chosen in the configuration)
-        // Deletes any authorised objects which have not checked-in for more than X days (where X is specified in module config)
-        // Deletes any unauthorised objects which have not checked-in for more than 1 hour
-        $expirytime_auth = time() - (86400 * $user_object_days);
-        $expirytime_unauth = time() - 3600;
-        echo "Deleting expired user objects...\n";
-        delete_records_select('sloodle_user_object', "(authorised = 0 AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
-        
+
         // More stuff?
         //...
-        
-        // Email login details to auto-registered avatars in-world
-        echo "Sending out login notifications...\n";
-        sloodle_process_login_notifications();
 
         echo "Done processing Sloodle cron tasks.\n\n";
         return true;
