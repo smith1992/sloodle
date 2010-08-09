@@ -276,7 +276,7 @@
                 // If it fails:
                 if ($require)
                 {
-                    $this->response->quick_output(-311, 'OWNER_AUTH', 'Owner avatar not recognised.');
+                    $this->response->quick_output(-321, 'OWNER_AUTH', 'Owner avatar not recognised.');
                     exit;
                 }
                 return false;

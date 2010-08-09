@@ -338,7 +338,7 @@ state searching_for_module
         // Send a request for course information
         string url = "sloodle://course/lookup_course.php?";
         url += "search=" + llEscapeURL(searchCourse);
-        url += "&mode=flexible";
+        url += "&mode=shortname";
         httpCourse = llHTTPRequest(url, [HTTP_METHOD, "GET"], "");
         //llSay(DEBUG_CHANNEL, "Searching for course with ID or name \"" + searchCourse + "\"");
         llSetTimerEvent(HTTP_TIMEOUT);

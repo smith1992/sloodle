@@ -25,8 +25,8 @@ integer sloodlemoduleid = 0;
 integer sloodlelistentoobjects = 0; // Should this object listen to other objects?
 integer sloodleautodeactivate = 1; // Should the WebIntercom auto-deactivate when not in use?
 
-string MOODLE_NAME = "(SL)";
-string MOODLE_NAME_OBJECT = "(SL-object)";
+string MOODLE_NAME = "(OS)";
+string MOODLE_NAME_OBJECT = "(OS-object)";
 
 integer listenctrl = 0; // Listening for initial control... i.e. activation/deactivation
 list cmddialog = []; // Alternating list of keys and timestamps, indicating who activated a command dialog (during logging) and when
