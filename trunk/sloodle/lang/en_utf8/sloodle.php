@@ -613,7 +613,7 @@ $string['logs:slurl'] = 'Slurl';
 $string['logs:time'] = 'Time'; 
 $string['logs:username'] = 'User name';
 $string['logs:nologs'] = 'No Logs Exist';
-
+$string['backpack'] = 'Backpacks';
 $string['backpack:view'] = 'Backpacks'; 
 $string['backpack:avname'] = 'Avatar'; 
 $string['backpack:currency'] = 'Currency'; 

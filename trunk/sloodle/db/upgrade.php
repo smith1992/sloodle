@@ -1188,7 +1188,88 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         }
         echo "Inserts complete! Added ".count($oldTransTable)." records<br/>";                                         
     } 
-
+ if ($result && $oldversion < 2010080800) {     
+             $table = new XMLDBTable('sloodle_currency_types');
+            drop_table($table);
+           $table = new XMLDBTable('sloodle_currency_types');
+        //add extra filed to stipend giver for added security in giving out stipends
+         echo "creating new currency table for site wide virtual currency<br/>";               
+    /// Define field id to be added to sloodle_award_trans
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $table->addField($field);
+        $field = new XMLDBField('name');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $table->addField($field);        
+        $field = new XMLDBField('units');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '15', null, NULL, null, null, null, null, 'name');
+        $table->addField($field);        
+        $field = new XMLDBField('timemodified');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'units');
+        $table->addField($field);   
+            /// Adding keys to table sloodle_ipointTrans
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $result = $result && create_table($table);           
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:gold', 'sloodle');
+        $newCurrency->units=get_string('backpack:coins', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency)) echo "Added Gold Coins currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:silver', 'sloodle');
+        $newCurrency->units=get_string('backpack:coins', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency)) echo "Added Silver Coins currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:bronze', 'sloodle');
+        $newCurrency->units=get_string('backpack:coins', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Bronze Coins currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:credits', 'sloodle');
+        $newCurrency->units=NULL;
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Credits currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:magic', 'sloodle');
+        $newCurrency->units=get_string('backpack:points', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Magic currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:hit', 'sloodle');
+        $newCurrency->units=get_string('backpack:points', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Hit Points currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:damage', 'sloodle');
+        $newCurrency->units=get_string('backpack:points', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Damage currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:power', 'sloodle');
+        $newCurrency->units=get_string('backpack:points', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Power currency: OK<br>";
+        
+         $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:food', 'sloodle');
+        $newCurrency->units=get_string('backpack:rations', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Food currency: OK<br>";
+        
+         $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:ore', 'sloodle');
+        $newCurrency->units=get_string('backpack:units', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Ore currency: OK<br>";
+        
+         $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:wood', 'sloodle');
+        $newCurrency->units=get_string('backpack:units', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Wood currency: OK<br>";
+        
+        $newCurrency= new stdClass();
+        $newCurrency->name=get_string('backpack:metal', 'sloodle');
+        $newCurrency->units=get_string('backpack:units', 'sloodle');
+        if (insert_record('sloodle_currency_types',$newCurrency))echo "Added metal currency: OK<br>";
+    }
   return $result; 
 }
 

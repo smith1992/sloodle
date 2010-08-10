@@ -13,7 +13,7 @@
 *
 */ 
 define('SLOODLE_BACKPACKS_BACKPACKCONTENTS', 1);
-define('SLOODLE_BACKPACKS_MODIFY_VIEW', 2);   
+
 
 
 /** The base view class */
@@ -104,8 +104,8 @@ class sloodle_view_backpack extends sloodle_base_view
         
         $tabs = array(); // Top level is rows of tabs
         $tabs[0] = array(); // Second level is individual tabs in a row
-        $tabs[0][] = new tabobject(SLOODLE_BACKPACKS_BACKPACKCONTENTS_VIEW, SLOODLE_WWWROOT."/view.php?&_type=backpackid&id={$COURSE->id}&mode=backpackcontents", get_string('backpack:backpackcontents', 'sloodle'), get_string('backpack:backpackcontents', 'sloodle'),true);
-        $tabs[0][] = new tabobject(SLOODLE_BACKPACKS_MODIFY_VIEW, SLOODLE_WWWROOT."/view.php?&_type=backpack&id={$COURSE->id}&mode=modify", get_string('backpack:modifycontents', 'sloodle'), get_string('backpack:modifycontents', 'sloodle'),true);
+        $tabs[0][] = new tabobject(SLOODLE_BACKPACKS_BACKPACKCONTENTS_VIEW, SLOODLE_WWWROOT."/view.php?&_type=backpack&id={$COURSE->id}&mode=backpackcontents", get_string('backpack:backpackcontents', 'sloodle'), get_string('backpack:backpackcontents', 'sloodle'),true);
+        
 
         // Does the user have authority to edit this module?
         // Determine which tab should be active
@@ -114,7 +114,7 @@ class sloodle_view_backpack extends sloodle_base_view
         {
         //case 'user': $selectedtab = SLOODLE_AWARDS_GAMES_VIEW; break;            
         case 'backpackcontents': $selectedtab = SLOODLE_BACKPACKS_BACKPACKCONTENTS_VIEW; break;
-        case 'modify': $selectedtab = SLOODLE_BACKPACKS_MODIFY_VIEW; break;
+        
         
         }
         
@@ -126,7 +126,7 @@ class sloodle_view_backpack extends sloodle_base_view
         switch ($this->backpack_mode)
         {
         case 'backpackcontents': $this->render_backpack_contents_view(); break;            
-        case 'modify': $this->render_modify_view(); break;
+        
         default: $this->render_backpack_contents_view(); break;
         }
         echo "</div>\n";
@@ -146,12 +146,16 @@ class sloodle_view_backpack extends sloodle_base_view
                 $userIds = optional_param("userIds");
                 $avuuids= optional_param("avuuids");
                 $avnames= optional_param("avnames");
+                $idatas= optional_param("idataFields"); 
+                //if the userid field was submited, this means that this is the users first entry for this currency
+                
                 $currentCurrency= optional_param("currentCurrency");
                 $sloodle_currency= new SloodleCurrency();
                 $currIndex=0;   
                 $updatedRecs = Array();
                 $errorString=''; 
                 $transactions= Array();
+                
                 foreach ($userIds as $userId) {
                     //Was a non-zero value entered in the balance_update field for this user?
                     if ($balance_updates[$currIndex]!=0){
@@ -167,7 +171,10 @@ class sloodle_view_backpack extends sloodle_base_view
                             $trans->amount=abs($balance_updates[$currIndex]);
                             $trans->userid = $userId; 
                             $trans->avname= $avnames[$currIndex]; 
-                            $trans->idata="DETAILS:webupdate|by moodle user:".$USER->username;
+                            if ($idatas[$currIndex]=="")
+                                $trans->idata="Modified by: ".$USER->username;
+                            else
+                                $trans->idata=$idatas[$currIndex];
                             $trans->timemodified=time();    
                             $sloodle_currency->addTransaction($trans->userid,$trans->avname,$trans->avuuid,0,$currentCurrency,$balance_updates[$currIndex],$trans->idata,NULL);
                             $transactions[]=$trans;                      
@@ -176,112 +183,7 @@ class sloodle_view_backpack extends sloodle_base_view
                 }//end foreach
             }//endif update
        }//end function process_form 
-    function render_modify_view(){
-     /*  
-        global $CFG;
-        global $USER;
-       
-
-        $sloodletable = new stdClass();            
-        $sloodletable->tablealign='center';
-        //build row
-        $rowData=Array();
-        //$userscore = $awardsObj->getScores($gameid,'balance',$userid);
-       
-        print_table($sloodletable); 
-         //===================== Build table with headers, set alignment and width of cells
-        //Create HTML table object
-        $sloodletable = new stdClass();
-        $sloodletable->tablealign='center';
-        //Row Data
-        
-        //Create Sloodle Table Column Labels
-        //User | Avatar  |  Amount Alloted  |  Balance Remaining
-         $context = get_context_instance(CONTEXT_MODULE, $sCourseObj->cm->id);          
-          if (has_capability('moodle/course:manageactivities',$context, $USER->id)) {                 
-            $updateString =' <input type="submit"';
-            $updateString .=' name="update" ';
-            $updateString .='  value="'.get_string("awards:update","sloodle") .'">';      
-        }else {$updateString = '';}
-             
-            $sloodletable->head = array(
-             get_string('awards:fullname', 'sloodle'),
-             get_string('awards:avname', 'sloodle'),             
-             '<h4><div style="color:green;text-align:center;">'.get_string('backpack:amount', 'sloodle').'</h4>',
-             $updateString);
-        //set alignment of table cells                                        
-        $sloodletable->align = array('left','right','right');
-        //set size of table cells
-        $sloodletable->size = array('25%','35%', '15%');        
-        $avs='';
-        $debits='';
-        $checkBoxId=0; 
-        $userList = $this->sloodle_course->get_enrolled_users();
-            
-        $userData = get_records_sql($sql);
-        
-            
-      
-        if (!empty($userData)){
-            foreach ($userData as $u){
-                 //==========print hidden user id for form processing
-                $userIdFormElement = '<input type="hidden" name="userIds[]" value="'.$u->userid.'">';
-                
-                // Get the Sloodle user data for this Moodle user
-                if ($sCourseObj->is_teacher($USER->id))
-                  $editField = '<input style="text-align:right;" type="text" size="6" name="balanceAdjustment[]" value=0>';
-                  else $editField ='';
-                //build row
-                //col 0: fullname & link to profile
-                //col 1: avatar
-                //col 2: balance
-                //col 3: updateAmount
-                //col 4: transaction link
-                $rowData= Array();  
-                // Construct URLs to this user's Moodle and SLOODLE profile pages
-                $userinfo = get_record('user','id',$u->userid);
-                $url_moodleprofile= $sCourseObj->get_moodleUserProfile($userinfo);
-                $rowData[]= $gameidelement. $userIdFormElement . "<a href=\"{$url_moodleprofile}\">{$userinfo->firstname} {$userinfo->lastname}</a>";
-                //create a url to the transaction list of each avatar the user owns
-                
-                 $ownedAvatars = get_records('sloodle_users', 'userid', $u->userid,'avname DESC','userid,uuid,avname');                        
-                if ($ownedAvatars){
-                    
-                    $trans_url ='';   
-                    foreach ($ownedAvatars as $av){
-                       $trans_url.='<a href="'.$CFG->wwwroot.'/mod/sloodle/view.php?id=';
-                       $trans_url.=$sCourseObj->cm->id.'&';
-                       $trans_url.='action=gettrans&userid='.$av->userid.'&mode=user&gameid='.$gameid.'">';
-                       $rowData[]=$av->avname.' '.$trans_url .'(transactions)</a>';
-                       $trans_details = $awardsObj->awards_getBalanceDetails($av->userid,$gameid);
-                       if (!$trans_details) {
-                           $credits=0; $debits=0;$balance=0;
-                       }else{
-                           $points=$trans_details->credits;
-                           $penalties=$trans_details->debits;
-                           $score=$trans_details->balance;
-                       }
-                       $rowData[]='<div style="color:black;text-align:center;"><input type="text" size="10" readonly value="'.$points.'"></div>';
-                       $rowData[]='<div style="color:red;text-align:center;"><input type="text" size="10" readonly value="'.$penalties.'"></div>';
-                       $rowData[]='<div style="color:green;text-align:center;"><input type="text" size="10" readonly value="'.$score.'"></div>';
-                       $rowData[]=$editField;
-                        
-                    }
-                    $sloodletable->data[] = $rowData;
-                }
-            }
-            print ('<input type="hidden" name="gameid" value='.$gameid.'><form action="" method="POST">');
-            print_table($sloodletable);  
-            print('</form>');  
-        } else
-        {
-         print_box_start('generalbox boxaligncenter boxwidthnarrow leftpara'); 
-                print ('<h1 style="color:red;text-align:center;">'.get_string('awards:noplayers','sloodle').'</div>');
-         print_box_end(); 
-        }
-          */
-        
-    }
+    
     /*
     *  This will render the view of each user's inventory for the selected currency type - that has been selected
     *  in the drop down.  The default currency is "Credits"
@@ -296,8 +198,16 @@ class sloodle_view_backpack extends sloodle_base_view
         $action= optional_param('action', "");                 
         $currentCurrency = optional_param('currentCurrency',"Credits");
         $currentUser= optional_param('currentUser',"ALL");
-        //create the form
+        if ($currentUser!='ALL'){            
+            $cUser = get_record('sloodle_users', 'avname', $currentUser);    
+            $currUserId =$cUser->id;            
+        }
+          
         
+        
+        
+            echo "<h4>Current User is: {$currentUser}</h4>";
+            
             echo '<form action="" method="POST" >';
             echo "<input type=\"hidden\" name=\"id\" value=\"".$id."\">";
             echo "<input type=\"hidden\" name=\"currentCurrency\" value=\"".$currentCurrency."\">";
@@ -322,11 +232,21 @@ class sloodle_view_backpack extends sloodle_base_view
                      $selectStr="selected";
                  }
                  echo "<option value=\"ALL\" {$selectStr}>ALL</option>";
-                 foreach ($students as $s){
-                    if ($s->avname==$currentUser)$selectStr="selected"; else $selectStr="";
+                          
+                 foreach ($students as $s){                  
+                    if ($s->avname==$currentUser){
+                        $selectStr="selected";     
+                        
+                        
+                    }
+                    else {
+                        $selectStr="";
+                        
+                    }
                     echo "<option value=\"{$s->avname}\" {$selectStr}>{$s->avname} / {$s->firstname} {$s->lastname}</option>";
                  }    
                  echo '</select>';
+              
         //display the select box for the currency        
                 echo get_string('backpack:selectcurrencytype', 'sloodle');
                 echo " <select name=\"currentCurrency\"    onchange=\"this.form.submit()\" value=\"Sumbit\">";                 
@@ -350,7 +270,7 @@ class sloodle_view_backpack extends sloodle_base_view
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:units', 'sloodle').'</h4>',             
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:details', 'sloodle').'</h4>',             
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:date', 'sloodle').'</h4>',             
-             '<h4><div style="color:green;text-align:right;">'.get_string('backpack:amount', 'sloodle').'</h4>'.$updateString);
+             '<h4><div style="color:green;text-align:right;">'.get_string('backpack:amount', 'sloodle').'</h4>',$updateString);
               //set alignment of table cells                                        
              $sloodletable->align = array('left','left','left','left','left','right');
              $sloodletable->width="95%";
@@ -364,6 +284,7 @@ class sloodle_view_backpack extends sloodle_base_view
                
                 foreach ($enrolled as $e){                    
                     $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$COURSE->id}";                    
+                    
                     $tran = get_record_sql($sql);    
                     $tran->avname=$e->avname;
                     $tran->avuuid=$e->avuuid;
@@ -376,9 +297,34 @@ class sloodle_view_backpack extends sloodle_base_view
                $trans = $sloodle_currency->get_transactions($currentUser,$currentCurrency);
             }
             //display transactions            
-            if ($this->can_edit)        
+            if ($this->can_edit) {       
                   $editField = '<input style="text-align:right;" type="text" size="6" name="balanceAdjustment[]" value=0>';
-                  else $editField ='';
+                 
+            }
+            else {
+                $editField ='';
+                $idata_editField='';
+            }
+            //manage the case where only a selected user is being viewed, but has no transactions yet
+            if ($currentUser!="ALL"&&$trans==NULL){
+                 $userIdFormElement = 
+                '<input type="hidden" name="userIds[]" value="'.$cUser->userid.'">
+                <input type="hidden" name="avuuids[]" value="'.$cUser->uuid.'">
+                <input type="hidden" name="avnames[]" value="'.$cUser->avname.'">';                
+                //var_dump($cUser->get_user_id());
+                $avname=$currentUser;                
+                $trowData[]=$userIdFormElement.$avname;  
+                $trowData[]=$currentCurrency;  
+                $trowData[]="";//units
+                if ($this->can_edit) {                           
+                       $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="">';
+                }                    
+                $trowData[]=$idata_editField;    
+                $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
+                $trowData[]=0;//amount
+                $trowData[]=$editField;                                                                                                                                                                     
+                $sloodletable->data[] = $trowData;                     
+            }else
             foreach ($trans as $t){               
                 $trowData= Array();
                 $userIdFormElement = 
@@ -389,9 +335,16 @@ class sloodle_view_backpack extends sloodle_base_view
                 $trowData[]=$userIdFormElement.$t->avname;  
                 $trowData[]=$t->currency;  
                 $trowData[]=$t->units;  
-                if ($currentUser=="ALL")
-                    $trowData[]="";  
-                else $trowData[]=$t->idata;
+                if ($currentUser=="ALL"){
+                    if ($this->can_edit) {                           
+                        $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="">';
+                    }                    
+                }
+                else
+                if ($this->can_edit) {                           
+                       $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="'.$t->idata.'">';
+                }                    
+                $trowData[]=$idata_editField;    
                 $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
                 $trowData[]=$t->balance;
                 $trowData[]=$editField;                                                                                                                                                                    
