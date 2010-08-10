@@ -28,8 +28,7 @@ require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
 
 /** General Sloodle functionality. */
 require_once(SLOODLE_LIBROOT.'/general.php');   
-/** ID of the 'userview' tab for the awards system. */
-
+/** ID of the 'userview' tab for the awards system. */                             
 define('SLOODLE_AWARDS_GAMES_VIEW', 1);
 define('SLOODLE_AWARDS_TEAM_VIEW', 2);   
 define('SLOODLE_AWARDS_PRIZE_VIEW', 3); 
@@ -943,11 +942,13 @@ class sloodle_view_awards extends sloodle_base_view_module
                     $trowData[]=$g->name.$link_url;             
                     $trowData[]=$g->id;     
                     $trowData[]=date("F j, Y, g:i a",$g->timemodified);             
-                    $scoreData = $awardsObj->getScores($g->id,'balance');
-                                 ;
-                    if ($scoreData[2]) $trowData[]=$scoreData[2]->avname." (" . $scoreData[2]->score." pts)"; else $trowData[]="none";  
+                    $scoreData = $awardsObj->getScores($g->id,'balance');                               
+                    if ($scoreData[0]) $trowData[]=$scoreData[0]->avname." (" . $scoreData[0]->score." pts)"; else $trowData[]="none";  
                     if($scoreData[1]) $trowData[]=$scoreData[1]->avname." (" . $scoreData[1]->score." pts)";else $trowData[]="none";  
-                    if($scoreData[0])$trowData[]=$scoreData[0]->avname." (" . $scoreData[0]->score." pts)";else $trowData[]="none";  
+                    if($scoreData[2])$trowData[]=$scoreData[2]->avname." (" . $scoreData[2]->score." pts)";else $trowData[]="none";  
+                   
+                 
+                    
                     $tsloodletable->data[] = $trowData;                     
               }
               

@@ -652,7 +652,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
          global $CFG;
           $sql = "select sum(case itype when 'debit' then cast(amount*-1 as signed) else amount end) as balance";
           $sql.= " from {$CFG->prefix}sloodle_award_trans";
-          $sql.=" where gameid={$gameid} AND currency='{$currency}' AND userid={$userid}";
+          $sql.=" where gameid={$gameid} AND currency='{$currency}' AND userid={$userid} ORDER BY balance DESC";
            
           $totalAmountRecs = get_record_sql($sql);
           $accountInfo = new stdClass();

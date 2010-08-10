@@ -286,7 +286,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
      * addGrpMbr will attempt to add a member to a group 
      * called by: 
      * llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "plugin:user,function:addGrpMbr\nSENDERUUID:"+(string)owner+"|GROUPNAME:"+current_grp_membership_group+"|USERUUID:"+(string)useruuid|USERNAME:avname, NULL_KEY);
-     * @output status_code: -500800 user doesn’t have capabilities to edit group membersip
+     * @output status_code: -500800 user doesn?t have capabilities to edit group membersip
      */
      function addGrpMbr(){
         global $sloodle;
@@ -317,7 +317,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
         $context = get_context_instance(CONTEXT_COURSE, $courseId);
         //check to see if user has authority to edit group membership
         if (!has_capability('moodle/course:managegroups', $context,$sender_moodle_id)) {
-           $sloodle->response->set_status_code(-500800);     //@output status_code: -500800 user doesn’t have capabilities to edit group membersip
+           $sloodle->response->set_status_code(-500800);     //@output status_code: -500800 user doesn?t have capabilities to edit group membersip
            $sloodle->response->set_status_descriptor('GROUPS'); //line 0  
            $sloodle->response->add_data_line("GRP:".$grpName);
            $sloodle->response->add_data_line("MBRNAME:".$newMemberName);
@@ -409,7 +409,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
      * called by: 
      llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "user->removeGrpMbr&sloodleid="+(string)currentAwardId+"&senderuuid="+(string)owner+"&groupname="+currentGroup+"&avuuid="+(string)useruuid+"&avname="+userName, NULL_KEY);
      * 
-     * @output status_code: -500800 user doesn’t have capabilities to edit group membersip
+     * @output status_code: -500800 user doesn?t have capabilities to edit group membersip
      * @output status_code: -500900 could not add user to group
      */
      function removeGrpMbr(){
@@ -442,7 +442,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
         $context = get_context_instance(CONTEXT_COURSE, $sCourseObj->courseId);
         //check to see if user has authority to edit group membership
         if (!has_capability('moodle/course:managegroups', $context,$sender_moodle_id)) {
-           $sloodle->response->set_status_code(-500800);     //@output status_code: -500800 user doesn’t have capabilities to edit group membersip
+           $sloodle->response->set_status_code(-500800);     //@output status_code: -500800 user doesn?t have capabilities to edit group membersip
            $sloodle->response->set_status_descriptor('GROUPS'); //line 0  
            $sloodle->response->add_data_line($grpName);
            $sloodle->response->add_data_line($newMemberName);
