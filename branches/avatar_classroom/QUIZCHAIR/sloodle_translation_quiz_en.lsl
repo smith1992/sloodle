@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.sloodle_translation_quiz_en.lslp Thu Jul 22 02:04:18 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.sloodle_translation_quiz_en.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 // Translation strings for the Sloodle Quiz object(s).
 //
 // The "locstrings" list is pairs of strings.

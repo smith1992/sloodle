@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.rezzer.lslp Thu Jul 22 02:04:09 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.rezzer.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 /*********************************************
 *  Copyright (c) 2009 Paul Preibisch
 *  Released under the GNU GPL 3.0

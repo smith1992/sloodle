@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.scoreboard.DIISPLAY_BOX.lslp Thu Jul 22 00:58:49 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.scoreboard.DIISPLAY_BOX.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 
 integer DISPLAY_BOX_CHANNEL = -870881;
 vector WHITE = <1.0,1.0,1.0>;

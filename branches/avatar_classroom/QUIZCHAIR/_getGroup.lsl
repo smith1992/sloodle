@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR._getGroup.lslp Thu Jul 22 02:03:52 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR._getGroup.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 //_getGroup.lsl
 //gets a vector from a string
 integer ANIM_CHANNEL = -99;

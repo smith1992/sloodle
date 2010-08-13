@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.sit_handler.lslp Thu Jul 22 02:04:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.sit_handler.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 // Sloodle quiz chair sit handler
 // Detects the avatar sitting on it, and sends the main script a message to tell it to give them a quiz.
 // This is done in a seperate script so that it can be easily switched out for scripts that want to do something else before the quiz starts.
