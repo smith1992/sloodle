@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.poofer.lslp Thu Jul 22 02:04:05 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.poofer.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 integer UI_CHANNEL = 89997;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 poofer(key texture){

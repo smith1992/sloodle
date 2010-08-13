@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.flag.lslp Thu Jul 22 02:03:58 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.flag.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 
 integer GROUP_CHANNEL = -91123421;
 vector WHITE = <1.0,1.0,1.0>;

@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.scoreboard.scoreboard_public_data.lslp Thu Jul 22 02:03:09 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.scoreboard.scoreboard_public_data.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 //scoreboard_public_data
     integer gameid;
     integer scoreboardchannel = -1;

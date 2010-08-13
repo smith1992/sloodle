@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.scoreboard._teamViewUpdate.lslp Thu Jul 22 00:58:49 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.scoreboard._teamViewUpdate.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 // teamViewUpdate.lsl
 /*********************************************
 *  Copyrght (c) 2009 Paul Preibisch

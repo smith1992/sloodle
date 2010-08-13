@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.QUIZCHAIR.quizchair_datahandler.lslp Thu Jul 22 02:04:08 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.QUIZCHAIR.quizchair_datahandler.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 //_quizchair_datahandler
         
         

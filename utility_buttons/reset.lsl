@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.utility_buttons.reset.lslp Thu Jul 22 00:58:49 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.utility_buttons.reset.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 //reset
 //gets a vector from a string
 vector RED = <0.77278,4.391e-2,0.0>;

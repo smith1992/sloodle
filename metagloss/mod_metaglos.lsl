@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.metagloss.mod_metaglos.lslp Thu Jul 22 00:58:49 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.metagloss.mod_metaglos.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
 // Sloodle Glossary (for Sloodle 0.3)
 // Allows users in-world to search a Moodle glossary.
 // Part of the Sloodle project (www.sloodle.org)
