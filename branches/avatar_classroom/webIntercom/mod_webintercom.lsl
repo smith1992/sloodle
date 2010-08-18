@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.webIntercom.mod_webintercom.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.webIntercom.mod_webintercom.lslp Tue Aug 17 22:11:25 Pacific Daylight Time 2010
 // Sloodle WebIntercom
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)

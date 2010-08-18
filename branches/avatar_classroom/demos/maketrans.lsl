@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.demos.maketrans.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.demos.maketrans.lslp Tue Aug 17 22:10:59 Pacific Daylight Time 2010
 
 integer PLUGIN_CHANNEL = 998821;
 default {

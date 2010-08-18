@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.primdrop.reset button.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.primdrop.reset button.lslp Tue Aug 17 22:11:02 Pacific Daylight Time 2010
 
 
 default {

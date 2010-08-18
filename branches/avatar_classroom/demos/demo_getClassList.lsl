@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.demos.demo_getClassList.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.demos.demo_getClassList.lslp Tue Aug 17 22:10:58 Pacific Daylight Time 2010
 
 integer PLUGIN_CHANNEL = 998821;
 default {

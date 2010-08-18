@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.utility_buttons.auto_enrol.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.utility_buttons.auto_enrol.lslp Tue Aug 17 22:11:22 Pacific Daylight Time 2010
 //reset
 //gets a vector from a string
 vector RED = <0.77278,4.391e-2,0.0>;

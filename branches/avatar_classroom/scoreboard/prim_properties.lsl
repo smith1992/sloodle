@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.scoreboard.prim_properties.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.scoreboard.prim_properties.lslp Tue Aug 17 22:11:13 Pacific Daylight Time 2010
 
 integer PRIM_PROPERTIES_CHANNEL = -870870;
 vector WHITE = <1.0,1.0,1.0>;

@@ -1,4 +1,4 @@
-// LSL script generated: _SLOODLE_HOUSE.buzzer._buzzer_response.lslp Thu Jul 22 00:58:49 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.buzzer._buzzer_response.lslp Tue Aug 17 22:10:55 Pacific Daylight Time 2010
 /*********************************************
 *  Copyrght (c) 2009 Paul Preibisch
 *  Released under the GNU GPL 3.0
@@ -36,7 +36,7 @@ list facilitators;
 string SLOODLE_TRANSLATE_SAY = "say";
 string SLOODLE_EOF = "sloodleeof";
 vector YELLOW = <0.82192,0.86066,0.0>;
-integer DEBUG = TRUE;
+integer DEBUG = FALSE;
 
 string sloodleserverroot;
 integer sloodlecontrollerid;
@@ -136,16 +136,24 @@ makeTransaction(string avname,key avuuid,integer points){
 }
 default {
 
-	state_entry() {
+	 on_rez(integer start_param) {
+        llResetScript();
     }
 
-	 link_message(integer sender_num,integer channel,string str,key id) {
+    state_entry() {
+    }
+
+     link_message(integer sender_num,integer channel,string str,key id) {
         if ((channel == SLOODLE_CHANNEL_OBJECT_DIALOG)) {
             if ((sloodle_handle_command(str) == TRUE)) state ready;
         }
     }
 }
 state ready {
+
+	 on_rez(integer start_param) {
+        llResetScript();
+    }
 
     state_entry() {
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY,[0],"configurationreceived",[],NULL_KEY,"buzzer");
