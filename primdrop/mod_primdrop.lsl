@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.primdrop.mod_primdrop.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.primdrop.mod_primdrop.lslp Tue Aug 17 22:11:01 Pacific Daylight Time 2010
 // Sloodle PrimDrop (for Sloodle 0.3)
 // Allows students to submit SL objects as Moodle assignments.
 // Part of the Sloodle project (www.sloodle.org)

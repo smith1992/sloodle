@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.choice.mod_choice.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.choice.mod_choice.lslp Tue Aug 17 22:10:57 Pacific Daylight Time 2010
 // Sloodle Choice (for Sloodle 0.3)
 // Allows avatars to interact graphically with a Moodle choice.
 //

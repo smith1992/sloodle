@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.scoreboard.scoreboard_public_data.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.scoreboard.scoreboard_public_data.lslp Tue Aug 17 22:11:16 Pacific Daylight Time 2010
 //scoreboard_public_data
     integer gameid;
     integer scoreboardchannel = -1;

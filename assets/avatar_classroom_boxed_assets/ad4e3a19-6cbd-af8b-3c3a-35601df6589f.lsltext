@@ -1,0 +1,106 @@
+default
+{// zFire Xue Prim Animator Generator 5.1 Fastest Web Version.
+// Script belongs to Fire Centaur
+// This script goes into prim named: Object 
+on_rez(integer r){llResetScript();} 
+link_message(integer s, integer n, string m, key id)
+{integer stat=llGetStatus(1);
+
+if(m=="p0"){ //zF Animation Frame #0
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+if(m=="p1"){ //zF Animation Frame #1
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p2"){ //zF Animation Frame #2
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p3"){ //zF Animation Frame #3
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p4"){ //zF Animation Frame #4
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p5"){ //zF Animation Frame #5
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p6"){ //zF Animation Frame #6
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p7"){ //zF Animation Frame #7
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+
+if(m=="p8"){ //zF Animation Frame #8
+vector r=<0.50545,0.50545,0.50545>;
+llSetScale(r);
+vector Zfire=llGetScale();
+vector zFire=<-0.01143,-0.01143,0.22168>;
+vector zfIre=<0.50545,0.50545,0.50545>;
+vector zfiRe=< zFire.x/zfIre.x,zFire.y/zfIre.y,zFire.z/zfIre.z>;
+vector zfirE=< Zfire.x*zfiRe.x,Zfire.y*zfiRe.y,Zfire.z*zfiRe.z>;
+llSetPrimitiveParams([6, zfirE,8, <0.0,0.0,0.0,1.0> / llGetRootRotation(),17,0,"bd3670c3-3001-ce28-a01f-315734be6f8f",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,1,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,2,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,3,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,4,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,5,"16939b8f-eba3-67bd-b2f5-466726803afb",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,17,6,"03af0f25-4d49-52b2-975e-d035fc8337db",<1.0,1.0,0.0>,<0.0,0.0,0.0>,0.0,25,0,0.0,25,1,0.0,25,2,0.0,25,3,0.0,25,4,0.0,25,5,1.0,25,6,0.0]); }
+
+if(stat){llSetStatus(1,1);}}}

@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.scoreboard._teamViewUpdate.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.scoreboard._teamViewUpdate.lslp Tue Aug 17 22:11:10 Pacific Daylight Time 2010
 // teamViewUpdate.lsl
 /*********************************************
 *  Copyrght (c) 2009 Paul Preibisch

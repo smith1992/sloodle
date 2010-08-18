@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.choice.sloodle_choice_option.lslp Wed Aug 11 19:44:11 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom.secondlife_port.choice.sloodle_choice_option.lslp Tue Aug 17 22:10:57 Pacific Daylight Time 2010
 // Sloodle Choice (for Sloodle 0.3)
 // This script represents a single bar on the bar graph display.
 //
