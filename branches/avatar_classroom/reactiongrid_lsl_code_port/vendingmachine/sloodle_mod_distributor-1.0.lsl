@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.mod_vending.lslp Tue Aug 17 23:59:29 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.sloodle_mod_distributor-1.0.lslp Tue Aug 17 23:59:29 Pacific Daylight Time 2010
 // Sloodle object distributor.
 // Allows Sloodle objects to be distributed in-world to Second Life users,
 //  either by an in-world user touching it and using a menu,
@@ -35,7 +35,6 @@ string SLOODLE_DISTRIB_LINKER = "/mod/sloodle/mod/distributor-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 string hoverText = "";
 integer counter = 0;
-vector YELLOW = <0.82192,0.86066,0.0>;
 vector PINK = <0.83635,0.0,0.88019>;
 
 string sloodleserverroot = "";
@@ -78,8 +77,11 @@ string SLOODLE_TRANSLATE_DIALOG = "dialog";
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";
 string SLOODLE_TRANSLATE_IM = "instantmessage";
-
-
+sloodle_debug(string str){
+    if ((llList2Integer(llGetPrimitiveParams([PRIM_MATERIAL]),0) == 4)) {
+        llOwnerSay(str);
+    }
+}
 /***********************************************
 *  random_integer()
 *  |-->Produces a random integer
@@ -110,11 +112,6 @@ string s(string ss){
 }
 key k(string kk){
     return llList2Key(llParseString2List(kk,[":"],[]),1);
-}
-///// FUNCTIONS /////
-
-sloodle_debug(string msg){
-    llMessageLinked(LINK_THIS,DEBUG_CHANNEL,msg,NULL_KEY);
 }
 
 // Configure by receiving a linked message from another script in the object
@@ -251,7 +248,7 @@ sloodle_show_object_dialog(key id,integer page,integer showcmd){
     integer numobjects = llGetListLength(inventory);
     integer numpages = ((integer)(((float)numobjects) / 9.0));
     if (((numobjects % 9) > 0)) (numpages += 1);
-    if ((page < 0)) (page == 0);
+    if ((page < 0)) (page = 0);
     else  if ((page >= numpages)) (page = (numpages - 1));
     list buttonlabels = [];
     string buttondef = "";
@@ -351,7 +348,6 @@ default {
             (hoverText = "|");
             (counter = 0);
         }
-        llSetText((hoverText += "||||"),YELLOW,1.0);
     }
 }
 
@@ -447,10 +443,11 @@ state connecting {
     
     timer() {
         (counter++);
+        (hoverText += "||||");
         if ((counter > 48)) {
             (hoverText = "|");
             (counter = 0);
-            llSetText((hoverText += "||||"),PINK,1.0);
+            llSetText(hoverText,PINK,1.0);
             state default;
         }
     }
