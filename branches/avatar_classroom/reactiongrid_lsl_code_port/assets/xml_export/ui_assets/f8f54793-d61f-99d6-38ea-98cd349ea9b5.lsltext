@@ -1,0 +1,91 @@
+/*********************************************
+*  Copyrght (c) 2009 Paul Preibisch
+*  Released under the GNU GPL 3.0
+*  This script can be used in your scripts, but you must include this copyright header as per the GPL Licence
+*  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
+*  This script is part of the SLOODLE Project see http://sloodle.org
+*
+* arrow.lsl
+* This script will hide or show an arrow when told to do so via a linked message
+* Will also send linked messages when clicked
+*  Copyright:
+*  Paul G. Preibisch (Fire Centaur in SL)
+*  fire@b3dMultiTech.com  
+*
+*/ 
+key texture;
+string myName;
+list commandList;
+string command;
+integer ON=FALSE;
+integer UI_CHANNEL=89997;
+/***********************************************************************************************
+*  s()  k() i() and v() are used so that sending messages is more readable by humans.  
+* Ie: instead of sending a linked message as
+*  GETDATA|50091bcd-d86d-3749-c8a2-055842b33484 
+*  Context is added with a tag: COMMAND:GETDATA|PLAYERUUID:50091bcd-d86d-3749-c8a2-055842b33484
+*  All these functions do is strip off the text before the ":" char and return a string
+***********************************************************************************************/
+string s (string ss){
+    return llList2String(llParseString2List(ss, [":"], []),1);
+}//end function
+key k (string kk){
+    return llList2Key(llParseString2List(kk, [":"], []),1);
+}//end function
+integer i (string ii){
+    return llList2Integer(llParseString2List(ii, [":"], []),1);
+}//end function
+vector v (string vv){
+    return llList2Vector(llParseString2List(vv, [":"], []),1);
+}//end function
+integer DEBUG=FALSE;
+debug(string s){
+ if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);
+   s="";
+}
+
+default {
+    state_entry() {
+        myName = llGetLinkName(llGetLinkNumber());
+        texture="totallyclear"; //totally clear texture
+          llSetTexture(texture, ALL_SIDES);
+          llSetTimerEvent(1.0);
+    }//end state_entry
+ 
+    
+    link_message(integer sender_num, integer channel, string str, key id) {
+        command = s(str);     
+        if (channel==UI_CHANNEL){
+            if (((command=="HIDE NEXT ARROW") && (s(myName)=="NEXT PAGE"))||((command=="HIDE PREV ARROW") && (s(myName)=="PREV PAGE"))){
+                debug("hiding "+llGetLinkName(llGetLinkNumber()));                 
+                texture = "totallyclear"; //totally clear texture
+                ON=FALSE;
+                  llSetTexture(texture, ALL_SIDES);
+                 
+            }//endif           
+            if ((command=="DISPLAY PREV ARROW") && (s(myName)=="PREV PAGE")){
+                debug("showing "+llGetLinkName(llGetLinkNumber()));                        
+                texture="bluecons_left"; //blue arrow left
+                 ON=TRUE;
+                   llSetTexture(texture, 4);
+            }else 
+            if ((command=="DISPLAY NEXT ARROW") && (s(myName)=="NEXT PAGE")){
+                debug("showing "+llGetLinkName(llGetLinkNumber()));
+                 texture="bluecons_right"; //blue arrow right
+                ON=TRUE;
+                  llSetTexture(texture, 4);
+            }//endif
+        }//endif
+    }//linked
+   
+    /***********************************************
+    *  changed event
+    *  |-->Every time the inventory changes, reset the script
+    *        
+    ***********************************************/
+    changed(integer change) {
+     if (change ==CHANGED_INVENTORY){         
+         llResetScript();
+     }//endif
+    }//end changed
+}//end default state
