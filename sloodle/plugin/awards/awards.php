@@ -120,7 +120,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
          global $sloodle;
          global $CFG;
          $currency= $sloodle->request->optional_param('currency');
-         $index        = $sloodle->request->required_param('index');    
+         $index= $sloodle->request->required_param('index');    
          $gameid= $sloodle->request->required_param('gameid');    
          
          if ($currency=="")$currency="Credits";
