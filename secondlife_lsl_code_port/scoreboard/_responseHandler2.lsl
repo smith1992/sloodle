@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.scoreboard._responseHandler2.lslp Tue Aug 17 22:11:08 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.scoreboard._responseHandler2.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 //* response_handlers2.lsl
 /*********************************************
 *  Copyrght (c) 2009 Paul Preibisch

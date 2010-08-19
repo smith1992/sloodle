@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.sloodle_translation_distributor_en.lslp Tue Aug 17 23:59:29 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.sloodle_translation_distributor_en.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 // Standard translation script for Sloodle.
 // Contains the common, re-usable words and phrases.
 //

@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.elevator.receiver.lslp Tue Aug 17 22:11:01 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.elevator.receiver.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 /*********************************************
 *  Copyright (c) 2009 Paul Preibisch
 *  fire@b3dMultiTech.com

@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.btn_reset.reset.lslp Tue Aug 17 23:59:37 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.btn_reset.reset.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 //reset
 //gets a vector from a string
 vector RED = <0.77278,4.391e-2,0.0>;

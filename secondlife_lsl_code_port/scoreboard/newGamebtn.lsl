@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.scoreboard.newGamebtn.lslp Tue Aug 17 22:11:13 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.scoreboard.newGamebtn.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 
 //gets a vector from a string
 vector RED = <0.77278,4.391e-2,0.0>;

@@ -246,9 +246,9 @@ key request_status()
 // Default state - waiting for configuration
 default
 {
-	on_rez(integer start_param) {
-		llResetScript();
-	}
+    on_rez(integer start_param) {
+        llResetScript();
+    }
     state_entry()
     {
         llSetTimerEvent(0.25);
@@ -303,7 +303,8 @@ default
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
 }

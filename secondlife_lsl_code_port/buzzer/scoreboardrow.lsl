@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.buzzer.scoreboardrow.lslp Tue Aug 17 22:10:56 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.buzzer.scoreboardrow.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 
 integer UI_CHANNEL = 89997;
 list commandList;

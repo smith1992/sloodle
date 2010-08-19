@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.choice.mod_choice.lslp Tue Aug 17 22:10:57 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.choice.mod_choice.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 // Sloodle Choice (for Sloodle 0.3)
 // Allows avatars to interact graphically with a Moodle choice.
 //
@@ -163,7 +163,7 @@ key request_status(){
 // Default state - waiting for configuration
 default {
 
-	on_rez(integer start_param) {
+    on_rez(integer start_param) {
         llResetScript();
     }
 
@@ -213,7 +213,8 @@ default {
             (hoverText = "|");
             (counter = 0);
         }
-        llSetText((hoverText += "||||"),YELLOW,1.0);
+        (hoverText += "||||");
+        llSetText(hoverText,YELLOW,1.0);
     }
 }
 
