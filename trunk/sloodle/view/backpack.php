@@ -137,7 +137,7 @@ class sloodle_view_backpack extends sloodle_base_view
     * Process any form data which has been submitted.
     */
     function process_form(){        
-        global $USER;
+        global $USER,$sloodle;
         //============== - CHECK TO SEE IF THERE ARE PENDING UPDATES TO EXISTING STUDENTS
         $update= optional_param("update");  
            if ($update){                
@@ -252,7 +252,7 @@ class sloodle_view_backpack extends sloodle_base_view
                 echo " <select name=\"currentCurrency\"    onchange=\"this.form.submit()\" value=\"Sumbit\">";                 
                 foreach ($cTypes as $ct){
                     if ($ct->name==$currentCurrency)$selectStr="selected"; else $selectStr="";
-                    echo "<option value=\"{$ct->name}\" {$selectStr}>{$ct->name} {$ct->units}</option>";
+                    echo "<option value=\"{$ct->name}\" {$selectStr}>{$ct->name}</option>";
                 }            
                 echo '</select></div>  ';
         print_box_end(); 
@@ -267,15 +267,14 @@ class sloodle_view_backpack extends sloodle_base_view
             $sloodletable->head = array(                         
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:avname', 'sloodle').'</h4>',
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:currency', 'sloodle').'</h4>',
-             '<h4><div style="color:red;text-align:left;">'.get_string('backpack:units', 'sloodle').'</h4>',             
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:details', 'sloodle').'</h4>',             
              '<h4><div style="color:red;text-align:left;">'.get_string('backpack:date', 'sloodle').'</h4>',             
              '<h4><div style="color:green;text-align:right;">'.get_string('backpack:amount', 'sloodle').'</h4>',$updateString);
               //set alignment of table cells                                        
-             $sloodletable->align = array('left','left','left','left','left','right');
+             $sloodletable->align = array('left','left','left','left','right');
              $sloodletable->width="95%";
              //set size of table cells
-             $sloodletable->size = array('15%','10%', '10%','30%','20%','10%');            
+             $sloodletable->size = array('15%','10%', '30%','20%','10%');            
              //get all the sum totals of the selected currency for each user if "ALL" is selected
               $trans = Array();
              if ($currentUser=="ALL"){
@@ -283,7 +282,7 @@ class sloodle_view_backpack extends sloodle_base_view
                 $enrolled=$this->sloodle_course->get_enrolled_users();
                
                 foreach ($enrolled as $e){                    
-                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$COURSE->id}";                    
+                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$COURSE->id}";                    
                     
                     $tran = get_record_sql($sql);    
                     $tran->avname=$e->avname;
@@ -315,7 +314,6 @@ class sloodle_view_backpack extends sloodle_base_view
                 $avname=$currentUser;                
                 $trowData[]=$userIdFormElement.$avname;  
                 $trowData[]=$currentCurrency;  
-                $trowData[]="";//units
                 if ($this->can_edit) {                           
                        $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="">';
                 }                    
@@ -334,7 +332,6 @@ class sloodle_view_backpack extends sloodle_base_view
                 $avname=urlencode($t->avname);
                 $trowData[]=$userIdFormElement.$t->avname;  
                 $trowData[]=$t->currency;  
-                $trowData[]=$t->units;  
                 if ($currentUser=="ALL"){
                     if ($this->can_edit) {                           
                         $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="">';

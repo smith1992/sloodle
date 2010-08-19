@@ -50,7 +50,6 @@ class SloodleApiPluginBackpack extends SloodleApiPluginBase{
         $sloodle->response->set_status_descriptor('OK'); //line 0 
         $sloodle->response->add_data_line("AVUUID:". $avuuid);    
         $sloodle->response->add_data_line("CURRENCY:". $currency);    
-        $sloodle->response->add_data_line("UNITS:". $balance["units"]);    
         $sloodle->response->add_data_line("BALANCE:". $balance["amount"]);    
      }//function
 }//class
