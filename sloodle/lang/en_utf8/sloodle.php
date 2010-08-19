@@ -636,6 +636,7 @@ $string['backpack:wood'] = 'Wood';
 $string['backpack:metal'] = 'Precious Metal';
 $string['backpack:points'] = 'Points';
 $string['backpack:rations'] = 'Rations';
+$string['backpack:seashells'] = 'Sea Shells';
 $string['backpack:units'] = 'Units';
 $string['backpack:coins'] = 'Coins';
 $string['backpack:amount'] = 'Amount';

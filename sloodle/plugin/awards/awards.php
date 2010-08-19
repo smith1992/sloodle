@@ -187,6 +187,7 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
          $currency="Credits";
          $avuuid            = $sloodle->request->required_param('avuuid'); 
          $avname            = $sloodle->request->optional_param('avname'); 
+         $units             = $sloodle->request->optional_param('units'); 
          $amount            = $sloodle->request->required_param('amount'); 
          $currency          = $sloodle->request->required_param('currency'); 
          $sloodlemoduleid         = $sloodle->request->optional_param('sloodlemoduleid'); 
@@ -219,9 +220,8 @@ class SloodleApiPluginAwards extends SloodleApiPluginBase{
                         $sloodle->response->add_data_line("GAMEID:".$gameid);
                         $sloodle->response->set_status_descriptor('OK'); 
                         $sloodle->response->add_data_line("CURRENCY:".$currency);
-                        $sloodle->response->add_data_line("BALANCE:".$cObject->get_balance($currency,$userid,$avuuid,$gameid));
-                          
-                       
+                        $balanceRec=  $cObject->get_balance($currency,$userid,$avuuid,$gameid);                        
+                        $sloodle->response->add_data_line("BALANCE:".$balanceRec["amount"]);
                         if ($sloodlemoduleid){
                             $cObject->refreshScoreboard($sloodlemoduleid);
                             

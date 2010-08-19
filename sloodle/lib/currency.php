@@ -93,7 +93,7 @@
      }
         function get_currency_types(){
             global $CFG;
-                $currencyTypes= get_records_sql("select name,units FROM {$CFG->prefix}sloodle_currency_types ORDER BY 'name' ASC ");
+                $currencyTypes= get_records_sql("select name FROM {$CFG->prefix}sloodle_currency_types ORDER BY 'name' ASC ");
                 return $currencyTypes;
         }
         function get_transactions($avname=null,$currency){
@@ -123,34 +123,43 @@
             //$currency = get_record('sloodle_currency_types','name',$currency_name);            
             //if (!$currency) return null;//currency doesnt exist
             $gameid_str="";
+            if ($sloodle==NULL)$courseId=$COURSE->id; else
+            $courseId = $sloodle->course->get_course_id();
             if ($gameid!=null)$gameid_str=" AND gameid={$gameid}";
             if ($userid!=null)$userid_str=" AND userid={$userid}";
             if ($avuuid!=null)$avuuid_str=" AND avuuid='{$avuuid}'";
             $balance=null;
-            if ($userid){                
-                $sql= "select sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance, c.units from {$CFG->prefix}sloodle_award_trans t INNER JOIN {$CFG->prefix}sloodle_currency_types c ON c.name = t.currency where t.currency='{$currency}' AND t.courseid={$sloodle->course->get_course_id()} ".$avuuid_str." ".$userid_str;  
-                
-                $balanceRec= get_record_sql($sql);                               
-                
-                $balance = array('amount'=> $balanceRec->balance,'units'=>$balanceRec->units);
-                
-                
+            if ($userid){    
+               $sql= "select sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currency}' AND t.courseid={$courseId} ".$avuuid_str." ".$userid_str;  
+               $balanceRec= get_record_sql($sql);                                              
+               $balance = array('amount'=> $balanceRec->balance);
             }
            
             return $balance;
             
         }
+        function getCurrency($currName){
+            
+            return get_record('sloodle_currency_types','name',$currName);
+        }
         function addTransaction($userid=null,$avname=null,$avuuid=null,$gameid=null,$currency_name="Credits",$amount,$idata=null,$sloodleid=null){
-            global $USER,$COURSE,$CFG; 
+            global $USER,$CFG,$COURSE,$sloodle; 
+            if ($sloodle==NULL)$courseId=$COURSE->id; else
+            $courseId = $sloodle->course->get_course_id();
+            $cur=$this->getCurrency($currency_name);
+            if (!$cur){
+                $c= new stdClass();
+                $c->name=$currency_name;
+                insert_record('sloodle_currency_types',$c);
+            }
             $t= new stdClass();
             $t->sloodleid=$sloodleid;            
-            $t->courseid=$COURSE->id;
+            $t->courseid=$courseId;
             $t->gameid=(int)$gameid;                  
             $t->avuuid=$avuuid;                  
             $t->userid=(int)$userid;            
             $t->avname=$avname;
-            $t->currency=$currency_name;
-            
+            $t->currency=$currency_name;            
             if ((int)$amount<0){
                 $t->itype="debit";                
             }else
@@ -158,13 +167,13 @@
             $t->amount=abs((int)$amount);    
             $t->idata=$idata;
             $t->timemodified=time();            
-
-            if (insert_record('sloodle_award_trans',$t)) {
+             $result = insert_record('sloodle_award_trans',$t);
+            if ($result) {
             
             $balance    = $this->get_balance($currency_name,$userid,$avuuid,$gameid);
               
-                if ($balance<0){
-                  $t->amount=  $balance*-1;
+                if ($balance["amount"]<0){
+                  $t->amount=  $balance["amount"]*-1;
                   $t->itype="credit";
                   $t->idata="DETAILS:System Modified Balance adjustment"; 
                   insert_record('sloodle_award_trans',$t); 
