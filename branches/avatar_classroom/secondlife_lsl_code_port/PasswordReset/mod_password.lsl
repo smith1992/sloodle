@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.PasswordReset.mod_password.lslp Tue Aug 17 22:10:55 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.PasswordReset.mod_password.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 // Sloodle Password Reset object
 // Allows avatar with auto-registered Moodle accounts to reset their Moodle password from in-world.
 // Part of the Sloodle project (www.sloodle.org)

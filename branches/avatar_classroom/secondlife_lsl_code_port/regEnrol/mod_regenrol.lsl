@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom.secondlife_port.regEnrol.mod_regenrol.lslp Tue Aug 17 22:11:03 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.regEnrol.mod_regenrol.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 // Sloodle Registration Booth (for Sloodle 0.3)
 // Allows users to touch a panel to do manual registration of their avatar.
 //

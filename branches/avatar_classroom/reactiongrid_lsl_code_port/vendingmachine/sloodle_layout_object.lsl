@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.sloodle_layout_object.lslp Tue Aug 17 23:59:29 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.vendingmachine.sloodle_layout_object.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
 // Sloodle object layout script.
 // Allows individual objects to store themselves in a Sloodle layout.
 //
