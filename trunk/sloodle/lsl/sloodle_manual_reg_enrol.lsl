@@ -1,6 +1,9 @@
 // Manual avatar registration and enrolment script.
+//
 // Will initiate manual (URL-based) avatar registration/enrolment in
-//  response to link messages.
+// response to link messages.  The manual URL produced, can be used by an user to log into the moodle site
+// and link their avatar.  When this manual url is produced, the developer my deliver it to the user via dialog box, or 
+// the chat dialog, or any other way they wish.
 //
 // Part of the Sloodle project (www.sloodle.org).
 // Copyright (c) 2008 Sloodle
@@ -8,7 +11,7 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
-//
+//  Paul Preibisch
 
 // Can be supplied with 3 link messages for registration only, enrolment only, or both.
 // The avatar in question should be identified in the key value for all 3.
