@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.scoreboard.DIISPLAY_BOX.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.scoreboard.DIISPLAY_BOX.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 
 integer DISPLAY_BOX_CHANNEL = -870881;
 vector WHITE = <1.0,1.0,1.0>;

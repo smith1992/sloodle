@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.regEnrol.manual_reg.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.regEnrol.manual_reg.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 
 // Manual avatar registration and enrolment script.
 // Will initiate manual (URL-based) avatar registration/enrolment in

@@ -1,4 +1,22 @@
 //reset
+/**********************************************************************************************
+*  sloodle_reset_button.lsl
+*  Copyright (c) 2009 Paul Preibisch
+*  Released under the GNU GPL 3.0
+*  This script can be used in your scripts, but you must include this copyright header 
+*  as per the GPL Licence
+*  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
+* 
+*  This script is intended to be used in a reset button that, when pressed will start a count down timer
+*  that when at zero, will send a linked message to reset all scripts.  To stop the reset, the authorized user
+*  who clicked the reset, just needs to click it again to stop the reset from happening
+
+*  This script is part of the SLOODLE Project see http://sloodle.org
+*
+*  Copyright
+*  Paul G. Preibisch (Fire Centaur in SL)
+*  fire@b3dMultiTech.com  
+/**********************************************************************************************/
 //gets a vector from a string
 vector     RED            = <0.77278,0.04391,0.00000>;//RED
 vector     ORANGE = <0.87130,0.41303,0.00000>;//orange

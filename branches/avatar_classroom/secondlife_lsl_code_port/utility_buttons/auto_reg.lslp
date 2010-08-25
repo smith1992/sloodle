@@ -1,4 +1,20 @@
-//reset
+/**********************************************************************************************
+*  sloodle_auto_reg.lsl
+*  Copyright (c) 2009 Paul Preibisch
+*  Released under the GNU GPL 3.0
+*
+*  This script can be added as an autoenrol button, so administrators and teachers can enable / disable 
+*  auto registration functionality from within Second Life 
+*
+*  as per the GPL Licence
+*  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
+* 
+*  This script is part of the SLOODLE Project see http://sloodle.org
+*
+*  Copyright
+*  Paul G. Preibisch (Fire Centaur in SL)
+*  fire@b3dMultiTech.com  
+/**********************************************************************************************/
 //gets a vector from a string
 vector     RED            = <0.77278,0.04391,0.00000>;//RED
 vector     ORANGE = <0.87130,0.41303,0.00000>;//orange
@@ -11,8 +27,11 @@ vector     WHITE        = <1.000,1.000,1.000>;//WHITE
 vector     BLACK        = <0.000,0.000,0.000>;//BLACKvector     ORANGE = <0.87130, 0.41303, 0.00000>;//orange
 key sitter;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer counter=0;
+integer counter=0; 
 integer TIME_LIMIT=7;
+integer USE_DID_NOT_HAVE_PERMISSION_TO_ACCESS_RESOURCE_REQUESTED = -331;
+integer AVATAR_NOT_ENROLLED= -321;
+
 vector getVector(string vStr){
         vStr=llGetSubString(vStr, 1, llStringLength(vStr)-2);
         list vStrList= llParseString2List(vStr, [","], ["<",">"]);
@@ -26,6 +45,7 @@ rotation getRot(string vStr){
         return output;
 }//end getRot
 integer PLUGIN_CHANNEL                                                    =998821;//sloodle_api requests
+string CHANGE_SETTINGS="course->changeSettings";
 
 /***********************************************
 *  isFacilitator()
@@ -119,7 +139,8 @@ default{
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
 }
@@ -128,7 +149,7 @@ state ready {
         llResetScript();
     }
     state_entry() {
-    	
+        
         llSetTimerEvent(0);
         hoverText="";
         llSetText("", YELLOW, 1.0);
@@ -161,6 +182,7 @@ state ready {
         }//button
     }
     link_message(integer sender_num, integer channel, string str, key id) {
+      
         if (channel==SLOODLE_CHANNEL_OBJECT_DIALOG){
              if (str=="do:requestconfig")llResetScript();
             }//endif SLOODLE_CHANNEL_OBJECT_DIALOG
@@ -171,28 +193,34 @@ state ready {
             llSetText("", YELLOW, 1.0);
             list dataLines = llParseStringKeepNulls(str,["\n"],[]);           
             //get status code
-            list statusLine =llParseStringKeepNulls(llList2String(dataLines,0),["|"],[]);
+              list statusLine =llParseStringKeepNulls(llList2String(dataLines,0),["|"],[]);
+                        string response =llList2String(statusLine,3);
             integer status =llList2Integer(statusLine,0);
             string descripter = llList2String(statusLine,1);
             list sideEffects =llParseString2List(llList2String(statusLine,2), [","], []);
-            string response =llList2String(statusLine,3);
+
             integer timeSent=llList2Integer(statusLine,4);
             integer timeRecvt=llList2Integer(statusLine,5);
             key uuidSent= llList2Key(statusLine,6);
             list cmdList = llParseString2List(str, ["|"], []);
+            integer autoreg;
+              integer autoReg;
+            if (status ==AVATAR_NOT_ENROLLED){
+            	state reset;
+            }
             if (response=="course->checkAutoEnrolSettings"){
                  if (status==-515){
-                	llSetTexture("error", 4);
-                	llLoadURL(llGetOwner(), "Auto Enrol is not enabled for this Site. Please change.",sloodleserverroot+"/admin/settings.php?section=modsettingsloodle");
+                    llSetTexture("error", 4);
+                    llLoadURL(llGetOwner(), "Auto Enrol is not enabled for this Site. Please change.",sloodleserverroot+"/admin/settings.php?section=modsettingsloodle");
                     llSetObjectDesc("btn:btn_autoenrol_on");
                 }else
                 if (status==-516){
-                	llSetTexture("error", 4);
-                	llLoadURL(llGetOwner(), "Auto Registration is not enabled for this Site. Please change.",sloodleserverroot+"/admin/settings.php?section=modsettingsloodle");
+                    llSetTexture("error", 4);
+                    llLoadURL(llGetOwner(), "Auto Registration is not enabled for this Site. Please change.",sloodleserverroot+"/admin/settings.php?section=modsettingsloodle");
                     llSetObjectDesc("btn:btn_autoenrol_on");
                 }
-                integer autoreg;
-                integer autoReg;
+               
+              
                 if (s(dataLines,3)=="FALSE") {
                     autoreg=FALSE;
                     llSetTexture("btn_autoreg_off", 4);
@@ -206,17 +234,14 @@ state ready {
                 //if (s(dataLines,3)=="FALSE") autoReg=FALSE; else
                 //if (s(dataLines,3)=="TRUE") autoReg=TRUE;  
             }
-            else
-            if (response=="course->changeSettings"){
-                integer autoreg;
-                integer autoReg;
-                 if ((integer)status==(integer)-515){
+             if (response == CHANGE_SETTINGS){
+                 if (status==-515){
                     llSetTexture("error", 4);
                     llOwnerSay("Please go to: "+sloodleserverroot+"/admin/settings.php?section=modsettingsloodle and enable auto-enrollment for this site.");
                     llSetObjectDesc("btn:btn_autoenrol_on");
                     return;
                 }else
-                if ((integer)status==(integer)-516){
+                if (status==-516){
                     llSetTexture("error", 4);
                     llOwnerSay("Please go to: "+sloodleserverroot+"/admin/settings.php?section=modsettingsloodle and enable auto-registration for this site.");
                     llSetObjectDesc("btn:btn_autoenrol_on");
@@ -234,7 +259,8 @@ state ready {
                 }
                 //if (s(dataLines,3)=="FALSE") autoReg=FALSE; else
                 //if (s(dataLines,3)=="TRUE") autoReg=TRUE;  
-            }
+            }             
+           
         }
         
         
@@ -246,7 +272,8 @@ state ready {
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
   changed(integer change) { // something changed
@@ -257,4 +284,17 @@ state ready {
             }//endif
     }//change
 }//default
-        
+
+state reset{
+
+state_entry() {
+	llSetText("Error: Not connected. Authorization error.", RED, 1.0);
+	llSetTexture("error", 4);	
+}
+	touch_start(integer num_detected) {
+		llSay(0,"Resetting");
+		llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig",NULL_KEY);
+		state default;	
+	}
+
+}        

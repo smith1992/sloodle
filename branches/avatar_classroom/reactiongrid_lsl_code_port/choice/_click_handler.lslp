@@ -94,7 +94,7 @@ vector v (string vv){
        llResetScript();
    }
      state_entry() {
-         owner=llGetOwner();
+         
      }
     
     touch_start(integer num_detected) {

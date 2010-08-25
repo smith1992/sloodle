@@ -250,7 +250,8 @@ default
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
     

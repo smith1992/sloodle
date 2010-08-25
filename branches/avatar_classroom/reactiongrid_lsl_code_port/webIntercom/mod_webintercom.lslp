@@ -12,7 +12,7 @@
 //  Edmund Edgar
 //  Peter R. Bloomfield
 //  Paul Preibisch
-//
+// 
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG;
@@ -20,12 +20,11 @@ string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 integer UI_CHANNEL                                                            =89997;//UI Channel - main channel
 string SLOODLE_OBJECT_TYPE = "chat-1.0";
+string hoverText="";
+integer counter=0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
-string hoverText="";
-integer counter=0;
-
 vector     RED            = <0.77278,0.04391,0.00000>;//RED
 vector     ORANGE = <0.87130,0.41303,0.00000>;//orange
 vector     YELLOW         = <0.82192,0.86066,0.00000>;//YELLOW
@@ -327,7 +326,7 @@ default
 {
     state_entry()
     {
-    	llSetTimerEvent(0.25);
+        llSetTimerEvent(0.25);
         llTriggerSound("STARTINGUP", 1.0);
         SLOODLE_CHANNEL_AVATAR_DIALOG=random_integer(-40000,-50000);
         // Set the texture on the sides to indicate we're deactivated
@@ -375,14 +374,15 @@ default
         }
     }
     timer() {
-  	counter++;
-  	
-  	if (counter>20){
-  		hoverText="|";
-  		counter=0;
-  	}
-  	llSetText(hoverText+="||||", YELLOW, 1.0);
-  	
+      counter++;
+      
+      if (counter>20){
+          hoverText="|";
+          counter=0;
+      }
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
+      
   }
     
 }
@@ -397,7 +397,8 @@ state ready
     state_entry()
     {
         hoverText="|";
-  		counter=0;
+        llSetText("Off", <0.0,0.0,0.0>, 0.0);
+          counter=0;
         llSetTimerEvent(0);
         // Set the texture on the sides to indicate we're deactivated
         llSetTexture("sloodle_chat_off",ALL_SIDES);

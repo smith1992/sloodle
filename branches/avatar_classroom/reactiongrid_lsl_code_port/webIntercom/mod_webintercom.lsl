@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.webIntercom.mod_webintercom.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.webIntercom.mod_webintercom.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 // Sloodle WebIntercom
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)
@@ -13,17 +13,17 @@
 //  Edmund Edgar
 //  Peter R. Bloomfield
 //  Paul Preibisch
-//
+// 
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST = -1828374651;
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG;
 string SLOODLE_CHAT_LINKER = "/mod/sloodle/mod/chat-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
 integer UI_CHANNEL = 89997;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
-integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 string hoverText = "";
 integer counter = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
+integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
 vector YELLOW = <0.82192,0.86066,0.0>;
 
 string sloodleserverroot = "";
@@ -281,7 +281,8 @@ default {
             (hoverText = "|");
             (counter = 0);
         }
-        llSetText((hoverText += "||||"),YELLOW,1.0);
+        (hoverText += "||||");
+        llSetText(hoverText,YELLOW,1.0);
     }
 }
 
@@ -294,6 +295,7 @@ state ready {
     
     state_entry() {
         (hoverText = "|");
+        llSetText("Off",<0.0,0.0,0.0>,0.0);
         (counter = 0);
         llSetTimerEvent(0);
         llSetTexture("sloodle_chat_off",ALL_SIDES);
