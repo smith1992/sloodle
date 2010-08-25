@@ -127,7 +127,7 @@ default
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
             body += "&sloodleuuid=" + (string)kval;
-            body += "&sloodleavname=" + llKey2Name(kval);
+            body += "&sloodleavname=" +  llEscapeURL(llKey2Name(kval));
             body += "&sloodlemode=" + sloodlemode;
             key newhttp = llHTTPRequest(sloodleserverroot + SLOODLE_REG_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
             httpreqs += [newhttp, kval];
