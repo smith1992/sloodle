@@ -75,7 +75,6 @@ class sloodle_view_backpack extends sloodle_base_view
 
         // Ensure the user is allowed to update information on this course
         $this->course_context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-        require_capability('moodle/course:update', $this->course_context);
         if (has_capability('moodle/course:update', $this->course_context)) $this->can_edit = true;
     }
 
