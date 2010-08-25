@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.vendingmachine.mod_vending.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.vendingmachine.mod_vending.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 // Sloodle object distributor.
 // Allows Sloodle objects to be distributed in-world to Second Life users,
 //  either by an in-world user touching it and using a menu,

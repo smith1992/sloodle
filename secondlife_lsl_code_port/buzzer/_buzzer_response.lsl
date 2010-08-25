@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.buzzer._buzzer_response.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.buzzer._buzzer_response.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 /*********************************************
 *  Copyrght (c) 2009 Paul Preibisch
 *  Released under the GNU GPL 3.0

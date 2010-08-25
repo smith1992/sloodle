@@ -1,4 +1,21 @@
-//reset
+/**********************************************************************************************
+*  sloodle_auto_enrol.lsl
+*  Copyright (c) 2009 Paul Preibisch
+*  Released under the GNU GPL 3.0
+*
+*  This script can be added as an autoenrol button, so administrators and teachers can enable / disable 
+*  auto enrol functionality from within Second Life 
+*
+*  as per the GPL Licence
+*  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
+* 
+*  This script is part of the SLOODLE Project see http://sloodle.org
+*
+*  Copyright
+*  Paul G. Preibisch (Fire Centaur in SL)
+*  fire@b3dMultiTech.com  
+/**********************************************************************************************/
+
 //gets a vector from a string
 vector     RED            = <0.77278,0.04391,0.00000>;//RED
 vector     ORANGE = <0.87130,0.41303,0.00000>;//orange
@@ -8,7 +25,7 @@ vector     BLUE        = <0.00000,0.05804,0.98688>;//BLUE
 vector     PINK         = <0.83635,0.00000,0.88019>;//INDIGO
 vector     PURPLE = <0.39257,0.00000,0.71612>;//PURPLE
 vector     WHITE        = <1.000,1.000,1.000>;//WHITE
-vector     BLACK        = <0.000,0.000,0.000>;//BLACKvector     ORANGE = <0.87130, 0.41303, 0.00000>;//orange
+vector     BLACK        = <0.000,0.000,0.000>;//BLACKvector     ORANGE = <0.87130, 0.41303, 0.00000>;//orange 
 key sitter;
 integer counter=0;
 integer TIME_LIMIT=7;
@@ -105,7 +122,7 @@ default{
     }
     state_entry() {
         llSetText("Loading", YELLOW, 1.0);
-        llSetTimerEvent(0.2);;
+        llSetTimerEvent(0.25);;
     }
     link_message(integer sender_num, integer chan, string str, key id) {
         if (chan==SLOODLE_CHANNEL_OBJECT_DIALOG){
@@ -119,7 +136,8 @@ default{
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+      hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
 }
@@ -233,7 +251,8 @@ state ready {
           hoverText="|";
           counter=0;
       }
-      llSetText(hoverText+="||||", YELLOW, 1.0);
+            hoverText+="||||";
+      llSetText(hoverText, YELLOW, 1.0);
       
   }
   changed(integer change) { // something changed
@@ -244,4 +263,15 @@ state ready {
             }//endif
     }//change
 }//default
-        
+state reset{
+
+state_entry() {
+	llSetText("Error: Not connected. Authorization error.", RED, 1.0);	
+}
+touch_start(integer num_detected) {
+	llSay(0,"Resetting");
+	llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig",NULL_KEY);
+	state default;	
+}
+
+}

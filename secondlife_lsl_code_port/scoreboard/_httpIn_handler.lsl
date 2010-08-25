@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.scoreboard._httpIn_handler.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.secondlife_lsl_code_port.scoreboard._httpIn_handler.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 
 integer gameid;
 string SLOODLE_EOF = "sloodleeof";

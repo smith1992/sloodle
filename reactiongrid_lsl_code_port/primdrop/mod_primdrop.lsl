@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.primdrop.mod_primdrop.lslp Wed Aug 18 19:07:06 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.primdrop.mod_primdrop.lslp Wed Aug 25 13:52:43 Pacific Daylight Time 2010
 // Sloodle PrimDrop (for Sloodle 0.3)
 // Allows students to submit SL objects as Moodle assignments.
 // Part of the Sloodle project (www.sloodle.org)
@@ -10,7 +10,7 @@
 //  Jeremy Kemp
 //  Peter R. Bloomfield
 //  Paul Preibisch (Fire Centaur in SL)
-
+ 
 
 /// DATA ///
 
@@ -72,8 +72,8 @@ string MENU_BUTTON_ONLINE = "3";
 string MENU_BUTTON_TAKE_ALL = "4";
 
 // List of button labels ('cos otherwise the compiler runs out of memory!)
-list teacherbuttons = [MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_TAKE_ALL,MENU_BUTTON_CANCEL,MENU_BUTTON_SUMMARY];
-list userbuttons = [MENU_BUTTON_SUMMARY,MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_CANCEL];
+list teacherbuttons;
+list userbuttons;
 
 ///// TRANSLATION /////
 
@@ -250,6 +250,8 @@ integer sloodle_check_drop(){
 default {
 
     state_entry() {
+        (teacherbuttons = [MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_TAKE_ALL,MENU_BUTTON_CANCEL,MENU_BUTTON_SUMMARY]);
+        (userbuttons = [MENU_BUTTON_SUMMARY,MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_CANCEL]);
         llSetTimerEvent(0.25);
         llTriggerSound("STARTINGUP",1.0);
         llSetText("Starting Up",YELLOW,1.0);
@@ -293,7 +295,8 @@ default {
             (hoverText = "|");
             (counter = 0);
         }
-        llSetText((hoverText += "||||"),YELLOW,1.0);
+        (hoverText += "||||");
+        llSetText(hoverText,YELLOW,1.0);
     }
 }
 
