@@ -15,6 +15,8 @@
     *    
     *  Just generate an HQ Notecard, and place the following underneath
     *
+    *  By the way, for boolean settings (1= true) (0 = false)
+    *
     *  name|necklace
     *  price|100
     *  currency|Silver Coins
@@ -24,6 +26,9 @@
     *  give|necklace
     *  playafterpurchase|
     *  playonclick|
+    *  hover text|1
+    *  max withdraws|5     
+    *  sound|1
     *  sloodleeof
     *      
     ******************************************************************************************* 
@@ -103,6 +108,7 @@
     string  hoverText="";
     integer counter=0;
     integer PLUGIN_CHANNEL                                                    =998821;//sloodle_api requests
+    integer SOUND_ON=TRUE;
     integer PLUGIN_RESPONSE_CHANNEL                                =998822; //sloodle_api.lsl responses
     integer USE_DID_NOT_HAVE_PERMISSION_TO_ACCESS_RESOURCE_REQUESTED = -331;
     integer AVATAR_NOT_ENROLLED= -321;
@@ -149,6 +155,7 @@
         }
     }
     getBalance(key user){
+        if (SET_TEXT==TRUE) llSetText("Getting balance for user: "+llKey2Name(user)+", please wait...", YELLOW, 1.0);
         string authenticatedUser = "&sloodleuuid="+(string)user+"&sloodleavname="+llEscapeURL(llKey2Name(user));
          string avInfo= "&avuuid="+(string)user+"&avname="+llEscapeURL(llKey2Name(user));        
         llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "backpack->getBalance"+authenticatedUser+avInfo+"&currency="+llEscapeURL(ITEM_CURRENCY), NULL_KEY);
@@ -196,7 +203,7 @@
     
     sloodle_handle_command(string str) 
     {
-    
+        
         list bits = llParseString2List(str,["|"],[]);
         integer numbits = llGetListLength(bits);    
         string name = llList2String(bits,0);
@@ -238,6 +245,8 @@
             BACKPACK_GIVE_DETAILS += val3;  
         } else
         if (name == "playafterpurchase") SOUND_AFTER_PURCHASE= val1; else
+        if (name == "hover text") SET_TEXT= (integer)val1; else //1= true
+        if (name == "sound") SOUND_ON= (integer)val1; else //1= true
         if (name == "playonclick") SOUND_INTRO= val1; else
         if (name == "max withdraws") MAX_WITHDRAWS= (integer)val1;else
         if (name == "unique") ITEM_UNIQUE= val1;else
@@ -328,6 +337,8 @@
     * |-->sends a message to /plugins/awards.php to add a transaction
     ***********************************************/ 
     addTransaction(key avuuid,string currency,integer price,string details){
+            if (SET_TEXT==TRUE) llSetText("Processing transaction for: "+llKey2Name(avuuid)+", please wait", YELLOW, 1.0);
+            if (SOUND_ON==TRUE)llTriggerSound("sound bleepy computer" , 1);
             string avname=llEscapeURL(llKey2Name(avuuid));
             string authenticatedUser= "&sloodleuuid="+(string)avuuid+"&sloodleavname="+avname;
             llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "awards->addTransaction"+authenticatedUser+"&avname="+avname+"&avuuid="+(string)avuuid+"&currency="+llEscapeURL(currency)+"&amount="+(string)price+"&details="+llEscapeURL(details), NULL_KEY);
@@ -378,7 +389,7 @@
     //if the user doesnt exist it will add them to the list 
     integer lastTake(key user){
         integer found = llListFindList(TAKERS,[llKey2Name(user)]);
-        integer last;
+        integer last=-1;
         if (found!=-1){
             debug(llKey2Name(user)+" was found - time is now: "+(string)llGetUnixTime());
             last = llList2Integer(TAKERS,found+1);
@@ -386,8 +397,7 @@
             debug("List is: "+llList2CSV(TAKERS));
         }
         else {
-            debug(llKey2Name(user)+" was not found in the list of avatars who have taken this item before");
-            last = ITEM_FREQUENCY_TAKE+10;
+            debug(llKey2Name(user)+" was not found in the list of avatars who have taken this item before");            
             debug("List is: "+llList2CSV(TAKERS));
         }
         return last;
@@ -413,7 +423,7 @@
     default{
         state_entry() {
             ITEM_GIVE=[];
-            debug("Set text is: "+(string)SET_TEXT);
+            
             llTriggerSound("STARTINGUP", 1.0);
         }
         
@@ -423,8 +433,13 @@
                 sloodle_handle_command(str);
             }
         }
-        
+     changed(integer change) {
+            if (change== CHANGED_INVENTORY) { // and it was a link change
+               
+             llResetScript();
+            }//endif   
     }
+}
     state check{
         on_rez(integer start_param) {
             llResetScript();
@@ -474,7 +489,8 @@
         {
             
             NUM_WITHDRAWS = MAX_WITHDRAWS;
-            if (SET_TEXT==TRUE) llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
+            DIALOG_CHANNEL = random_integer(-30000,-90000);
+            if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
             llSay(0,"Ready");
             //define random dialog channel for dialog messags           
             //display help
@@ -491,17 +507,22 @@
             if (NUM_WITHDRAWS >0){
                 //we can limit time interval between when a user can next take an item - check that time now 
                     integer lastTime = lastTake(llDetectedKey(0));
-                    integer timeLeft = (llGetUnixTime()- lastTime);
-                    llSay(0,llKey2Name(llDetectedKey(0))+", you last took this item "+(string)timeLeft +" seconds ago");                   
-                    if (timeLeft>ITEM_FREQUENCY_TAKE){                    
-                        //if user is alowed to take the item, initiate the getBalance function this will cause backpack->getBalance to be sent
-                        // drop down to the linked message area to see what happens next 
-                        getBalance(llDetectedKey(0));
-                        return;
-                    }else{
-                        string msg = "Sorry, you must wait "+(string)(ITEM_FREQUENCY_TAKE - timeLeft)+" seconds before you can access this item again."; 
-                        llDialog(llDetectedKey(0),msg,["Ok"],-33);
-                    }
+                    integer timeLeft=ITEM_FREQUENCY_TAKE+1;
+                    debug("last time: "+(string)lastTime);
+                    if (lastTime !=-1){
+                        timeLeft = (llGetUnixTime()- lastTime);
+                        llSay(0,llKey2Name(llDetectedKey(0))+", you last took this item "+(string)timeLeft +" seconds ago");
+                    }                                
+                        if (timeLeft>ITEM_FREQUENCY_TAKE){                    
+                            //if user is alowed to take the item, initiate the getBalance function this will cause backpack->getBalance to be sent
+                            // drop down to the linked message area to see what happens next 
+                            getBalance(llDetectedKey(0));
+                            return;
+                        }else{
+                            string msg = "Sorry, you must wait "+(string)(ITEM_FREQUENCY_TAKE - timeLeft)+" seconds before you can access this item again."; 
+                            llDialog(llDetectedKey(0),msg,["Ok"],-33);
+                        }
+
                 } else{
                     string msg ="Sorry, there are no more "+ITEM_NAME+" left!";
                     llDialog(llDetectedKey(0),msg,["Ok"],-33); 
@@ -514,44 +535,46 @@
             
         }
         timer() {
-        	//we are maintaining a list of users who interacted with the backpack.
-        	//if an entry exists in USER_DIALOG beyond 300 seconds, we must delete the request and the listen.
-        	llSetTimerEvent(0);
-        	integer j;
-        	integer len = llGetListLength(USER_DIALOG);
-        	integer t;
-        	for (j=0;j<len;j++){
-        		t= llGetUnixTime();
-        		if ((t-llList2Integer(USER_DIALOG,j*4+3))>300){       			
-        			//[randChan,uuidSent,lKey,llGetUnixTime()]
-        			llWhisper(0, "Time out. "+llKey2Name(llList2Key(USER_DIALOG, j*4+1)) + " never responded in time.");
-        			USER_DIALOG = llDeleteSubList(USER_DIALOG, j*4,j*4+3);
-        		}
-        	}
-        	
+            //we are maintaining a list of users who interacted with the backpack.
+            //if an entry exists in USER_DIALOG beyond 300 seconds, we must delete the request and the listen.
+            llSetTimerEvent(0);
+            integer j;
+            integer len = llGetListLength(USER_DIALOG);
+            integer t;
+            for (j=0;j<len;j++){
+                t= llGetUnixTime();
+                if ((t-llList2Integer(USER_DIALOG,j*4+3))>300){                   
+                    //[randChan,uuidSent,lKey,llGetUnixTime()]
+                    llWhisper(0, "Time out. "+llKey2Name(llList2Key(USER_DIALOG, j*4+1)) + " never responded in time.");
+                    USER_DIALOG = llDeleteSubList(USER_DIALOG, j*4,j*4+3);
+                }
+            }
+            
         
         
         }
         listen(integer channel, string name, key id, string str) {
-        		integer found= llListFindList(USER_DIALOG, [channel]);
-        		//[randChan,uuidSent,lKey,llGetUnixTime()];
-        		if (found!=-1){
-        			//we are maintaining a list of users who interacted with the backpack.
-        			//since this user has just responded, delete their listen handle 
-        			llListenRemove(llList2Integer(USER_DIALOG,found+2));        	
-        			//since this user has just responded, also delete them from USER_DIALOG and stop the timeout timer
-        			llSetTimerEvent(0);		
-        			USER_DIALOG = llDeleteSubList(USER_DIALOG, found,found+3);
-        			if (str=="Yes"){
+                integer found= llListFindList(USER_DIALOG, [channel]);
+                debug("listen command came in: "+str+" on channel: ("+(string)channel+")");
+                //[randChan,uuidSent,lKey,llGetUnixTime()];
+                //if (found!=-1){
+                    //we are maintaining a list of users who interacted with the backpack.
+                    //since this user has just responded, delete their listen handle 
+                    //llListenRemove(llList2Integer(USER_DIALOG,found+2));            
+                    //since this user has just responded, also delete them from USER_DIALOG and stop the timeout timer
+                    llSetTimerEvent(0);        
+                  //  USER_DIALOG = llDeleteSubList(USER_DIALOG, found,found+3);
+                    if (str=="Yes"){                                                 
                         addTransaction(id,ITEM_CURRENCY,ITEM_PRICE*-1,ITEM_DETAILS);
                     }else
-                    if (str=="View"){
-                    	string url = sloodleserverroot+"/mod/sloodle/view.php?_type=backpack&id="+(string)courseid+"&currentCurrency="+llEscapeURL(ITEM_CURRENCY);
-                    	llLoadURL(id, "View Backpack online?", url);
+                    if (str=="Backpack"){
+                        string url = sloodleserverroot+"/mod/sloodle/view.php?_type=backpack&id="+(string)courseid+"&currentCurrency="+llEscapeURL(ITEM_CURRENCY);
+                        llInstantMessage(id, "View your backpack online: "+url);
+                        llLoadURL(id, "View Backpack online?", url);
                     }
                     
                 
-                }
+             //   }
             
             }
         link_message(integer sender_num, integer channel, string str, key id) {
@@ -559,12 +582,12 @@
                 if (str == "FREQUENCY ADD TIMER EVENT"){
                      NUM_WITHDRAWS+=MAX_WITHDRAWS;
                      
-                     if (SET_TEXT==TRUE)  llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
+                       if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
                      llTriggerSound(SOUND_TIMER, 1.0);
                 }
                 if (str == "FREQUENCY RESET TIMER EVENT") {
                     NUM_WITHDRAWS=MAX_WITHDRAWS;
-                    if (SET_TEXT==TRUE) llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
+                      if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
                     llTriggerSound(SOUND_TIMER, 1.0);
                 }
                 
@@ -604,8 +627,9 @@
                 // GETBALANCE
                 //****************************************************************************************           
                 if (response=="backpack->getBalance"){
+                    if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
                     integer balance = (integer)getVar(OUTPUT_VARS,"BALANCE");
-					courseid = (integer)getVar(OUTPUT_VARS,"COURSEID");
+                    courseid = (integer)getVar(OUTPUT_VARS,"COURSEID");
                  /* possible responses are:
                         *
                         *******************************************************************        
@@ -631,26 +655,34 @@
                               
                           ITEM_AUTO_PURCHASE_SETTING=llToLower(ITEM_AUTO_PURCHASE_SETTING);
                             if (llStringTrim(ITEM_AUTO_PURCHASE_SETTING,STRING_TRIM)=="true"){
-                              
+                                string msg="Processing transaction for: "+llKey2Name(uuidSent)+", please wait.";
+                              llSay(0,msg);
+                              llSetText(msg, YELLOW, 1.0);
                                 addTransaction(uuidSent,ITEM_CURRENCY,ITEM_PRICE*-1,ITEM_DETAILS);
                             }else
                             if (llStringTrim(ITEM_AUTO_PURCHASE_SETTING,STRING_TRIM)=="false"){
                               
                                 //give dialong
-                                string msg = "You have "+(string)balance+"\n\n";
-                                msg += "Would you like to purchase: "+ITEM_NAME +" for "+(string)ITEM_PRICE+" "+ITEM_CURRENCY+" "+"?";
+                                string msg = llKey2Name(uuidSent)+", you have "+(string)balance+" "+ITEM_CURRENCY+"\n\n";
+                                msg += "Would you like to purchase: \n"+ITEM_NAME +" for "+(string)ITEM_PRICE+" "+ITEM_CURRENCY+" "+"?";
                                 integer randChan = random_integer(-300000,-900000);
-                                integer lKey = llListen(randChan, "", uuidSent, "");
-                                USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                               // integer lKey = llListen(randChan, "", uuidSent, "");
+                                llListen(DIALOG_CHANNEL, "", uuidSent, "");
+                                //debug("listening to: "+(string)randChan+ " for " +llKey2Name(uuidSent));
+                                  debug("listening to: "+(string)DIALOG_CHANNEL+ " for " +llKey2Name(uuidSent));
+                                //USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
                                 llSetTimerEvent(300);
-                                llDialog(uuidSent, msg, ["Yes","No","View"], randChan);
+                                llDialog(uuidSent, msg, ["Yes","No","Backpack"], DIALOG_CHANNEL);
                             }
                         }else {
-                        	integer randChan = random_integer(-300000,-900000);
-                            integer lKey = llListen(randChan, "", uuidSent, "");
-                            USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                            integer randChan = random_integer(-300000,-900000);
+                            //integer lKey = llListen(randChan, "", uuidSent, "");
+                            llListen(DIALOG_CHANNEL, "", uuidSent, "");
+                            //USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
                             llSetTimerEvent(300);                                                            
-                            llDialog(uuidSent, "I'm sorry, but you don't have enough "+ITEM_CURRENCY+ "!\n You have: "+(string)balance +" "+ITEM_CURRENCY+"\n and you need "+(string)(ITEM_PRICE-balance)+" more "+ITEM_CURRENCY, ["Ok","View"], DIALOG_CHANNEL);
+                            llDialog(uuidSent, "I'm sorry, but you don't have enough "+ITEM_CURRENCY+ "!\n You have: "+(string)balance +" "+ITEM_CURRENCY+"\n and you need "+(string)(ITEM_PRICE-balance)+" more "+ITEM_CURRENCY, ["Ok","Backpack"], DIALOG_CHANNEL);
+                            //debug("listening to: "+(string)randChan+ " for " +llKey2Name(uuidSent));
+                            debug("listening to: "+(string)DIALOG_CHANNEL+ " for " +llKey2Name(uuidSent));
                             llTriggerSound(SOUND_NO_MONEY, 1.0);
                             return;
                         }                
@@ -696,13 +728,15 @@
                         if (OUTPUT_CURRENCY==ITEM_CURRENCY){
                             take(uuidSent);
                             NUM_WITHDRAWS--;
-                            if (SET_TEXT==TRUE) llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
+                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
                             
                             llTriggerSound(SOUND_MONEY_OK, 1.0);
                             integer len = llGetListLength(ITEM_GIVE);
                             if (len>0){
                                 integer j=0;
+                                if (SET_TEXT==TRUE) llSetText("Giving Inventory for user: "+llKey2Name(uuidSent)+", please wait...", YELLOW, 1.0);
                                 for (j=0;j<len;j++){
+                                    
                                     llGiveInventory(uuidSent, llList2String(ITEM_GIVE,j));
                                     llInstantMessage(uuidSent,"Sending you "+llList2String(ITEM_GIVE,j) +" Please accept the inventory item.");                                
                                 }
@@ -711,6 +745,7 @@
                             if (len>0){
                                 integer j=0;
                                 for (j=0;j<len;j++){
+                                     if (SET_TEXT==TRUE) llSetText("Giving Backpack Inventory for user: "+llKey2Name(uuidSent)+", please wait...", PINK, 1.0);
                                     string msg = "Adding "+llList2String(BACKPACK_GIVE_AMOUNT,j)+" "+llList2String(BACKPACK_GIVE,j)+" to your Sloodle Backpack, please wait.... ";
                                     llInstantMessage(uuidSent,msg);       
                                     addTransaction(uuidSent,llList2String(BACKPACK_GIVE,j),llList2Integer(BACKPACK_GIVE_AMOUNT,j),llList2String(BACKPACK_GIVE_DETAILS,j));
@@ -718,16 +753,22 @@
                                   
                                 } 
                             }
+                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
                             llInstantMessage(uuidSent,"Your new balance is: "+(string)balance+" "+OUTPUT_CURRENCY);
                         }
                         else{
-                            string msg = "We just added "+OUTPUT_CURRENCY+" to your Sloodle Backpack! You now have: "+(string)balance+" "+"!";
-                            llDialog(uuidSent, msg, ["Ok","View"], -99);
+                            string msg = "We just added "+OUTPUT_CURRENCY+" to your Sloodle Backpack! You now have: "+(string)balance+" "+OUTPUT_CURRENCY+"!";
+                            
                             integer randChan = random_integer(-300000,-900000);
-                            integer lKey = llListen(randChan, "", uuidSent, "");
-                            USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                            //integer lKey = llListen(randChan, "", uuidSent, "");
+                            // debug("listening to: "+(string)randChan+ " for " +llKey2Name(uuidSent));
+                            //USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                            llListen(DIALOG_CHANNEL, "", uuidSent, "");
+                            llDialog(uuidSent, msg, ["Ok","Backpack"], DIALOG_CHANNEL);
+                            
                             llSetTimerEvent(300);                                
-                            llInstantMessage(uuidSent,msg);        
+                            llInstantMessage(uuidSent,msg);
+                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);        
                         }
                     
                     }   

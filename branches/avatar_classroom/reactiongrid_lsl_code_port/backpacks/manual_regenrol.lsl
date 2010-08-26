@@ -1,4 +1,4 @@
-// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.backpacks.manual_regenrol.lslp Wed Aug 25 14:01:02 Pacific Daylight Time 2010
+// LSL script generated: avatar_classroom2.reactiongrid_lsl_code_port.backpacks.manual_regenrol.lslp Wed Aug 25 17:48:32 Pacific Daylight Time 2010
 
 // Manual avatar registration and enrolment script.
 // Will initiate manual (URL-based) avatar registration/enrolment in
@@ -80,7 +80,12 @@ default {
     state_entry() {
     }
 
-    
+        changed(integer change) {
+        if ((change & CHANGED_INVENTORY)) {
+            llResetScript();
+        }
+    }
+
     link_message(integer sender_num,integer num,string sval,key kval) {
         if ((num == SLOODLE_CHANNEL_OBJECT_DIALOG)) {
             if (((kval == NULL_KEY) || (kval != llGetOwnerKey(kval)))) return;
@@ -115,7 +120,6 @@ default {
         if ((pos < 0)) return;
         key av = llList2Key(httpreqs,(pos + 1));
         if ((llListFindList(httpreqs,[id]) == (-1))) return;
-        debug(body);
         (httpreqs = llDeleteSubList(httpreqs,pos,(pos + 1)));
         if ((status != 200)) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM,[0],"httperror:code",[status],av,"");

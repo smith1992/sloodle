@@ -106,7 +106,13 @@ default
     state_entry()
     {
     }
-    
+        changed(integer change) {
+        // If the inventory is changed, and we have a Sloodle config notecard, then use it to re-initialise
+        if (change & CHANGED_INVENTORY) {
+            // If the current notecard is not the same as the one we read most recently, then reset
+          llResetScript();
+        }
+    }
     link_message(integer sender_num, integer num, string sval, key kval)
     {
         // Check which channel this message arrived on
@@ -174,7 +180,7 @@ default
         // Fetch the status line
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer statuscode = (integer)llList2String(statusfields, 0);
-        debug("manual enrol status is:  ("+string)statuscode+") " +body);
+      
         // Check for standard status codes
         if (statuscode == -321) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av, "regenrol");
