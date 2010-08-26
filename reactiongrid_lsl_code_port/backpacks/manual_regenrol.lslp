@@ -159,7 +159,7 @@ default
         // Grab the avatar key then delete the entries
         key av = llList2Key(httpreqs, pos + 1);
         if (llListFindList(httpreqs, [id])==-1)return;
-        debug(body);
+        
         httpreqs = llDeleteSubList(httpreqs, pos, pos + 1);
        
         // Check the return code
@@ -174,6 +174,7 @@ default
         // Fetch the status line
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer statuscode = (integer)llList2String(statusfields, 0);
+        debug("manual enrol status is:  ("+string)statuscode+") " +body);
         // Check for standard status codes
         if (statuscode == -321) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av, "regenrol");
