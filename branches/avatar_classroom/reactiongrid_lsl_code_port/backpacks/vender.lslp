@@ -81,11 +81,11 @@
     */ 
       
     string sloodleserverroot = "";
-	string sloodlepwd = "";
-	integer sloodlecontrollerid = 0;
+    string sloodlepwd = "";
+    integer sloodlecontrollerid = 0;
     
-    
-    
+    integer courseid; 
+    list USER_DIALOG;
     integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
     integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
     integer SLOODLE_CHANNEL_OBJECT_CHOICE = -1639270051;
@@ -104,7 +104,7 @@
     integer counter=0;
     integer PLUGIN_CHANNEL                                                    =998821;//sloodle_api requests
     integer PLUGIN_RESPONSE_CHANNEL                                =998822; //sloodle_api.lsl responses
-    integer AVATAR_NOT_REGISTERED = -331;
+    integer USE_DID_NOT_HAVE_PERMISSION_TO_ACCESS_RESOURCE_REQUESTED = -331;
     integer AVATAR_NOT_ENROLLED= -321;
     string SOUND_NO_MONEY="Trombone";
     string SOUND_MONEY_OK="Till_With_Bell";
@@ -149,7 +149,7 @@
         }
     }
     getBalance(key user){
-        string authenticatedUser = "&sloodleuuid="+(string)llGetOwner()+"&sloodleavname="+llEscapeURL(llKey2Name(llGetOwner()));
+        string authenticatedUser = "&sloodleuuid="+(string)user+"&sloodleavname="+llEscapeURL(llKey2Name(user));
          string avInfo= "&avuuid="+(string)user+"&avname="+llEscapeURL(llKey2Name(user));        
         llMessageLinked(LINK_SET, PLUGIN_CHANNEL, "backpack->getBalance"+authenticatedUser+avInfo+"&currency="+llEscapeURL(ITEM_CURRENCY), NULL_KEY);
     }
@@ -208,10 +208,10 @@
         if (numbits > 2) val2= llList2String(bits,2);  
         if (numbits > 3) val3= llList2String(bits,3);
         if (name == "set:sloodleserverroot") sloodleserverroot = val1;else
-    	if (name == "set:sloodlepwd") {        
-        	if (val2 != "") sloodlepwd = val1 + "|" + val2;
-        	else sloodlepwd = val1;        
-    	} else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)val1;
+        if (name == "set:sloodlepwd") {        
+            if (val2 != "") sloodlepwd = val1 + "|" + val2;
+            else sloodlepwd = val1;        
+        } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)val1;
         // Check the command
         if (name == "do:reset") {
             // Reset
@@ -402,7 +402,7 @@
             debug("List is: "+llList2CSV(TAKERS));
         }
         else {
-        	integer takeTime = llGetUnixTime();
+            integer takeTime = llGetUnixTime();
             debug(llKey2Name(user)+" was not found in the list of avatars who have taken this inventory before - adding to the list now - time is now: "+(string)takeTime);
             TAKERS+=[llKey2Name(user),takeTime];
             last = takeTime;
@@ -476,9 +476,7 @@
             NUM_WITHDRAWS = MAX_WITHDRAWS;
             if (SET_TEXT==TRUE) llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
             llSay(0,"Ready");
-            //define random dialog channel for dialog messags
-            DIALOG_CHANNEL = random_integer(-300000,-900000);
-            llListen(DIALOG_CHANNEL, "", "", "");
+            //define random dialog channel for dialog messags           
             //display help
             help(llGetOwner());
             //load inventory list
@@ -488,15 +486,16 @@
         
         touch_start(integer total_number)
         {
-            //if unique, check if item has already been taken
-            
-                if (NUM_WITHDRAWS >0){
-                    //check if this user's take window is open
+            //a user has touched the vendor, check to see how many withdraws have been made.  Each time a withdraw is made
+            //we decriment the timer, so make sure enough exist to take!            
+            if (NUM_WITHDRAWS >0){
+                //we can limit time interval between when a user can next take an item - check that time now 
                     integer lastTime = lastTake(llDetectedKey(0));
-                     integer timeLeft = (llGetUnixTime()- lastTime);
-                    llSay(0,llKey2Name(llDetectedKey(0))+", you last took this item "+(string)timeLeft +" seconds ago");
-                   
+                    integer timeLeft = (llGetUnixTime()- lastTime);
+                    llSay(0,llKey2Name(llDetectedKey(0))+", you last took this item "+(string)timeLeft +" seconds ago");                   
                     if (timeLeft>ITEM_FREQUENCY_TAKE){                    
+                        //if user is alowed to take the item, initiate the getBalance function this will cause backpack->getBalance to be sent
+                        // drop down to the linked message area to see what happens next 
                         getBalance(llDetectedKey(0));
                         return;
                     }else{
@@ -514,6 +513,47 @@
             
             
         }
+        timer() {
+        	//we are maintaining a list of users who interacted with the backpack.
+        	//if an entry exists in USER_DIALOG beyond 300 seconds, we must delete the request and the listen.
+        	llSetTimerEvent(0);
+        	integer j;
+        	integer len = llGetListLength(USER_DIALOG);
+        	integer t;
+        	for (j=0;j<len;j++){
+        		t= llGetUnixTime();
+        		if ((t-llList2Integer(USER_DIALOG,j*4+3))>300){       			
+        			//[randChan,uuidSent,lKey,llGetUnixTime()]
+        			llWhisper(0, "Time out. "+llKey2Name(llList2Key(USER_DIALOG, j*4+1)) + " never responded in time.");
+        			USER_DIALOG = llDeleteSubList(USER_DIALOG, j*4,j*4+3);
+        		}
+        	}
+        	
+        
+        
+        }
+        listen(integer channel, string name, key id, string str) {
+        		integer found= llListFindList(USER_DIALOG, [channel]);
+        		//[randChan,uuidSent,lKey,llGetUnixTime()];
+        		if (found!=-1){
+        			//we are maintaining a list of users who interacted with the backpack.
+        			//since this user has just responded, delete their listen handle 
+        			llListenRemove(llList2Integer(USER_DIALOG,found+2));        	
+        			//since this user has just responded, also delete them from USER_DIALOG and stop the timeout timer
+        			llSetTimerEvent(0);		
+        			USER_DIALOG = llDeleteSubList(USER_DIALOG, found,found+3);
+        			if (str=="Yes"){
+                        addTransaction(id,ITEM_CURRENCY,ITEM_PRICE*-1,ITEM_DETAILS);
+                    }else
+                    if (str=="View"){
+                    	string url = sloodleserverroot+"/mod/sloodle/view.php?_type=backpack&id="+(string)courseid+"&currentCurrency="+llEscapeURL(ITEM_CURRENCY);
+                    	llLoadURL(id, "View Backpack online?", url);
+                    }
+                    
+                
+                }
+            
+            }
         link_message(integer sender_num, integer channel, string str, key id) {
             if (channel==UI_CHANNEL){
                 if (str == "FREQUENCY ADD TIMER EVENT"){
@@ -549,9 +589,15 @@
                 // -321 USER AUTH ERROR - this will occure if the avatar is not linked 
                 // so we will autoenrol them!!!
                 //****************************************************************************************           
-                if (status==AVATAR_NOT_REGISTERED||status == AVATAR_NOT_ENROLLED){
-                	llSay(0,"Hi "+(string)llKey2Name(uuidSent)+ ", but it appears that you are not enrolled or registerd in this course.  Trying to register and enrol you now!");
-                	llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG , "do:regenrol|"+sloodleserverroot+"|"+(string)sloodlecontrollerid+"|"+sloodlepwd, NULL_KEY);
+                if (status == AVATAR_NOT_ENROLLED){
+                    llSay(0,"Hi "+(string)llKey2Name(uuidSent)+ ", but it appears that you are not enrolled or registerd in this course.  Trying to register and enrol you now!");
+                    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG , "do:regenrol|"+sloodleserverroot+"|"+(string)sloodlecontrollerid+"|"+sloodlepwd, uuidSent);
+                }else
+                //****************************************************************************************
+                // -331 USER AUTH ERROR - USE_DID_NOT_HAVE_PERMISSION_TO_ACCESS_RESOURCE_REQUESTED                 
+                //****************************************************************************************           
+                
+                if (status==USE_DID_NOT_HAVE_PERMISSION_TO_ACCESS_RESOURCE_REQUESTED){
                 }
                  
                 //****************************************************************************************
@@ -559,7 +605,7 @@
                 //****************************************************************************************           
                 if (response=="backpack->getBalance"){
                     integer balance = (integer)getVar(OUTPUT_VARS,"BALANCE");
-
+					courseid = (integer)getVar(OUTPUT_VARS,"COURSEID");
                  /* possible responses are:
                         *
                         *******************************************************************        
@@ -570,7 +616,7 @@
                         * AVUUID:14d1bf9c-82cb-499d-8cf8-d18b001803fc
                         * CURRENCY:Silver
                         * BALANCE:40
-                        *
+                        * COURSEID:2
                         *******************************************************************        
                         * Avatar Doesn't Exist
                         * 
@@ -593,10 +639,18 @@
                                 //give dialong
                                 string msg = "You have "+(string)balance+"\n\n";
                                 msg += "Would you like to purchase: "+ITEM_NAME +" for "+(string)ITEM_PRICE+" "+ITEM_CURRENCY+" "+"?";
-                                llDialog(uuidSent, msg, ["Yes","No"], DIALOG_CHANNEL);
+                                integer randChan = random_integer(-300000,-900000);
+                                integer lKey = llListen(randChan, "", uuidSent, "");
+                                USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                                llSetTimerEvent(300);
+                                llDialog(uuidSent, msg, ["Yes","No","View"], randChan);
                             }
                         }else {
-                            llDialog(uuidSent, "I'm sorry, but you don't have enough "+ITEM_CURRENCY+ "!\n You have: "+(string)balance +" "+ITEM_CURRENCY+"\n and you need "+(string)(ITEM_PRICE-balance)+" more "+ITEM_CURRENCY, ["Ok"], DIALOG_CHANNEL);
+                        	integer randChan = random_integer(-300000,-900000);
+                            integer lKey = llListen(randChan, "", uuidSent, "");
+                            USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                            llSetTimerEvent(300);                                                            
+                            llDialog(uuidSent, "I'm sorry, but you don't have enough "+ITEM_CURRENCY+ "!\n You have: "+(string)balance +" "+ITEM_CURRENCY+"\n and you need "+(string)(ITEM_PRICE-balance)+" more "+ITEM_CURRENCY, ["Ok","View"], DIALOG_CHANNEL);
                             llTriggerSound(SOUND_NO_MONEY, 1.0);
                             return;
                         }                
@@ -640,7 +694,7 @@
                         //therefore the backpack_give currency will always be different that our items currency, 
                         //so we can safely avoid an addTransaction loop by checking against our items currency.
                         if (OUTPUT_CURRENCY==ITEM_CURRENCY){
-							take(uuidSent);
+                            take(uuidSent);
                             NUM_WITHDRAWS--;
                             if (SET_TEXT==TRUE) llSetText((string)NUM_WITHDRAWS+" " +ITEM_NAME+" withdraws are left to be taken. Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, RED, 1.0);
                             
@@ -668,7 +722,11 @@
                         }
                         else{
                             string msg = "We just added "+OUTPUT_CURRENCY+" to your Sloodle Backpack! You now have: "+(string)balance+" "+"!";
-                             llDialog(uuidSent, msg, ["Thanks!"], -99);
+                            llDialog(uuidSent, msg, ["Ok","View"], -99);
+                            integer randChan = random_integer(-300000,-900000);
+                            integer lKey = llListen(randChan, "", uuidSent, "");
+                            USER_DIALOG+=[randChan,uuidSent,lKey,llGetUnixTime()];
+                            llSetTimerEvent(300);                                
                             llInstantMessage(uuidSent,msg);        
                         }
                     
@@ -676,15 +734,7 @@
                 }
             }
         }
-            listen(integer channel, string name, key id, string str) {
-                if (channel==DIALOG_CHANNEL){
-                    if (str=="Yes"){
-                        addTransaction(id,ITEM_CURRENCY,ITEM_PRICE*-1,ITEM_DETAILS);
-                    }
-                
-                }
             
-            }
             changed(integer change) {
             if (change== CHANGED_INVENTORY) { // and it was a link change
                
