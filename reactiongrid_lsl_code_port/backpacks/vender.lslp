@@ -154,6 +154,9 @@
             llOwnerSay(str);
         }
     }
+    displayText(integer n){
+    	llSetText(ITEM_NAME+"\n("+(string)n+")  withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+    }
     getBalance(key user){
         if (SET_TEXT==TRUE) llSetText("Getting balance for user: "+llKey2Name(user)+", please wait...", YELLOW, 1.0);
         string authenticatedUser = "&sloodleuuid="+(string)user+"&sloodleavname="+llEscapeURL(llKey2Name(user));
@@ -490,14 +493,14 @@
             
             NUM_WITHDRAWS = MAX_WITHDRAWS;
             DIALOG_CHANNEL = random_integer(-30000,-90000);
-            if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+            if (SET_TEXT==TRUE) displayText(NUM_WITHDRAWS);
             llSay(0,"Ready");
             //define random dialog channel for dialog messags           
             //display help
             help(llGetOwner());
             //load inventory list
-            llMessageLinked(LINK_THIS, UI_CHANNEL, "FREQUENCY ADD|"+(string)ITEM_FREQUENCY_ADD,NULL_KEY);
-            llMessageLinked(LINK_THIS, UI_CHANNEL, "FREQUENCY RESET|"+(string)ITEM_FREQUENCY_RESET,NULL_KEY);
+            llMessageLinked(LINK_SET, UI_CHANNEL, "FREQUENCY ADD|"+(string)ITEM_FREQUENCY_ADD,NULL_KEY);
+            llMessageLinked(LINK_SET, UI_CHANNEL, "FREQUENCY RESET|"+(string)ITEM_FREQUENCY_RESET,NULL_KEY);
         }
         
         touch_start(integer total_number)
@@ -582,12 +585,12 @@
                 if (str == "FREQUENCY ADD TIMER EVENT"){
                      NUM_WITHDRAWS+=MAX_WITHDRAWS;
                      
-                       if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+                       if (SET_TEXT==TRUE) displayText(NUM_WITHDRAWS);
                      llTriggerSound(SOUND_TIMER, 1.0);
                 }
                 if (str == "FREQUENCY RESET TIMER EVENT") {
                     NUM_WITHDRAWS=MAX_WITHDRAWS;
-                      if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+                      if (SET_TEXT==TRUE)  displayText(NUM_WITHDRAWS);
                     llTriggerSound(SOUND_TIMER, 1.0);
                 }
                 
@@ -627,7 +630,7 @@
                 // GETBALANCE
                 //****************************************************************************************           
                 if (response=="backpack->getBalance"){
-                    if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+                    if (SET_TEXT==TRUE)  displayText(NUM_WITHDRAWS);
                     integer balance = (integer)getVar(OUTPUT_VARS,"BALANCE");
                     courseid = (integer)getVar(OUTPUT_VARS,"COURSEID");
                  /* possible responses are:
@@ -728,7 +731,7 @@
                         if (OUTPUT_CURRENCY==ITEM_CURRENCY){
                             take(uuidSent);
                             NUM_WITHDRAWS--;
-                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+                              if (SET_TEXT==TRUE)  displayText(NUM_WITHDRAWS);
                             
                             llTriggerSound(SOUND_MONEY_OK, 1.0);
                             integer len = llGetListLength(ITEM_GIVE);
@@ -753,7 +756,7 @@
                                   
                                 } 
                             }
-                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);
+                              if (SET_TEXT==TRUE)  displayText(NUM_WITHDRAWS);
                             llInstantMessage(uuidSent,"Your new balance is: "+(string)balance+" "+OUTPUT_CURRENCY);
                         }
                         else{
@@ -768,7 +771,7 @@
                             
                             llSetTimerEvent(300);                                
                             llInstantMessage(uuidSent,msg);
-                              if (SET_TEXT==TRUE) llSetText("("+(string)NUM_WITHDRAWS+") " +ITEM_NAME+" withdraws are left to be taken.\n Cost is: "+(string)ITEM_PRICE+" "+ITEM_CURRENCY, GREEN, 1.0);        
+                              if (SET_TEXT==TRUE)  displayText(NUM_WITHDRAWS);        
                         }
                     
                     }   
