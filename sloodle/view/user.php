@@ -577,7 +577,7 @@ class sloodle_view_user extends sloodle_base_view
                     
                     echo '<table style="border-style:none; margin-left:auto; margin-right:auto;"><tr><td>';
                     
-                    echo '<form action="view_user.php" method="GET">';
+                    echo '<form action="'.SLOODLE_WWWROOT.'/view.php" method="GET">';
                     echo '<input type="hidden" name="_type" value="user" />';
                     echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                     if (!empty($courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
@@ -588,7 +588,8 @@ class sloodle_view_user extends sloodle_base_view
                     
                     echo '</td><td>';
                     
-                    echo '<form action="view_user.php" method="GET">';
+                    echo '<form action="'.SLOODLE_WWWROOT.'/view.php" method="GET">';
+                    echo '<input type="hidden" name="_type" value="user" />';
                     echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                     if (!empty($this->courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
                     echo '<input type="hidden" name="start" value="'.$this->start.'" />';
@@ -649,7 +650,7 @@ class sloodle_view_user extends sloodle_base_view
                     
                     // Display a button to delete all the Sloodle objects
                     if (empty($deleteuserobjects)) {
-                        echo '<br><form action="user.php" method="GET">';
+                        echo '<br><form action="'.SLOODLE_WWWROOT.'/view.php" method="GET">';
                         echo '<input type="hidden" name="_type" value="user" />';
                         echo '<input type="hidden" name="id" value="'.$this->moodleuserid.'" >';
                         if (!empty($this->courseid)) echo '<input type="hidden" name="course" value="'.$this->courseid.'" >';
