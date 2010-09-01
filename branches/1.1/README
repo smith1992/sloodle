@@ -78,8 +78,13 @@ Sloodle Object Assignment plugin (optional)
 2. If a "sloodleobject" folder exists there already, then delete it
 3. Add the "sloodleobject" folder from this download
 
-You will also need to alter your primary language pack.
-E.g. if your primary language is English, then the  is "en_utf8".
+
+If you are using Moodle 1.8, or one of the older Moodle 1.9 installations, then
+the SLOODLE Object assignment will be displayed in Moodle menus as
+"[[typesloodleobject]]". If this happens, you will need to alter your primary
+language pack. E.g. if your primary language is English, then the  is "en_utf8".
+
+ONLY do this if your observe "[[typesloodleobject]]" in your Moodle site.
 
 1. Navigate to your Moodle's "lang/" folder
 2. Open the "assignment.php" file
@@ -89,7 +94,6 @@ E.g. if your primary language is English, then the  is "en_utf8".
 You can change the 'Sloodle Object' text to suit your needs.
 You can repeat the process for other languages if necessary.
 
-http://youtube.com/user/fire2006 (for extra videos)
 
 
 ===============================================================================
