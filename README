@@ -333,8 +333,13 @@ Sloodle Object Assignment plugin (optional)
 2. If a "sloodleobject" folder exists there already, then delete it
 3. Add the "sloodleobject" folder from this download
 
-You will also need to alter your primary language pack.
-E.g. if your primary language is English, then the  is "en_utf8".
+
+If you are using Moodle 1.8, or one of the older Moodle 1.9 installations, then
+the SLOODLE Object assignment will be displayed in Moodle menus as
+"[[typesloodleobject]]". If this happens, you will need to alter your primary
+language pack. E.g. if your primary language is English, then the  is "en_utf8".
+
+ONLY do this if your observe "[[typesloodleobject]]" in your Moodle site.
 
 1. Navigate to your Moodle's "lang/" folder
 2. Open the "assignment.php" file
@@ -344,7 +349,6 @@ E.g. if your primary language is English, then the  is "en_utf8".
 You can change the 'Sloodle Object' text to suit your needs.
 You can repeat the process for other languages if necessary.
 
-http://youtube.com/user/fire2006 (for extra videos)
 
 THE SLOODLE TEAM 
 ===============================================================================
@@ -360,7 +364,6 @@ Sloodle developer - SL scripts mainly
 SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=52&course=1
 LINKEDIN: http://www.linkedin.com/in/dlivingstone
 TWITTER: http://twitter.com/dlivingstone
-EMAIL: daniel.livingstone@gmail.com
 WEBPAGE: http://cis.paisley.ac.uk/livi-ci0
 
 ***************************
@@ -368,7 +371,6 @@ WEBPAGE: http://cis.paisley.ac.uk/livi-ci0
 ***************************
 Jeremy W. Kemp is an instructional designer at San José State University and started teaching online in 1999. He keeps the official wiki for educators using the Second Life immersive environment — www.simteach.com. His instructional technology project connecting Moodle and Second Life has attracted hundreds of participants from around the world — www.sloodle.com. He is a doctoral student at Fielding Graduate University in Santa Barbara, CA working on educational and social issues in immersive environments. Kemp has master's degrees from Stanford and Northwestern University, designed the Wikispecies logo has been awarded "Picture of the Day" three times on Wikipedia.com
 
-EMAIL: jkemp@slis.sjsu.edu
 WEBPAGE: http://www.sjsu.edu/people/jeremy.kemp/
 LINKEDIN: http://www.linkedin.com/pub/jeremy-kemp/2/9aa/162
 TWITTER: http://twitter.com/jeremykemp
@@ -382,7 +384,6 @@ Paul is an independant virtual world consultant based out of Vancouver Canada, w
 Paul works daily on programming SLOODLE tools, addons, and providing community support.  
 
 SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=589&course=1
-EMAIL: fire@b3dmultitech.com
 WEBPAGE: http://b3dmultitech.com/
 SKYPE: eslteacherlink.com
 TWITTER: http://twitter.com/fire
@@ -394,9 +395,7 @@ YOUTUBE: http://youtube.com/user/fire2006
 Core Developer for the SLOODLE project. Currently doing a PhD in the integration of web-based learning systems with immersive virtual worlds at the University of the West of Scotland.
 
 SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=1350&course=1
-EMAIL: sloodle@avid-insight.co.uk
 WEBPAGE: http://peter.avid-insight.co.uk/
-MSN: pete_rb@hotmail.com
 
 ***************************
 * Edmund Edgar                                *
@@ -405,7 +404,6 @@ Developer / IT consultant based in Tokyo.
 Involved in developing Sloodle Scripts, and contribution to the project
 
 SLOODLE: http://www.sloodle.org/moodle/user/view.php?id=78&course=1
-EMAIL: online@edochan.com 
 WEBPAGE: http://www.socialminds.co.uk
 LINKEDIN: http://www.linkedin.com/pub/jeremy-kemp/2/9aa/162
 TWITTER: http://twitter.com/jeremykemp
