@@ -48,7 +48,8 @@ class sloodle_view_backpack extends sloodle_base_view
     */
     function sloodle_view_backpack()
     {
-         
+        
+        
     }
 
     /**
@@ -56,9 +57,13 @@ class sloodle_view_backpack extends sloodle_base_view
     */
     function process_request()
     {
+        
         $id = required_param('id', PARAM_INT);
+        
+        
         if (!$this->course = get_record('course', 'id', $id)) error('Could not find course.');
         $this->sloodle_course = new SloodleCourse();
+        
         if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
        
     }
@@ -191,9 +196,9 @@ class sloodle_view_backpack extends sloodle_base_view
     *  for that particular currency will be displayed, otherwise a list of all users for the selected currency will be displayed
     */
     function render_backpack_contents_view(){
-        global $CFG,$COURSE;
+        global $CFG;
         global $sloodle;
-        $id = required_param('id', PARAM_INT);
+        $id = required_param('id', PARAM_INT);      
         $action= optional_param('action', "");                 
         $currentCurrency = optional_param('currentCurrency',"Credits");
         $currentUser= optional_param('currentUser',"ALL");
@@ -281,13 +286,16 @@ class sloodle_view_backpack extends sloodle_base_view
                 $enrolled=$this->sloodle_course->get_enrolled_users();
                
                 foreach ($enrolled as $e){                    
-                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$COURSE->id}";                    
-                    
+                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$id}";                    
+                
                     $tran = get_record_sql($sql);    
                     $tran->avname=$e->avname;
                     $tran->avuuid=$e->avuuid;
                     $tran->userid=$e->userid;
-                    $tran->currency=$currentCurrency;
+                    $tran->currency=$currentCurrency;                    
+                    if ($tran->balance == NULL){
+                     $tran->balance=0;
+                    }
                     $trans[]=$tran;
                 }
              }else{
@@ -318,7 +326,7 @@ class sloodle_view_backpack extends sloodle_base_view
                 }                    
                 $trowData[]=$idata_editField;    
                 $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
-                $trowData[]=0;//amount
+                $trowData[]='<div style="color:green;text-align:left;">0</div>';//amount
                 $trowData[]=$editField;                                                                                                                                                                     
                 $sloodletable->data[] = $trowData;                     
             }else
@@ -339,14 +347,15 @@ class sloodle_view_backpack extends sloodle_base_view
                 else
                 if ($this->can_edit) {                           
                        $idata_editField = '<input style="text-align:right;" type="text" size="20" name="idataFields[]" value="'.$t->idata.'">';
-                }                    
+                }else  $idata_editField = $t->idata;
                 $trowData[]=$idata_editField;    
                 $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
-                $trowData[]=$t->balance;
+              
+                $trowData[]='<div style="color:green;font-weight:bold;text-align:right;">'.$t->balance.'</div>';//
                 $trowData[]=$editField;                                                                                                                                                                    
                 $sloodletable->data[] = $trowData;     
             }
-            
+
              
         print_table($sloodletable); 
               echo '</form>';   
