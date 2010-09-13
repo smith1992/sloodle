@@ -120,21 +120,20 @@
          
         function get_balance($currency,$userid=null,$avuuid=null,$gameid=null){
                global $CFG,$COURSE,$sloodle;
+               
             //$currency = get_record('sloodle_currency_types','name',$currency_name);            
             //if (!$currency) return null;//currency doesnt exist
             $gameid_str="";
             if ($sloodle==NULL)$courseId=$COURSE->id; else
             $courseId = $sloodle->course->get_course_id();
+          
             if ($gameid!=null)$gameid_str=" AND gameid={$gameid}";
             if ($userid!=null)$userid_str=" AND userid={$userid}";
             if ($avuuid!=null)$avuuid_str=" AND avuuid='{$avuuid}'";
-            $balance=null;
-            if ($userid){    
-               $sql= "select sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currency}' AND t.courseid={$courseId} ".$avuuid_str." ".$userid_str;  
-               $balanceRec= get_record_sql($sql);                                              
-               $balance = array('amount'=> $balanceRec->balance);
-            }
-           
+            $balance=null;            
+            $sql= "select sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currency}' AND t.courseid={$courseId} ".$avuuid_str." ".$userid_str;  
+            $balanceRec= get_record_sql($sql);                                              
+            $balance = array('amount'=> $balanceRec->balance);
             return $balance;
             
         }
