@@ -107,7 +107,7 @@ integer sloodle_check_access_use(key id)
         return llSameGroup(id);
     } else if (sloodleobjectaccessleveluse == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
         return TRUE;
-    } 
+    }
     
     // Assume it's owner mode
     return (id == llGetOwner());
