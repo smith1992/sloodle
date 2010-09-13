@@ -365,7 +365,7 @@
     </INDEXES>
     </TABLE>
     
-    <TABLE NAME="sloodle_award_players"  PREVIOUS="sloodle_award_games" COMMENT="sloodle_award_players table retrofitted from MySQL" PREVIOUS="sloodle_award_games" NEXT="sloodle_award_teams">
+    <TABLE NAME="sloodle_award_players" COMMENT="sloodle_award_players table retrofitted from MySQL" PREVIOUS="sloodle_award_games" NEXT="sloodle_award_teams">
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="gameid"/>
     <FIELD NAME="gameid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avuuid"/>
