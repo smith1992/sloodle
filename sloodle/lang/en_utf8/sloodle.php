@@ -187,8 +187,8 @@ $string['moduletype:controller'] = 'SLOODLE Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
-$string['moduletype:awards'] = 'Sloodle Award System'; 
-$string['moduletype:tracker'] = 'tracker';
+$string['moduletype:awards'] = 'Awards'; 
+$string['moduletype:tracker'] = 'Tracker';
 
 $string['moduleaction:map'] = 'Add a SLOODLE Map';
 
@@ -425,6 +425,7 @@ $string['submit'] = 'Submit';
 $string['timeago'] = '$a ago'; // $a = period of time, e.g. "3 weeks"
 $string['type'] = 'Type';
 $string['trydirectlink'] = 'If you cannot see the above entry, try this <a href=\"$a\">direct link</a> instead.';
+$string['tracker:settings'] = 'Tracker Settings';
 
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';

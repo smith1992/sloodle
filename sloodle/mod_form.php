@@ -171,6 +171,13 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->setDefault('presenter_frameheight', 512);
 
             break;
+            
+            
+        // // TRACKER // //
+        
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to do
+        	break;
 
          } 
 //-------------------------------------------------------------------------------
@@ -244,6 +251,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $default_values['presenter_frameheight'] = (int)$presenter->frameheight;
 
             break;
+            
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to do
+        	break;
 
         default:
             // Nothing to do?
@@ -266,7 +277,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         $errors = array();
     
         // Check which type is being used
-switch ($data['type']) {
+		switch ($data['type']) {
         
         case SLOODLE_TYPE_CTRL:
             // Check that the prim password is OK
@@ -296,6 +307,10 @@ switch ($data['type']) {
         case SLOODLE_TYPE_PRESENTER:
             // Nothing to error check
             break;
+            
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to error check
+        	break;
         
         // ADD FUTURE TYPES HERE
             
