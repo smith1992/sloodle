@@ -132,7 +132,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
     function process_form()
     {
         global $CFG;
-              
+        
         // Slight hack to put this here. We need to have the permissions checked before we do this.
         // Default to view mode. Only allow other types if the user has sufficient permission
         if ($this->canedit) {
@@ -155,6 +155,14 @@ class sloodle_view_presenter extends sloodle_base_view_module
 
         // Should we process any incoming editing commands?
         if ($this->canedit) {
+        
+            // Has an operation been cancelled?
+            if (isset($_REQUEST['sloodlecancel'])) {
+                if (!headers_sent()) {
+                    header("Location: ".SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&mode=edit");
+                }
+                exit("Redirection failed.");
+            }
 
             // We may want to redirect afterwards to prevent an argument showing up in the address bar
             $redirect = false;
@@ -218,8 +226,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $redirect = true;
             }
             
-            
-            
             // Has a new entry been added?
             if (isset($_REQUEST['fileaddentry']) ||isset($_REQUEST['sloodleaddentry'])) {
                 if (isset($_REQUEST['fileaddentry'])) { 
@@ -261,7 +267,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $redirect = true; 
             }
             
-            
             // Has an existing entry been edited?
             if (isset($_REQUEST['sloodleeditentry'])) {
                 $sloodleentryid = (int)$_REQUEST['sloodleentryid'];
@@ -273,53 +278,6 @@ class sloodle_view_presenter extends sloodle_base_view_module
                 $this->presenter->edit_entry($sloodleentryid, $sloodleentryurl, $sloodleentrytype, $sloodleentryname, $sloodleentryposition);
                 $redirect = true;
             }
-            
-            /*//are we editing multiple files?  Mode: "Multiple edit"" is set as an input value when the multiple edit select field
-            // is submitted      
-            if (optional_param('mode')=='multiple edit')  {
-                //check what value was submitted from the select input
-                $multipleAction = optional_param('multipleProcessor');
-                $selectedSlides = $_REQUEST['selectedSlides'];   
-                if ($multipleAction=="Delete Selected") {
-                    //get all selected slides to trash                
-                    $slides = $this->presenter->get_slides();                        
-                    $deleted = get_string("presenter:deleted",'sloodle');
-                    $fromTheServer = get_string("presenter:fromtheserver",'sloodle');
-                    $feedback = "";
-                    foreach ($selectedSlides as $selectedSlide) {
-                        // REMOVED SOURCE FILE DELETION -- THIS IS UNSAFE UNLESS WE TRACK EXACTLY WHICH FILES WERE UPLOADED
-                        //get slide source so we can delete it from the server   
-                        foreach ($slides as $slide) {
-                           if ($slide->id==$selectedSlide) {
-                                //delete file
-                                $fileLocation = $CFG->dataroot;
-                                //here the $slide->source url has moodle's file.php handler in it
-                                //we must therefore convert the slide source into a real file path
-                                //do so by removing "file.php" from the file path string
-                                $floc = strstr($slide->source,"file.php");
-                                // Only continue if "file.php" was found -- no point trying to delete other files
-                                if ($floc !== false) {
-                                    //now delete "file.php" from the path
-                                    $floc = substr($floc,8,strlen($floc));
-                                    //now add this to the data route to finish re-creating the true file path
-                                    $fileLocation.=$floc;
-                                    //finally we can delete the file
-                                    unlink($fileLocation);
-                                }
-                                //build feedback string
-                                $feedback.=$deleted ." ". $slide->name ." ". $fromTheServer ."<br>";     
-                            }
-                        }
-                       //delete from database
-                       $this->presenter->delete_entry($selectedSlide);
-                    }
-                      
-                    // Store the feedback as a session variable for the next time the page is loaded
-                    $_SESSION['sloodle_presenter_feedback'] = $feedback;
-                    //set redirect so we go back to the edit tab
-                    $redirect = true;
-				}
-			}*/
             
             // Redirect back to the edit page -- this is used to get rid of intermediate parameters.
             if ($redirect && headers_sent() == false) {
@@ -684,11 +642,11 @@ class sloodle_view_presenter extends sloodle_base_view_module
     /**
     * Render the "Upload Many" tab.
     */        
-    function render_add_files()
+    function render_upload_many()
     {
         global $CFG;
 
-
+        echo "<noscript><p><strong>",get_string('noscriptwarning', 'sloodle'),"</strong></p><p>&nbsp;</p></noscript>\n";
 
         // Setup variables to store the data
         $entryid = 0;
@@ -793,13 +751,13 @@ class sloodle_view_presenter extends sloodle_base_view_module
         //Send an alert on all errors
         ?>onError: function (a, b, c, d) {
          if (d.status == 404)
-            alert('Could not find upload script. Use a path relative to: '+'<?= getcwd() ?>');
+            alert('Uploader error: could not find upload script (404).');
          else if (d.type === "HTTP")
-            alert('error '+d.type+": "+d.status);
+            alert('Uploader error - '+d.type+": "+d.status);
          else if (d.type ==="File Size")
             alert(c.name+' '+d.type+' Limit: '+Math.round(d.sizeLimit/1024)+'KB');
          else
-            alert('error '+d.type+": "+d.text);
+            alert('Uploader error - '+d.type+": "+d.text);
 },        <?php
         /*
         * onAllComplete will trigger after all uploads are done
@@ -863,13 +821,19 @@ class sloodle_view_presenter extends sloodle_base_view_module
               qSize += fileObj.size;
                if (qSize > uploadLimit){
                  $("#uploadButton").hide();
-                 $("#qSize").css("color","red");
-                 $("#qSize").text("Error: You have selected "+qSize+ " bytes to upload. Bulk upload size is limited to: "+uploadLimit);
+                 $("#qSize").css("color","#a00");
+                 $("#qSize").html("<br/><strong>Sorry! You have exceeded the maximum upload size. Please select fewer items, or use smaller files.</strong>");
               } else 
               { 
                 $("#uploadButton").show();
-                $("#qSize").css("color","blue");
-                $("#qSize").html(qSize+" bytes selected. <b>"+(uploadLimit-qSize) + "</b> bytes available to queue");
+                $("#qSize").css("color","#0a0");
+                //$("#qSize").html(qSize+" bytes selected. <b>"+(uploadLimit-qSize) + "</b> bytes available to queue");
+                //$("#qSize").html("");
+                
+                var _percentFull = qSize * 100.0 / uploadLimit;
+                if (qSize == 0) $("#qSize").html("<br/>Upload queue is empty.");
+                else if (_percentFull < 1) $("#qSize").html("<br/>Upload queue is less than 1% full.");
+                else $("#qSize").html("<br/>Upload queue is about "+Math.round(_percentFull)+"% full.");
               }
 
         
@@ -880,13 +844,17 @@ class sloodle_view_presenter extends sloodle_base_view_module
               
               if (qSize > uploadLimit){
                 $("#uploadButton").hide();
-                $("#qSize").css("color","red");
-                $("#qSize").text("Error: You have selected "+qSize+ " bytes to upload. Bulk upload size is limited to: "+uploadLimit);
+                $("#qSize").css("color","#a00");
+                $("#qSize").html("<br/><strong>Sorry! You have exceeded the maximum upload size. Please select fewer items, or use smaller files.</strong>");
               } else 
               { 
                 $("#uploadButton").show();
-                $("#qSize").css("color","blue");
-                $("#qSize").html(qSize+" bytes selected. <b>"+(uploadLimit-qSize) + "</b> bytes available to queue");
+                $("#qSize").css("color","#0a0");
+                
+                var _percentFull = qSize * 100.0 / uploadLimit;
+                if (qSize == 0) $("#qSize").html("<br/>Upload queue is empty.");
+                else if (_percentFull < 1) $("#qSize").html("<br/>Upload queue is less than 1% full.");
+                else $("#qSize").html("<br/>Upload queue is about "+Math.round(_percentFull)+"% full.");
               }
               
         
@@ -911,15 +879,9 @@ class sloodle_view_presenter extends sloodle_base_view_module
         //this div is where the uploaded files will be displayed
         echo '<div name="filesUploaded" id="filesUploaded"><div name="fileTables" id="fileTables"></div></div>';             
         echo '<div name="qSize" id="qSize"></div></fieldset>';          
-        echo '<div style="display:none;" name="uploadButton" id="uploadButton"><a href="javascript:startUpload(\'fileUpload\')">Start Upload</a></div></form>';
-        // Add a button to let us cancel and go back to the main edit tab
-        echo '<form action="" method="get"><fieldset style="border-style:none;">';
-        echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
-        echo "<input type=\"hidden\" name=\"mode\" value=\"edit\" />";
-        echo "<input type=\"submit\" value=\"{$strcancel}\" />";        
-        echo '</fieldset></form>';   
-        
-
+        echo '<div style="display:none;" name="uploadButton" id="uploadButton"><a href="javascript:startUpload(\'fileUpload\')">Start Upload</a>';
+        echo "&nbsp;&nbsp;|&nbsp;&nbsp;<a href=\"?id={$this->cm->id}&amp;mode=edit\">Cancel Upload</a>";
+        echo '</div></form>';
     }         
     /**
     * Render the slide editing form of the Presenter (lets you edit a single slide).
@@ -1029,15 +991,16 @@ class sloodle_view_presenter extends sloodle_base_view_module
         // Display an appropriate submit button
         if ($newslide) echo ' <input type="submit" value="'.$stradd.'" name="sloodleaddentry" />';
         else echo ' <input type="submit" value="'.$strsave.'" name="sloodleeditentry" />';
+        echo "&nbsp;&nbsp;<input type=\"submit\" name=\"sloodlecancel\" id=\"sloodlecancel\" value=\"{$strcancel}\" />";
         // Close the form
         echo '</fieldset></form>';
 
-        // Add a button to let us cancel and go back to the main edit tab
+        /*// Add a button to let us cancel and go back to the main edit tab
         echo '<form action="" method="get"><fieldset style="border-style:none;">';
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->cm->id}\" />";
         echo "<input type=\"hidden\" name=\"mode\" value=\"edit\" />";
         echo "<input type=\"submit\" value=\"{$strcancel}\" />";
-        echo '</fieldset></form>'; 
+        echo '</fieldset></form>'; */
     }
 
 
@@ -1235,7 +1198,7 @@ class sloodle_view_presenter extends sloodle_base_view_module
         {
         case 'edit': $this->render_edit(); break;
         case 'addslide': $this->render_slide_edit(); break;
-        case 'addfiles': $this->render_add_files(); break;
+        case 'addfiles': $this->render_upload_many(); break;
         case 'editslide': $this->render_slide_edit(); break;
         case 'moveslide': $this->render_edit(); break;
         case 'deleteslide': $this->render_edit(); break;

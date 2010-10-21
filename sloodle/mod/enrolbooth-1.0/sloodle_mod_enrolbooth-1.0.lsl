@@ -1,5 +1,5 @@
-// Sloodle Registration Booth (for Sloodle 1.0)
-// Allows users to touch a panel to do manual registration of their avatar.
+// Sloodle Enrolment Booth (for Sloodle 0.3)
+// Allows users to touch a panel to do manual enrolment of their avatar.
 //
 // Copyright (c) 2007-8 Sloodle
 // Released under the GNU GPL
@@ -7,7 +7,7 @@
 // Contributors:
 //  Edmund Edgar
 //  Peter R. Bloomfield
-//  Paul Preibisch
+//
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_EOF = "sloodleeof";
@@ -50,20 +50,12 @@ sloodle_translation_request(string output_method, list output_params, string str
 {
     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
 }
-vector  RED            = <0.77278,0.04391,0.00000>;//RED
-vector  ORANGE = <0.87130,0.41303,0.00000>;//orange
-vector  YELLOW         = <0.82192,0.86066,0.00000>;//YELLOW
-vector  GREEN         = <0.12616,0.77712,0.00000>;//GREEN
-vector  BLUE        = <0.00000,0.05804,0.98688>;//BLUE
-vector  PINK         = <0.83635,0.00000,0.88019>;//INDIGO
-vector  PURPLE = <0.39257,0.00000,0.71612>;//PURPLE
-vector  WHITE        = <1.000,1.000,1.000>;//WHITE
-vector  BLACK        = <0.000,0.000,0.000>;//BLACK
+
 ///// ----------- /////
 
 
 ///// FUNCTIONS /////
-integer SETTEXT_CHANNEL= 981000; //channel used for hover text
+
 sloodle_debug(string msg)
 {
     llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
@@ -81,10 +73,7 @@ integer sloodle_handle_command(string str)
     
     if (numbits > 1) value1 = llList2String(bits,1);
     if (numbits > 2) value2 = llList2String(bits,2);
-    if (name=="set:sloodlecoursename_full") {
-                
-        llMessageLinked(LINK_SET, SETTEXT_CHANNEL,"TEXT::"+value1+"|COLOR::"+(string)PINK+"|BLINK::"+(string)FALSE+"|TIMER::0", NULL_KEY);
-    }
+    
     if (name == "set:sloodleserverroot") sloodleserverroot = value1;
     else if (name == "set:sloodlepwd") {
         // The password may be a single prim password, or a UUID and a password
@@ -118,8 +107,7 @@ integer sloodle_check_access_use(key id)
 
 // Default state - waiting for configuration
 default
-{
-    
+{    
     state_entry()
     {
         // Starting again with a new configuration
@@ -150,7 +138,7 @@ default
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                     state ready;
                 } else {
-                    // Got all configuration but, it's not complete... request reconfiguration
+                    // Go all configuration but, it's not complete... request reconfiguration
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
                     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
                     eof = FALSE;
@@ -170,11 +158,6 @@ default
 
 state ready
 {
-     state_entry()
-    {
-        llSetText("",RED,1);
-    }
-    
     on_rez( integer param)
     {
         state default;
@@ -187,12 +170,13 @@ state ready
         key id = NULL_KEY;
         string touched = "";
         for (i=0; i < total_number; i++) {
+            // Get the user key
             id = llDetectedKey(i);
             // Check if this user can use the device
             if (sloodle_check_access_use(id)) {
                 // Was it the panel that was touched?
                 touched = llGetLinkName(llDetectedLinkNumber(i));
-                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:regenrol|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
+                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:enrol|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
