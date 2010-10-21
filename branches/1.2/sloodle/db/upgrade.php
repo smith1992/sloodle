@@ -460,10 +460,86 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         }
         echo "{$numupdated} slide(s) updated.<br/>";
     }
+    
+    
+    
+    // Basic SLOODLE Tracker tables
+		
+    if ($result && $oldversion < 2010073001) {                                                                                       
+																														            
+    /// Insert 'sloodle_activity_tool' table                                                                                       
+        echo " - sloodle_activity_tool<br/>";                                                                                       
+        $table = new XMLDBTable('sloodle_activity_tool');                                                                         
+																														            
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);     
+        $table->addFieldInfo('trackerid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);              
+        $table->addFieldInfo('uuid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);                          
+        $table->addFieldInfo('description', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);            
+        $table->addFieldInfo('taskname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);                
+        $table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);                      
+        $table->addFieldInfo('type', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null);                     
+        $table->addFieldInfo('timeupdated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');  
+																															    
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));                                                          
+																															
+        $table->addIndexInfo('uuid', XMLDB_INDEX_UNIQUE, array('uuid'));                                                         
+        																													     
+        $result = $result && create_table($table);                                                                               
+        if (!$result) echo "error<br/>";                                                                                     
+																									
+                                                                                                                  
+
+  /// Insert 'sloodle_activity_tracker' table                                                                                  
+        echo " - sloodle_activity_tracker<br/>";                                                                              
+        $table = new XMLDBTable('sloodle_activity_tracker');                                                                    
+																														       
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('trackerid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);     
+        $table->addFieldInfo('objuuid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);                  
+        $table->addFieldInfo('avuuid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);                    
+        $table->addFieldInfo('timeupdated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');     
+        																												         
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));                                                          
+												
+        $result = $result && create_table($table);         
+        if (!$result) echo "error<br/>";
+        
+        
+     /// Define table sloodle_opensim_instance to be created
+        $table = new XMLDBTable('sloodle_opensim_instance');
+
+    /// Adding fields to table sloodle_opensim_instance
+        
+		$table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+		$table->addFieldInfo('avuuid', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null);
+		$table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);
+		$table->addFieldInfo('port', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+		$table->addFieldInfo('lastactive', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+
+	/// Adding keys to table sloodle_opensim_instance
+		$table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+	/// Launch create table for sloodle_opensim_instance
+		$result = $result && create_table($table);
+		
+
+    /// Define table sloodle_tracker to be created
+        $table = new XMLDBTable('sloodle_tracker');
+
+    /// Adding fields to table sloodle_tracker
+        $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->addFieldInfo('opensim_template', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);
+
+    /// Adding keys to table sloodle_tracker
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->addKeyInfo('sloodleid', XMLDB_KEY_UNIQUE, array('sloodleid'));
+
+    /// Launch create table for sloodle_tracker
+        $result = $result && create_table($table);
+    }
 
 
-  return $result; 
+  	return $result; 
 }
 
 ?>
-
