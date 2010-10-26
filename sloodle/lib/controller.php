@@ -336,7 +336,6 @@
 	* TODO: Would this be better there?
 	*/
 	function configure_object_from_layout_entry($authid, $layout_entry_id) {
-
 	   $configs = get_records('sloodle_layout_entry_config','layout_entry',$layout_entry_id);
 	   $ok = true;
 	   if (count($configs) > 0) {
@@ -348,6 +347,15 @@
 	         }
 	      }
 	   }
+
+         $lconfig = new stdClass();
+	 $lconfig->id = null;
+         $lconfig->object = $authid;
+	 $lconfig->name = 'sloodlelayoutentryid';
+	 $lconfig->value = $layout_entry_id;
+	 insert_record('sloodle_object_config',$lconfig);
+
+
 	   return $ok;
 
 	}
