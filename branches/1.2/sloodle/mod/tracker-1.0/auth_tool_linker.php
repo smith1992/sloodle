@@ -44,11 +44,12 @@
     /** Include the Sloodle PHP API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
     
-    // Attempt to authenticate the request
-    // (only require authentication if controller ID and/or password is set)
-    $authrequired = (isset($_REQUEST['sloodlecontrollerid']) || isset($_REQUEST['sloodlepwd']));
+    // Attempt to authenticate the request (only require authentication if controller ID and/or password is set)
+    // PRB: not sure why authentication is optional here -- should be required
+    /*$authrequired = (isset($_REQUEST['sloodlecontrollerid']) || isset($_REQUEST['sloodlepwd']));
     $sloodle = new SloodleSession();
-    $request_auth = $sloodle->authenticate_request($authrequired);
+    $request_auth = $sloodle->authenticate_request($authrequired);*/
+    $sloodle->authenticate_request();
     
     // Get the extra parameters
     $sloodleobjuuid = $sloodle->request->required_param('sloodleobjuuid');
@@ -63,19 +64,17 @@
     
     $authid = $tracker->record_object($sloodleobjuuid,$sloodleobjname,$sloodleobjtype,$sloodlemoduleid,$sloodledescription,$sloodletaskname);
     
-        if ($authid) {
-            $sloodle->response->set_status_code(1);
-            $sloodle->response->set_status_descriptor('OK');
-            $sloodle->response->add_data_line($authid);
-        } else {
-            $sloodle->response->set_status_code(-201);
-            $sloodle->response->set_status_descriptor('OBJECT_AUTH');
-            $sloodle->response->add_data_line('Failed to register new active object.');
-        }
+    if ($authid) {
+        $sloodle->response->set_status_code(1);
+        $sloodle->response->set_status_descriptor('OK');
+        $sloodle->response->add_data_line($authid);
+    } else {
+        $sloodle->response->set_status_code(-201);
+        $sloodle->response->set_status_descriptor('OBJECT_AUTH');
+        $sloodle->response->add_data_line('Failed to register new active object.');
+    }
 
     // Render the output
-    sloodle_debug('<pre>');
     $sloodle->response->render_to_output();
-    sloodle_debug('</pre>');
 
 ?>
