@@ -100,6 +100,7 @@ $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
+$string['deletetask'] = 'Delete task';
 $string['deletecancelled'] = 'Deletion cancelled.';
 $string['deleteselected'] = 'Delete Selected';
 $string['deletionfailed'] = 'Deletion failed';
@@ -379,6 +380,7 @@ $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
 $string['selectpresenter'] = 'Select Presenter';
+$string['selecttracker'] = 'Select Tracker';
 
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';

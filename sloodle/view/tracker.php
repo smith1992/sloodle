@@ -236,8 +236,10 @@ class sloodle_view_tracker extends sloodle_base_view_module
                 		}
                 		
                 		//Overall percentage of tasks completed?
-                   		$div = bcdiv($completed,$tasks,3);
-                		$overall = $div*100;                		
+                   		//$div = bcdiv($completed,$tasks,3); // the bcmath extension is standard but not always enabled - PRB
+                		//$overall = $div*100;
+                        $overall = 0;
+                        if ($tasks > 0) $overall = ((integer)(($completed / $tasks) * 1000.0)) / 10.0;
                 	}    
                 	
                 	// If is the admin, show the reset button
@@ -247,13 +249,13 @@ class sloodle_view_tracker extends sloodle_base_view_module
                    		echo '<input type="hidden" name="action" value="delete_objects"/>';
                    		
                    		print_table($objects_table);
-                   		echo '<h3>Overall percentage of tasks completed:'.$overall.'%</h3>';
+                   		echo '<h3>Completed: '.$overall.'%</h3>';
                    		echo '<input type="submit" value="'.get_string('deletetask','sloodle').'"/>';
             		}
                 	else
                 	{
                 		print_table($objects_table);
-                   		echo '<h3>Overall percentage of tasks completed:'.$overall.'%</h3>';
+                   		echo '<h3>Completed: '.$overall.'%</h3>';
                    	}
             	}
             	//No tasks in the Tracker
