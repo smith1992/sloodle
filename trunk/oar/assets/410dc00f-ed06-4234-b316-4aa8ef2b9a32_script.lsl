@@ -132,4 +132,4 @@ state drop
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: 
+// SLOODLE LSL Script Subversion Location: mod/primdrop-1.0/sloodle_primdrop_inventory.lsl
