@@ -224,3 +224,5 @@ default {
         }
     }
 }
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/awards-1.0/lsl/root_prim_board/sloodle_translation_award_en.lsl 
