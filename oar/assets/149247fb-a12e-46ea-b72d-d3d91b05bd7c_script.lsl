@@ -329,4 +329,5 @@ state searching
         if (sender_num == llGetLinkNumber()) return;
         if (num == SLOODLE_CHANNEL_OBJECT_DIALOG && sval == "do:reset") llResetScript();
     }
-}
+}// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: 

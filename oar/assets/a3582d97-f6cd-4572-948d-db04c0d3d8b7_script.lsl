@@ -119,4 +119,5 @@ state ready
     //        llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_CHOICE, SLOODLE_CHOICE_SELECT_OPTION + "|" + (string)myoptionnum, llDetectedKey(i));
     //    }
     //}
-}
+}// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: 

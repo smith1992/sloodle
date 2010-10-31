@@ -777,4 +777,5 @@ state idle
         request_config = TRUE;
         state configure_object;
     }
-}
+}// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: 
