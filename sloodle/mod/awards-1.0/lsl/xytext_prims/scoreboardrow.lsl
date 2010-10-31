@@ -76,3 +76,5 @@ default {
         llSetTimerEvent(0.0);
     }
 }
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/awards-1.0/lsl/xytext_prims/scoreboardrow.lsl 

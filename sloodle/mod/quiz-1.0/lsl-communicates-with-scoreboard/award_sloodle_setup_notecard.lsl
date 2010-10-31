@@ -184,3 +184,5 @@ state_entry() {
         }
     }
 }
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/quiz-1.0/lsl-communicates-with-scoreboard/award_sloodle_setup_notecard.lsl 

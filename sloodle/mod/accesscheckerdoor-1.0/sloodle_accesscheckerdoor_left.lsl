@@ -40,3 +40,5 @@ state open {
     }
     
 }
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/accesscheckerdoor-1.0/sloodle_accesscheckerdoor_left.lsl 

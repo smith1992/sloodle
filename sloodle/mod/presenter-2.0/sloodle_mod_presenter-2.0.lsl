@@ -553,3 +553,5 @@ state running
 
 }
 
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/presenter-2.0/sloodle_mod_presenter-2.0.lsl 
