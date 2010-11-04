@@ -1311,7 +1311,7 @@ if ($result && $oldversion < 2010091200) {
         
         
     }   
- if ($result && $oldversion < 2010110310) {      
+ if ($result && $oldversion < 2010110311) {      
     
      echo "Backing up sloodle_users table";
      $oldSloodleUsersTable = get_records('sloodle_users');
@@ -1330,10 +1330,13 @@ if ($result && $oldversion < 2010091200) {
         $field = new XMLDBField('uuid');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, '', 'userid');
         $table->addField($field);            
+        $field = new XMLDBField('avname');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', XMLDB_NOTNULL, null, null, null, null, '', 'uuid');
+        $table->addField($field);            
          // Add the new 'profilepic' field
          echo " - adding \'profilepic\' field<br/>";
         $field = new XMLDBField('profilepic');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'uuid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'avname');
         $table->addField($field);                    
          // moving 'lastactive' field
          echo " - moving \'lastactive\' field<br/>";

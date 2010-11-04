@@ -552,7 +552,7 @@ class sloodle_view_user extends sloodle_base_view
                         $avimage=$sloodle->user->avatar_data->profilepic;
                     }
                           
-                    $line[]=$startlink.'<img alt="'.$curavname.'" style="width:40px;height:40px" src="'.$avimage.'">'.$endlink;       
+                    $line[]=$startlink.'<img  style="width:40px;height:40px" src="'.$avimage.'">'.$endlink;       
                     // Do we know when the avatar was last active
                     if (!empty($su->lastactive)) {
                         // Calculate the time difference
