@@ -650,4 +650,5 @@ $string['backpack:instructions_backpack_contentsview'] = 'On this page you can s
 $string['backpack:instructions_backpack_contentsview_edit_amount'] = 'On this page you can edit the currency amount of the user. ';        
 $string['backpack:current_balance'] = 'Current Balance: ';
 $string['backpack:add_transaction'] = 'Add Transaction: ';        
+$string['gridtype:specifygridtype'] = 'Please specify your grid type: ';        
 
