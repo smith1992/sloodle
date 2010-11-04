@@ -531,9 +531,10 @@ class sloodle_view_user extends sloodle_base_view
                                  $avimage = $imgStr;
                                  if (!$imageStart){
                                      $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
+                                 }else{
+                                    $su->profilepic = $avimage;
+                                    update_record("sloodle_users",$su);
                                  }
-                                 $su->profilepic = $avimage;
-                                 update_record("sloodle_users",$su);
                                  $startlink = '<a href="'.$url.'" target="_blank">';
                                  $endlink="</a>";
                             }else{
