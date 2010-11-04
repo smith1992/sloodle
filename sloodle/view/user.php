@@ -443,14 +443,15 @@ class sloodle_view_user extends sloodle_base_view
         
         // Construct and display a table of Sloodle entries
         if ($numsloodleentries > 0) {
-            $sloodletable = new stdClass();            
+            $sloodletable = new stdClass(); 
             $sloodletable->head = array(    get_string('avatarname', 'sloodle'),
                                             get_string('avataruuid', 'sloodle'),
+                                            get_string('profilePic', 'sloodle'),
                                             get_string('lastactive', 'sloodle'),
                                             ''
                                         );
-            $sloodletable->align = array('left', 'left', 'left', 'left');
-            $sloodletable->size = array('28%', '42%', '20%', '10%');
+            $sloodletable->align = array('left', 'left', 'left', 'left', 'left');
+            $sloodletable->size = array('28%', '42%', '20%','20%', '10%');
             
             $deletestr = get_string('delete', 'sloodle');
             
@@ -501,7 +502,56 @@ class sloodle_view_user extends sloodle_base_view
                     // Add them to the table
                     $line[] = $curavname;
                     $line[] = $curuuid; 
-                    
+                    //grab image
+                    $endlink="";
+                    $startlink="";
+                    if ($sloodle->user->avatar_data->profilepic==NULL){
+                        if (!empty($CFG->sloodle_gridtype)){                
+                            if ($CFG->sloodle_gridtype=="SecondLife"){
+                               //scrape image                 
+                                 $profile_key_prefix = "<meta name=\"imageid\" content=\"";
+                                 $profile_img_prefix = "<img alt=\"profile image\" src=\"http://secondlife.com/app/image/";
+                                 $profile_img_suffix ="parcel";
+                                 $url =  "http://world.secondlife.com/resident/".$curuuid;
+                                 $ch = curl_init();    // initialize curl handle 
+                                 curl_setopt($ch, CURLOPT_URL,$url); // set url to post to 
+                                 curl_setopt($ch, CURLOPT_FAILONERROR,0); 
+                                 curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable 
+                                 curl_setopt($ch, CURLOPT_TIMEOUT, 10); // times out after 4s 
+                                 curl_setopt($ch, CURLOPT_POST, 1); // set POST method 
+                                 curl_setopt($ch, CURLOPT_POSTFIELDS,""); // add POST fields        
+                                 $body= curl_exec($ch); // run the whole process 
+                                 curl_close($ch); 
+                                 $nameStart = strpos($body, '<title>');
+                                 $nameEnd = strpos($body, '</title>');
+                                 $nameStr = substr($body,$nameStart+7,$nameEnd-$nameStart-7);
+                                 $imageStart = strpos($body, $profile_img_prefix);
+                                 $imageEnd = strpos($body, $profile_img_suffix);
+                                 $imgStr = substr($body,$imageStart+30,$imageEnd-$imageStart -39);
+                                 $avimage = $imgStr;
+                                 if (!$imageStart){
+                                     $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
+                                 }
+                                 $su->profilepic = $avimage;
+                                 update_record("sloodle_users",$su);
+                                 $startlink = '<a href="'.$url.'" target="_blank">';
+                                 $endlink="</a>";
+                            }else{
+                                //grid type is opensim
+                                $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
+                            }
+                        }//gridtype was not specified so just put empty.pngs for the users until admin specifies gridtype
+                        else{
+                             $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";        
+                            
+                        }
+                      
+                    }//profile pic is already in db
+                    else{
+                        $avimage=$sloodle->user->avatar_data->profilepic;
+                    }
+                          
+                    $line[]=$startlink.'<img alt="'.$curavname.'" style="width:40px;height:40px" src="'.$avimage.'">'.$endlink;       
                     // Do we know when the avatar was last active
                     if (!empty($su->lastactive)) {
                         // Calculate the time difference
