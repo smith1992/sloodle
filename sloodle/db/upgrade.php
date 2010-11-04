@@ -351,8 +351,8 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
 
     /// Adding indexes to table sloodle_presenter_entry
-        $table->addIndexInfo('mdl_sloopresentr_slo_ix', XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
-        $table->addIndexInfo('mdl_sloopresentr_typ_ix', XMLDB_INDEX_NOTUNIQUE, array('type'));
+        $table->addIndexInfo($CFG->prefix.'sloopresentr_slo_ix', XMLDB_INDEX_NOTUNIQUE, array('sloodleid'));
+        $table->addIndexInfo($CFG->prefix.'sloopresentr_typ_ix', XMLDB_INDEX_NOTUNIQUE, array('type'));
 
     /// Launch create table for sloodle_presenter_entry
         $result = $result && create_table($table);
@@ -1310,7 +1310,48 @@ if ($result && $oldversion < 2010091200) {
         if (insert_record('sloodle_currency_types',$newCurrency))echo "Added Magic currency: OK<br>";
         
         
-    }    
+    }   
+ if ($result && $oldversion < 2010110310) {      
+    
+     echo "Backing up sloodle_users table";
+     $oldSloodleUsersTable = get_records('sloodle_users');
+      echo "Backup Complete!  Backed up ".count($oldSloodleUsersTable )." records!<br/><br/>";
+      echo "Dropping old sloodle_users<br/>";
+        $table = new XMLDBTable('sloodle_users'); 
+        drop_table($table);
+        echo "creating new sloodle_users table now<br/>";                
+        $table = new XMLDBTable('sloodle_users');
+        $field = new XMLDBField('id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);
+        $table->addField($field);
+        $field = new XMLDBField('userid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
+        $table->addField($field);            
+        $field = new XMLDBField('uuid');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, '', 'userid');
+        $table->addField($field);            
+         // Add the new 'profilepic' field
+         echo " - adding \'profilepic\' field<br/>";
+        $field = new XMLDBField('profilepic');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'uuid');
+        $table->addField($field);                    
+         // moving 'lastactive' field
+         echo " - moving \'lastactive\' field<br/>";
+        $field = new XMLDBField('lastactive');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'profilepic');
+        $table->addField($field);                    
+        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
+        
+         $result = $result && create_table($table);               
+        if (!$result) echo "error<br/>";
+        //insert old records           
+         echo "Restoring sloodle users into new sloodle_users table <br/>";                                         
+         foreach ($oldSloodleUsersTable as $t){
+            echo "Restoring: ";
+            insert_record('sloodle_users',$t);
+        }
+        echo "Inserts complete! Added ".count($oldSloodleUsersTable)." records<br/>";
+ }
   return $result; 
 }
 
