@@ -699,7 +699,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);        
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null, null, null, 'id');
         $table->addField($field);
         $field = new XMLDBField('gameid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
