@@ -746,7 +746,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
            $table = new XMLDBTable('sloodle_award_scoreboards');
            $field = new XMLDBField('gameid');
            $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_UNSIGNED, null, null, null, null, 'sloodleid');
-           $result = $result && addField($table,$field);
+           $result = $result && add_field($table,$field);
       }
       if ($result && $oldversion < 2010062300) {     
         $table = new XMLDBTable('sloodle_award_teams');
@@ -811,7 +811,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         echo "creating new sloodle_award_trans table now<br/>";               
         $field = new XMLDBField('currency');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null, 'avname');
-        $result = $result && addField($table,$field);
+        $result = $result && add_field($table,$field);
     } 
     if ($result && $oldversion < 2010070709) {     
         $table = new XMLDBTable('sloodle_currency_types');
@@ -874,7 +874,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
                 
         $field = new XMLDBField('default_currency');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, 'Credits', 'sloodleid');
-        $result = $result && addField($table,$field);                    
+        $result = $result && add_field($table,$field);                    
     }    
     
     if ($result && $oldversion < 2010071015) {     
@@ -932,7 +932,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $table = new XMLDBTable('sloodle_award_trans');
         $field = new XMLDBField('courseid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null,NULL, null, null, null, null, 'sloodleid');
-        $result = $result && addField($table,$field);
+        $result = $result && add_field($table,$field);
     } 
     if ($result && $oldversion < 2010080800) {     
         //fixing the names inserted.
@@ -999,7 +999,7 @@ if ($result && $oldversion < 2010091200) {
          echo " - adding \'profilepic\' field<br/>";
          $field = new XMLDBField('profilepic');
          $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'avname');
-         $result = $result && addField($table,$field);                    
+         $result = $result && add_field($table,$field);                    
  }
   return $result; 
 }
