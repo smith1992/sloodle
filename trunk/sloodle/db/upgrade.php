@@ -435,7 +435,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $table->addField($field);
         $field = new XMLDBField('avuuid');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null, 'sloodleid');
@@ -506,7 +506,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $table->addField($field);
         $field = new XMLDBField('avuuid');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null, 'sloodleid');
@@ -580,7 +580,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $table->addField($field);
         $field = new XMLDBField('name');
         $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
@@ -601,63 +601,6 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $result = $result && create_table($table);                                           
     }
 
- if ($result && $oldversion < 2010061701) {
-      echo "adding sloodle award teams table<br/>";
-        $table = new XMLDBTable('sloodle_awards_teams');
-        
-        $field = new XMLDBField('id');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
-        $table->addField($field);
-        
-        $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
-        $table->addField($field);
-        
-        $field = new XMLDBField('enabled');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '0', 'sloodleid');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('groupid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null,XMLDB_UNSIGNED,null, null, null, null, 'enabled');
-        $table->addField($field);        
-        
-        $field = new XMLDBField('timemodified');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'groupid');
-        $table->addField($field);           
-        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id')); 
-        $result = $result && create_table($table);                                           
-    }
-    
- if ($result && $oldversion < 2010062100) {
-      echo "modifying sloodle award teams table<br/>";
-        $table = new XMLDBTable('sloodle_awards_teams');
-        
-        $field = new XMLDBField('id');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
-        $table->addField($field);
-        
-        $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
-        $table->addField($field);
-        
-        $field = new XMLDBField('gameid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_UNSIGNED, null, null, null, null, 'sloodleid');
-        $table->addField($field);
-        
-        $field = new XMLDBField('enabled');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null, null, '0', 'gameid');
-        $table->addField($field);  
-        
-        $field = new XMLDBField('groupid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null,XMLDB_UNSIGNED,null, null, null, null, 'enabled');
-        $table->addField($field);        
-        
-        $field = new XMLDBField('timemodified');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'groupid');
-        $table->addField($field);           
-        $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id')); 
-        $result = $result && create_table($table);                                           
-    }
     if ($result && $oldversion < 2010062100) {
       echo "modifying sloodle_award_scoreboards table to include gameid field<br/>";
         $table = new XMLDBTable('sloodle_award_scoreboards');
@@ -665,7 +608,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $table->addField($field);
           $field = new XMLDBField('gameid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_UNSIGNED, null, null, null, null, 'sloodleid');
@@ -754,9 +697,12 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         // Define field id to be added to sloodle_award_trans
         $field = new XMLDBField('id');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
+        $table->addField($field);        
+        $field = new XMLDBField('sloodleid');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    
         $table->addField($field);
         $field = new XMLDBField('gameid');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null, null, null, 'sloodleid');
         $table->addField($field);
         $field = new XMLDBField('groupid');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null, null, null, 'gameid');
@@ -888,7 +834,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $result = $result && change_field_type($table, $field, TRUE, TRUE);        
         
         $field = new XMLDBField('sloodleid');
-        $field->setAttributes(XMLDB_TYPE_CHAR, '50', null, null, null, null, null, null, 'id');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'id');
         $result = $result && change_field_type($table, $field, TRUE, TRUE);        
         
         $field = new XMLDBField('gameid');
@@ -973,7 +919,7 @@ if ($result && $oldversion < 2010091200) {
         $table = new XMLDBTable('sloodle_currency_types');
         $field= new XMLDBField('units');
         //drop units field
-        $result = $result & drop_field($table,$field);
+        $result = $result && drop_field($table,$field);
         //delete all currency types 
         $result = $result && delete_records('sloodle_currency_types');
         //add new currency types
@@ -1005,4 +951,3 @@ if ($result && $oldversion < 2010091200) {
 }
 
 ?>
-
