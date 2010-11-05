@@ -45,9 +45,12 @@
         /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
         * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
         */
-        $replace="_"; //replace nasty chars with an underscore
-        $pattern="/([[:alnum:]_\.-]*)/"; //all the nasty chars! 
-        $pluginName=str_replace(str_split(preg_replace($pattern,$replace,$pluginName)),$replace,$pluginName);
+	$inputData = $_REQUEST['input'];
+	$badChars = "/[^a-zA-Z0-9_\.-]/";
+	if (preg_match($badChars, $inputData) > 0) {
+		$sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
+		exit;
+	}
         /**********************************
         * The function below, get_api_plugin_path
         * will search a list of the subdirs located in the plugin folders,
