@@ -48,7 +48,7 @@
 	$inputData = $_REQUEST['input'];
 	$badChars = "/[^a-zA-Z0-9_\.-]/";
 	if (preg_match($badChars, $inputData) > 0) {
-		$sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
+		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in folder name', false);
 		exit;
 	}
         /**********************************
