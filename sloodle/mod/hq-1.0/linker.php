@@ -45,9 +45,9 @@
         /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
         * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
         */
-	$inputData = $_REQUEST['input'];
+	$pluginName = $_REQUEST['input'];
 	$badChars = "/[^a-zA-Z0-9_\.-]/";
-	if (preg_match($badChars, $inputData) > 0) {
+	if (preg_match($badChars, $pluginName) > 0) {
 		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in folder name', false);
 		exit;
 	}
