@@ -749,8 +749,8 @@ function xmldb_sloodle_upgrade($oldversion=0) {
            $result = $result && add_field($table,$field);
       }
       if ($result && $oldversion < 2010062300) {     
-        $table = new XMLDBTable('sloodle_award_teams');
-        echo "creating new sloodle_award_teams table for sloodle_awards so we can have team functionality <br/>";               
+        $table = new XMLDBTable('sloodle_awards_teams');
+        echo "creating new sloodle_awards_teams table for sloodle_awards so we can have team functionality <br/>";               
         // Define field id to be added to sloodle_award_trans
         $field = new XMLDBField('id');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null, null);    

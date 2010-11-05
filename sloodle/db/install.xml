@@ -365,7 +365,7 @@
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="gameid"/>
     </INDEXES>
     </TABLE>
-    <TABLE NAME="sloodle_logs"  COMMENT="sloodle log for avatar tracking" PREVIOUS="sloodle_award_players"  NEXT="sloodle_award_teams">
+    <TABLE NAME="sloodle_logs"  COMMENT="sloodle log for avatar tracking" PREVIOUS="sloodle_award_players"  NEXT="sloodle_awards_teams">
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
     <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="avuuid"/>
@@ -384,7 +384,7 @@
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="id"/>
     </INDEXES>
     </TABLE>
-    <TABLE NAME="sloodle_award_teams" COMMENT="sloodle_award_players table retrofitted from MySQL"  PREVIOUS="sloodle_logs"  NEXT="sloodle_currency_types">
+    <TABLE NAME="sloodle_awards_teams" COMMENT="sloodle_award_players table retrofitted from MySQL"  PREVIOUS="sloodle_logs"  NEXT="sloodle_currency_types">
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="gameid"/>
     <FIELD NAME="gameid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="groupid"/>
@@ -399,7 +399,7 @@
     <INDEX NAME="mdl_sloostiptran_slo_ix" UNIQUE="false" FIELDS="gameid"/>
     </INDEXES>
     </TABLE>
-    <TABLE NAME="sloodle_currency_types" COMMENT="sloodle currency types"  PREVIOUS="sloodle_award_teams">
+    <TABLE NAME="sloodle_currency_types" COMMENT="sloodle currency types"  PREVIOUS="sloodle_awards_teams">
     <FIELDS>
     <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="name"/>
     <FIELD NAME="name" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="timemodified"/>
