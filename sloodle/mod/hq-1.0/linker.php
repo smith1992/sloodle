@@ -12,7 +12,7 @@
      
     /** Lets Sloodle know we are in a linker script. */
     define('SLOODLE_LINKER_SCRIPT', true);
-        /** Grab the Sloodle/Moodle configuration. */
+    /** Grab the Sloodle/Moodle configuration. */
     require_once('../../sl_config.php');
     /** Sloodle Session code. */
     /** Grab the Sloodle/Moodle configuration. */
@@ -22,10 +22,10 @@
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->validate_user();  
-     
-     $avatarname = $sloodle->user->get_avatar_name(); 
-     $avataruuid= $sloodle->user->get_avatar_uuid();     
-     $sloodlecontrollerid=$sloodle->request->optional_param('sloodlecontrollerid');    
+         
+    $avatarname = $sloodle->user->get_avatar_name(); 
+    $avataruuid= $sloodle->user->get_avatar_uuid();     
+    $sloodlecontrollerid=$sloodle->request->optional_param('sloodlecontrollerid');    
    
      
     /*
@@ -35,16 +35,16 @@
     * 
     * @param string fieldData - the field you want to strip the descripter from
     */
-   function getFieldData($fieldData){
-           $tmp = explode(":", $fieldData); 
-           return $tmp[1];
+    function getFieldData($fieldData) {
+        $tmp = explode(":", $fieldData); 
+        return $tmp[1];
     }
     
         
-        $pluginName= $sloodle->request->required_param('plugin');
-        /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
-        * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
-        */
+    $pluginName= $sloodle->request->required_param('plugin');
+    /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
+    * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
+    */
 	$badChars = "/[^a-zA-Z0-9_]/";
 	if (preg_match($badChars, $pluginName) > 0) {
 		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in plugin name', false);
@@ -59,70 +59,85 @@
         exit;
     }
 
-        /**********************************
-        * The function below, get_api_plugin_path
-        * will search a list of the subdirs located in the plugin folders,
-        * and compare * them with the $pluginName parameter.
-        * If found, the function returns the pre scanned path of the subfolder.
-        * ensuring that the path comes from our code, and not provided by the user!
-        **************************************/
-        $apiPath = $sloodle->api_plugins->get_api_plugin_path($pluginName);
-        /**************************************
-        * if a subfolder is not found that matches the plugin name, output an error
-        ***************************************/
-        if (!$apiPath) {
+    /**********************************
+    * The function below, get_api_plugin_path
+    * will search a list of the subdirs located in the plugin folders,
+    * and compare * them with the $pluginName parameter.
+    * If found, the function returns the pre scanned path of the subfolder.
+    * ensuring that the path comes from our code, and not provided by the user!
+    **************************************/
+    $apiPath = $sloodle->api_plugins->get_api_plugin_path($pluginName);
+    /**************************************
+    * if a subfolder is not found that matches the plugin name, output an error
+    ***************************************/
+    if (!$apiPath) {
         $sloodle->response->quick_output(-8721, 'APIPLUGIN', 'Failed to load path of the SLOODLE api plugin. Please check your "sloodle/plugin" folder.', false);
         exit();
-        } 
-        //got path now, so include each file in that path
-        $apiFiles = sloodle_get_files($apiPath);
-        if (!$apiFiles) {
-             $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api files exist in specified api plugin path', false);
-             exit();
-        }
+    } 
+    //got path now, so include each file in that path
+    $apiFiles = sloodle_get_files($apiPath);
+    if (!$apiFiles) {
+         $sloodle->response->quick_output(-8722, 'APIPLUGIN', 'No api files exist in specified api plugin path', false);
+         exit();
+    }
         
-        // Start by including the relevant base class files, if they are available
-        @include_once(SLOODLE_DIRROOT.'/plugin/_api_base.php');
-        @include_once($apiPath.'/_api_base.php');
+    // Start by including the relevant base class files, if they are available
+    @include_once(SLOODLE_DIRROOT.'/plugin/_api_base.php');
+    @include_once($apiPath.'/_api_base.php');
         
-        // Now, include each file in the api plugin path
-        foreach ($apiFiles as $file) {
-            // Include the specified file
-            include_once($apiPath.'/'.$file);
-        }
+    // Now, include each file in the api plugin path
+    foreach ($apiFiles as $file) {
+        // Ignore anything except PHP files
+        if (strcasecmp(substr($file, -4), '.php') != 0) continue;
 
-        
-            $functionName = $sloodle->request->required_param('function');        
-            $data=$sloodle->request->optional_param('data');//request data from the LSL request
-            $time_sent=$sloodle->request->optional_param('time_sent');
-            // Attempt to include the relevant  class
+        // Include the specified file
+        include_once($apiPath.'/'.$file);
+    }
+
+    // Fetch and validate the name of the plugin function to be called    
+    $functionName = $sloodle->request->required_param('function');
+	$badChars = "/[^a-zA-Z0-9_]/";
+	if (preg_match($badChars, $functionName) > 0) {
+		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in function name', false);
+		exit;
+	}
+    if (empty($functionName)) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Empty function name', false);
+        exit;
+    }
+    if (ctype_digit($functionName[0])) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Function name cannot start with a number', false);
+        exit;
+    }
+
+    // Fetch other necessary data
+    $data = $sloodle->request->optional_param('data');//request data from the LSL request
+    $time_sent = $sloodle->request->optional_param('time_sent');
                
-            // Create and execute the plugin instance
-            $classname = 'SloodleApiPlugin'.$pluginName;
+    // Construct the expected full class name
+    $classname = 'SloodleApiPlugin'.$pluginName;
         
+    // Make sure the requested class exists
+    if (!class_exists($classname)) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Plugin class not found.', false);
+        exit();
+    }
         
-        if (!class_exists($classname)) {
-            error("SLOODLE class missing: {$classname}");
-            exit();
-        }
-        
-        
-        //if file exists, create class
-         $plugin = new $classname();
-            
-        //add appropriate header
-        
-        //retrieve output data from the plugin
-     
-              
-        //send output back to SL  
-        
-        $sloodle->response->set_request_descriptor($pluginName."->".$functionName);
-         $sloodle->response->set_response_timestamp(time());
-         if(!empty($time_sent))$sloodle->response->set_request_timestamp((int)$time_sent);
-        $sloodle->response->add_data_line("RESPONSE:".$pluginName."|".$functionName);//line 1
-        $plugin->{$functionName}($data);  
-        $sloodle->response->render_to_output();
+    // Instantiate the plugin object and make sure the requested method exists
+    $plugin = new $classname();
+    if (!method_exists($plugin, $functionName)) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Requested function does not exist in the plugin object.', false);
+        exit;
+    }
+
+    // Response metadata
+    $sloodle->response->set_request_descriptor($pluginName."->".$functionName);
+    $sloodle->response->set_response_timestamp(time());
+    if(!empty($time_sent))$sloodle->response->set_request_timestamp((int)$time_sent);
+    $sloodle->response->add_data_line("RESPONSE:".$pluginName."|".$functionName);//line 1
+
+    // Execute the plugin function, and output the result
+    $plugin->{$functionName}($data);  
+    $sloodle->response->render_to_output();
                   
-     
 ?>
