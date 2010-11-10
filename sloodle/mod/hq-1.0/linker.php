@@ -45,12 +45,20 @@
         /*attempt to load the $pluginName.  This will compare the $pluginName with the list of api_folders.
         * if pluginName matches a folder name in the api folders list, the path name for that plugin will be returned
         */
-	$pluginName = $_REQUEST['input'];
-	$badChars = "/[^a-zA-Z0-9_\.-]/";
+	$badChars = "/[^a-zA-Z0-9_]/";
 	if (preg_match($badChars, $pluginName) > 0) {
-		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in folder name', false);
+		$sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Illegal characters in plugin name', false);
 		exit;
 	}
+    if (empty($pluginName)) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Empty plugin name', false);
+        exit;
+    }
+    if (ctype_digit($pluginName[0])) {
+        $sloodle->response->quick_output(-8723, 'APIPLUGIN', 'Plugin name cannot start with a number', false);
+        exit;
+    }
+
         /**********************************
         * The function below, get_api_plugin_path
         * will search a list of the subdirs located in the plugin folders,
