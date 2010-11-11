@@ -63,7 +63,7 @@
          }
         //active object is loaded, send config to the object, and also send the rezzeruuid to the object so 
         //our object also knows its rezzer uuid 
-        $result = $active_object->sendConfig($rezzeruuid);
+        $result = $active_object->sendConfig($extraParams);
         //result is an array(curlinfo,curlresult)
         //lsl script returns an OK or FAIL
         if ($result["result"]=='OK'){          
