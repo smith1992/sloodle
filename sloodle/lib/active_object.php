@@ -116,7 +116,7 @@
             $rotation = NULL;
             // Output each setting
             foreach ($settings as $s) {
-                $response->add_data_line(array($s->name, $s->value));
+                $response->add_data_line(array('set:'.$s->name, $s->value));
                 if ($s->name == 'sloodlelayoutentryid') {
                     $layoutentryid = $s->value;
                     //get position and rotation
@@ -124,14 +124,14 @@
                     //   sloodle_layout_entry id,layout,name,position,rotation
                     if ($layoutentries){
                         $layoutentry = $layoutentries[0];
-                        $response->add_data_line('pos:position|{$layoutentry->position}');//relative pos
-                        $response->add_data_line('pos:rotation|{$layoutentry->rotation}');//relative rot
+                        $response->add_data_line("pos:position|{$layoutentry->position}");//relative pos
+                        $response->add_data_line("pos:rotation|{$layoutentry->rotation}");//relative rot
                         //
                     } //endif
                 }//endif
             }//end foreach
             foreach( $extraParameters as $n => $v) {
-                $response->add_data_line( $n.'|'.$v );
+                $response->add_data_line( 'set:'.$n.'|'.$v );
             }//endforeach
             $response->set_status_code(1);
             $response->set_status_descriptor('OK');
