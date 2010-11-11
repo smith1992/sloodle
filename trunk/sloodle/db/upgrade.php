@@ -947,6 +947,17 @@ if ($result && $oldversion < 2010091200) {
          $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, '', 'avname');
          $result = $result && add_field($table,$field);                    
  }
+    if ($result && $oldversion < 2010110501) {
+
+    /// Define field httpinurl to be added to sloodle_active_object
+        $table = new XMLDBTable('sloodle_active_object');
+        $field = new XMLDBField('httpinurl');
+        $field->setAttributes(XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null, 'timeupdated');
+
+    /// Launch add field httpinurl
+        $result = $result && add_field($table, $field);
+    }
+
   return $result; 
 }
 
