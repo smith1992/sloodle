@@ -1,5 +1,5 @@
 /*********************************************
-*  Copyrght (c) 2009 - 2010 various contributors (see blow)
+*  Copyrght (c) 2009 - 2010 various contributors (see below)
 *  Released under the GNU GPL 3.0
 *  This script can be used in your scripts, but you must include this copyright header as per the GPL Licence
 *  For more information about GPL 3.0 - see: http://www.gnu.org/copyleft/gpl.html
@@ -8,6 +8,7 @@
 *  httpIn_forwarder.lsl
 *  Copyright:
 *  Paul G. Preibisch (Fire Centaur in SL) fire@b3dMultiTech.com  
+*
 *  Edmund Edgar (Edmund Earp in SL) ed@socialminds
 *
 *  This script will get an httpin url, and shout it out to the rezzer.  It will then wait to receive its config via httpin, and send it as a linked message to all other scripts
@@ -32,9 +33,9 @@ sloodle_tell_other_scripts(string msg)
 
 string myUrl;
 default{
-    state_entry() {
-    
-          llRequestURL();
+    state_entry() {    
+        llSleep(1.0);
+        llRequestURL();
     }
 
     on_rez(integer start_param) {
@@ -46,7 +47,7 @@ default{
                 myUrl=body;
                 //shout it out to the rezzer our httpinUrl
                 llRegionSay(SLOODLE_CHANNEL_OBJECT_CREATOR_REQUEST_CONFIGURATION_VIA_HTTP_IN_URL,myUrl);
-                llOwnerSay("got url "+myUrl);
+               // llOwnerSay("got url "+myUrl);
           }//endif
           else 
           if (method == "POST"){                            
@@ -56,7 +57,7 @@ default{
                 lines = llParseStringKeepNulls( body, ["\n"], [] );
                 integer i = 0;
                 for (i=0; i<llGetListLength(lines); i++) {
-                    llOwnerSay( llList2String(lines, i) );
+                   // llOwnerSay( llList2String(lines, i) );
                     sloodle_tell_other_scripts(llList2String(lines, i));                       
                 }
                 // This is the end of the configuration data
