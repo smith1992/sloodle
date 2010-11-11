@@ -94,9 +94,11 @@
             }
             //build response string
             $response = new SloodleResponse();
-            $response->add_data_line(array('sloodlecontrollerid', $this->controllerid));
-            $response->add_data_line(array('sloodlecoursename_short', $this->course->get_short_name()));
-            $response->add_data_line(array('sloodlecoursename_full', $this->course->get_short_name()));
+            $response->add_data_line(array('set:sloodlecontrollerid', $this->controllerid));
+            $response->add_data_line(array('set:sloodlecoursename_short', $this->course->get_short_name()));
+            $response->add_data_line(array('set:sloodlecoursename_full', $this->course->get_short_name()));
+            $response->add_data_line(array('set:sloodlepwd', $this->password));
+            $response->add_data_line(array('set:sloodleserverroot', SLOODLE_WWWROOT));
             //search for setings for this object
             $settings = get_records('sloodle_object_config', 'object', $this->id);
              if (!$settings) {
