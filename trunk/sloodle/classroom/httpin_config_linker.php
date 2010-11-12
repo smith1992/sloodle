@@ -39,6 +39,7 @@
     $active_object= new SloodleActiveObject();
     //loadByUUid will search and find the active object
     $sloodle->response->add_data_line($childobjectuuid);
+
     if(!$active_object->loadByUUID( $childobjectuuid )){
             $active_object->response = new SloodleResponse();
             $active_object->response->set_status_code(-201);
@@ -46,11 +47,10 @@
             $active_object->response->add_data_line('Failed to register new active object.');
             $renderStr="";
             //create message
-            $active_object->response->render_to_string($renderStr);
             //send message to httpin
-            $active_object->sendMessage($renderStr);
             $sloodle->response->set_status_code(-218);//child object not found
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
+            $sloodle->response->render_to_output();
     }//endif
     else{
          //save httpinurl
@@ -59,7 +59,6 @@
             $sloodle->response->set_status_code(-217);//Could not save HTTP In URL for rezzed object
             $sloodle->response->set_status_descriptor('OBJECT_AUTH');
             $sloodle->response->add_data_line('Could not save HTTP In URL for rezzed object'); 
-                
          }
         //active object is loaded, send config to the object, and also send the rezzeruuid to the object so 
         //our object also knows its rezzer uuid 
@@ -76,4 +75,5 @@
           }
           $sloodle->response->render_to_output();
     }//end else
+
 ?>
