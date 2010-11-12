@@ -123,11 +123,10 @@
                     $layoutentryid = $s->value;
                     //get position and rotation
                     $layoutentry = get_record('sloodle_layout_entry','id',$layoutentryid);
-
                     //   sloodle_layout_entry id,layout,name,position,rotation
                     if ($layoutentry){
-			$response->add_data_line("layout entry for :$layoutentryid: ".!is_object($layoutentry));//relative pos
-			$response->add_data_line("pos:position|{$layoutentry->position}");//relative pos
+			$rezzeruuid = ( isset( $extraParameters['sloodlerezzeruuid'] ) ? $extraParameters['sloodlerezzeruuid'] : '' );
+			$response->add_data_line("set:position|{$layoutentry->position}|{$layoutentry->rotation}|$rezzeruuid");
                     } //endif
                 }//endif
             }//end foreach
