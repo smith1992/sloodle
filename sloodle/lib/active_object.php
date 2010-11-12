@@ -122,13 +122,12 @@
                 if ($s->name == 'sloodlelayoutentryid') {
                     $layoutentryid = $s->value;
                     //get position and rotation
-                    $layoutentries = get_records('sloodle_layout_entry ','id',$layoutentryid);
+                    $layoutentry = get_record('sloodle_layout_entry','id',$layoutentryid);
+
                     //   sloodle_layout_entry id,layout,name,position,rotation
-                    if ($layoutentries){
-                        $layoutentry = $layoutentries[0];
-                        $response->add_data_line("pos:position|{$layoutentry->position}");//relative pos
-                        $response->add_data_line("pos:rotation|{$layoutentry->rotation}");//relative rot
-                        //
+                    if ($layoutentry){
+			$response->add_data_line("layout entry for :$layoutentryid: ".!is_object($layoutentry));//relative pos
+			$response->add_data_line("pos:position|{$layoutentry->position}");//relative pos
                     } //endif
                 }//endif
             }//end foreach
