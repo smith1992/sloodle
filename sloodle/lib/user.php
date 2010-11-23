@@ -1,4 +1,4 @@
-<?php    
+<?php
     /**
     * Sloodle user library.
     *
@@ -315,24 +315,33 @@
         }
         
         /**
-        * Load the specified user from the database
+        * Load the specified user from the database.
+        * Use the 'complete' load if (and ONLY if) you are certain you need lots of capablities and permissions for this user.
         * @param mixed $id The unique identifier for the VLE user. (Type depends on VLE; integer for Moodle)
+        * @param bool $complete Optional. If false (default) then shallow user data will be loaded. If true then a complete load will be done, which is quite DB-intensive, so use it with caution!
         * @return bool True if successful, or false on failure
         * @access public
         */
-        function load_user($id)
+        function load_user($id, $complete = false)
         {
             // Make sure the ID is valid
             $id = (int)$id;
             if ($id <= 0) return false;
             
-            // Attempt to load the data
-            $this->user_data = get_complete_user_data('id', $id);
+            // Are we doing a complete load or a shallow one?
+            if ($complete)
+            {
+                // The Moodle "get_complete_user_data" function loads lots of extra stuff which is usually not necessary for SLOODLE functionality.
+                $this->user_data = get_complete_user_data('id', $id);
+            } else {
+                $this->user_data = get_record('user', 'id', $id);
+            }
+            
+            // Was the load successful?
             if (!$this->user_data) {
                 $this->user_data = null;
                 return false;
             }
-
             
             return true;
         }
@@ -465,7 +474,8 @@
             }
             
             // Get the complete user data again, so that we have the password this time
-            $this->user_data = get_complete_user_data('id', $this->user_data->id);
+            //$this->user_data = get_complete_user_data('id', $this->user_data->id); // this should not be necessary
+            $this->user_data = get_record('user', 'id', $this->user_data->id); // this should be sufficient
             
             // Attempt to use the first and last names of the avatar
             $this->user_data->firstname = $nameparts[0];
@@ -517,7 +527,8 @@
             if (empty($this->avatar_data)) return false;
             
             // Fetch the user data
-            $this->user_data = get_complete_user_data('id', $this->avatar_data->userid);
+            //$this->user_data = get_complete_user_data('id', $this->avatar_data->userid); // this should not be necessary
+            $this->user_data = get_record('user', 'id', $this->avatar_data->userid); // this should be sufficient
             if ($this->user_data) return true;
             return false;
         }
@@ -537,7 +548,7 @@
             global $USER;
             // Make sure we have some user data
             if (empty($this->user_data)) return false;
-            $USER = get_complete_user_data('id', $this->user_data->id);
+            $USER = get_complete_user_data('id', $this->user_data->id); // We really need to determine if this is actually necessary. Hopefully it's not.
             return true;
         }
         
@@ -612,23 +623,7 @@
             }
             return $usercourses;
         }
-           
-            /**
-             * is_really_enrolled checks if the current user is enrolled in the course.  The other is_enrolled function
-             * evaluates to true for administrators even if they are not enrolled in the course. This function will
-             * evaluate to false for administrators
-             * @param $courseid [integer] the id of the course
-             */
-            function is_really_enrolled($courseid)
-            {
-         
-                global $USER;
-                global $CFG;
-                $sql = "SELECT u.id, u.username FROM ".$CFG->prefix."user u, ".$CFG->prefix."role_assignments r";
-                 $sql .= " WHERE u.id = r.userid";
-                 $sql .= " AND r.contextid =".$courseid." AND u.id=".$USER->id;
-                return get_records_sql($sql);
-        }
+
         /**
         * Is the current user enrolled in the specified course?
         * NOTE: a side effect of this is that it logs-in the user
@@ -675,9 +670,6 @@
             
             // Create a context for this course
             if (!$context = get_context_instance(CONTEXT_COURSE, $courseid)) return false;
-            // Ensure we have up-to-date capabilities for the current user
-            load_all_capabilities();
-            
             // Check if the user can view the course, does not simply have guest access to it, *and* is staff
             return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false) && has_capability('mod/sloodle:staff', $context));
         }

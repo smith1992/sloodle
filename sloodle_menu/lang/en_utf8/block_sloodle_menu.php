@@ -42,36 +42,9 @@ $string['sloodleconfig'] = 'SLOODLE Configuration';
 $string['sloodleactivity'] = 'Course Activity';
 $string['sloodleactivities'] = 'Course Activities';
 $string['sloodleversion'] = 'SLOODLE Version';
-$string['viewlogs'] = 'View Avatar Logs';
 
 $string['usermanagement'] = 'User Management';
 
 $string['youravatar'] = 'Your avatar';
-
-$string['backpack:view'] = 'Backpacks'; 
-$string['backpack:avname'] = 'Avatar'; 
-$string['backpack:currency'] = 'Currency'; 
-$string['backpack:type'] = 'Type'; 
-$string['backpack:time'] = 'Time'; 
-$string['backpack:username'] = 'User name';
-$string['backpack:nocurrency'] = 'No Currency Transactions Exist';
-$string['backpack:gold'] = 'Gold';
-$string['backpack:silver'] = 'Silver';
-$string['backpack:bronze'] = 'Bronze';
-$string['backpack:credits'] = 'Credits';
-$string['backpack:magic'] = 'Magic';
-$string['backpack:hit'] = 'Hit';
-$string['backpack:health'] = 'Health';
-$string['backpack:damage'] = 'Damage';
-$string['backpack:power'] = 'Power';
-$string['backpack:food'] = 'Food';
-$string['backpack:ore'] = 'Ore';
-$string['backpack:wood'] = 'Wood';
-$string['backpack:metal'] = 'Precious Metal';
-$string['backpack:points'] = 'Points';
-$string['backpack:rations'] = 'Rations';
-$string['backpack:units'] = 'Units';
-$string['backpack:coins'] = 'Coins';
-$string['backpack:amount'] = 'Amount';
 
 ?>

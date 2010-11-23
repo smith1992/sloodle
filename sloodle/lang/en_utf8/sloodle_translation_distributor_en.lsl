@@ -206,14 +206,14 @@ default
             
             // Extract the key parts of the request
             string output_method = llList2String(fields, 0);
-            list output_params = llCSV2List(llList2String(fields, 1));
+            list output_params = llParseStringKeepNulls(llList2String(fields, 1),[","],[]);
             integer num_output_params = llGetListLength(output_params);
             string string_name = llList2String(fields, 2);
             list string_params = [];
             if (numfields > 3) {
                 // Extract the string parameters (extra text added to the output)
                 string string_param_text = llList2String(fields, 3);               
-                if (string_param_text != "") string_params = llCSV2List(string_param_text);
+                if (string_param_text != "") string_params = llParseStringKeepNulls(string_param_text,[","],[]);
             }
             
             // // TRANSLATE STRING // //
@@ -326,5 +326,3 @@ default
         }
     }
 }
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_distributor_en.lsl 

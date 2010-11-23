@@ -1,8 +1,8 @@
-// Sloodle WebIntercom (for Sloodle 0.4)
+// Sloodle WebIntercom
 // Links in-world SL (text) chat with a Moodle chatroom
 // Part of the Sloodle project (www.sloodle.org)
 //
-// Copyright (c) 2006-8 Sloodle
+// Copyright (c) 2006-10 Sloodle
 // Released under the GNU GPL
 //
 // Contributors:
@@ -11,6 +11,7 @@
 //  Jeremy Kemp
 //  Edmund Edgar
 //  Peter R. Bloomfield
+//  Paul Preibisch
 //
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
@@ -84,17 +85,10 @@ sloodle_translation_request(string output_method, list output_params, string str
 
 
 ///// FUNCTIONS /////
-/******************************************************************************************************************************
-* sloodle_error_code - 
-* Author: Paul Preibisch
-* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
-* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
-* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
-* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
-* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
-*******************************************************************************************************************************/
-sloodle_error_code(string method, key avuuid,integer statuscode){
-            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+
+sloodle_error_code(string method, key avuuid,integer statuscode)
+{
+    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
 } 
 
 sloodle_debug(string msg)
@@ -223,17 +217,6 @@ sloodle_start_recording_agent(key id)
     // Announce the update
     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:startedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
-    
-    // Inform the Moodle chatroom
-    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-    body += "&sloodlepwd=" + sloodlepwd;
-    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-    body += "&sloodleuuid=" + (string)llGetKey();
-    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has entered this chat";
-    
-    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
 // Stop recording the specified agent
@@ -253,17 +236,6 @@ sloodle_stop_recording_agent(key id)
     // Announce the update
     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:stoppedrecording", [llKey2Name(id)], NULL_KEY, "webintercom");
     sloodle_update_hover_text();
-    
-    // Inform the Moodle chatroom
-    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
-    body += "&sloodlepwd=" + sloodlepwd;
-    body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
-    body += "&sloodleuuid=" + (string)llGetKey();
-    body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
-    body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
-    body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llKey2Name(id) + " has left this chat";
-    
-    httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
 }
 
 // Is the specified agent currently being recorded?
@@ -446,6 +418,7 @@ state logging
         body += "&sloodleuuid=" + (string)llGetKey();
         body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
         body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&firstmessageid=" + (string)(message_id + 1);
         body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " " + llList2String(recordingnames, 0) + " has activated this WebIntercom";
         
         httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -460,6 +433,7 @@ state logging
         body += "&sloodleuuid=" + (string)llGetKey();
         body += "&sloodleavname=" + llEscapeURL(llGetObjectName());
         body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+        body += "&firstmessageid=" + (string)(message_id + 1);
         body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " WebIntercom deactivated";
         
         httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
@@ -474,7 +448,7 @@ state logging
         
         // Can the agent control AND use this item?
         if (canctrl) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","cmd"], "webintercom:usectrlmenu", ["0", "1", "2","cmd"], id, "webintercom");
+            sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1", "2","3"], "webintercom:usectrlmenu", ["0", "1", "2","3"], id, "webintercom");
             sloodle_add_cmd_dialog(id);
         } else if (canuse) {
             sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG, "0", "1","2"], "webintercom:usemenu", ["0", "1","2"], id, "webintercom");
@@ -509,18 +483,19 @@ state logging
                 // Start recording the user
                 sloodle_start_recording_agent(id);
                 
-            } else if (message == "cmd") {
-                // Make sure the user can control this 
-                if (!canctrl) return;                
-                  sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:enterchatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");                
             } else if (message == "2") {
                 // Make sure the user can use this
                 if (!(canctrl || canuse)) return;
-                // Display chatroom
-                sloodle_translation_request(SLOODLE_TRANSLATE_IM, [id], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], id, "webintercom");
+                sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "webintercom:anouncechatroom", [sloodleserverroot + "/mod/chat/view.php?id="+(string)sloodlemoduleid], NULL_KEY, "webintercom");
+
+            } else if (message == "3") {
+                // Make sure the user can control this
+                if (!(canctrl)) return;
+                // Stop logging
                 state ready;
-                
-            }           
+                return;
+            }
+            
         } else if (channel == 0) {
             // Is this an avatar?
             integer isavatar = FALSE;
@@ -551,6 +526,7 @@ state logging
             body += "&sloodleuuid=" + (string)id;
             body += "&sloodleavname=" + llEscapeURL(name);
             body += "&sloodleserveraccesslevel=" + (string)sloodleserveraccesslevel;
+            body += "&firstmessageid=" + (string)(message_id + 1);
             if (isavatar) body += "&message=" + MOODLE_NAME + " ";
             else body += "&sloodleisobject=true&message=" + MOODLE_NAME_OBJECT + " ";
             body += name + ": " + message;
@@ -566,6 +542,7 @@ state logging
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
             body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
+            body += "&firstmessageid=" + (string)(message_id + 1);
             
             httpchat = llHTTPRequest(sloodleserverroot + SLOODLE_CHAT_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
@@ -620,7 +597,7 @@ state logging
         // Every other line should define a chat message "id|name|text"
         // Start at the line after the status line
         integer i = 1;
-        for (i = (numlines - 1); i > 0; i--) {
+        for (i = 1; i < numlines; i++) {
             // Get all the different fields for this line
             list fields = llParseStringKeepNulls(llList2String(lines,i),["|"],[]);
             // Make sure we have enough fields
@@ -684,5 +661,3 @@ state logging
 }
 
 
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/chat-1.0/sloodle_mod_chat-1.0.lsl 
