@@ -12,7 +12,7 @@
 * @contributor Paul Preibisch
 *
 */ 
-define('SLOODLE_BACKPACKS_BACKPACKCONTENTS', 1);
+define('SLOODLE_BACKPACKS_BACKPACKCONTENTS_VIEW', 1);
 
 
 
@@ -160,31 +160,34 @@ class sloodle_view_backpack extends sloodle_base_view
                 $errorString=''; 
                 $transactions= Array();
                 
-                foreach ($userIds as $userId) {
-                    //Was a non-zero value entered in the balance_update field for this user?
-                    if ($balance_updates[$currIndex]!=0){
-                        //build a new transaction record for the sloodle_award_trans table
-                            //build sloodle_user object for this user id                            
-                            $trans = new stdClass();                            
-                            $trans->currency=$currentCurrency;
-                            $trans->avuuid= $avuuids[$currIndex];
-                            if ($balance_updates[$currIndex]>0)$trans->itype='credit'; else 
-                            if ($balance_updates[$currIndex]<0){ 
-                                $trans->itype='debit';
-                            }//endif
-                            $trans->amount=abs($balance_updates[$currIndex]);
-                            $trans->userid = $userId; 
-                            $trans->avname= $avnames[$currIndex]; 
-                            if ($idatas[$currIndex]=="")
-                                $trans->idata="Modified by: ".$USER->username;
-                            else
-                                $trans->idata=$idatas[$currIndex];
-                            $trans->timemodified=time();    
-                            $sloodle_currency->addTransaction($trans->userid,$trans->avname,$trans->avuuid,0,$currentCurrency,$balance_updates[$currIndex],$trans->idata,NULL);
-                            $transactions[]=$trans;                      
-                    }//endif $balance_updates[$currIndex]!=0
-                    $currIndex++;        
-                }//end foreach
+                if (is_array($userIds))
+                {
+                    foreach ($userIds as $userId) {
+                        //Was a non-zero value entered in the balance_update field for this user?
+                        if ($balance_updates[$currIndex]!=0){
+                            //build a new transaction record for the sloodle_award_trans table
+                                //build sloodle_user object for this user id                            
+                                $trans = new stdClass();                            
+                                $trans->currency=$currentCurrency;
+                                $trans->avuuid= $avuuids[$currIndex];
+                                if ($balance_updates[$currIndex]>0)$trans->itype='credit'; else 
+                                if ($balance_updates[$currIndex]<0){ 
+                                    $trans->itype='debit';
+                                }//endif
+                                $trans->amount=abs($balance_updates[$currIndex]);
+                                $trans->userid = $userId; 
+                                $trans->avname= $avnames[$currIndex]; 
+                                if ($idatas[$currIndex]=="")
+                                    $trans->idata="Modified by: ".$USER->username;
+                                else
+                                    $trans->idata=$idatas[$currIndex];
+                                $trans->timemodified=time();    
+                                $sloodle_currency->addTransaction($trans->userid,$trans->avname,$trans->avuuid,0,$currentCurrency,$balance_updates[$currIndex],$trans->idata,NULL);
+                                $transactions[]=$trans;                      
+                        }//endif $balance_updates[$currIndex]!=0
+                        $currIndex++;        
+                    }//end foreach
+                }
             }//endif update
        }//end function process_form 
     
@@ -228,7 +231,7 @@ class sloodle_view_backpack extends sloodle_base_view
             print_box_end();
         //display the select box for the user select box
             print_box_start();
-             echo '<div style="color:green";>'.get_string('backpack:selectusergroup', 'sloodle');
+             echo '<div style="";>'.get_string('backpack:selectusergroup', 'sloodle');
                 
                  $students = $this->sloodle_course->get_enrolled_users();
                  echo " <select name=\"currentUser\"    onchange=\"this.form.submit()\" value=\"Sumbit\">";
@@ -269,11 +272,11 @@ class sloodle_view_backpack extends sloodle_base_view
                 $updateString .='  value="'.get_string("awards:update","sloodle") .'">';      
           }else {$updateString = '';}          
             $sloodletable->head = array(                         
-             '<h4><div style="color:red;text-align:left;">'.get_string('backpack:avname', 'sloodle').'</h4>',
-             '<h4><div style="color:red;text-align:left;">'.get_string('backpack:currency', 'sloodle').'</h4>',
-             '<h4><div style="color:red;text-align:left;">'.get_string('backpack:details', 'sloodle').'</h4>',             
-             '<h4><div style="color:red;text-align:left;">'.get_string('backpack:date', 'sloodle').'</h4>',             
-             '<h4><div style="color:green;text-align:right;">'.get_string('backpack:amount', 'sloodle').'</h4>',$updateString);
+             '<h4><div style="text-align:left;">'.get_string('backpack:avname', 'sloodle').'</h4>',
+             '<h4><div style="text-align:left;">'.get_string('backpack:currency', 'sloodle').'</h4>',
+             '<h4><div style="text-align:left;">'.get_string('backpack:details', 'sloodle').'</h4>',             
+             '<h4><div style="text-align:left;">'.get_string('backpack:date', 'sloodle').'</h4>',             
+             '<h4><div style="text-align:right;">'.get_string('backpack:amount', 'sloodle').'</h4>',$updateString);
               //set alignment of table cells                                        
              $sloodletable->align = array('left','left','left','left','right');
              $sloodletable->width="95%";
@@ -284,6 +287,7 @@ class sloodle_view_backpack extends sloodle_base_view
              if ($currentUser=="ALL"){
                //$trans = $sloodle_currency->get_transactions(null,$currentCurrency);               
                 $enrolled=$this->sloodle_course->get_enrolled_users();
+                if (!$enrolled) $enrolled = array();
                
                 foreach ($enrolled as $e){                    
                     $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$id}";                    

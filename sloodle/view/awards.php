@@ -223,7 +223,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             $awardsObj = new Awards((int)$sloodleId);
             if ($this->start < 0) $this->start = 0;
             //get icurrency type of points
-            $this->icurrency= $awardsObj->icurrency;
+            //$this->icurrency= $awardsObj->icurrency; // there doesn't seem to be an icurrency value anymore
             //get users in this course
             $this->userList = $sCourseObj->getUserList(); 
 
@@ -388,7 +388,7 @@ class sloodle_view_awards extends sloodle_base_view_module
             $editbuttons = update_module_button($this->cm->id, $this->course->id, get_string('modulename', 'sloodle'));
         }
         // Display the header: Sloodle with edit buttons
-        $navigation = "<a href=\"index.php?{$this->course->id}\">".get_string('modulenameplural','sloodle')."</a> ->";
+        $navigation = "<a href=\"index.php?id={$this->course->id}\">".get_string('modulenameplural','sloodle')."</a> ->";
         $courseName=$sCourseObj->sloodleRec->name;
         print_header_simple(format_string($courseName), "", "{$navigation} ".format_string($courseName, "", "", true, $editbuttons, navmenu($this->course, $this->cm)));
         // Display the module name: Sloodle awards
@@ -707,7 +707,7 @@ class sloodle_view_awards extends sloodle_base_view_module
         //case 'user': $selectedtab = SLOODLE_AWARDS_GAMES_VIEW; break;            
         case 'games': $selectedtab = SLOODLE_AWARDS_GAMES_VIEW; break;
         case 'team': $selectedtab = SLOODLE_AWARDS_TEAM_VIEW; break;
-        case 'prize': $selectedtab = SLOODLE_AWARDS_PRIZE_VIEW; break;
+        case 'prizes': $selectedtab = SLOODLE_AWARDS_PRIZE_VIEW; break;
         }
         
         // Display the tabs
@@ -729,20 +729,10 @@ class sloodle_view_awards extends sloodle_base_view_module
           global $CFG,$sCourseObj;
           print ('<form action="" method="POST">');
           print('<div align="center">');
-                
-                $sloodletable = new stdClass();                
-                $sloodletable->tablealign='center';                
-                //define sloodle icon as separator in breadcrumbs
-                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-                $rowData=Array();  
-                //create breadcrumbs sloodle awards / coursename /view
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:teamview','sloodle');
-                $sloodletable->data[]=$rowData;
-                //print table
-                print_table($sloodletable);    
+
                 
                 //add the name of the Sloodle Awards Module
-                print('<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'</h2></div>');                
+                print('<h2><div style="text-align:center;">'.$sCourseObj->sloodleRec->name.'</h2></div>');                
                  
                  //if the createTeam button was pressed, display create team form
                           
@@ -848,19 +838,8 @@ class sloodle_view_awards extends sloodle_base_view_module
     function render_prizeview() {
           global $CFG,$sCourseObj;
           print('<div align="center">');
-                $iTable = new stdClass();
-                $iRow = array();
-                $sloodletable = new stdClass();
-                $sloodletable->tablealign='center';                
-                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-                $rowData=Array();                
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:prizes','sloodle');
-                $sloodletable->data[]=$rowData;
-                $rowData=Array();
-                $sloodletable->data[]=$rowData;
-                $rowData[]='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'<h2>'.get_string('awards:prizes','sloodle').'<br>';                
-                $sloodletable->data[]=$rowData;
-                print_table($sloodletable);                  
+                
+                echo '<h2><div style="text-align:center;">'.$sCourseObj->sloodleRec->name.'<h2>'.get_string('awards:prizes','sloodle').'<br>';
            print('</div>'); 
             
         
@@ -889,20 +868,8 @@ class sloodle_view_awards extends sloodle_base_view_module
          default: 
          // Print a Table Intro
             print('<div align="center">');
-          
-                $iTable = new stdClass();
-                $iRow = array();                
-                $sloodletable = new stdClass();
-                $sloodletable->tablealign='center';                
-                $img = '<img src="'.$CFG->wwwroot.'/mod/sloodle/icon.gif" width="16" height="16" alt=""/> ';
-                $rowData=Array();
-                $rowData[]=get_string('awards:course','sloodle'). $img.$sCourseObj->courseRec->fullname. $img.get_string('awards:gamesview','sloodle');
-                $sloodletable->data[]=$rowData;
-                $rowData=Array();
-                $rowData[]='<h2><div style="color:blue;text-align:center;">'.$sCourseObj->sloodleRec->name.'</div> <div style="color:black;text-align:center;">'.get_string('awards:gameslist','sloodle').'<h2>';
-                $sloodletable->data[]=$rowData;
-                
-                print_table($sloodletable); 
+                          
+                echo '<h2><div style="text-align:center;">'.$sCourseObj->sloodleRec->name.'</div> <div style="color:black;text-align:center;">'.get_string('awards:gameslist','sloodle').'<h2>';
                  
                 
             //==================================================================================================================
