@@ -187,11 +187,10 @@ $string['moduletype:controller'] = 'SLOODLE Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
-$string['moduletype:awards'] = 'SLOODLE Award System'; 
+$string['moduletype:awards'] = 'Award System'; 
 
 $string['moduletype:tracker'] = 'tracker';
 
-$string['moduleaction:map'] = 'Add a SLOODLE Map';
 
 $string['modulename'] = 'SLOODLE Module';
 $string['modulenameplural'] = 'SLOODLE Modules';
