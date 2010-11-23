@@ -15,7 +15,7 @@ integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel i
 integer SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET = 0;
 integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 1;
 
-integer SLOODLE_THIS_OBJECT_TYPE = 0;
+integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET;
 
 
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
@@ -425,5 +425,3 @@ state ready
         state default;
     }
 }
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/set-1.0/sloodle_mod_set-1.0.lsl 

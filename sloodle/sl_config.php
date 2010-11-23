@@ -34,7 +34,7 @@
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', 1.0); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', '1.0.2'); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
@@ -100,7 +100,7 @@
     $SLOODLE_TYPES[] = SLOODLE_TYPE_CTRL;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_DISTRIB;
     $SLOODLE_TYPES[] = SLOODLE_TYPE_PRESENTER;
-    $SLOODLE_TYPES[] = SLOODLE_TYPE_AWARDS; 
+  //  $SLOODLE_TYPES[] = SLOODLE_TYPE_AWARDS; 
     
     
     
@@ -126,16 +126,4 @@
     
 
 //---------------------------------------------------------------------
-
-    // Debugging contants 
-
-    /** The following will turn on logging of requests coming from LSL and responses going back */
-    /*   
-        On a production server, this should usually be off ('').
-        Your web server user (usually apache or www-data) will need to be able to write to this file.
-        It will contain all data sent to and from the server by LSL scripts, including sensitive data like prim passwords
-        ...so if you turn this on, be careful about who has access to the file it creates.
-    */
-    define('SLOODLE_DEBUG_REQUEST_LOG', '');
-
 ?>

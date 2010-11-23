@@ -697,17 +697,7 @@
             return $layout->id;
 
         }
-        function get_enrolled_users(){
-            global $CFG;          
-             $contextid = get_context_instance(CONTEXT_COURSE,$this->course_object->id);
-             $cid=$contextid->id;
-             $sql= "SELECT distinct sl.*,sl.uuid as avuuid,u.id, u.firstname, u.lastname FROM {$CFG->prefix}user u INNER JOIN {$CFG->prefix}sloodle_users sl ON sl.userid=u.id INNER JOIN {$CFG->prefix}role_assignments ra ON ra.userid=u.id AND ra.contextid={$cid}";
-             
-             $enrolledUsers = get_records_sql($sql);
-            //return $enrolledUsers
-            return $enrolledUsers;
-        }
-            
+
         function get_layout($layoutid) {
 
             $rec = get_record('sloodle_layout', 'course', $this->course_object->id, 'id', $layoutid);

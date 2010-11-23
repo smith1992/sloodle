@@ -147,9 +147,6 @@
     // You can access the response object like this: $sloodle->response->...
     
     // You must always provide a status code (see the wiki for a list of these):
-    // http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
-    // If you need to create your own status codes, pick a range of unused numbers. 
-    // Document the status codes on the wiki before you start using them in your script.
     $sloodle->response->set_status_code(1); // Positive means OK, negative means an error
     
     // You must also provide a simple, generic, status 'descriptor' (a short human-readable string):

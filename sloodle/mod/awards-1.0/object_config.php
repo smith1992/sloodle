@@ -25,7 +25,10 @@
         error('Not called from within a Sloodle script.');
         exit();
     }
-   
+    if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+          error("The sloodleawards asigment object is not installed in /mod/assignment/type/sloodleaward/assignment.class.php. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
+          return;
+    }
     
     // Execute everything within a function to ensure we don't mess up the data in the other file
     sloodle_display_config_form($sloodleauthid, $auth_obj);
@@ -54,10 +57,10 @@
        
         $awards = array();
         foreach ($recs as $cm) {
-            // Fetch the awards instance
+            // Fetch the stipendgiver instance
             $inst = get_record('sloodle', 'id', $cm->instance, 'type', SLOODLE_TYPE_AWARDS);
             if (!$inst) continue;
-            // Store the awards details
+            // Store the stipendgiver details
             $awards[$cm->id] = $inst->name;
         }
         // Sort the list by name
