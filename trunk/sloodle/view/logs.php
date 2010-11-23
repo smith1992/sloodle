@@ -76,7 +76,7 @@ class sloodle_view_logs extends sloodle_base_view
     {
         global $CFG;
         $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_logs.php?id={$this->course->id}\">".get_string('logs:view', 'sloodle')."</a>";
-        print_header_simple(get_string('logs','sloodle'), "", $navigation, "", "", true, '', navmenu($this->course));
+        print_header_simple(get_string('logs:view','sloodle'), "", $navigation, "", "", true, '', navmenu($this->course));
     }
 
 
@@ -90,16 +90,15 @@ class sloodle_view_logs extends sloodle_base_view
         global $CFG;
         global $sloodle;
         // Display info about Sloodle course configuration
-        echo "<h1 style=\"text-align:center;\">".get_string('logs:sloodlelogs','sloodle')."</h1>\n"; 
-        echo "<h2 style=\"text-align:center;\">(".get_string('course').": \"<a href=\"{$CFG->wwwroot}/course/view.php?id={$this->course->id}\">".$this->sloodle_course->get_full_name()."</a>\")</h2>";
+        echo "<h1 style=\"text-align:center;\">".get_string('logs:sloodlelogs','sloodle')."</h1>\n";
         
 
       // print_box(get_string('logs:info','sloodle'), 'generalbox boxaligncenter boxwidthnormal');
         $sloodletable = new stdClass(); 
          $sloodletable->head = array(                         
-             '<h4><div style="color:red;text-align:left;">'.get_string('logs:avname', 'sloodle').'</h4>',
-             '<h4><div style="color:red;text-align:left;">'.get_string('logs:username', 'sloodle').'</h4>',
-             '<h4><div style="color:green;text-align:left;">'.get_string('logs:action', 'sloodle').'</h4>',             
+             '<h4><div style="color:red;text-align:left;">'.get_string('avatarname', 'sloodle').'</h4>',
+             '<h4><div style="color:red;text-align:left;">'.get_string('user').'</h4>',
+             '<h4><div style="color:green;text-align:left;">'.get_string('action').'</h4>',             
              '<h4><div style="color:green;text-align:left;">'.get_string('logs:slurl', 'sloodle').'</h4>',
              '<h4><div style="color:black;text-align:center;">'.get_string('logs:time', 'sloodle').'</h4>');             
               //set alignment of table cells                                        
@@ -111,14 +110,14 @@ class sloodle_view_logs extends sloodle_base_view
          $logData = get_records('sloodle_logs','course',$this->sloodle_course->get_course_id(), 'timemodified DESC');
           
         
-        if (count($logData)>0){
+        if ($logData && count($logData)>0){
                 foreach ($logData as $ld){
                     $trowData= Array();        
-                         $link_url=' <a href="'.$CFG->wwwroot.'/user/view.php?id='.$ld->userid."&course=";
+                         $link_url=' <a href="'.$CFG->wwwroot.'/user/view.php?id='.$ld->userid."&amp;course=";
                          $link_url.=$this->sloodle_course->get_course_id().'">'.$ld->avname."</a>";
                          $trowData[]=$link_url;    
                          $userData = get_record('user','id',$ld->userid);
-                         $username= $userData->username;                         
+                         $username= $userData->firstname.' '.$userData->lastname;                         
                          $trowData[]=$username;    
                          $trowData[]=$ld->action;    
                          $trowData[]='<a href="'.$ld->slurl.'">'.get_string('logs:slurl', 'sloodle').'</a>';    
@@ -126,11 +125,11 @@ class sloodle_view_logs extends sloodle_base_view
                          $sloodletable->data[] = $trowData;                     
                 }//for
              
-            }else
+            }
+            else
             {
-                    $trowData[]=get_string('logs:nologs', 'sloodle');
-                    $sloodletable->data[] = $trowData;                     
-             
+                $trowData[]=get_string('logs:nologs', 'sloodle');
+                $sloodletable->data[] = $trowData;
             }
         
         print_table($sloodletable); 
