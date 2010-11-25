@@ -505,7 +505,7 @@ class sloodle_view_user extends sloodle_base_view
                     //grab image
                     $endlink="";
                     $startlink="";
-                    if ($sloodle->user->avatar_data->profilepic==NULL){
+                    if (empty($su->profilepic)) {
                         if (!empty($CFG->sloodle_gridtype)){                
                             if ($CFG->sloodle_gridtype=="SecondLife"){
                                //scrape image                 
@@ -549,7 +549,7 @@ class sloodle_view_user extends sloodle_base_view
                       
                     }//profile pic is already in db
                     else{
-                        $avimage=$sloodle->user->avatar_data->profilepic;
+                        $avimage=$su->profilepic;
                     }
                           
                     $line[]=$startlink.'<img  style="width:40px;height:40px" src="'.$avimage.'">'.$endlink;       
