@@ -34,7 +34,7 @@
     define('SLOODLE_LIBROOT', $CFG->dirroot.'/mod/sloodle/lib');
 	
     /** The Sloodle version number. */
-    define('SLOODLE_VERSION', 1.0); // This is the release version, not the module version (which is in version.php)
+    define('SLOODLE_VERSION', 2.0); // This is the release version, not the module version (which is in version.php)
     
 //---------------------------------------------------------------------
 
@@ -54,15 +54,14 @@
     if (SLOODLE_DEBUG) {
         // Report all errors and warnings
         @ini_set('display_errors', '1');
-        @error_reporting(2047);
         // Since we're in basic UTF8 text mode, disable the HTML in error codes
         @ini_set('html_errors', '0');
+        //@error_reporting(2047);
     } else {
         // Debug mode is NOT active. Are we in a linker script?
         if (defined('SLOODLE_LINKER_SCRIPT') && SLOODLE_LINKER_SCRIPT == true) {
             // Yes - suppress the display of messages
             @ini_set('display_errors', '0');
-            //@error_reporting(0); // Possibly don't do this - it may interfere with log files?
         }
     }
     
