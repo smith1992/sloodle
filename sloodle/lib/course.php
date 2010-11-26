@@ -341,6 +341,9 @@
             for ($i = 0; $i < $maxtries && $success == false; $i++) {
                 // Generate a new random position
                 $rndpos_arr = sloodle_random_position_in_zone($loginzonesize);
+                // Make sure the Z parameter is even - round it if not
+                if ($rndpos_arr['z'] % 2 != 0) $rndpos_arr['z'] += 1;
+
                 $rndpos_str = sloodle_array_to_vector($rndpos_arr);
                 // Is the position already taken?
                 if (!get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $rndpos_str)) {
@@ -396,10 +399,18 @@
             $abspos = sloodle_vector_to_array($pos);
             $loginzonepos= sloodle_vector_to_array($this->sloodle_course_data->loginzonepos);
             $relpos = array('x'=>$abspos['x'] - $loginzonepos['x'], 'y'=>$abspos['y'] - $loginzonepos['y'], 'z'=>$abspos['z'] - $loginzonepos['z']);
-            $relpos = sloodle_array_to_vector($relpos);
+            $relposstr = sloodle_array_to_vector($relpos);
+            // Generate an alternate LoginZone position 1 unit downwards, in case the SL teleport glitch has happened.
+            // (Note that LoginZone positions are generate on even Z units only, so an offset of 1 shouldn't cause a problem)
+            $altrelpos = array('x'=>$relpos['x'], 'y'=>$relpos['y'], 'z'=>$relpos['z'] - 1);
+            $altrelposstr = sloodle_array_to_vector($altrelpos);
        
             // Attempt to find a matching LoginZone position in the database
-            $rec = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $relpos);
+            $rec = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $relposstr);
+            if (!$rec)
+            {
+                $rec = get_record('sloodle_loginzone_allocation', 'course', $this->get_course_id(), 'position', $altrelposstr);
+            }
             if (!$rec) return false;
             // Load the user
             return $user->load_user($rec->userid);
