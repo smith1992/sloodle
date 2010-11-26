@@ -356,6 +356,8 @@
         * @param string $avname Name of the avatar
         * @return bool True if successful, or false if not.
         * @access public
+        *
+        * @todo Why is there a $userid parameter here? It shouldn't be necessary, as that data should read from the current object.
         */
         function add_linked_avatar($userid, $uuid, $avname)
         {

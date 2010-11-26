@@ -506,7 +506,10 @@ class sloodle_view_user extends sloodle_base_view
                     $endlink="";
                     $startlink="";
                     if (empty($su->profilepic)) {
-                        if (!empty($CFG->sloodle_gridtype)){                
+                        // There is no stored avatar picture URL.
+                        // If we know the grid type and if we're only displaying the avatar(s) for a single user, then try to grab the image externally.
+                        // Note that this page is also used to display a list of all avatars on the site, so we wouldn't want to do a curl request for each one.
+                        if (!empty($CFG->sloodle_gridtype) && !$allentries && !$searchentries) {
                             if ($CFG->sloodle_gridtype=="SecondLife"){
                                //scrape image                 
                                  $profile_key_prefix = "<meta name=\"imageid\" content=\"";
@@ -597,8 +600,8 @@ class sloodle_view_user extends sloodle_base_view
             $nextstart = $this->start + $maxperpage;
             $prevlink = null;
             $nextlink = null;
-            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\" style=\"color:#0000ff;\">&lt;&lt;</a>&nbsp;&nbsp;";            
-            if ($nextstart < count($sloodleentries)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\" style=\"color:#0000ff;\">&gt;&gt;</a>";
+            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\">&lt;&lt;</a>&nbsp;&nbsp;";            
+            if ($nextstart < count($sloodleentries)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\">&gt;&gt;</a>";
             
             // Display the next/previous links, if we have at least one
             if (!empty($prevlink) || !empty($nextlink)) {
@@ -613,10 +616,28 @@ class sloodle_view_user extends sloodle_base_view
             // Display the table
             print_table($sloodletable);
             
+        }
+         
+        // Display a link allowing admin users to add an avatar if this is a single avatar page
+        if (!$allentries && !$searchentries)
+        {
+            if (isadmin())
+            {
+                echo "<p style=\"font-weight:bold;\">";
+                echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=addavatar&amp;user={$this->moodleuserid}&amp;course={$this->courseid}\" title=\"".get_string('addavatarhere','sloodle')."\">";
+                echo "<img src=\"{$CFG->wwwroot}/mod/sloodle/lib/media/add.png\" alt=\"[plus icon]\" /> ";
+                print_string('addavatar', 'sloodle');
+                echo "</a></p>\n";
+            }
+        }
+
+
+        // Construct and display a table of Sloodle entries
+        if ($numsloodleentries > 0) {
             
-            // Now display the section of user-authorized objects
+            // Display a list of user-authorised objects
             if (!$allentries && !$searchentries) {
-                echo '<br><h3>'.get_string('userobjects','sloodle');
+                echo '<br/><h3>'.get_string('userobjects','sloodle');
                 helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', false);
                 echo "</h3>\n";
                 

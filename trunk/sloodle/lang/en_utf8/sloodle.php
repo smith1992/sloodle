@@ -26,7 +26,11 @@ $string['actions'] = 'Actions';
 $string['activeobjects'] = 'Active objects';
 $string['activeobjectlifetime'] = 'Active object lifetime (days)';
 $string['activeobjectlifetime:info'] = 'The number of days before which an active object will expire if not used.';
-$string['alreadyauthenticated'] = 'A Second Life avatar has already been linked and authenticated for your Moodle account.';
+$string['addavatar'] = 'Add an avatar';
+$string['addavatarhere'] = 'Add an avatar to this user account';
+$string['addavatar:success'] = 'Successfully added avatar to Moodle user account';
+$string['addavatar:fail'] = 'Failed to add avatar to Moodle user account';
+$string['alreadyauthenticated'] = 'An avatar has already been registered to this Moodle account. Multiple avatars are not fully supported.';
 
 $string['allocated'] = 'Allocated';
 $string['allentries'] = 'All avatars';
@@ -54,14 +58,15 @@ $string['autoreg:coursedisallows'] = 'This course does not allow auto-registrati
 $string['autoreg:disabled'] = 'Auto-registration is disabled on this site';
 
 $string['avatar'] = 'Avatar';
-$string['avatarnotlinked'] = 'Your Second Life avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
+$string['avatarnotlinked'] = 'Your avatar is not yet linked to your Moodle account. Please use an authentication device, such as a Registration Booth or a LoginZone.';
 $string['avatarname'] = 'Avatar name';
 $string['avataruuid'] = 'Avatar UUID';
+$string['avataruuidalreadyindb'] = 'Avatar UUID is already in the database. Duplicates are not allowed.';
 $string['avatarsearch'] = 'Avatar Search (within course)';
 
 $string['backtocoursepage'] = 'Back to course page';
 $string['backtosloodlesetup'] = 'Back to the SLOODLE Setup page';
-
+$string['backtoavatarpage'] = 'Back to avatar page';
 
 $string['cfgnotecard:header'] = 'SLOODLE Configuration Notecard';
 $string['cfgnotecard:generate'] = 'Generate Notecard';
@@ -149,6 +154,7 @@ $string['hours'] = 'hours';
 $string['ID'] = 'ID';
 $string['idletimeoutseconds'] = 'Idle timeout (seconds)';
 $string['invalidid'] = 'Invalid ID';
+$string['invalidsesskey'] = 'Invalid session key. This is a security measure to prevent attacks such as Cross Site Scripting (XSS).';
 $string['invalidcourseid'] = 'Invalid course ID';
 $string['isauthorized'] = 'Is Authorized?';
 $string['insufficientpermission'] = 'You do not have sufficient permission';
