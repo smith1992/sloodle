@@ -32,8 +32,8 @@ list get_inventory(integer type)
 {
     list inv = [];
     integer num = llGetInventoryNumber(type);
-    integer i = 0;
-    for (; i < num; i++) {
+    integer i;
+    for (i = 0; i < num; i++) {
         inv += [llGetInventoryName(type, i)];
     }
     
@@ -132,4 +132,4 @@ state drop
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/primdrop-1.0/sloodle_primdrop_inventory.lsl
+// SLOODLE LSL Script Subversion Location: mod/primdrop-1.0/sloodle_primdrop_inventory.lsl 
