@@ -135,13 +135,17 @@ default {
         errorMessages+=[-121,"Failed to send required email ","SYSTEM"];
         errorMessages+=[-131,"Failed to load plugins ","PLUGIN"];
         errorMessages+=[-132,"The required plugin was not found ","PLUGIN"];
-        errorMessages+=[-201,"     There was an unspecified problem authenticating the object. ","OBJECT_AUTH"];
+        errorMessages+=[-201,"There was an unspecified problem authenticating the object. ","OBJECT_AUTH"];
         errorMessages+=[-212,"Object did not supply the necessary information to authenticate itself. ","OBJECT_AUTH"];
         errorMessages+=[-213,"Object authentication key was invalid ","OBJECT_AUTH"];
         errorMessages+=[-214,"Object not authorised in this context ","OBJECT_AUTH"];
         errorMessages+=[-215,"Prim password access has been disabled for this Controller. ","OBJECT_AUTH"];
-        errorMessages+=[-301,"Object not found in database ","USER AUTH"];
-        errorMessages+=[-311,"Object did not supply the necessary information to authenticate the user. ","USER AUTH"];
+        errorMessages+=[-216,"Object not found in database","USER_AUTH"];
+        errorMessages+=[-217,"Could not save HTTP-in URL (v2.0 etc)","OBJECT_AUTH"];
+        errorMessages+=[-218,"Active object not found while trying to save HTTP-in URL (v2.0 etc)","OBJECT_AUTH"];
+        errorMessages+=[-219,"Sending configuration to object via HTTP-in URL failed","OBJECT_AUTH"];
+        errorMessages+=[-301,"There was an unspecified problem authenticating the user. ","USER_AUTH"];
+        errorMessages+=[-311,"Object did not supply the necessary information to authenticate the user. ","USER_AUTH"];
         errorMessages+=[-321,"User was not registered and we weren't allowed to register them automatically. ","USER_AUTH"];
         errorMessages+=[-322,"User was not registered and we tried to register them but failed. ","USER_AUTH"];
         errorMessages+=[-331,"User did not have permission to access the resources requested . ","USER_AUTH"];
@@ -248,4 +252,4 @@ default {
 }
 
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_error_message_handler.lsl
+// SLOODLE LSL Script Subversion Location: lsl/sloodle_error_message_handler.lsl 
