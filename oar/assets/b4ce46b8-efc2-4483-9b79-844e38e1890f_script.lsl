@@ -15,16 +15,19 @@
 ///////////////////////////////////////////
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
-integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
+integer SLOODLE_CHANNEL_AVATAR_DIALOG;
 string SLOODLE_GLOSSARY_LINKER = "/mod/sloodle/mod/glossary-1.0/linker.php";
 string SLOODLE_EOF = "sloodleeof";
-
+integer MENU_CHANNEL;
 string SLOODLE_OBJECT_TYPE = "glossary-1.0"; // We just use the regular glossary tools server-side
 
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_GROUP = 2;
-
+integer objChat=1;
+integer ON =1;
+integer OFF = 2;
+integer sloodleobjectaccesslevelctrl = 0; // Who can control this object?
 string sloodleserverroot = "";
 string sloodlepwd = "";
 integer sloodlecontrollerid = 0;
@@ -98,7 +101,7 @@ sloodle_debug(string msg)
 
 sloodle_reset()
 {
-    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "resetting", [], NULL_KEY, "");
+    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [llGetOwner()], "resetting", [], NULL_KEY, "");
     llMessageLinked(LINK_SET, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reset", NULL_KEY);
     llResetScript();
 }
@@ -135,6 +138,21 @@ integer sloodle_handle_command(string str)
     return (sloodleserverroot != "" && sloodlepwd != "" && sloodlecontrollerid > 0 && sloodlemoduleid > 0);
 }
 
+// Checks if the given agent is permitted to control this object
+// Returns TRUE if so, or FALSE if not
+integer sloodle_check_access_ctrl(key id)
+{
+    // Check the access mode
+    if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_GROUP) {
+        return llSameGroup(id);
+    } else if (sloodleobjectaccesslevelctrl == SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC) {
+        return TRUE;
+    }
+    
+    // Assume it's owner mode
+    return (id == llGetOwner());
+}
+
 // Checks if the given agent is permitted to user this object
 // Returns TRUE if so, or FALSE if not
 integer sloodle_check_access_use(key id)
@@ -158,6 +176,10 @@ default
 {
     state_entry()
     {
+        SLOODLE_CHANNEL_AVATAR_DIALOG = 6000000 + (integer)(llFrand( 6000001 )); //create a random channel to listen on so that your object doesnt cause another objects menu to appear!
+        llListen(MENU_CHANNEL,"",llGetOwner(),"");
+        llListen(MENU_CHANNEL,"",llGetOwner(),"");
+        
         // Starting again with a new configuration
         isconfigured = FALSE;
         eof = FALSE;
@@ -194,11 +216,11 @@ default
             // If we've got all our data AND reached the end of the configuration data, then move on
             if (eof == TRUE) {
                 if (isconfigured == TRUE) {
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
+                    sloodle_translation_request(SLOODLE_TRANSLATE_IM, [llGetOwner()], "configurationreceived", [], NULL_KEY, "");
                     state check_glossary;
                 } else {
                     // Go all configuration but, it's not complete... request reconfiguration
-                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configdatamissing", [], NULL_KEY, "");
+                    sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [llGetOwner()], "configdatamissing", [], NULL_KEY, "");
                     llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reconfigure", NULL_KEY);
                     eof = FALSE;
                 }
@@ -208,6 +230,10 @@ default
     
     touch_start(integer num_detected)
     {
+        
+        key id = llDetectedKey(0);
+        // Determine what this user can do
+      
         // Attempt to request a reconfiguration
         if (llDetectedKey(0) == llGetOwner()) {
             llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:requestconfig", NULL_KEY);
@@ -237,7 +263,7 @@ state check_glossary
     {
         // Lookup the glossary name
         sloodleglossaryname = "";
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "metagloss:checking", [], NULL_KEY, "metagloss");        
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.0,1.0,0.0>, 0.8], "picturegloss:checking", [], NULL_KEY, "picturegloss");        
         httpcheck = llHTTPRequest(sloodleserverroot + SLOODLE_GLOSSARY_LINKER + "?sloodlecontrollerid=" + (string)sloodlecontrollerid + "&sloodlepwd=" + sloodlepwd + "&sloodlemoduleid=" + (string)sloodlemoduleid, [HTTP_METHOD, "GET"], "");
         llSetTimerEvent(0.0);
         llSetTimerEvent(HTTP_TIMEOUT);
@@ -261,7 +287,8 @@ state check_glossary
         // Make sure this is the response we're expecting
         if (id != httpcheck) return;
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+             sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status);
             sloodle_reset();
             return;
         }
@@ -291,7 +318,8 @@ state check_glossary
         
         // Store the glossary name
         sloodleglossaryname = llList2String(lines, 1);
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:checkok", [sloodleglossaryname], NULL_KEY, "metagloss");
+        if (objChat==ON)
+            sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "picturegloss:checkok", [sloodleglossaryname], NULL_KEY, "picturegloss");
         state ready;
     }
 }
@@ -317,15 +345,27 @@ state ready
     state_entry()
     {
         // Update the hover text
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "metagloss:ready", [sloodleglossaryname, SLOODLE_METAGLOSS_COMMAND], NULL_KEY, "metagloss");
+        
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.0,0.0>, 0.9], "picturegloss:ready", [sloodleglossaryname, SLOODLE_METAGLOSS_COMMAND], NULL_KEY, "picturegloss");
         // Listen for chat messages
-        llListen(0, "", NULL_KEY, "");
-    
+        llListen(0, "", NULL_KEY, ""); 
+        llListen(SLOODLE_CHANNEL_AVATAR_DIALOG,"",llGetOwner(),"");       
         // We may need to de-activate after a period of idle time
         llSetTimerEvent(0.0);
         if (sloodleidletimeout > 0) llSetTimerEvent((float)sloodleidletimeout);
     }
-    
+    touch_start(integer num_detected) {
+        key id = llDetectedKey(0);
+         integer canctrl = sloodle_check_access_ctrl(id);
+        integer canuse = sloodle_check_access_use(id);
+        if (!(canctrl || canuse)) return;        
+        //display menu for owner to turn off object chat
+        list buttons = ["1","2"]; //maximum of 12!
+        string translationLookup = "picturegloss:ctrlmenu"; //Turn object chat on or off        
+        list stringParams = ["1","2"];
+        key uuidToSendDialogTo = llDetectedKey(0);
+        sloodle_translation_request(SLOODLE_TRANSLATE_DIALOG, [SLOODLE_CHANNEL_AVATAR_DIALOG]+buttons, translationLookup, stringParams, uuidToSendDialogTo, "picturegloss");
+    }
     state_exit()
     {
         llSetTimerEvent(0.0);
@@ -345,6 +385,17 @@ state ready
             searcheruuid = id;
             state search;
             return;
+        }else if (channel == SLOODLE_CHANNEL_AVATAR_DIALOG){
+            if (message=="1"){
+                objChat=ON;
+                string batch = "picturegloss"; //the sloodle tool we are translating                
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "picturegloss:objChat", ["ON"], NULL_KEY, batch);
+            }else 
+            if (message=="2"){
+                objChat=OFF;                
+                string batch = "picturegloss"; //the sloodle tool we are translating                
+                sloodle_translation_request(SLOODLE_TRANSLATE_OWNER_SAY, [], "picturegloss:objChat", ["OFF"], NULL_KEY, batch);
+            }
         }
     }
 
@@ -374,7 +425,7 @@ state shutdown
     
     state_entry()
     {
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.1,0.1>, 0.6], "metagloss:idle", [sloodleglossaryname], NULL_KEY, "metagloss");
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<0.5,0.1,0.1>, 0.6], "picturegloss:idle", [sloodleglossaryname], NULL_KEY, "picturegloss");
     }
     
     touch_start(integer num_detected)
@@ -407,7 +458,7 @@ state search
     state_entry()
     {
         // Search the specified term
-        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 0.9], "metagloss:searching", [sloodleglossaryname], NULL_KEY, "metagloss");
+        sloodle_translation_request(SLOODLE_TRANSLATE_HOVER_TEXT, [<1.0,0.5,0.0>, 0.9], "picturegloss:searching", [sloodleglossaryname], NULL_KEY, "picturegloss");
         string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
         body += "&sloodlepwd=" + sloodlepwd;
         body += "&sloodlemoduleid=" + (string)sloodlemoduleid;
@@ -474,7 +525,8 @@ state search
         }
         
         // Indicate how many definitions were found
-        sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "metagloss:numdefs", [searchterm, (numlines - 1)], NULL_KEY, "metagloss");
+        if (objChat ==ON)
+            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "picturegloss:numdefs", [searchterm, (numlines - 1)], NULL_KEY, "picturegloss");
         
         // Go through each definition
         integer defnum = 1;
@@ -483,7 +535,7 @@ state search
             // Split this definition into fields
             fields = llParseStringKeepNulls(llList2String(lines, defnum), ["|"], []);
             if (llGetListLength(fields) >= 2) {
-                llSay(0, llList2String(fields, 0) + " = " + llList2String(fields, 1)); 
+              //  llSay(0, llList2String(fields, 0) + " = " + llList2String(fields, 1)); 
 //-------------------
 //The definition is spoken here - and here is hte added code
                 list TextureList=llParseString2List(llList2String(fields, 1),[":"],[]);
@@ -503,7 +555,7 @@ state search
 //------------------------
 
             } else {
-                llSay(0, llList2String(fields, 0));
+//                llSay(0, llList2String(fields, 0));
             }
         }
 
@@ -512,4 +564,4 @@ state search
 }
 
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/picturegloss-1.0/sloodle_mod_glossary-1.0.lsl
+// SLOODLE LSL Script Subversion Location: mod/picturegloss-1.0/sloodle_mod_glossary-1.0.lsl 
