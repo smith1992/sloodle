@@ -129,7 +129,7 @@ default
             list lines = llParseString2List(str, ["\n"], []);
             integer numlines = llGetListLength(lines);
             integer i = 0;
-            for (; i < numlines; i++) {
+            for (i=0; i < numlines; i++) {
                 isconfigured = sloodle_handle_command(llList2String(lines, i));
             }
             
@@ -167,16 +167,16 @@ state ready
     touch_start( integer total_number)
     {
         // Go through each toucher
-        integer i = 0;
+        integer i;
         key id = NULL_KEY;
         string touched = "";
-        for (; i < total_number; i++) {
+        for (i=0; i < total_number; i++) {
             id = llDetectedKey(i);
             // Check if this user can use the device
             if (sloodle_check_access_use(id)) {
                 // Was it the panel that was touched?
                 touched = llGetLinkName(llDetectedLinkNumber(i));
-                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:regenrol|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
+                if (touched == "panel") llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "do:reg|" + sloodleserverroot + "|" + (string)sloodlecontrollerid + "|" + sloodlepwd, id);
             } else {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "nopermission:use", [llKey2Name(id)], NULL_KEY, "");
             }
@@ -184,4 +184,4 @@ state ready
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/regbooth-1.0/sloodle_mod_regbooth-1.0.lsl
+// SLOODLE LSL Script Subversion Location: mod/regbooth-1.0/sloodle_mod_regbooth-1.0.lsl 
