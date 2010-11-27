@@ -268,8 +268,7 @@ default
                 // Ownersay the string
                 llOwnerSay(trans);
                 
-            }
-            else if (output_method == SLOODLE_TRANSLATE_DIALOG) {
+            } else if (output_method == SLOODLE_TRANSLATE_DIALOG) {
                 // Display a dialog - we need a valid key
                 if (id == NULL_KEY) {
                     sloodle_debug("ERROR: Non-null key value required to show dialog with string \"" + string_name + "\".");
@@ -333,4 +332,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_quiz_en.lsl
+// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_quiz_en.lsl 
