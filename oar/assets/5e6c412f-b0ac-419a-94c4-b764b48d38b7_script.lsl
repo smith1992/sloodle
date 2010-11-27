@@ -33,17 +33,17 @@ string mybatch = "presenter";
 // Additional comments are sometimes given afterward to aid translations.
 list locstrings = [
     "showingentry", "Showing entry {{0}} of {{1}}.", // Parameters: current slide number, total number of slides
-    "showingentryurl", "Showing entry {{0}} of {{1}} ({{2}}).", // Parameters: current slide number, total number of slides, URL of slide
+    "showingentryurl", "Showing entry {{0}} of {{1}}: {{2}}", // Parameters: current slide number, total number of slides, URL of slide
     "showingentryname", "Showing entry {{0}} of {{1}}\n{{2}}.", // Parameters: current slide number, total number of slides, name of slide
     "showingslidename", "{{0}}\nShowing entry {{1}} of {{2}}\n{{3}}.", // Parameters: current slide number, total number of slides, name of slide
     "loadingslide", "Loading slide {{0}}", // Parameters: slide number
     "errorstate", "Error state -- touch me to reset",
     "missingsloodletexture", "Error: The sloodle_presenter_texture is missing from the presenter's inventory.  Did you delete it?  Please add this texture back into the contents, and touch to reset",
     "foundsloodletexture", "Found sloodle_presenter_texture, resetting...",    
-    "stilldoesntexistininventory","Error: The sloodle_presenter_texture STILL doesn't exist in the presenter's conents!  Please copy it INTO the presenter's conents.",
+    "stilldoesntexistininventory","Error: The sloodle_presenter_texture cannot be found in the Presenter's contents.",
     "checkinginventory","Checking inventory for sloodle_presenter_texture",
     "touchforwebconfig","Touch to configure",
-    "mustbedeeded","This Presenter MUST be deeded to the Parcel Owner for it to display your presentation"
+    "mustbedeeded","The SLOODLE Presenter must be rezzed by the Land Owner, or deeded to the group that owns the land."
     
 
 
@@ -332,4 +332,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_presenter_en.lsl
+// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_presenter_en.lsl 
