@@ -11,7 +11,7 @@
 //  Peter R. Bloomfield
 
 
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857353;
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_CONFIG_NOTECARD = "sloodle_config";
 string SLOODLE_EOF = "sloodleeof";
 
@@ -156,4 +156,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_setup_notecard.lsl
+// SLOODLE LSL Script Subversion Location: lsl/sloodle_setup_notecard.lsl 
