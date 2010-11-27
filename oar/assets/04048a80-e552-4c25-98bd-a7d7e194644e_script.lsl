@@ -9,6 +9,7 @@
 //  Peter R. Bloomfield
 //  Edmund Edgar
 //  Paul Preibisch - Fire Centaur in SL
+//
 ///// DATA /////
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
@@ -414,4 +415,4 @@ state success
 
 
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_layout_object.lsl
+// SLOODLE LSL Script Subversion Location: lsl/sloodle_layout_object.lsl 
