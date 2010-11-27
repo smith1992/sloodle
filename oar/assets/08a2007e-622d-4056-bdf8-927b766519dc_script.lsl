@@ -7,8 +7,10 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
+//  Edmund Edgar
+//  Paul Preibisch - Fire Centaur in SL
 
-
+integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_CONFIG_NOTECARD = "sloodle_config";
 string SLOODLE_EOF = "sloodleeof";
@@ -62,6 +64,20 @@ string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";    // No output parameters
 string SLOODLE_TRANSLATE_DIALOG = "dialog";         // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
 string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";      // Recipient avatar should be identified in link message keyval. 1 output parameter, containing the URL.
 string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";  // 2 output parameters: colour <r,g,b>, and alpha value
+
+//FUNCTIONS
+/******************************************************************************************************************************
+* sloodle_error_code - 
+* Author: Paul Preibisch
+* Description - This function sends a linked message on the SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST channel
+* The error_messages script hears this, translates the status code and sends an instant message to the avuuid
+* Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
+* Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
+* Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+*******************************************************************************************************************************/
+sloodle_error_code(string method, key avuuid,integer statuscode){
+            llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+}
 
 // Send a translation request link message
 sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
@@ -186,6 +202,12 @@ default
             // If the message starts with "http" then store it as the Moodle address
             msg = llStringTrim(msg, STRING_TRIM);
             if (llSubStringIndex(msg, "http") == 0) {
+
+                // If the message ends with a slash, remove it.
+                if ( llGetSubString(msg, -1, -1) == "/" ) {
+                    msg = llGetSubString(msg, 0, -2);    
+                }            
+                
                 sloodleserverroot = msg;
                 state check_moodle;
                 return;
@@ -219,8 +241,10 @@ default
                     key target = (key)llList2String(parts, 2);
                     string url = llList2String(parts, 3);
                     string auth = "";
+                    string isconfigured = "0";
                     if (numparts >= 5) auth = llList2String(parts, 4);
-                    
+                    if (numparts >= 6) isconfigured = llList2String(parts, 5);
+                                        
                     // Make sure the command is correct, the UUIDs are OK, and that the URL looks valid
                     if (rezzer == NULL_KEY) return;
                     if (target != llGetKey()) return;
@@ -237,9 +261,15 @@ default
                         // Store the password
                         password = (string)llGetStartParameter();
                         sloodlepwd = (string)llGetKey() + "|" + password;
+                        
+                        if (isconfigured == "1") {
+                            request_config = TRUE; // we're already configured by a layout, so we can go right ahead and get our config off the server
+                        } 
+                        
                         // Allow the user to configure the object
                         show_config_url = FALSE;
                         state configure_object;
+                    
                         return;
                     }
                     
@@ -325,6 +355,7 @@ state check_moodle
             return;
         } else if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "failedcheckcompatibility", [], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             return;
         }
         
@@ -440,6 +471,7 @@ state auth_object_initial
         // Check the statuscode
         if (statuscode <= 0) {
             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectauthfailed:code", [statuscode], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
             return;
         }
         
@@ -601,7 +633,6 @@ state configure_object
             
             // Split the response into lines
             list lines = llParseStringKeepNulls(body, ["\n"], []);
-            body = "";
             integer numlines = llGetListLength(lines);
             // Fetch the status line
             list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
@@ -611,6 +642,7 @@ state configure_object
                 return;
             } else if (statuscode <= 0) {
                 sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "objectconfigfailed:code", [statuscode], NULL_KEY, "");
+                sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
                 state default;
                 return;
             }
@@ -633,7 +665,7 @@ state configure_object
             string cmd = "";
             integer cmdlen = 0;
             string curline = "";
-            for (; linenum < numlines; linenum++) {
+            for (linenum=0; linenum < numlines; linenum++) {
                 curline = llList2String(lines, linenum);
                 
                 // If this is a controller ID, then store the value.
@@ -778,5 +810,7 @@ state idle
         request_config = TRUE;
         state configure_object;
     }
-}// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_setup_web.lsl
+}
+
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: lsl/sloodle_setup_web.lsl 
