@@ -8,4 +8,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: MISSING
+// SLOODLE LSL Script Subversion Location: mod/glossary-1.0/sloodle_glossary_explainer.lsl
