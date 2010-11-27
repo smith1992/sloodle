@@ -11,6 +11,7 @@
 // Contributors:
 //  Peter R. Bloomfield
 //
+//  6 Apr 09 TW Opensim init changes
 
 // Note: where a translation string contains {{x}} (where x is a number),
 //  it means that a parameter can be inserted. Please make sure to include these
@@ -117,8 +118,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
+    //pos += 1;
+    for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -148,12 +149,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum = 0;
+    integer curparamnum;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
+    for (curparamnum = 0; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);
@@ -331,4 +332,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_choice_en.lsl
+// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_choice_en.lsl 
