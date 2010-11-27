@@ -35,19 +35,17 @@ list locstrings = [
     "invalidchoice", "Sorry {{0}}. Your selection was not in the list of available choices. Please try again.", // Parameter: avatar name
     "invalidtype", "Error: this object cannot handle quiz questions of type: {{0}}", // Parameter: question type name
     "complete", "Quiz complete {{0}}. Your final score was {{1}}.", // Parameters: avatar name, score
-    "complete:noscore", "Quiz complete.",
     "repeating", "Repeating...",
     "starting", "Starting quiz for {{0}}", // Parameter: avatar name
     "noquestions", "ERROR: there are no questions available",
+    "notenrolled", "ERROR:  It appears you are not enrolled in this class.  Please make sure you are enrolled AND your avatar is linked to your Moodle account.",
     "noattemptsleft", "Sorry {{0}}. You are not allowed to attempt this quiz again.", // Parameter: avatar name
     "fetchingquiz", "Fetching quiz data...",
     "ready", "Ready to attempt: {{0}}.", // Parameter: name of quiz
     "correct", "Correct {{0}}.", // Parameter: name of avatar
-    "incorrect", "Incorrect {{0}}.", // Parameter: name of avatar
+    "usedialogs", "Error: You attempted to answer a multiple choice, or a true/false answer by typing on the chat line instead of using the dialog {{0}}.", // Parameter: name of avatar
+    "incorrect", "Incorrect {{0}}." // Parameter: name of avatar
     
-    "pileonmenu:start", "Start a quiz?\n\n{{0}} = Start\n{{1}} = Cancel", // Parameters: button labels
-    "pileonmenu:next", "Quiz Options\n\n{{0}} = Next\n{{1}} = End Quiz\n{{2}} = Cancel", // Parameters: button labels
-    "pileonmenu:answer", "Quiz Options\n\n{{0}} = Answer\n{{1}} = End Quiz\n{{2}} = Cancel" // Parameters: button labels
 ];
 
 ///// ----------- /////
@@ -240,6 +238,8 @@ default
             // // OUTPUT STRING // //
             
             // Check what output method has been requested
+            
+    
             if (output_method == SLOODLE_TRANSLATE_LINK) {
                 // Return the string via link message
                 sloodle_translation_response(sender_num, string_name, trans);
@@ -332,4 +332,4 @@ default
     }
 }
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_quiz_en.lsl
+// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_quiz_en.lsl 
