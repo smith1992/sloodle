@@ -9,11 +9,12 @@
 //  Peter R. Bloomfield
 //  Edmund Edgar
 //  Paul Preibisch - Fire Centaur in SL
+//
 ///// DATA /////
 integer SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST=-1828374651; // this channel is used to send status codes for translation to the error_messages lsl script
 integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
-string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-2.0/layout_linker.php";
+string SLOODLE_LAYOUT_LINKER = "/mod/sloodle/mod/set-1.0/layout_linker.php";
 string SLOODLE_EOF = "sloodleeof";
 
 string sloodleserverroot = "";
@@ -317,7 +318,7 @@ state request
         
         // Check the HTTP status
         if (status != 200) {
-            sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "httperror:code", [status], NULL_KEY, "");
+            sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
             state failed;
             return;
         }
@@ -414,4 +415,4 @@ state success
 
 
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_layout_object.lsl
+// SLOODLE LSL Script Subversion Location: lsl/sloodle_layout_object.lsl 
