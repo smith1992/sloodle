@@ -5,7 +5,7 @@
 // The first of each pair is the name, and second is the translation.
 //
 // This script is part of the Sloodle project.
-// Copyright (c) 2008 Sloodle (various contributors)
+// Copyright (c) 2008-9 Sloodle (various contributors)
 // Released under the GNU GPL v3
 //
 // Contributors:
@@ -44,7 +44,7 @@ list locstrings = [
     //  Web-configuration
     "webconfigmenu", "Sloodle Web-Configuration Menu\n\n{{0}} = Access web-configuration page\n{{1}} = Download configuration", // Parameters are button labels
     "configlink", "Use this link to configure the object.",
-    "chatserveraddress", "Please chat the address of your Moodle site. For example: http://www.yoursite.blah/moodle",
+    "chatserveraddress", "Please chat the address of your Moodle site, without a trailing slash. For example: http://www.yoursite.blah/moodle",
     "waitingforserveraddress", "Waiting for Moodle site address.\nPlease chat it on channel 0 or 1.",
     "checkingserverat", "Checking Moodle site at:\n{{0}}", // Parameter gives the address of a Moodle site
     "sendingconfig", "Sending configuration data...",
@@ -93,12 +93,15 @@ list locstrings = [
     "nopermission:ctrl", "Sorry {{0}}. You do not have permission to control this object.", // Parameter should be the name of an avatar
     "nopermission:authobjects", "Sorry {{0}}. You do not have permission to authorise objects on this course.", // Parameter should be the name of an avatar
     
-
     // Layout (duplicated deliberately)
     "layout:failedretrying", "Failed to store layout position. Retrying...",
     "layout:failedaborting", "Failed to store layout position. Aborting.",
     "layout:toofar", "Failed to store layout position - too far from rezzer.",
-    "layout:storedobject", "Object stored in layout."
+    "layout:storedobject", "Object stored in layout.",
+    
+    // General error
+    "sloodleerror", "SLOODLE error ({{0}}): please lookup SLOODLE wiki for error information", // Parameters: status code of error
+    "sloodleerror:desc", "SLOODLE error ({{0}}): {{1}}" // Parameters: status code of error, text description of error
 ];
 
 ///// ----------- /////
@@ -170,8 +173,8 @@ string sloodle_get_string(string name)
     // As such, we need to resort to searching through the list manually (which can be very slow).
     // To saved time, we can start from the position just beyond where we got to.
     // We advance by 2 each time to skip the translations completely.
-    pos += 1;
-    for (; pos < numstrings; pos += 2) {
+    //pos += 1;
+    for (pos += 1; pos < numstrings; pos += 2) {
         // Do we have a match?
         if (llList2String(locstrings, pos) == name) {
             // Yes - make sure there is a translation following it
@@ -201,12 +204,12 @@ string sloodle_get_string_f(string name, list params)
     integer numparams = llGetListLength(params);
     
     // Go through each parameter we have been provided
-    integer curparamnum = 0;
+    integer curparamnum;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
     integer tokpos = -1;
-    for (; curparamnum < numparams; curparamnum++) {
+    for (curparamnum=0; curparamnum < numparams; curparamnum++) {
         // Construct this parameter token
         curparamtok = "{{" + (string)(curparamnum) + "}}";
         curparamtoklength = llStringLength(curparamtok);
@@ -382,5 +385,6 @@ default
         }
     }
 }
+
 // Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_en.lsl
+// SLOODLE LSL Script Subversion Location: lang/en_utf8/sloodle_translation_en.lsl 
