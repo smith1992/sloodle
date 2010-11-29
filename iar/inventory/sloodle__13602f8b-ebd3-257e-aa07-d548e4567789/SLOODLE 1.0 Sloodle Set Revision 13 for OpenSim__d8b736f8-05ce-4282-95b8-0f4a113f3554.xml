@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-16"?>
+<InventoryItem>
+  <Name>SLOODLE 1.0 Sloodle Set Revision 13 for OpenSim</Name>
+  <ID>d8b736f8-05ce-4282-95b8-0f4a113f3554</ID>
+  <InvType>6</InvType>
+  <CreatorUUID>ospa:n=Test User</CreatorUUID>
+  <CreationDate>1290999300</CreationDate>
+  <Owner>4b36c644-ce04-4f3b-bd2c-fb1110f718df</Owner>
+  <Description>added error trans</Description>
+  <AssetType>6</AssetType>
+  <AssetID>5e29d548-36e8-4989-963d-6ad3c7258bd9</AssetID>
+  <SaleType>0</SaleType>
+  <SalePrice>0</SalePrice>
+  <BasePermissions>581633</BasePermissions>
+  <CurrentPermissions>581641</CurrentPermissions>
+  <EveryOnePermissions>0</EveryOnePermissions>
+  <NextPermissions>581632</NextPermissions>
+  <Flags>0</Flags>
+  <GroupID>00000000-0000-0000-0000-000000000000</GroupID>
+  <GroupOwned>False</GroupOwned>
+</InventoryItem>
