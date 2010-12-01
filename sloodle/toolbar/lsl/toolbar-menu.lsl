@@ -209,5 +209,3 @@ default
     }
 }
 
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: toolbar/lsl/toolbar-menu.lsl 

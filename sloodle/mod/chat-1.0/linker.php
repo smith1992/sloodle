@@ -1,17 +1,18 @@
 <?php
     /**
-    * Sloodle chat linker (for Sloodle 0.3).
+    * SLOODLE chat linker
     * Allows a Sloodle WebIntercom tool link into a Moodle chatroom.
     * Fetches a recent chat history, and optionally inserts a new message.
     *
     * @package sloodlechat
-    * @copyright Copyright (c) 2007-8 Sloodle (various contributors)
+    * @copyright Copyright (c) 2007-10 (various contributors)
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @todo Implement capabilities to make sure users can write to the chatroom (will need special handling to let guest users be permitted if desired)
     *
     * @contributor (various)
     * @contributor Peter R. Bloomfield
+	* @contributor Edmund Edgar
     */
     
     // This script should be called with the following parameters:
@@ -22,10 +23,12 @@
     // If adding a new message, the following parameters should be provided:
     //  sloodleuuid = UUID of the avatar
     //  sloodleavname = name of the avatar
-    //  message = the body of the message
+    //  message = the body of the message.
     //
-    // The following parameter is optional:
-    //  sloodledebug = if 'true', then Sloodle debugging mode is activated    
+    // The following parameters are optional:
+	//  firstmessageid = if specified, only messages whose ID number is greater than or equal to this value will be returned in the chat history
+    //  sloodledebug = if 'true', then Sloodle debugging mode is activated
+	//
     
 
     /** Lets Sloodle know we are in a linker script. */
@@ -46,18 +49,15 @@
     $sloodleserveraccesslevel = $sloodle->request->get_server_access_level(false);
     if ($sloodleserveraccesslevel == 0) $sloodle->validate_user(false);
     else $sloodle->validate_user(true);
-
     
     // Has an incoming message been provided?
     $message = sloodle_clean_for_db($sloodle->request->optional_param('message', null));
     if ($message != null) {
-        // Add it to the chatroom - if it fails add a negative side effect code to our response.
-        // The positive side effect will be added by the function if successful.
+        // Add it to the chatroom.
         if (!$sloodle->module->add_message($message)) {
-            $sloodle->response->add_side_effect(-10101);
-            add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());
+			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
         } else {
-            add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Added chat message to chatroom', $sloodle->request->get_module_id());
+			add_to_log($sloodle->course->get_course_id(), 'sloodle', 'add message', '', 'Failed to add chat message to chatroom', $sloodle->request->get_module_id());
         }
     }
     
@@ -65,16 +65,15 @@
     $sloodle->response->set_status_code(1);
     $sloodle->response->set_status_descriptor('OK');
     
-    // Fetch a chat history 
-    $messages = $sloodle->module->get_chat_history();
+    // Fetch a chat history.
+	// Always limit it to the last 60 seconds, but optionally also ignore everything before a certain point.
+    $messages = $sloodle->module->get_chat_history(60, $sloodle->request->optional_param('firstmessageid', 0));
     foreach ($messages as $m) {
-        $author = sloodle_clean_for_output($m->user->get_user_firstname().' '.$m->user->get_user_lastname());
+        $author = sloodle_clean_for_output($m->authorname);
         $sloodle->response->add_data_line(array($m->id, $author, sloodle_clean_for_output($m->message)));
     }
     
     // Output our response
-    sloodle_debug('<pre>'); // For debug mode, lets us see the response in a browser
     $sloodle->response->render_to_output();
-    sloodle_debug('</pre>');
     
 ?>

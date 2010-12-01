@@ -65,13 +65,5 @@ $settings->add( new admin_setting_configtext(
                 get_string('userobjectlifetime', 'sloodle'),
                 get_string('userobjectlifetime:info', 'sloodle').helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', true),
                 21));
-// This selection box determines whether or not auto-enrolment is allowed on the site
 
-$settings->add( new admin_setting_configselect(
-                'sloodle_gridtype',
-                get_string('gridtype:specifygridtype','sloodle'),
-                '',
-                "OpenSim",
-                array("OpenSim" => "OpenSim", "SecondLife"=> "SecondLife")
-));  
 ?>

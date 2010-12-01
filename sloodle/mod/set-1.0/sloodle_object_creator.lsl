@@ -15,7 +15,7 @@ integer SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP = 0;
 vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_BASIC_SET = <0.0, 2.5, 0.0>; // The basic set rezzes things 2 meters in front of it
 vector SLOODLE_OBJECT_CREATOR_REZ_OFFSET_MOTHERSHIP = <0.0, 0.0, -2.0>; // The mothership rezzes things 2 meters below it
 
-integer SLOODLE_THIS_OBJECT_TYPE = 1; // = SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET; for OpenSim
+integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_BASIC_SET;
 //integer SLOODLE_THIS_OBJECT_TYPE = SLOODLE_OBJECT_CREATOR_TYPE_MOTHERSHIP;
 
 
@@ -249,7 +249,7 @@ sloodle_show_object_dialog(key id, integer page)
     // How many pages are there?
     integer numpages = (integer)((float)numobjects / 9.0) + 1;
     // If the requested page number is invalid, then cap it
-    if (page < 0) page = 0; // Modified for OpenSim
+    if (page < 0) page == 0;
     else if (page >= numpages) page = numpages - 1;
     
     // Build our list of item buttons (up to a maximum of 9)
@@ -778,5 +778,3 @@ state rezzing
         state ready;
     }
 }
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/set-1.0/sloodle_object_creator.lsl
