@@ -14,7 +14,7 @@
 * _sloodle_api.lsl 
 *
 /**********************************************************************************************/
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 string  SLOODLE_HQ_LINKER = "/mod/sloodle/mod/hq-1.0/linker.php";
 key http; 
 integer gameid;
@@ -125,8 +125,8 @@ sendCommand(string plugin,string function, string vars){
         //send the request
              http = llHTTPRequest(sloodleserverroot + SLOODLE_HQ_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"],  sloodleserverroot + SLOODLE_HQ_LINKER+"?"+"&plugin="+plugin+ "&function="+function+requiredVars+"&"+vars);
          //debug
-  llOwnerSay("********** _sloodle_api.lsl SENDING TO SERVER *********************");                  
-   llOwnerSay(sloodleserverroot + SLOODLE_HQ_LINKER+"?"+"&plugin="+plugin+ "&function="+function+requiredVars+"&"+vars);         
+  if (DEBUG==TRUE)llOwnerSay("********** _sloodle_api.lsl SENDING TO SERVER *********************");                  
+  if (DEBUG==TRUE)llOwnerSay(sloodleserverroot + SLOODLE_HQ_LINKER+"?"+"&plugin="+plugin+ "&function="+function+requiredVars+"&"+vars);         
 }//sendCommand
 
 
