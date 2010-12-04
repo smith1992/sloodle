@@ -889,10 +889,9 @@ class sloodle_view_awards extends sloodle_base_view_module
              '<h4><div style="color:black;text-align:center;">'.get_string('awards:gamename', 'sloodle').'</h4>',
              '<h4><div style="color:black;text-align:center;">'.get_string('awards:gamenumber', 'sloodle').'<br></h4>',
              '<h4><div style="color:red;text-align:center;">'.get_string('awards:date', 'sloodle').'</h4>',
-             '<h4><div style="color:green;text-align:right;">'.get_string('awards:3rd', 'sloodle').'</h4>',             
+             '<h4><div style="color:green;text-align:right;">'.get_string('awards:1st', 'sloodle').'</h4>',             
              '<h4><div style="color:green;text-align:right;">'.get_string('awards:2nd', 'sloodle').'</h4>',             
-             '<h4><div style="color:green;text-align:right;">'.get_string('awards:1st', 'sloodle').'</h4>');             
-             
+             '<h4><div style="color:green;text-align:right;">'.get_string('awards:3rd', 'sloodle').'</h4>');             
               //set alignment of table cells                                        
             $tsloodletable->align = array('left','left','right','right','right','right');
             $tsloodletable->width="95%";
