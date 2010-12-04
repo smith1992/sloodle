@@ -108,7 +108,7 @@ integer i (string ii){
 vector v (string vv){
     return llList2Vector(llParseString2List(vv, [":"], []),1);
 }//end function
-integer DEBUG=TRUE;
+integer DEBUG=FALSE;
 debug(string s){
  if (DEBUG==TRUE) llOwnerSay((string)llGetFreeMemory()+" "+llGetScriptName()+"*** "+ s);s="";
 }
