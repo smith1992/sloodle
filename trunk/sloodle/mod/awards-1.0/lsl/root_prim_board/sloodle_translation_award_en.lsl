@@ -1,4 +1,3 @@
-// LSL script generated: root_prim_board.sloodle_translation_award_en.lslp Sat Mar 20 13:27:17 Pacific Daylight Time 2010
 // Standard translation script for Sloodle.
 // Contains the common, re-usable words and phrases.
 //
@@ -12,8 +11,6 @@
 // Contributors:
 //  Peter R. Bloomfield
 //  Paul Preibisch - aka Fire Centaur
-//
-// This file is responsible for outputing translations
 //
 
 // Note: where a translation string contains {{x}} (where x is a number),
@@ -29,14 +26,22 @@
 ///// TRANSLATION /////
 
 // Localization batch - indicates the purpose of this file
-string mybatch = "awards";
+string mybatch = "awards"; // General stipendgiver stuff
 
 
 // List of string names and translation pairs.
 // The name is the first of each pair, and should not be translated.
 // The second of each pair is the translation.
 // Additional comments are sometimes given afterward to aid translations.
-list locstrings = ["awards:timeout","Server has timed out... The Sloodle Award System could not reach your server.  Please contact your system administrator, or try again later","requestingAwardsConfiguration","Requesting Awards Configuration","moduleidmissing","A line in your sloodle_config is missing. You must have a set:sloodlemoduleid|id in your sloodle_config. This information should be displayed on the Sloodle Awards System Scoreboard when you rez an awards cup"];
+list locstrings = [
+    //  User registration / enrolment
+
+   
+"awards:timeout","Server has timed out... The Sloodle Award System could not reach your server.  Please contact your system administrator, or try again later",
+"requestingAwardsConfiguration","Requesting Awards Configuration",
+"moduleidmissing","A line in your sloodle_config is missing. You must have a set:sloodlemoduleid|id in your sloodle_config. This information should be displayed on the Sloodle Awards System Scoreboard when you rez an awards cup"
+
+    ];
 
 ///// ----------- /////
 
@@ -44,182 +49,284 @@ list locstrings = ["awards:timeout","Server has timed out... The Sloodle Award S
 // Link message channels
 integer SLOODLE_CHANNEL_TRANSLATION_REQUEST = -1928374651;
 integer SLOODLE_CHANNEL_TRANSLATION_RESPONSE = -1928374652;
-integer SETTEXT_CHANNEL = -776644;
+integer SETTEXT_CHANNEL=-776644;
 // Translation output methods
-string SLOODLE_TRANSLATE_LINK = "link";
+string SLOODLE_TRANSLATE_LINK = "link";                     // No output parameters - simply returns the translation on SLOODLE_TRANSLATION_RESPONSE link message channel
 string SLOODLE_TRANSLATE_HOVER_TEXT_BASIC = "hovertextbasic";
-string SLOODLE_TRANSLATE_SAY = "say";
-string SLOODLE_TRANSLATE_WHISPER = "whisper";
-string SLOODLE_TRANSLATE_SHOUT = "shout";
-string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";
-string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";
-string SLOODLE_TRANSLATE_DIALOG = "dialog";
-string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";
-string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";
-string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";
-string SLOODLE_TRANSLATE_IM = "instantmessage";
+string SLOODLE_TRANSLATE_SAY = "say";                       // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_WHISPER = "whisper";               // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_SHOUT = "shout";                   // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_REGION_SAY = "regionsay";          // 1 output parameter: chat channel number
+string SLOODLE_TRANSLATE_OWNER_SAY = "ownersay";            // No output parameters
+string SLOODLE_TRANSLATE_DIALOG = "dialog";                 // Recipient avatar should be identified in link message keyval. At least 2 output parameters: first the channel number for the dialog, and then 1 to 12 button label strings.
+string SLOODLE_TRANSLATE_LOAD_URL = "loadurl";              // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_LOAD_URL_PARALLEL = "loadurlpar";  // Recipient avatar should be identified in link message keyval. 1 output parameter giving URL to load.
+string SLOODLE_TRANSLATE_HOVER_TEXT = "hovertext";          // 2 output parameters: colour <r,g,b>, and alpha value
+string SLOODLE_TRANSLATE_IM = "instantmessage";             // Recipient avatar should be identified in link message keyval. No output parameters.
 
 
 // Used for sending parallel URL loading messages
 integer SLOODLE_CHANNEL_OBJECT_LOAD_URL = -1639270041;
 
+///// FUNCTIONS /////
+
+
+// Send a translation request link message
+// (Here for reference only)
+// Parameter: output_method = should identify an output method, as given by the "SLOODLE_TRANSLATE_..." constants above
+// Parameter: output_params = a list of parameters which controls the output, such as chat channel or buttons for a dialog
+// Parameter: string_name = the name of the localization string to output
+// Parameter: string_params = a list of parameters which will be included in the translated string (or an empty list if none)
+// Parameter: keyval = a key to send in the link message
+// Parameter: batch = the name of the localization batch which should handle this request
+sloodle_translation_request(string output_method, list output_params, string string_name, list string_params, key keyval, string batch)
+{
+    llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_TRANSLATION_REQUEST, output_method + "|" + llList2CSV(output_params) + "|" + string_name + "|" + llList2CSV(string_params) + "|" + batch, keyval);
+}
+
 // Send a translation response link message
-sloodle_translation_response(integer target,string name,string translation){
-    llMessageLinked(target,SLOODLE_CHANNEL_TRANSLATION_RESPONSE,((((name + "|") + translation) + "|") + mybatch),NULL_KEY);
+sloodle_translation_response(integer target, string name, string translation)
+{
+    llMessageLinked(target, SLOODLE_CHANNEL_TRANSLATION_RESPONSE, name + "|" + translation + "|" + mybatch, NULL_KEY);
 }
 
 // Get the translation of a particular string
-string sloodle_get_string(string name){
+string sloodle_get_string(string name)
+{
+    // Attempt to find the string name
     integer numstrings = llGetListLength(locstrings);
-    integer pos = llListFindList(locstrings,[name]);
-    if (((pos % 2) == 0)) {
-        if (((pos + 1) < numstrings)) return llList2String(locstrings,(pos + 1));
-        (pos = (-1));
+    integer pos = llListFindList(locstrings, [name]);
+    
+    // IMPORTANT: we must be careful not to match a translations instead of a name.
+    // If this was an even number, then we have a string name.
+    if ((pos % 2) == 0) {
+        // Make sure there is a subsequent translation in the list
+        if ((pos + 1) < numstrings) return llList2String(locstrings, pos + 1);
+        // The translation is not there
+        pos = -1;
     }
-    if ((pos < 0)) return (("[[" + name) + "]]");
-    (pos += 1);
-    for (; (pos < numstrings); (pos += 2)) {
-        if ((llList2String(locstrings,pos) == name)) {
-            if (((pos + 1) < numstrings)) return llList2String(locstrings,(pos + 1));
-            (pos = numstrings);
+    
+    // If we could not find the string, then return a placeholder
+    if (pos < 0) return "[[" + name + "]]";
+    
+    // If we got here, then we matched a translation instead of a string name.
+    // As such, we need to resort to searching through the list manually (which can be very slow).
+    // To saved time, we can start from the position just beyond where we got to.
+    // We advance by 2 each time to skip the translations completely.
+    pos += 1;
+    for (; pos < numstrings; pos += 2) {
+        // Do we have a match?
+        if (llList2String(locstrings, pos) == name) {
+            // Yes - make sure there is a translation following it
+            if ((pos + 1) < numstrings) return llList2String(locstrings, pos + 1);
+            // The translation is not there - skip the rest of the search
+            pos = numstrings;
         }
     }
-    return (("[[" + name) + "]]");
+    
+    // If we reached this point, then the string is not available. Return a placeholder.
+    return "[[" + name + "]]";
 }
 
 // Send a debug link message
-sloodle_debug(string msg){
-    llMessageLinked(LINK_THIS,DEBUG_CHANNEL,msg,NULL_KEY);
+sloodle_debug(string msg)
+{
+    llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, NULL_KEY);
 }
 
 
 // Get a formatted translation of a string
-string sloodle_get_string_f(string name,list params){
+string sloodle_get_string_f(string name, list params)
+{
+    // Get the string itself
     string str = sloodle_get_string(name);
+    // How many parameters do we have?
     integer numparams = llGetListLength(params);
+    
+    // Go through each parameter we have been provided
     integer curparamnum = 0;
     string curparamtok = "{{x}}";
     integer curparamtoklength = 0;
     string curparamstr = "";
-    integer tokpos = (-1);
-    for (; (curparamnum < numparams); (curparamnum++)) {
-        (curparamtok = (("{{" + ((string)curparamnum)) + "}}"));
-        (curparamtoklength = llStringLength(curparamtok));
-        (curparamstr = llList2String(params,curparamnum));
-        if (((llSubStringIndex(curparamstr,"{{") < 0) && (llSubStringIndex(curparamstr,"}}") < 0))) {
-            while (((tokpos = llSubStringIndex(str,curparamtok)) >= 0)) {
-                (str = llDeleteSubString(str,tokpos,((tokpos + curparamtoklength) - 1)));
-                (str = llInsertString(str,tokpos,curparamstr));
+    integer tokpos = -1;
+    for (; curparamnum < numparams; curparamnum++) {
+        // Construct this parameter token
+        curparamtok = "{{" + (string)(curparamnum) + "}}";
+        curparamtoklength = llStringLength(curparamtok);
+        // Fetch the parameter text
+        curparamstr = llList2String(params, curparamnum);
+        
+        // Ensure the parameter text does NOT contain double braces (this avoids an infinite loop!)
+        if (llSubStringIndex(curparamstr, "{{") < 0 && llSubStringIndex(curparamstr, "}}") < 0) {            
+            // Go through every instance of this parameter's token
+            while ((tokpos = llSubStringIndex(str, curparamtok)) >= 0) {
+                // Replace the token with the parameter string
+                str = llDeleteSubString(str, tokpos, tokpos + curparamtoklength - 1);
+                str = llInsertString(str, tokpos, curparamstr);
             }
         }
     }
+    
     return str;
 }
 
 
 ///// STATES /////
 
-default {
-
-    state_entry() {
+default
+{
+    state_entry()
+    {
     }
-
     
-    link_message(integer sender_num,integer num,string str,key id) {
-        if ((num == SLOODLE_CHANNEL_TRANSLATION_REQUEST)) {
-            list fields = llParseStringKeepNulls(str,["|"],[]);
+    link_message(integer sender_num, integer num, string str, key id)
+    {
+        // Check the channel
+        if (num == SLOODLE_CHANNEL_TRANSLATION_REQUEST) {            
+            
+            // // PROCESS REQUEST // //
+        
+            // Split the incoming message into fields
+            list fields = llParseStringKeepNulls(str, ["|"], []);
             integer numfields = llGetListLength(fields);
+            
+            // Extract and check the localization batch
             string batch = "";
-            if ((numfields > 4)) (batch = llList2String(fields,4));
-            if ((batch != mybatch)) return;
-            if ((numfields < 3)) {
+            if (numfields > 4) batch = llList2String(fields, 4);
+            if (batch != mybatch) return;
+            
+            // We expect at least 3 fields
+            // ... or 4 if there are insertion parameters...
+            // ... or 5 if there is a language code
+            // ... anybody up for a 6th parameter? :)
+            if (numfields < 3) {
                 sloodle_debug("ERROR: Insufficient fields for translation of string.");
                 return;
             }
-            string output_method = llList2String(fields,0);
-            list output_params = llCSV2List(llList2String(fields,1));
+            
+            // Extract the key parts of the request
+            string output_method = llList2String(fields, 0);
+            list output_params = llCSV2List(llList2String(fields, 1));
             integer num_output_params = llGetListLength(output_params);
-            string string_name = llList2String(fields,2);
+            string string_name = llList2String(fields, 2);
             list string_params = [];
-            if ((numfields > 3)) {
-                string string_param_text = llList2String(fields,3);
-                if ((string_param_text != "")) (string_params = llCSV2List(string_param_text));
+            if (numfields > 3) {
+                // Extract the string parameters (extra text added to the output)
+                string string_param_text = llList2String(fields, 3);
+                if (string_param_text != "") string_params = llCSV2List(string_param_text);
             }
+            
+            // // TRANSLATE STRING // //
+            
+            // This string will store the translation
             string trans = "";
-            if ((string_name != "")) {
-                if ((llGetListLength(string_params) == 0)) {
-                    (trans = sloodle_get_string(string_name));
+            // Do nothing if the string name is empty
+            if (string_name != "") {
+                // If there are no string parameters, then it is only a basic translation
+                if (llGetListLength(string_params) == 0) {
+                    // Get the basic translation
+                    trans = sloodle_get_string(string_name);
+                } else {
+                    // Construct the formatted string
+                    trans = sloodle_get_string_f(string_name, string_params);
                 }
-                else  {
-                    (trans = sloodle_get_string_f(string_name,string_params));
-                }
             }
-            if ((output_method == SLOODLE_TRANSLATE_LINK)) {
-                sloodle_translation_response(sender_num,string_name,trans);
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_SAY)) {
-                if ((num_output_params > 0)) llSay(llList2Integer(output_params,0),trans);
-                else  sloodle_debug((("ERROR: Insufficient output parameters to say string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_WHISPER)) {
-                if ((num_output_params > 0)) llWhisper(llList2Integer(output_params,0),trans);
-                else  sloodle_debug((("ERROR: Insufficient output parameters to whisper string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_SHOUT)) {
-                if ((num_output_params > 0)) llShout(llList2Integer(output_params,0),trans);
-                else  sloodle_debug((("ERROR: Insufficient output parameters to shout string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_REGION_SAY)) {
-                if ((num_output_params > 0)) llRegionSay(llList2Integer(output_params,0),trans);
-                else  sloodle_debug((("ERROR: Insufficient output parameters to region-say string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_OWNER_SAY)) {
+            
+            // // OUTPUT STRING // //
+            
+            // Check what output method has been requested
+            if (output_method == SLOODLE_TRANSLATE_LINK) {
+                // Return the string via link message
+                sloodle_translation_response(sender_num, string_name, trans);
+                
+            } else if (output_method == SLOODLE_TRANSLATE_SAY) {
+                // Say the string
+                if (num_output_params > 0) llSay(llList2Integer(output_params, 0), trans);
+                else sloodle_debug("ERROR: Insufficient output parameters to say string \"" + string_name + "\".");
+                
+            } else if (output_method == SLOODLE_TRANSLATE_WHISPER) {
+                // Whisper the string
+                if (num_output_params > 0) llWhisper(llList2Integer(output_params, 0), trans);
+                else sloodle_debug("ERROR: Insufficient output parameters to whisper string \"" + string_name + "\".");
+                
+            } else if (output_method == SLOODLE_TRANSLATE_SHOUT) {
+                // Shout the string
+                if (num_output_params > 0) llShout(llList2Integer(output_params, 0), trans);
+                else sloodle_debug("ERROR: Insufficient output parameters to shout string \"" + string_name + "\".");
+                
+            } else if (output_method == SLOODLE_TRANSLATE_REGION_SAY) {
+                // RegionSay the string
+                if (num_output_params > 0) llRegionSay(llList2Integer(output_params, 0), trans);
+                else sloodle_debug("ERROR: Insufficient output parameters to region-say string \"" + string_name + "\".");
+                
+            } else if (output_method == SLOODLE_TRANSLATE_OWNER_SAY) {
+                // Ownersay the string
                 llOwnerSay(trans);
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_DIALOG)) {
-                if ((id == NULL_KEY)) {
-                    sloodle_debug((("ERROR: Non-null key value required to show dialog with string \"" + string_name) + "\"."));
+                
+            } else if (output_method == SLOODLE_TRANSLATE_DIALOG) {
+                // Display a dialog - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to show dialog with string \"" + string_name + "\".");
                     return;
                 }
-                if ((num_output_params >= 2)) {
-                    integer channel = llList2Integer(output_params,0);
-                    list buttons = llList2List(output_params,1,12);
-                    llDialog(id,trans,buttons,channel);
-                }
-                else  sloodle_debug((("ERROR: Insufficient output parameters to show dialog with string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_LOAD_URL)) {
-                if ((id == NULL_KEY)) {
-                    sloodle_debug((("ERROR: Non-null key value required to load URL with string \"" + string_name) + "\"."));
+                // We need at least 2 additional output parameters (channel, and at least 1 button)
+                if (num_output_params >= 2) {
+                    // Extract the channel number
+                    integer channel = llList2Integer(output_params, 0);
+                    // Extract up to 12 button values
+                    list buttons = llList2List(output_params, 1, 12);
+                    
+                    // Display the dialog
+                    llDialog(id, trans, buttons, channel);
+                    
+                } else sloodle_debug("ERROR: Insufficient output parameters to show dialog with string \"" + string_name + "\".");
+                
+            } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL) {
+                // Display a URL - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
+                    return;
+                }                
+                // We need 1 additional parameter, containing the URL to load
+                if (num_output_params >= 1) llLoadURL(id, trans, llList2String(output_params, 0));
+                else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
+            
+            } else if (output_method == SLOODLE_TRANSLATE_LOAD_URL_PARALLEL) {
+                // Display a URL - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to load URL with string \"" + string_name + "\".");
                     return;
                 }
-                if ((num_output_params >= 1)) llLoadURL(id,trans,llList2String(output_params,0));
-                else  sloodle_debug((("ERROR: Insufficient output parameters to load URL with string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_LOAD_URL_PARALLEL)) {
-                if ((id == NULL_KEY)) {
-                    sloodle_debug((("ERROR: Non-null key value required to load URL with string \"" + string_name) + "\"."));
+                
+                // NOTE: currently the parallel URL loaders will drop any text.
+                // TODO: make parallel URL loaders use text as well.
+                
+                // We need 1 additional parameter, containing the URL to load
+                if (num_output_params >= 1) llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_LOAD_URL, llList2String(output_params, 0), id);
+                else sloodle_debug("ERROR: Insufficient output parameters to load URL with string \"" + string_name + "\".");
+            
+            } else if (output_method == SLOODLE_TRANSLATE_HOVER_TEXT) {
+                // We need 1 additional parameter, containing the URL to load
+                if (num_output_params >= 2) llSetText(trans, (vector)llList2String(output_params, 0), (float)llList2String(output_params, 1));
+                else sloodle_debug("ERROR: Insufficient output parameters to show hover text with string \"" + string_name + "\".");
+            
+            } else if (output_method == SLOODLE_TRANSLATE_IM) {
+                // Send an IM - we need a valid key
+                if (id == NULL_KEY) {
+                    sloodle_debug("ERROR: Non-null key value required to send IM with string \"" + string_name + "\".");
                     return;
-                }
-                if ((num_output_params >= 1)) llMessageLinked(LINK_THIS,SLOODLE_CHANNEL_OBJECT_LOAD_URL,llList2String(output_params,0),id);
-                else  sloodle_debug((("ERROR: Insufficient output parameters to load URL with string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_HOVER_TEXT)) {
-                if ((num_output_params >= 2)) llSetText(trans,((vector)llList2String(output_params,0)),((float)llList2String(output_params,1)));
-                else  sloodle_debug((("ERROR: Insufficient output parameters to show hover text with string \"" + string_name) + "\"."));
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_IM)) {
-                if ((id == NULL_KEY)) {
-                    sloodle_debug((("ERROR: Non-null key value required to send IM with string \"" + string_name) + "\"."));
-                    return;
-                }
-                llInstantMessage(id,trans);
-            }
-            else  if ((output_method == SLOODLE_TRANSLATE_HOVER_TEXT_BASIC)) {
-                llMessageLinked(LINK_SET,SETTEXT_CHANNEL,((((("DISPLAY::top display|STRING::Sloodle Award System Error: " + trans) + "|COLOR::") + llList2String(output_params,0)) + "|ALPHA::") + llList2String(output_params,1)),NULL_KEY);
-            }
-            else  {
-                sloodle_debug((("ERROR: unrecognised output method \"" + output_method) + "\"."));
+                }                
+                // Send the IM
+                llInstantMessage(id, trans);
+
+            } else if (output_method == SLOODLE_TRANSLATE_HOVER_TEXT_BASIC){
+                    llMessageLinked(LINK_SET,SETTEXT_CHANNEL,"DISPLAY::top display|STRING::Sloodle Award System Error: "+trans+"|COLOR::"+llList2String(output_params, 0)+"|ALPHA::"+llList2String(output_params, 1),NULL_KEY);
+            } 
+            
+            
+            else {
+                // Don't know the output method
+                sloodle_debug("ERROR: unrecognised output method \"" + output_method + "\".");
             }
         }
     }

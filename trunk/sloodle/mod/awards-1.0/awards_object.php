@@ -89,7 +89,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           return update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
-      function getScores($gameid,$sortMode,$userid=NULL){
+      function getScores($gameid,$currency="Credits",$sortMode,$userid=NULL){
          
          global $CFG;
           $scoreData= array();
@@ -110,11 +110,12 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $players= get_records('sloodle_award_players','gameid',(int)$gameid);         
              //get score final score for each player
           foreach ($players as $p){      
-                 
-              $score=$this->awards_getBalanceDetails($p->userid,(int)$gameid);               
+                                           
+              $score=$this->awards_getBalanceDetails($p->userid,(int)$gameid,$currency);               
               $p->score =$score->balance;
               $p->credits=$score->credits;
               $p->debits=$score->debits;
+              $p->currency=$currency;   
               //p is now id,gameid,avuuid,userid,avname,score,credits,debits,timemodified
               $scoreData[]=$p;
               
