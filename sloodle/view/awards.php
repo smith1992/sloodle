@@ -114,10 +114,7 @@ class sloodle_view_awards extends sloodle_base_view_module
    var $iPts = null;
    
    var $showInitForm = false;
-   /**
-    * @var $icurrency - currency of this stopend - can be Lindens, or iPoints
-    */
-   var $icurrency; 
+
    /**
     * @var $awardsObj - a pointer to the awardsObject with useful functions to access the awards
     */   
@@ -185,25 +182,6 @@ class sloodle_view_awards extends sloodle_base_view_module
             $this->course_context = $sCourseObj->courseContext;
             $awardsObj = new Awards($sCourseObj->cm->id);
     }
-    /**
-    * Check that the user has permission to view this module, and check if they can edit it too.
-    */
-    
-    function check_permission()
-    {
-        global $sCourseObj;
-        // Make sure the user is logged-in
-        require_course_login($this->course, true, $this->cm);
-        add_to_log($sCourseObj->courseId, 'sloodle', 'view sloodle module', "view.php?id={$sCourseObj->cm->id}", "{$this->sloodleRec->id}", $sCourseObj->cm->id);
-        
-        // Check for permissions
-        $this->module_context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
-        $this->course_context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-        if (has_capability('moodle/course:manageactivities', $this->module_context)) $this->canedit = true;
-
-        // If the module is hidden, then can the user still view it?
-        if (empty($this->cm->visible) && !has_capability('moodle/course:viewhiddenactivities', $this->module_context)) notice(get_string('activityiscurrentlyhidden'));
-    }
 
     /**
     * Check and process the request parameters.
@@ -213,6 +191,8 @@ class sloodle_view_awards extends sloodle_base_view_module
         global $CFG, $USER;
         global $sCourseObj;
         global $awardsObj;
+        
+        parent::process_request();
     
         //====================== Get all course related information
            //coursemodule id
@@ -222,8 +202,6 @@ class sloodle_view_awards extends sloodle_base_view_module
             //get awards Object (Awards Object)
             $awardsObj = new Awards((int)$sloodleId);
             if ($this->start < 0) $this->start = 0;
-            //get icurrency type of points
-            //$this->icurrency= $awardsObj->icurrency; // there doesn't seem to be an icurrency value anymore
             //get users in this course
             $this->userList = $sCourseObj->getUserList(); 
 
@@ -238,7 +216,6 @@ class sloodle_view_awards extends sloodle_base_view_module
             $iTransaction->userid       = (int)$u->id;
             $iTransaction->sloodleid    = (int)$this->sloodleId;
             $iTransaction->gameid       = (int)$gameid;
-            $iTransaction->icurrency    = (string)$this->icurrency;
             $iTransaction->amount       = (int)$amount;
             $iTransaction->itype = "credit";
             $iTransaction->timemodified = (int)time();
@@ -869,7 +846,7 @@ class sloodle_view_awards extends sloodle_base_view_module
          // Print a Table Intro
             print('<div align="center">');
                           
-                echo '<h2><div style="text-align:center;">'.$sCourseObj->sloodleRec->name.'</div> <div style="color:black;text-align:center;">'.get_string('awards:gameslist','sloodle').'<h2>';
+                echo '<h2 style="text-align:center;">'.$sCourseObj->sloodleRec->name.'<br/>'.get_string('awards:gameslist','sloodle').'</h2>';
                  
                 
             //==================================================================================================================
@@ -908,10 +885,10 @@ class sloodle_view_awards extends sloodle_base_view_module
                     $trowData[]=$g->name.$link_url;             
                     $trowData[]=$g->id;     
                     $trowData[]=date("F j, Y, g:i a",$g->timemodified);             
-                    $scoreData = $awardsObj->getScores($g->id,'balance');                               
-                    if ($scoreData[0]) $trowData[]=$scoreData[0]->avname." (" . $scoreData[0]->score." pts)"; else $trowData[]="none";  
-                    if($scoreData[1]) $trowData[]=$scoreData[1]->avname." (" . $scoreData[1]->score." pts)";else $trowData[]="none";  
-                    if($scoreData[2])$trowData[]=$scoreData[2]->avname." (" . $scoreData[2]->score." pts)";else $trowData[]="none";  
+                    $scoreData = $awardsObj->getScores($g->id,'Credits','balance');
+                    if (!empty($scoreData[0])) $trowData[]=$scoreData[0]->avname." (" . $scoreData[0]->score." pts)"; else $trowData[]="none";  
+                    if (!empty($scoreData[1])) $trowData[]=$scoreData[1]->avname." (" . $scoreData[1]->score." pts)";else $trowData[]="none";  
+                    if (!empty($scoreData[2]))$trowData[]=$scoreData[2]->avname." (" . $scoreData[2]->score." pts)";else $trowData[]="none";  
                    
                  
                     
