@@ -89,7 +89,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           return update_record('sloodle_awards', $this->sloodle_awards_instance);
         
       }
-      function getScores($gameid,$currency="Credits",$sortMode,$userid=NULL){
+      function getScores($gameid,$currency,$sortMode='balance',$userid=NULL){
          
          global $CFG;
           $scoreData= array();
@@ -164,12 +164,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
             curl_close($ch);   
              return $result;          
      }
-     
-      function setIcurrency($icurrency){
-        $this->sloodle_awards_instance->icurrency=$icurrency; 
-        $this->timeupdated = time();
-        return update_record('sloodle_awards', $this->sloodle_awards_instance);  
-      }      
+
       function setTimemodified($timemodified){
         $this->sloodle_awards_instance->timemodified=$timemodified;  
         $this->timeupdated = time();
@@ -486,13 +481,6 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
               insert_record('sloodle_award_trans',$iTransaction); 
             }//endif
             
-            //get maxpoint limit
-            $maxPoints = $this->sloodle_awards_instance->maxpoints;
-            //Get balance 
-            $newGrade=0;
-            $detailsRec = $this->awards_getBalanceDetails($iTransaction->userid,$iTransaction->gameid);            
-            //make sure we dont give more points than max points
-            $pointsEarned = $detailsRec->balance;            
             return true;
         }
         else return false;
@@ -660,6 +648,7 @@ require_once(SLOODLE_LIBROOT.'/sloodlecourseobject.php');
           $accountInfo->credits = 0;
           $accountInfo->debits = 0;          
           $accountInfo->balance = $totalAmountRecs->balance;
+          if (empty($accountInfo->balance)) $accountInfo->balance = 0;
           
          return $accountInfo;      
      } 

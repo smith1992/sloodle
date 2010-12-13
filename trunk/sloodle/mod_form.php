@@ -172,35 +172,6 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             break;
 
-
-        // // MAP // //
-
-        case SLOODLE_TYPE_MAP:
-
-            // Add the type-specific header
-            $mform->addElement('header', 'typeheader', $sloodletypefull);
-            
-            // Add boxes for the initial coordinates of the map
-            $mform->addElement('text', 'map_initialx', 'Initial position (X): ', array('size'=>'10')); $mform->setDefault('map_initialx', '1000.0');
-            $mform->addElement('text', 'map_initialy', 'Initial position (Y): ', array('size'=>'10')); $mform->setDefault('map_initialy', '1000.0');
-            
-            // Add the initial zoom factor
-            $mform->addElement('text', 'map_initialzoom', 'Initial zoom level (1-6): ', array('size'=>'3')); $mform->setDefault('map_initialzoom', '2');
-            $mform->addRule('map_initialzoom', null, 'numeric', null, 'client');
-            
-            // Add a checkbox for showing pan controls
-            $mform->addElement('checkbox', 'map_showpan', 'Pan controls: ', 'If checked, pan controls will be visible on the map.');
-            $mform->setDefault('map_showpan', 1);
-            
-            // Add a checkbox for showing zoom controls
-            $mform->addElement('checkbox', 'map_showzoom', 'Zoom controls: ', 'If checked, zoom controls will be visible on the map.');
-            $mform->setDefault('map_showzoom', 1);
-            
-            // Add a checkbox for allowing dragging of the map
-            $mform->addElement('checkbox', 'map_allowdrag', 'Allow dragging: ', 'If checked, users will be able to click-and-drag the map to pan it.');
-            $mform->setDefault('map_allowdrag', 1);
-
-            break;
         
         case SLOODLE_TYPE_AWARDS:
         
@@ -277,10 +248,6 @@ class mod_sloodle_mod_form extends moodleform_mod {
             // Fetch the awards record
             $awards = get_record('sloodle_awards', 'sloodleid', $this->_instance);
             if (!$awards) error(get_string('secondarytablenotfound', 'sloodle'));
-            
-            $default_values['icurrency'] = $awards->icurrency;
-            $default_values['assignmentid'] = $awards->assignmentid;
-            $default_values['maxpoints'] =$awards->maxpoints;
             
             break;
   

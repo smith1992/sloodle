@@ -260,37 +260,88 @@
         * @param $bf Handle to the file which backup data should be written to.
         * @param bool $includeuserdata Indicates whether or not to backup 'user' data, i.e. any content. Most SLOODLE tools don't have any user data.
         * @return bool True if successful, or false on failure.
+        * @todo: fix the incorrect use of sloodleid elsewhere in Awards code to make this work.
         */
- function backup($bf, $includeuserdata)
+        function backup($bf, $includeuserdata)
         {
-            // Data about the Presenter itself
-            fwrite($bf, full_tag('ID', 5, false, $this->sloodle_instance->id));
-            fwrite($bf, full_tag('ICURRENCY', 5, false, $this->sloodle_awards_instance->icurrency));
-            fwrite($bf, full_tag('MAXPOINTS', 5, false, $this->sloodle_awards_instance->maxpoints));
+            global $CFG;
+        
+            // Data about the Awards system itself
+            fwrite($bf, full_tag('ID', 5, false, $this->sloodle_awards_instance->id));
+            fwrite($bf, full_tag('DEFAULT_CURRENCY', 5, false, $this->sloodle_awards_instance->default_currency));
             
+            // Are we including user data in this backup?     
+            if ($includeuserdata)
+            {
+                // Attempt to fetch all games associated with this Awards
+                $gamerecs = get_records('sloodle_award_games', 'sloodleid', $this->sloodle_awards_instance->sloodleid);
+                fwrite($bf, start_tag('GAMES', 5, true));
+                if (is_array($gamerecs))
+                {
+                    foreach ($gamerecs as $gr)
+                    {
+                        fwrite($bf, start_tag('GAME', 6, true));
+                         
+                        fwrite($bf, full_tag('ID', 7, false, $gr->id));
+                        fwrite($bf, full_tag('NAME', 7, false, $gr->name));
+                        
+                        fwrite($bf, end_tag('GAME', 6, true));
+                    }
+                }
+                fwrite($bf, end_tag('GAMES', 5, true));
+                
+                // Data about all the players involved in games associated with this Awards system
+                $playerrecs = get_records_sql("
+                    SELECT pl.*, gm.id, gm.sloodleid
+                    FROM {$CFG->prefix}sloodle_award_players pl
+                    LEFT JOIN {$CFG->prefix}sloodle_award_games gm
+                    ON pl.gameid = gm.id
+                    WHERE gm.sloodleid = {$this->sloodle_awards_instance->sloodleid}
+                ");
+                fwrite($bf, start_tag('PLAYERS', 5, true));
+                if (is_array($playerrecs))
+                {
+                    foreach ($playerrecs as $pr)
+                    {
+                        fwrite($bf, start_tag('PLAYER', 6, true));
+                         
+                        fwrite($bf, full_tag('ID', 7, false, $pr->id));
+                        fwrite($bf, full_tag('GAMEID', 7, false, $pr->gameid));
+                        fwrite($bf, full_tag('AVUUID', 7, false, $pr->avuuid));
+                        fwrite($bf, full_tag('USERID', 7, false, $pr->userid));
+                        fwrite($bf, full_tag('AVNAME', 7, false, $pr->avname));
+                        fwrite($bf, full_tag('TIMEMODIFIED', 7, false, $pr->timemodified));
+                        
+                        fwrite($bf, end_tag('PLAYER', 6, true));
+                    }
+                }
+                fwrite($bf, end_tag('PLAYERS', 5, true));
+                
             
-            // Attempt to fetch all the transactions for the award
-            $transactions= $this->get_transactions();
-            if (!$transactions) return false;
-            
-            // Data about the transactions for the award.            
-            fwrite($bf, start_tag('TRANSACTIONS', 5, true));
-            foreach ($transactions as $trans) {
-                fwrite($bf, start_tag('TRANSACTION', 6, true));
-                
-               
-                
-                fwrite($bf, full_tag('ID', 7, false, $trans->id));
-                fwrite($bf, full_tag('AVUUID', 7, false, $trans->avuuid));
-                fwrite($bf, full_tag('AVNAME', 7, false, $trans->avname));
-                fwrite($bf, full_tag('USERID', 7, false, $trans->userid));
-                fwrite($bf, full_tag('ITYPE', 7, false, $trans->itype));
-                fwrite($bf, full_tag('AMOUNT', 7, false, $trans->amount));
-                fwrite($bf, full_tag('IDATA', 7, false, $trans->idata));
-                
-                fwrite($bf, end_tag('TRANSACTION', 6, true));
+                // Attempt to fetch all the transactions for the award
+                $transactions = get_records('sloodle_award_trans', 'sloodleid', $this->sloodle_awards_instance->sloodleid);
+                fwrite($bf, start_tag('TRANSACTIONS', 5, true));
+                if (is_array($transactions))
+                {
+                    foreach ($transactions as $trans)
+                    {
+                        fwrite($bf, start_tag('TRANSACTION', 6, true));
+                         
+                        fwrite($bf, full_tag('ID', 7, false, $trans->id));
+                        fwrite($bf, full_tag('GAMEID', 7, false, $trans->gameid));
+                        fwrite($bf, full_tag('AVUUID', 7, false, $trans->avuuid));
+                        fwrite($bf, full_tag('USERID', 7, false, $trans->userid));
+                        fwrite($bf, full_tag('AVNAME', 7, false, $trans->avname));
+                        fwrite($bf, full_tag('CURRENCY', 7, false, $trans->currency));
+                        fwrite($bf, full_tag('ITYPE', 7, false, $trans->itype));
+                        fwrite($bf, full_tag('AMOUNT', 7, false, $trans->amount));
+                        fwrite($bf, full_tag('IDATA', 7, false, $trans->idata));
+                        
+                        fwrite($bf, end_tag('TRANSACTION', 6, true));
+                    }
+                }
+                fwrite($bf, end_tag('TRANSACTIONS', 5, true));
             }
-            fwrite($bf, end_tag('TRANSACTIONS', 5, true));
             
             
             return true;
@@ -309,28 +360,93 @@
             // Construct the database record for the Presenter itself
             $award = new object();
             $award->sloodleid = $info['ID']['0']['#'];
-            $award->icurrency= $info['ICURRENCY']['0']['#'];
-            $award->maxpoints= $info['MAXPOINTS']['0']['#'];           
+            $award->default_currency = $info['DEFAULT_CURRENCY']['0']['#'];
             $award->id = insert_record('sloodle_awards', $award);
             
+            // Are we including user data?
+            if ($includeuserdata)
+            {
+                // Build a list of what new game IDs are assigned in place of the old IDs.
+                // Each key will be the ID of an old game, and the corresponding value will be the new ID.
+                $gameIDtable = array();
             
-            
-            // Go through each slide in the presenter backup
-            $numtrans = count($info['TRANSACTIONS']['0']['#']['TRANS']);
-            $curtran= null;
-            for ($trannum = 0; $trannum < $numtrans; $trannum++) {
-                // Get the current award trans data
-                $curtran = $info['TRANSACTIONS']['0']['#']['TRANS'][$trannum]['#'];
-                // Construct a new transaction database object
-                $trans= new object();
-                $trans->sloodleid = $sloodleid;
-                $trans->avuuid= $info['AVUUID']['0']['#'];
-                $trans->avname= $info['AVNAME']['0']['#'];
-                $trans->userid= $info['USERID']['0']['#'];
-                $trans->itype= $info['ITYPE']['0']['#'];
-                $trans->amount= $info['AMOUNT']['0']['#'];
-                $trans->idata= $info['IDATA']['0']['#'];
-                $trans->id = insert_record('sloodle_award_trans', $trans);
+                // Go through each game in the backup
+                if (!empty($info['GAMES']['0']['#']['GAME']))
+                {
+                    $numgames = count($info['GAMES']['0']['#']['GAME']);
+                    $curgame = null;
+                    for ($gamenum = 0; $gamenum < $numgames; $gamenum++)
+                    {
+                        // Get the current game data
+                        $curgame = $info['GAMES']['0']['#']['GAME'][$gamenum]['#'];
+                        // Construct a new game database object
+                        $game = new object();
+                        $game->sloodleid = $sloodleid;
+                        $game->name = $curgame['NAME']['0']['#'];
+                        // Attempt to insert the game into the database
+                        $game->id = insert_record('sloodle_award_games', $game);
+                        
+                        // Store the ID conversion
+                        $gameIDtable[(int)$curgame['ID']['0']['#']] = (int)$game->id;
+                    }
+                }
+                
+                // Go through each player in the backup
+                if (!empty($info['PLAYERS']['0']['#']['PLAYER']))
+                {
+                    $numplayers = count($info['PLAYERS']['0']['#']['PLAYER']);
+                    $curplayer = null;
+                    for ($playernum = 0; $playernum < $numplayers; $playernum++) {
+                        
+                        // Get the current player data
+                        $curplayer = $info['PLAYERS']['0']['#']['PLAYER'][$playernum]['#'];
+                        
+                        // Try to look up our new game id
+                        $newGameID = 0;
+                        if (isset($gameIDtable[(int)$curplayer['GAMEID']['0']['#']])) $newGameID = $gameIDtable[(int)$curplayer['GAMEID']['0']['#']];
+                        
+                        // Construct a new transaction database object
+                        $player = new object();
+                        $player->gameid = $newGameID;
+                        $player->avuuid = $curplayer['AVUUID']['0']['#'];
+                        $player->userid = $curplayer['USERID']['0']['#'];
+                        $player->avname = $curplayer['AVNAME']['0']['#'];
+                        $player->timemodified = $curplayer['TIMEMODIFIED']['0']['#'];
+                        
+                        $player->id = insert_record('sloodle_award_players', $player);
+                    }
+                }
+                
+                // Go through each transaction in the backup
+                if (!empty($info['TRANSACTIONS']['0']['#']['TRANSACTION']))
+                {
+                    $numtrans = count($info['TRANSACTIONS']['0']['#']['TRANSACTION']);
+                    $curtran = null;
+                    for ($trannum = 0; $trannum < $numtrans; $trannum++) {
+                        
+                        // Get the current award trans data
+                        $curtran = $info['TRANSACTIONS']['0']['#']['TRANSACTION'][$trannum]['#'];
+                        
+                        // Try to look up our new game id
+                        $newGameID = 0;
+                        if (isset($gameIDtable[(int)$curtran['GAMEID']['0']['#']])) $newGameID = $gameIDtable[(int)$curtran['GAMEID']['0']['#']];
+                        
+                        // Construct a new transaction database object
+                        $trans= new object();
+                        $trans->sloodleid = $sloodleid;
+                        $trans->courseid = 0; // TODO: THIS NEEDS TO BE REMOVED!
+                        $trans->gameid = $newGameID;
+                        $trans->avuuid = $curtran['AVUUID']['0']['#'];
+                        $trans->userid = $curtran['USERID']['0']['#'];
+                        $trans->avname = $curtran['AVNAME']['0']['#'];
+                        $trans->currency = $curtran['CURRENCY']['0']['#'];
+                        $trans->itype = $curtran['ITYPE']['0']['#'];
+                        $trans->amount = $curtran['AMOUNT']['0']['#'];
+                        $trans->idata = $curtran['IDATA']['0']['#'];
+                        
+                        $trans->id = insert_record('sloodle_award_trans', $trans);
+                    }
+                }
             }
         
             return true;
