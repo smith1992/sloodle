@@ -20,6 +20,7 @@ define('SLOODLE_BACKPACKS_BACKPACKCONTENTS_VIEW', 1);
 require_once(SLOODLE_DIRROOT.'/view/base/base_view.php');
 /** SLOODLE logs data structure */
 require_once(SLOODLE_LIBROOT.'/course.php');
+require_once(SLOODLE_LIBROOT.'/user.php');
 require_once(SLOODLE_LIBROOT.'/currency.php');    
 
 /**
@@ -201,6 +202,7 @@ class sloodle_view_backpack extends sloodle_base_view
     function render_backpack_contents_view(){
         global $CFG;
         global $sloodle;
+        global $COURSE;
         $id = required_param('id', PARAM_INT);      
         $action= optional_param('action', "");                 
         $currentCurrency = optional_param('currentCurrency',"Credits");
@@ -232,27 +234,32 @@ class sloodle_view_backpack extends sloodle_base_view
         //display the select box for the user select box
             print_box_start();
              echo '<div style="";>'.get_string('backpack:selectusergroup', 'sloodle');
+                   $sql = "select u.*, ra.roleid from ".$CFG->prefix."role_assignments ra, ".$CFG->prefix."context con, ".$CFG->prefix."course c, ".$CFG->prefix."user u ";;
+                 $sql .= " where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=".$COURSE->id;
+                $students = get_records_sql($sql);          
                 
-                 $students = $this->sloodle_course->get_enrolled_users();
                  echo " <select name=\"currentUser\"    onchange=\"this.form.submit()\" value=\"Sumbit\">";
                  if ($currentUser =="ALL") {
                      $selectStr="selected";
                  }
                  echo "<option value=\"ALL\" {$selectStr}>ALL</option>";
                           
-                 foreach ($students as $s){                  
-                    if ($s->avname==$currentUser){
-                        $selectStr="selected";     
-                        
-                        
-                    }
-                    else {
-                        $selectStr="";
-                        
-                    }
-                    echo "<option value=\"{$s->avname}\" {$selectStr}>{$s->avname} / {$s->firstname} {$s->lastname}</option>";
+                 foreach ($students as $s){  
+                     $avUser = new SloodleUser( $sloodle );
+                     $avUser->load_user($s->id);
+                     $avUser->load_linked_avatar();        
+                     if  ($avUser->load_linked_avatar()){
+                        if ($avUser->avatar_data->avname==$currentUser){
+                            $selectStr="selected";     
+                        }
+                        else {
+                            $selectStr="";
+                            
+                        }
+                        echo "<option value=\"{$avUser->avatar_data->avname}\" {$selectStr}>{$avUser->avatar_data->avname} / {$s->firstname} {$s->lastname}</option>";
+                     }
                  }    
-                 echo '</select>';
+                 echo '</select><br>';
               
         //display the select box for the currency        
                 echo get_string('backpack:selectcurrencytype', 'sloodle');
@@ -286,21 +293,34 @@ class sloodle_view_backpack extends sloodle_base_view
               $trans = Array();
              if ($currentUser=="ALL"){
                //$trans = $sloodle_currency->get_transactions(null,$currentCurrency);               
+<<<<<<< .mine
+                //$enrolled=$this->sloodle_course->get_enrolled_users();
+                 //get all the users from the users table in the moodle database that are members in this class   
+                 $sql = "select u.*, ra.roleid from ".$CFG->prefix."role_assignments ra, ".$CFG->prefix."context con, ".$CFG->prefix."course c, ".$CFG->prefix."user u ";;
+                 $sql .= " where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=".$COURSE->id;
+           
+           
+                $enrolled = get_records_sql($sql);          
+=======
                 $enrolled=$this->sloodle_course->get_enrolled_users();
                 if (!$enrolled) $enrolled = array();
                
+>>>>>>> .r1189
                 foreach ($enrolled as $e){                    
-                    $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$e->avname}' AND t.courseid={$id}";                    
-                
-                    $tran = get_record_sql($sql);    
-                    $tran->avname=$e->avname;
-                    $tran->avuuid=$e->avuuid;
-                    $tran->userid=$e->userid;
-                    $tran->currency=$currentCurrency;                    
-                    if ($tran->balance == NULL){
-                     $tran->balance=0;
-                    }
-                    $trans[]=$tran;
+                     $avUser = new SloodleUser( $sloodle );
+                     $avUser->load_user($e->id);
+                     if ($avUser->load_linked_avatar()){
+                        $sql= "select t.*, sum(case t.itype when 'debit' then cast(t.amount*-1 as signed) else t.amount end) as balance from {$CFG->prefix}sloodle_award_trans t where t.currency='{$currentCurrency}' AND t.avname='{$avUser->avatar_data->avname}' AND t.courseid={$id} GROUP BY t.avname";                    
+                        $tran = get_record_sql($sql);    
+                        $tran->avname=$avUser->avatar_data->avname;
+                        $tran->avuuid=$avUser->avatar_data->uuid;
+                        $tran->userid=$e->id;
+                        $tran->currency=$currentCurrency;                    
+                        if ($tran->balance == NULL){
+                         $tran->balance=0;
+                        }
+                        $trans[]=$tran;
+                     }
                 }
              }else{
              //otherwise only get the transactions for the selected user for the selected currency
@@ -333,7 +353,7 @@ class sloodle_view_backpack extends sloodle_base_view
                 $trowData[]='<div style="color:green;text-align:left;">0</div>';//amount
                 $trowData[]=$editField;                                                                                                                                                                     
                 $sloodletable->data[] = $trowData;                     
-            }else
+            }else    
             foreach ($trans as $t){               
                 $trowData= Array();
                 $userIdFormElement = 
@@ -354,8 +374,8 @@ class sloodle_view_backpack extends sloodle_base_view
                 }else  $idata_editField = $t->idata;
                 $trowData[]=$idata_editField;    
                 $trowData[]=date("D M j G:i:s T Y",$t->timemodified);                                               
-              
-                $trowData[]='<div style="color:green;font-weight:bold;text-align:right;">'.$t->balance.'</div>';//
+                if ($t->itype=='debit') $trowData[]='<div style="color:red;font-weight:bold;text-align:right;">-'.$t->balance.'</div>'; 
+                else $trowData[]='<div style="color:green;font-weight:bold;text-align:right;">'.$t->balance.'</div>';//
                 $trowData[]=$editField;                                                                                                                                                                    
                 $sloodletable->data[] = $trowData;     
             }
