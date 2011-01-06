@@ -331,7 +331,7 @@ class sloodle_view_user extends sloodle_base_view
         } else if ($searchentries && !empty($this->searchstr)) {
             // Search entries
             $moodleuserdata = null;
-            $LIKE = sql_ilike();
+            $LIKE = sloodle_sql_ilike();
             $fullsloodleentries = sloodle_get_records_select('sloodle_users', "avname $LIKE '%{$this->searchstr}%' OR uuid $LIKE '%{$this->searchstr}%'", 'avname');
             if (!$fullsloodleentries) $fullsloodleentries = array();
             $sloodleentries = array();

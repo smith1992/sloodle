@@ -102,7 +102,7 @@
             $glossaryid = (int)$this->moodle_glossary_instance->id;
             
             // Construct a query
-            $sql_like = sql_ilike();
+            $sql_like = sloodle_sql_ilike();
             $termquery = "$sql_like '$term'";
             if ($matchPartial) $termquery = "$sql_like '%$term%'";
             
