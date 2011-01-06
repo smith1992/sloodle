@@ -11,12 +11,12 @@ function sloodle_do_use_db_object() {
    return ($CFG->version > 2010060800); 
 }
 
-function sloodle_get_record($p1=null, $p2=null, $p3=null) {
+function sloodle_get_record($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null, $p8='*') {
    global $DB;
    if ( sloodle_do_use_db_object() ) {
-      return $DB->get_record($p1, array($p2=>$p3) );
+      return $DB->get_record($p1, sloodle_conditions_to_array($p2,$p3,$p4,$p5,$p6,$p7) );
    } else {
-      return get_record($p1, $p2, $p3);
+      return get_record($p1, $p2, $p3, $p4, $p5, $p6, $p6, $p8);
    }
 }
 
@@ -86,11 +86,21 @@ function sloodle_count_records($p1=null, $p2=null, $p3=null) {
 function sloodle_delete_records($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
-      return $DB->delete_records($p1, sloodle_conditions_to_array($p2, $p3, $p4, $p5, $p5, $p6, $p7) );
+      return $DB->delete_records($p1, sloodle_conditions_to_array($p2, $p3, $p4, $p5, $p6, $p7) );
    } else {
       return delete_records($p1, $p2, $p3, $p4, $p5, $p6, $p7);
    }
 }
+
+function sloodle_delete_records_select($p1=null, $p2=null) {
+   if ( sloodle_do_use_db_object() ) {
+      global $DB;
+      return $DB->delete_records($p1, $p2);
+   } else {
+      return delete_records($p1, $p2);
+   }
+}
+
 
 function sloodle_delete_record($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null) {
    if ( sloodle_do_use_db_object() ) {
@@ -126,6 +136,16 @@ function sloodle_set_field($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6
    } else {
       return set_field($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8);
    }
+}
+
+function sloodle_sql_ilike($p1=null) {
+   if ( sloodle_do_use_db_object() ) {
+      global $DB;
+      return $DB->sql_ilike();
+   } else {
+      return sql_ilike();
+   }
+
 }
 
 function sloodle_conditions_to_array($c1 = null, $c2 = null, $c3 = null, $c4 = null, $c5 = null, $c6 = null) {
