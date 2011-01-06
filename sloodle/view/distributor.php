@@ -134,8 +134,10 @@ class sloodle_view_distributor extends sloodle_base_view_module
             if (empty($a->uuid) || empty($a->userid)) continue;
             // Make sure the associated Moodle user can view the current course
             if (!has_capability('moodle/course:view', $this->course_context, $a->userid)) continue;
-            // Make sure the associated Moodle user does not have a guest role
-            if (has_capability('moodle/legacy:guest', $this->course_context, $a->userid, false)) continue;
+            // Make sure the associated Moodle user does not have a guest role (Moodle 1.x only)
+	    if ($CFG->version < 2010000000) {
+                if (has_capability('moodle/legacy:guest', $this->course_context, $a->userid, false)) continue;
+	    }
 
             $sel = '';
             if ($a->avname == $defaultavatar) $sel = 'selected="true"';
