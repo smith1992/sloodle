@@ -134,7 +134,7 @@
                 		return false;
                 	}
                 	// Does the specified module instance exist in this course?
-                	if (!record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
+                	if (!sloodle_record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
                 		if ($require) {
                 			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Module not found in requested course.', false);
                     		exit();

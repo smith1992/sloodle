@@ -204,7 +204,7 @@
     function sloodle_is_installed()
     {
         // Is there a Sloodle entry in the modules table?
-        return record_exists('modules', 'name', 'sloodle');
+        return sloodle_record_exists('modules', 'name', 'sloodle');
     }
     
     /**
