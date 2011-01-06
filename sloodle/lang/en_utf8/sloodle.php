@@ -6,6 +6,8 @@
 * @package sloodlelang
 */
 
+$string['pluginname']   = 'SLOODLE';
+
 $string['accesslevel'] = 'Access Level';
 $string['accesslevel:public'] = 'Public';
 $string['accesslevel:owner'] = 'Owner';
