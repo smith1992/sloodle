@@ -119,8 +119,11 @@
                 }
             }
             
+            //$users = get_course_users($this->cm->course); // Deprecated since 1.7. Hope this works instead:
+            $context = get_context_instance(CONTEXT_COURSE, $this->cm->course);
+            $users = get_users_by_capability($context, 'moodle/course:view', 'u.id', '','','',array(), false);
+
             // Determine how many people on the course have not yet answered
-            $users = get_course_users($this->cm->course);
             if (!is_array($users)) $users = array();
             $num_users = count($users);
             $numanswers = (int)sloodle_count_records('choice_answers', 'choiceid', $this->moodle_choice_instance->id);
