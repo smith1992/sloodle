@@ -553,6 +553,7 @@
         */
         function get_enrolled_courses($category = null)
         {
+            global $CFG;
             // Make sure we have user data
             if (empty($this->user_data)) return array();
             // If it is the guess user, then they are not enrolled at all
@@ -571,7 +572,8 @@
                 // Check if the user can view this course and is not a guest in it.
                 // (Note: the site course is always available to all users.)
                 $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
-                if ($course->id == SITEID || (has_capability('moodle/course:view', $course_context, $this->user_data->id) && !has_capability('moodle/legacy:guest', $course_context, $this->user_data->id, false))) {
+		// No longer check for legacy capabilities in Moodle 2. 
+                if ($course->id == SITEID || (has_capability('moodle/course:view', $course_context, $this->user_data->id) && !( ($CFG->version < 2010000000) && has_capability('moodle/legacy:guest', $course_context, $this->user_data->id, false)))) {
                     $sc = new SloodleCourse();
                     $sc->load($course);
                     $usercourses[] = $sc;
@@ -641,6 +643,7 @@
         {
             
             global $USER;
+            global $CFG;
             // Attempt to log-in the user
             if (!$this->login()) return false;
             
@@ -653,7 +656,8 @@
             
             // Check if the user can view the course, and does not simply have guest access to it
             // Allow the site course
-            return ($courseid == SITEID || (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)));
+            // Only do the legacy guest check for pre-Moodle 2
+            return ($courseid == SITEID || (has_capability('moodle/course:view', $context) && !( ($CFG->version < 2010000000) && has_capability('moodle/legacy:guest', $context, NULL, false))));
         }
              
         
@@ -668,6 +672,7 @@
         function is_staff($courseid)
         {
             global $USER;
+            global $CFG;
             // Attempt to log-in the user
             if (!$this->login()) return false;
             
@@ -679,7 +684,7 @@
             load_all_capabilities();
             
             // Check if the user can view the course, does not simply have guest access to it, *and* is staff
-            return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false) && has_capability('mod/sloodle:staff', $context));
+            return (has_capability('moodle/course:view', $context) && !(($CFG->version < 2010000000) && has_capability('moodle/legacy:guest', $context, NULL, false) ) && has_capability('mod/sloodle:staff', $context));
         }
         
         /**
@@ -714,7 +719,7 @@
             
             // Check if the user can view the course, and does not simply have guest access to it
             // (No point trying to enrol somebody if they are already enrolled!)
-            if (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false)) return true;
+            if (has_capability('moodle/course:view', $context) && !( ($CFG->version < 2010000000) && has_capability('moodle/legacy:guest', $context, NULL, false) ) ) return true;
             
             // Make sure auto-registration is enabled for this site/course, and that the controller (if applicable) is enabled
             if (!$sloodle_course->check_autoreg()) return false;            
