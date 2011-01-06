@@ -277,7 +277,7 @@ class sloodle_view_user extends sloodle_base_view
             
             // Has the deletion been confirmed?
             if ($this->userconfirmed == $form_yes) {
-                if (record_exists('sloodle_users', 'id', $this->deletesloodleentry)) {
+                if (sloodle_record_exists('sloodle_users', 'id', $this->deletesloodleentry)) {
                     // Is the user allowed to delete this?
                     if ($allowdelete) {
                         // Make sure it's a valid ID
