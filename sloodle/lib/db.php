@@ -20,6 +20,15 @@ function sloodle_get_record($p1=null, $p2=null, $p3=null) {
    }
 }
 
+function sloodle_record_exists($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null) {
+   global $DB;
+   if ( sloodle_do_use_db_object() ) {
+      return $DB->record_exists($p1, sloodle_conditions_to_array($p2,$p3,$p4,$p5,$p6,$p7) );
+   } else {
+      return record_exists($p1, $p2, $p3, $p4, $p5, $p6, $p7);
+   }
+}
+
 function sloodle_get_records($p1=null, $p2=null, $p3=null, $p4=null, $p5='*', $p6=null, $p7=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
@@ -77,7 +86,7 @@ function sloodle_count_records($p1=null, $p2=null, $p3=null) {
 function sloodle_delete_records($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
-      return $DB->delete_records($p1, array($p2=>$p3, $p4=>$p5, $p6=>$p7) );
+      return $DB->delete_records($p1, sloodle_conditions_to_array($p2, $p3, $p4, $p5, $p5, $p6, $p7) );
    } else {
       return delete_records($p1, $p2, $p3, $p4, $p5, $p6, $p7);
    }
