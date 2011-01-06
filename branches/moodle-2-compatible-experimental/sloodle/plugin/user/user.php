@@ -220,6 +220,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
            
         function getEnrolledCourses(){           
            global $sloodle;    
+           global $CFG;    
               
            $avname= $sloodle->request->required_param('avname');
              $avuuid= $sloodle->request->required_param('avuuid');
@@ -245,7 +246,7 @@ class SloodleApiPluginUser  extends SloodleApiPluginBase{
                          if ($sc->course_object->id!=1){
                          $cost=$sc->course_object->cost;
                          if (empty($cost))$cost=0;
-                        if (has_capability('moodle/course:view', $course_context, $sloodle->user->get_user_id()) && !has_capability('moodle/legacy:guest', $course_context, $sloodle->user->get_user_id(), false)) {
+                        if (has_capability('moodle/course:view', $course_context, $sloodle->user->get_user_id()) && !( ( $CFG->version < 2010000000 ) && has_capability('moodle/legacy:guest', $course_context, $sloodle->user->get_user_id(), false))) {
                            
                                 $sloodle->response->add_data_line($sc->course_object->id."|".$sc->course_object->fullname."|".$cost."|1");
                                    
