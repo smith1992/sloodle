@@ -4,6 +4,7 @@ Edmund Edgar, 2010-06-18
 Sloodle database compatibility wrappers
 For reasons best known to themselves, Moodle decided to suddenly rip out all their old db functions and put in a bunch of near-identical ones with slightly different syntax.
 To avoid the need for a different release, we'll go through a layer of sloodle_ functions which wrap the appropriate Moodle database call.
+We'll probably want to switch these out for the regular Moodle 2.0 calls when people have had a change to upgrade to Moodle 2.
 */
 
 function sloodle_do_use_db_object() {
