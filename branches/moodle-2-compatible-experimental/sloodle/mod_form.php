@@ -84,14 +84,20 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // Set a client-size rule that an entry is required
         $mform->addRule('name', null, 'required', null, 'client');
 
-        // Create an HTML editor for module description (intro text)
-        $mform->addElement('htmleditor', 'intro', get_string('description'));
-        // Make it raw type (so the HTML isn't filtered out)
-        $mform->setType('intro', PARAM_RAW);
-        // Make it required
-        //$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
-        // Provide an HTML editor help button
-        $mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
+	if (method_exists($this,'add_intro_editor')) {
+		$this->add_intro_editor(true);
+	} else {
+		// Create an HTML editor for module description (intro text)
+		$mform->addElement('htmleditor', 'intro', get_string('description'));
+		// Make it raw type (so the HTML isn't filtered out)
+		$mform->setType('intro', PARAM_RAW);
+		// Make it required
+		$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
+		// Provide an HTML editor help button
+		$mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
+	}
+
+
         
         
 //-------------------------------------------------------------------------------
