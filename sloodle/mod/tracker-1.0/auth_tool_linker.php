@@ -46,9 +46,9 @@
     
     // Attempt to authenticate the request (only require authentication if controller ID and/or password is set)
     // PRB: not sure why authentication is optional here -- should be required
-    /*$authrequired = (isset($_REQUEST['sloodlecontrollerid']) || isset($_REQUEST['sloodlepwd']));
+    //$authrequired = (isset($_REQUEST['sloodlecontrollerid']) || isset($_REQUEST['sloodlepwd']));
     $sloodle = new SloodleSession();
-    $request_auth = $sloodle->authenticate_request($authrequired);*/
+    //$request_auth = $sloodle->authenticate_request($authrequired);
     $sloodle->authenticate_request();
     
     // Get the extra parameters
