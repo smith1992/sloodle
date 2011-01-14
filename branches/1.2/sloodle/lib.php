@@ -253,7 +253,7 @@
         if ($moduletype && $moduletype->id)
         {
             $moduletypeid = $moduletype->id;
-            $cm = get_record('course_modules', 'instance', $id, 'type', $moduletypeid);
+            $cm = get_record('course_modules', 'instance', $id, 'module', $moduletypeid);
             if ($cm) $cmid = $cm->id;
         }
 
