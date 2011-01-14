@@ -1,5 +1,5 @@
 // This file is part of SLOODLE Tracker.
-// Copyright (c) 2009 Sloodle
+// Copyright (c) 2009-11 Sloodle community (various contributors)
     
 // SLOODLE Tracker is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -212,7 +212,14 @@ default
                 if (isconfigured == TRUE) {
                     sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "configurationreceived", [], NULL_KEY, "");
                     llSleep(2.0);
-                    string body = "sloodleobjuuid="+(string)llGetKey()+"&sloodleobjname="+llGetObjectName()+"&sloodleobjtype="+SLOODLE_OBJECT_TYPE+"&sloodlemoduleid="+(string)sloodlemoduleid+"&sloodledescription="+DESCRIPTION+"&sloodletaskname="+NAME;
+                    string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
+                    body += "&sloodlepwd=" + sloodlepwd;
+                    body += "&sloodleobjuuid="+(string)llGetKey();
+                    body += "&sloodleobjname="+llGetObjectName();
+                    body += "&sloodleobjtype="+SLOODLE_OBJECT_TYPE;
+                    body += "&sloodlemoduleid="+(string)sloodlemoduleid;
+                    body += "&sloodledescription="+DESCRIPTION;
+                    body += "&sloodletaskname="+NAME;
                     httpreg = llHTTPRequest(sloodleserverroot + SLOODLE_TOOL_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
                     state ready;
                 } else {

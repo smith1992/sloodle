@@ -1,6 +1,6 @@
 // This file is part of SLOODLE Tracker.
 // It provides the button functionality.
-// Copyright (c) 2009 Sloodle
+// Copyright (c) 2009-11 Sloodle community (various contributors)
     
 // SLOODLE Tracker is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
