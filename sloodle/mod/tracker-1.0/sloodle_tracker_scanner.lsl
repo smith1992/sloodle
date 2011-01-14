@@ -1,5 +1,5 @@
 // This file is part of SLOODLE Tracker.
-// Copyright (c) 2009 Sloodle
+// Copyright (c) 2009-11 Sloodle community (various contributors)
     
 // SLOODLE Tracker is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 
 integer CHANNEL = 447851; // Channel for the tasks to comunicate  
 string MY_TYPE = "scanner"; // What type of tracker tool is this?
+float RANGE = 20.0; // How far should we scan?
+integer REPORT_SCANS = FALSE; // TRUE means every avatar who is scanned will be reported in local chat. FALSE disables this.
 
 // Used to know who has already been detected and sent to Moodle.
 list recorded = [];
@@ -39,8 +41,7 @@ default
     state_entry()
     {
         llSetTimerEvent(30.0);  
-        llSensorRepeat("", NULL_KEY,AGENT,96, PI,5);
-        //llSetText("Scanner ON", <0.0, 1.0, 0.0>, 0.8);
+        llSensorRepeat("", NULL_KEY, AGENT, RANGE, PI,5);
     }
     
     state_exit()
@@ -84,7 +85,7 @@ default
         // Was this an interaction response?
         if (sval == "INTERACTION_RESPONSE" && kval != NULL_KEY)
         {
-            llSay(0,  "Avatar detected: " + llKey2Name(kval));
+            if (REPORT_SCANS) llSay(0,  "Avatar detected: " + llKey2Name(kval));
         }
     }
  
@@ -113,6 +114,11 @@ state off
     state_entry()
     {
         llSetText("Scanner OFF", <0.0, 1.0, 0.0>, 0.8);
+    }
+    
+    state_exit()
+    {
+        llSetText("", <0.0, 1.0, 0.0>, 0.8);
     }
     
     touch_start(integer total_number)

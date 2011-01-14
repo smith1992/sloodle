@@ -1,6 +1,6 @@
-SLOODLE 1.1 README
+SLOODLE 1.2 README
 
-Thanks for download SLOODLE 1.1.
+Thanks for download SLOODLE 1.2.
 
 ===============================================================================
 CONTENTS
@@ -11,8 +11,7 @@ CONTENTS
 4. THE SLOODLE TOOLS
 5. CONTACT INFORMATION
 6. SLOODLE ISLAND INFORMATION
-7. SLOODLE ADDONS
-8. USEFUL LINKS
+7. USEFUL LINKS
 
 
 ===============================================================================
@@ -34,11 +33,17 @@ Dr. Daniel Livingstone, University of the West of Scotland, UK is co-founder and
 ===============================================================================
 2. RELEASE NOTES
 ===============================================================================
-SLOODLE 1.1 comes with some optimisations, and the addition of simple backup/restore functionality.
-If you backup a course with SLOODLE modules in it, then they will be stored in your backup too.
-Currently, avatars are not backed-up, and your Presenter will remember the URLs of slides -- it won't actually backup the slides themselves.
+SLOODLE 1.2 introduces the SLOODLE Tracker functionality originally developed at the University of Ulster.
+Many thanks to the team there for their contributions:
 
-Please note that all SLOODLE 1.0 tools should work with SLOODLE 1.1.
+- Julio Lopez (SL: Julio Solo)
+- Michael Callaghan (SL: HarmonyHill Allen)
+- Kerri McCusker  (SL: Kerri Macchi)
+
+The Tracker system was adapted for the SLOODLE project by Peter R. Bloomfield (SL: Pedro McMillan).
+
+Please note that all SLOODLE 1.0 and 1.1 tools should work with SLOODLE 1.2.
+(Many of your SLOODLE 0.4 tools should still work too, but we can't guarantee it.)
 
 
 ===============================================================================
@@ -237,42 +242,16 @@ All Chats are archived here:
 
 
 ===============================================================================
-7. SLOODLE ADDONS
+7. USEFUL LINKS 
 ===============================================================================
-Sloodle Addons are additional tools you can install into Sloodle by uploading additional software into your Moodle website, as well
-as rezzing the tool in world.
-Sloodle addons can be found here:
-http://download.socialminds.jp/sloodle/latest/addons.zip
+For your convenience, here are a few useful links:
 
-*********************************
-Sloodle 1.0 Awards System Addon *
-*********************************
-Motivate your Students by awarding them points towards their final grade directly in Second Life
-* Read about it here: http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System
-* Get it delivered to you in Second Life: http://www.sloodle.org/moodle/mod/sloodle/view.php?id=1229
-* Get the software to install here: http://download.socialminds.jp/sloodle/latest/addons.zip
-* View a video here: http://www.youtube.com/watch?v=cvLvq-DIbs4
+*) Sloodle Home Page: http://sloodle.org
 
-************************************
-Sloodle 1.0 Freemail Blogger Addon *
-************************************
-Take snapshots in Second Life, and have them entered directly into your Moodle Blogs
-* Read about it here: http://slisweb.sjsu.edu/sl/index.php/Freemail_Blogger
-* Get it delivered to you in Second Life: No need to rez in Second Life, only lives on your website.
-* Get the software to install here: http://download.socialminds.jp/sloodle/latest/addons.zip
-*  http://www.youtube.com/user/fire2006#play/search/0/LiXrXA1A_ok
-
-
-===============================================================================
-8. USEFUL LINKS 
-===============================================================================
-For your convenience, here are a few useful download links:
 *) Sloodle 1.0 Set Video : http://www.youtube.com/watch?v=tdXiKJeWXZg&feature=channel
 *) Sloodle Wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle
-*) Sloodle Home Page: http://sloodle.org
+
 *) Discussion Forum http://www.sloodle.org/moodle/mod/forum/view.php?f=15
-*) Testing forum: http://www.sloodle.org/moodle/mod/forum/view.php?id=1226
 *) Youtube Channel: http://youtube.com/user/sloodle
-*) Fire's Youtube Channel: http://youtube.com/user/fire2006 (for extra videos)
 *) Sloodle Twitter: http://twitter.com/sloodle_news
 
