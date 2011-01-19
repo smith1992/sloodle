@@ -40,7 +40,7 @@ integer TOTAL = 0;  // Number of tasks in the assignment
 
 
 
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857353;
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 string SLOODLE_TRACKER_LINKER = "/mod/sloodle/mod/tracker-1.0/linker.php";
 string SLOODLE_TOOL_LINKER = "/mod/sloodle/mod/tracker-1.0/auth_tool_linker.php";
