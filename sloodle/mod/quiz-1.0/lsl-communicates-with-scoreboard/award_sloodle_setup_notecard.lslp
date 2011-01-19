@@ -15,7 +15,7 @@
 
 
 
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857353;
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 string SLOODLE_CONFIG_NOTECARD = "sloodle_config";
 string SLOODLE_AWARD_CONFIG_NOTECARD = "sloodle_award_config"; //here is the modification
 string SLOODLE_EOF = "sloodleeof";

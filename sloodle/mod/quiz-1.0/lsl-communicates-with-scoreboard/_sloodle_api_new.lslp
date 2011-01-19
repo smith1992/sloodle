@@ -63,7 +63,7 @@ integer ADMIN_CHANNEL =82;  //used for dialog messages during setup
 key ownerKey;
 // *************************************************** LISTS TO HOLD FIELD VALUES OF DATAROW RECORD SETS
 // *************************************************** AUTHENTICATION CONSTANTS
-integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857353;
+integer SLOODLE_CHANNEL_OBJECT_DIALOG = -3857343;
 integer SLOODLE_CHANNEL_AVATAR_DIALOG = 1001;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_PUBLIC = 0;
 integer SLOODLE_OBJECT_ACCESS_LEVEL_OWNER = 1;
