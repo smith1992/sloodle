@@ -27,10 +27,8 @@
 
 // IN-WORLD CONFIGURATION //    
 
-// Write a short description of the task
-string DESCRIPTION = "description";
-// Write the name of the task    
-string NAME = "name";
+string NAME = "Unnamed task";
+string DESCRIPTION = "-";
     
 integer PREDEFINED_ORDER = 0;  // Does the task have to be done in a specific order? 0 -> NO, 1 -> YES
 integer POSITION = 0; // Position of the task in the pre-defined sequence
