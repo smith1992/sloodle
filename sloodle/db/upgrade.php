@@ -504,23 +504,7 @@ function xmldb_sloodle_upgrade($oldversion=0) {
         $result = $result && create_table($table);         
         if (!$result) echo "error<br/>";
         
-        
-     /// Define table sloodle_opensim_instance to be created
-        $table = new XMLDBTable('sloodle_opensim_instance');
-
-    /// Adding fields to table sloodle_opensim_instance
-        
-		$table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
-		$table->addFieldInfo('avuuid', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null, null, null);
-		$table->addFieldInfo('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);
-		$table->addFieldInfo('port', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
-		$table->addFieldInfo('lastactive', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
-
-	/// Adding keys to table sloodle_opensim_instance
-		$table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
-	/// Launch create table for sloodle_opensim_instance
-		$result = $result && create_table($table);
-		
+        	
 
     /// Define table sloodle_tracker to be created
         $table = new XMLDBTable('sloodle_tracker');
@@ -528,7 +512,6 @@ function xmldb_sloodle_upgrade($oldversion=0) {
     /// Adding fields to table sloodle_tracker
         $table->addFieldInfo('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
         $table->addFieldInfo('sloodleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
-        $table->addFieldInfo('opensim_template', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, null, null);
 
     /// Adding keys to table sloodle_tracker
         $table->addKeyInfo('primary', XMLDB_KEY_PRIMARY, array('id'));
