@@ -69,7 +69,7 @@
         var $httpinurl = null;
 
         //sends a curl message to our objects httpinurl
-        public function sendMessage($msg){
+        function sendMessage($msg){
                 $ch = curl_init();    // initialize curl handle
                 curl_setopt($ch, CURLOPT_URL,$this->httpinurl); // set url to post to
                 curl_setopt($ch, CURLOPT_FAILONERROR,0);
@@ -87,7 +87,7 @@
         * @var $extraParameters array()
         *
         */
-        public function sendConfig( $extraParameters = NULL ){//inside active_object.php
+        function sendConfig( $extraParameters = NULL ){//inside active_object.php
             //construct the body
            if ($extraParameters === NULL) {
                $extraParameters = array();
@@ -141,7 +141,7 @@
             return $this->sendMessage( $renderStr );
         }
 
-        public function save(){
+        function save(){
            //write local data to a new or existing record
            //search for id
            //if exists update
@@ -181,7 +181,7 @@
 
         // Load data for the specified UUID
         // Return true on success, false on fail
-        public function loadByUUID( $uuid ) {
+        function loadByUUID( $uuid ) {
 
             $rec = get_record('sloodle_active_object','uuid',$uuid);
 
@@ -193,7 +193,7 @@
             return false;
 
         }
-        public function loadFromRecord($rec) {
+        function loadFromRecord($rec) {
            $this->id = $rec->id;
            $this->controllerid = $rec->controllerid;
            $this->userid = $rec->userid;
