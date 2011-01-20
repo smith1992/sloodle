@@ -1,4 +1,4 @@
-<?PHP 
+<?php
 
 $string['typesloodleobject'] = 'SLOODLE Object';
 
