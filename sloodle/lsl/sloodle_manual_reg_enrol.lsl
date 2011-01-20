@@ -1,9 +1,6 @@
 // Manual avatar registration and enrolment script.
-//
 // Will initiate manual (URL-based) avatar registration/enrolment in
-// response to link messages.  The manual URL produced, can be used by an user to log into the moodle site
-// and link their avatar.  When this manual url is produced, the developer my deliver it to the user via dialog box, or 
-// the chat dialog, or any other way they wish.
+//  response to link messages.
 //
 // Part of the Sloodle project (www.sloodle.org).
 // Copyright (c) 2008 Sloodle
@@ -11,7 +8,7 @@
 //
 // Contributors:
 //  Peter R. Bloomfield
-//  Paul Preibisch
+//
 
 // Can be supplied with 3 link messages for registration only, enrolment only, or both.
 // The avatar in question should be identified in the key value for all 3.
@@ -130,7 +127,7 @@ default
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
             body += "&sloodleuuid=" + (string)kval;
-            body += "&sloodleavname=" +  llEscapeURL(llKey2Name(kval));
+            body += "&sloodleavname=" + llKey2Name(kval);
             body += "&sloodlemode=" + sloodlemode;
             key newhttp = llHTTPRequest(sloodleserverroot + SLOODLE_REG_LINKER, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
             httpreqs += [newhttp, kval];
@@ -191,5 +188,3 @@ default
     }
 }
 
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: lsl/sloodle_manual_reg_enrol.lsl 

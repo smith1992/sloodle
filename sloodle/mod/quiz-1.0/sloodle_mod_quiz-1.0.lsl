@@ -492,7 +492,7 @@
                     if(scorechange>0) num_correct++; // SAL added this
 
                     // Are we are at the end of the quiz?
-                    if ((active_question + 1) >= num_questions) {
+                    if (active_question >= num_questions) {
                         // Yes - finish off
                         finish_quiz();
                         // Do we want to repeat the quiz?

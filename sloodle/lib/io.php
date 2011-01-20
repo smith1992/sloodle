@@ -673,7 +673,6 @@
             // Attempt to render the output to a string, and then copy that string to the HTTP response
             $str = "";
             $this->render_to_string($str);
-            SloodleDebugLogger::log('RESPONSE', $str);
             echo $str;
         }
         
@@ -918,9 +917,6 @@
         */
         function process_request_data($require_auth = true, $require_user = true)
         {
-
-            SloodleDebugLogger::log('REQUEST', null);
-
             // Do we have a session object?
             if (!isset($this->_session)) return false;
             
@@ -1140,53 +1136,5 @@
             if ($required) return $this->required_param($parname);
             return $this->optional_param($parname, $default);
         }
-
-}
-
-class SloodleDebugLogger {
-
-        // Write the contents to the debug log, if one is defined in SLOODLE_DEBUG_REQUEST_LOG. 
-        // Return true if we write something, false if we don't.
-        function log($type, $contents = null) {
-            $str = '';
-            $str = '------START-'.$type.'-'.$_SERVER['REQUEST_URI'].'---'.$_SERVER['REMOTE_ADDR'].'---'.$_SERVER['REMOTE_PORT'].'---'.$_SERVER['REQUEST_TIME'].'------'."\n";
-            if ( SLOODLE_DEBUG_REQUEST_LOG == '' ) {
-                return false;
-            }
-
-            if ( ($type == 'REQUEST') && ($contents == null) ) {
-               if (!empty($_GET)) {
-                  foreach($_GET as $n=>$v) {
-                     $str .= "GET: ".$n." => ".$v."\n";
-                  }
-               }
-               if (!empty($_POST)) {
-                  foreach($_POST as $n=>$v) {
-                     $str .= "POST: ".$n." => ".$v."\n";
-                  }
-               }
-               if (!empty($_SERVER)) {
-                  $interesting_server_vars = array('HTTP_X_SECONDLIFE_OBJECT_NAME', 'REQUEST_URI');
-                  foreach($_SERVER as $n=>$v) {
-                     if (in_array($n, $interesting_server_vars)) {
-                        $str .= "SERVER: ".$n." => ".$v."\n";
-                     }
-                  }
-               }
-            } else {
-               $str .= $contents."\n";
-            }
-
-            
-            $str .= '------END-'.$type.'-'.$_SERVER['REQUEST_URI'].'---'.$_SERVER['REMOTE_ADDR'].'---'.$_SERVER['REMOTE_PORT'].'---'.$_SERVER['REQUEST_TIME'].'------'."\n";
-
-            if ($fh = fopen(SLOODLE_DEBUG_REQUEST_LOG, 'a')) {
-               fwrite($fh, $str);
-               fclose($fh);
-            }
-            return false;
-        }
-
-}
-
+    }
 ?>

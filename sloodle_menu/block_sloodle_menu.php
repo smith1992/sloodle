@@ -26,7 +26,7 @@ if (!defined('SLOODLE_VERSION')) {
 }
 
 /** Define the Sloodle Menu Block version. */
-define('SLOODLE_MENU_VERSION', 2.0);
+define('SLOODLE_MENU_VERSION', 1.1);
 
 /**
 * Defines the block class.
@@ -43,7 +43,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2010110311;
+        $this->version = 2009010801;
     }
     
     /**
@@ -174,15 +174,6 @@ class block_sloodle_menu extends block_base {
             $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/page.gif\" width=\"16\" height=\"16\"/> ";
             $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$COURSE->id}\">".get_string('editcourse', 'block_sloodle_menu')."</a><br>\n";
         }
-        // Add a link to Sloodle logs, if the user can update the course
-        if (has_capability('moodle/course:update', $course_context)) {
-            $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/notes.gif\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=logs&id={$COURSE->id}\">".get_string('logs:view', 'sloodle')."</a><br>\n";
-        }
-        // Add a link to Sloodle Backpack
-        
-            $this->content->text .= "<img src=\"{$CFG->wwwroot}/blocks/sloodle_menu/img/coin.png\" width=\"16\" height=\"16\"/> ";
-            $this->content->text .= "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=backpack&id={$COURSE->id}\">".get_string('backpack:view', 'sloodle')."</a><br>\n";
         
         // Add a module configuration link if the user has authority to administer the module
         if (has_capability('moodle/site:config', $course_context)) {

@@ -443,15 +443,14 @@ class sloodle_view_user extends sloodle_base_view
         
         // Construct and display a table of Sloodle entries
         if ($numsloodleentries > 0) {
-            $sloodletable = new stdClass(); 
+            $sloodletable = new stdClass();            
             $sloodletable->head = array(    get_string('avatarname', 'sloodle'),
                                             get_string('avataruuid', 'sloodle'),
-                                            get_string('profilePic', 'sloodle'),
                                             get_string('lastactive', 'sloodle'),
                                             ''
                                         );
-            $sloodletable->align = array('left', 'left', 'left', 'left', 'left');
-            $sloodletable->size = array('28%', '42%', '20%','20%', '10%');
+            $sloodletable->align = array('left', 'left', 'left', 'left');
+            $sloodletable->size = array('28%', '42%', '20%', '10%');
             
             $deletestr = get_string('delete', 'sloodle');
             
@@ -502,60 +501,7 @@ class sloodle_view_user extends sloodle_base_view
                     // Add them to the table
                     $line[] = $curavname;
                     $line[] = $curuuid; 
-                    //grab image
-                    $endlink="";
-                    $startlink="";
-                    if (empty($su->profilepic)) {
-                        // There is no stored avatar picture URL.
-                        // If we know the grid type and if we're only displaying the avatar(s) for a single user, then try to grab the image externally.
-                        // Note that this page is also used to display a list of all avatars on the site, so we wouldn't want to do a curl request for each one.
-                        if (!empty($CFG->sloodle_gridtype) && !$allentries && !$searchentries) {
-                            if ($CFG->sloodle_gridtype=="SecondLife"){
-                               //scrape image                 
-                                 $profile_key_prefix = "<meta name=\"imageid\" content=\"";
-                                 $profile_img_prefix = "<img alt=\"profile image\" src=\"http://secondlife.com/app/image/";
-                                 $profile_img_suffix ="parcel";
-                                 $url =  "http://world.secondlife.com/resident/".$curuuid;
-                                 $ch = curl_init();    // initialize curl handle 
-                                 curl_setopt($ch, CURLOPT_URL,$url); // set url to post to 
-                                 curl_setopt($ch, CURLOPT_FAILONERROR,0); 
-                                 curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable 
-                                 curl_setopt($ch, CURLOPT_TIMEOUT, 10); // times out after 4s 
-                                 curl_setopt($ch, CURLOPT_POST, 1); // set POST method 
-                                 curl_setopt($ch, CURLOPT_POSTFIELDS,""); // add POST fields        
-                                 $body= curl_exec($ch); // run the whole process 
-                                 curl_close($ch); 
-                                 $nameStart = strpos($body, '<title>');
-                                 $nameEnd = strpos($body, '</title>');
-                                 $nameStr = substr($body,$nameStart+7,$nameEnd-$nameStart-7);
-                                 $imageStart = strpos($body, $profile_img_prefix);
-                                 $imageEnd = strpos($body, $profile_img_suffix);
-                                 $imgStr = substr($body,$imageStart+30,$imageEnd-$imageStart -39);
-                                 $avimage = $imgStr;
-                                 if (!$imageStart){
-                                     $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
-                                 }else{
-                                    $su->profilepic = $avimage;
-                                    update_record("sloodle_users",$su);
-                                 }
-                                 $startlink = '<a href="'.$url.'" target="_blank">';
-                                 $endlink="</a>";
-                            }else{
-                                //grid type is opensim
-                                $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
-                            }
-                        }//gridtype was not specified so just put empty.pngs for the users until admin specifies gridtype
-                        else{
-                             $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";        
-                            
-                        }
-                      
-                    }//profile pic is already in db
-                    else{
-                        $avimage=$su->profilepic;
-                    }
-                          
-                    $line[]=$startlink.'<img  style="width:40px;height:40px" src="'.$avimage.'">'.$endlink;       
+                    
                     // Do we know when the avatar was last active
                     if (!empty($su->lastactive)) {
                         // Calculate the time difference
@@ -600,8 +546,8 @@ class sloodle_view_user extends sloodle_base_view
             $nextstart = $this->start + $maxperpage;
             $prevlink = null;
             $nextlink = null;
-            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\">&lt;&lt;</a>&nbsp;&nbsp;";            
-            if ($nextstart < count($sloodleentries)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\">&gt;&gt;</a>";
+            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\" style=\"color:#0000ff;\">&lt;&lt;</a>&nbsp;&nbsp;";            
+            if ($nextstart < count($sloodleentries)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\" style=\"color:#0000ff;\">&gt;&gt;</a>";
             
             // Display the next/previous links, if we have at least one
             if (!empty($prevlink) || !empty($nextlink)) {
@@ -616,28 +562,10 @@ class sloodle_view_user extends sloodle_base_view
             // Display the table
             print_table($sloodletable);
             
-        }
-         
-        // Display a link allowing admin users to add an avatar if this is a single avatar page
-        if (!$allentries && !$searchentries)
-        {
-            if (isadmin())
-            {
-                echo "<p style=\"font-weight:bold;\">";
-                echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=addavatar&amp;user={$this->moodleuserid}&amp;course={$this->courseid}\" title=\"".get_string('addavatarhere','sloodle')."\">";
-                echo "<img src=\"{$CFG->wwwroot}/mod/sloodle/lib/media/add.png\" alt=\"[plus icon]\" /> ";
-                print_string('addavatar', 'sloodle');
-                echo "</a></p>\n";
-            }
-        }
-
-
-        // Construct and display a table of Sloodle entries
-        if ($numsloodleentries > 0) {
             
-            // Display a list of user-authorised objects
+            // Now display the section of user-authorized objects
             if (!$allentries && !$searchentries) {
-                echo '<br/><h3>'.get_string('userobjects','sloodle');
+                echo '<br><h3>'.get_string('userobjects','sloodle');
                 helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', false);
                 echo "</h3>\n";
                 

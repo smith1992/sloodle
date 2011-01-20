@@ -256,6 +256,16 @@ class sloodle_view_users extends sloodle_base_view
         echo '<input type="text" value="'.$this->searchstr.'" name="search" size="30" maxlength="30"/><br/>';
         echo '<br/><input type="submit" value="'.get_string('submit','sloodle').'" />';
         echo '</form>';
+        
+        // Only provide an "all" link if the user is an admin
+        if (isadmin()) {
+            echo '<p>';
+            echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id=all\" title=\"".get_string('viewall','sloodle')."\">";
+            print_string('viewall','sloodle');
+            echo '</a><br/>';
+            echo '</p>';
+        }
+        
         echo '</td>';
         
         
@@ -263,24 +273,6 @@ class sloodle_view_users extends sloodle_base_view
 // // - END FORMS - // //
         echo '</tr>';
         echo '</table>';
-        
-        // Provide some admin-only links
-        if (isadmin()) {
-            echo '<p>';
-            
-            /*
-            // Might be useful to add a "show admins" link, since they are not normally 'enrolled' in any course
-            
-            echo '&nbsp;&nbsp;|&nbsp;&nbsp;';*/
-            
-            // Link to view all avatars on the site
-            echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=user&amp;id=all\" title=\"".get_string('viewall','sloodle')."\">";
-            print_string('viewall','sloodle');
-            echo '</a>';
-            
-            echo '</p>';
-        }
-        
         print_box_end();
 
         

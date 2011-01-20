@@ -363,6 +363,8 @@
                     // Is it a reset command?
                     if (str == "do:reset") {
                         llResetScript();
+                    } else if (str == "do:reconfigure"  || str == "do:requestconfig") {
+                        state default; // The main script is about to receive new configuration data... get ready to receive it too
                     }
                     return;
                 }
@@ -370,7 +372,7 @@
                         
             state_entry()
             {
-   
+
             }
             
             state_exit()
