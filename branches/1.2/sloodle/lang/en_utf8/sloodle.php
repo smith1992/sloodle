@@ -236,6 +236,7 @@ $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
 $string['nosloodleassignments'] = 'There are no SLOODLE-compatible assignments available in this course.';
 $string['nopresenters'] = 'There are no SLOODLE Presenters available in this course.';
+$string['notrackers'] = 'There are no SLOODLE Tracker activities in this course.';
 
 $string['object:accesschecker'] = 'Access Checker';
 $string['object:accesscheckerdoor'] = 'Access Checker Door';
@@ -257,7 +258,7 @@ $string['object:awards'] = 'Sloodle Award System';
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
 $string['object:picturegloss'] = 'Picture Gloss';
-
+$string['object:tracker'] = 'Tracker';
 
 $string['Object'] = 'Object';
 $string['objectdetails'] = 'Object Details';
