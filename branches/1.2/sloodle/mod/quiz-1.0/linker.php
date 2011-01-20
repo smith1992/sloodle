@@ -513,9 +513,8 @@
                         sloodle_clean_for_output($feedback)
                       );
                       }
-                      //if ($onlyshowfeedback && ( $ov->id == $feedbackid ) ) {
-                      if ($onlyshowfeedback  ) {
-                         $outputoptions[] = array( $feedback );
+                      if ($onlyshowfeedback && ( $ov->id == $feedbackid ) ) {
+                         $outputoptions[] = array( sloodle_clean_for_output($feedback) );
                       }
                    }
                 }
