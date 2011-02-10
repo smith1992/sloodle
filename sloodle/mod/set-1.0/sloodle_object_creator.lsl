@@ -142,8 +142,8 @@ integer sloodle_handle_command(string str)
         else sloodlepwd = value1;
         
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
-    else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
-    else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
+    //else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
+    //else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
     else if (name == "do:reset") llResetScript();
     
@@ -389,7 +389,7 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlecoursename_full = "";
-        sloodleobjectaccessleveluse = 0;
+        sloodleobjectaccessleveluse = SLOODLE_OBJECT_ACCESS_LEVEL_OWNER;
         sloodleserveraccesslevel = 0;
         
         // Reset our autorez lists
