@@ -359,7 +359,7 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlecoursename_full = "";
-        sloodleobjectaccessleveluse = 0;
+        sloodleobjectaccessleveluse = SLOODLE_OBJECT_ACCESS_LEVEL_OWNER;
         sloodleserveraccesslevel = 0;
         
         // Reset our autorez lists
