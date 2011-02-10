@@ -232,6 +232,7 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlecoursename_full = "";
+        sloodleobjectaccessleveluse = SLOODLE_OBJECT_ACCESS_LEVEL_OWNER;
     }
     
     link_message(integer sender_num, integer num, string str, key id)
