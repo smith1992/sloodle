@@ -232,6 +232,8 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlecoursename_full = "";
+
+	// Unlike other objects, the set defaults to be usable by its owner only
         sloodleobjectaccessleveluse = SLOODLE_OBJECT_ACCESS_LEVEL_OWNER;
     }
     
