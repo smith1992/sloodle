@@ -142,6 +142,7 @@ integer sloodle_handle_command(string str)
         else sloodlepwd = value1;
         
     } else if (name == "set:sloodlecontrollerid") sloodlecontrollerid = (integer)value1;
+    //Controls disabled for the set, which we've now hard-coded to only respond to its owner
     //else if (name == "set:sloodleobjectaccessleveluse") sloodleobjectaccessleveluse = (integer)value1;
     //else if (name == "set:sloodleserveraccesslevel") sloodleserveraccesslevel = (integer)value1;
     else if (name == SLOODLE_EOF) eof = TRUE;
