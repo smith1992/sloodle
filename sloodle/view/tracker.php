@@ -49,25 +49,25 @@ class sloodle_view_tracker extends sloodle_base_view_module
 	*/
 	function get_class_list()
     {
-	        // Get all the users
-            $fulluserlist = get_users(true, '','name');
-            if (!$fulluserlist) $fulluserlist = array();
-            $userlist = array();
-            
-            // Filter it down to members of the course
-            foreach ($fulluserlist as $ful)
-            {
-                // Is this user on this course?
-                if (has_capability('moodle/course:view', $this->course_context, $ful->id))
-                {
-                    // Copy it to our filtered list and exclude administrators
-                    //if (!isadmin($ful->id)) // Not excluding admins, as it's easier to test this way
-                    $userlist[] = $ful;
-                }
-            }
-            return $userlist;
-      
-      }
+        $userlist = array();
+        
+        // Ideally, use the capability-based user search.
+        // This may not exist in particularly early versions of Moodle 1.8 and 1.9.
+        // Fall-back on the function to get all users in a course if necessary,
+        //  but note that it is a deprecated function, and it only seems to return students.
+        if (function_exists('get_users_by_capability'))
+        {
+            $userlist = get_users_by_capability($this->course_context, 'moodle/course:view', 'u.id, u.firstname, u.lastname', 'u.firstname, u.lastname');
+        }
+        else
+        {
+            $userlist = get_course_users($this->courseid, 'firstname, lastname', '', 'u.id, firstname, lastname');
+        }
+
+        // Return an empty array if something went wrong
+        if (!$userlist) return array();        
+        return $userlist;
+    }
 
     /**
     * Render the view of the SecondLife Tracker.
