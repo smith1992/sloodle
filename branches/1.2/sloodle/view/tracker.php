@@ -78,20 +78,82 @@ class sloodle_view_tracker extends sloodle_base_view_module
    		
    		$session = new SloodleSession(false);
         $tracker = new SloodleModuleTracker($session);
-        // Load data of the current Second Life Tracker
         
+        // Check if this user is allowed to view all users in this activity, and if s/he is allowed to manage this activity
+        $canManage = $this->canedit;
+        
+        // Load data of the current Second Life Tracker
         if (!$tracker->load($this->cm->id)) error("FAILED TO LOAD MODULE");
      
 	    $this->courseid = $this->course->id; 
         $sloodleid=$this->sloodle->id;
+        
+        if ($canManage)
+        {
+            $strtrackeradmin = get_string('trackeradmin', 'sloodle');
+            $strresetallprogress = get_string('resetallprogress', 'sloodle');
+            $strdeletealltasks = get_string('deletealltasks', 'sloodle');
+        
+            echo <<<XXXEODXXX
+<table style="margin:auto auto; ">
+<!--<tr><th colspan="2">{$strtrackeradmin}</th></tr>-->
+ <tr>
+  <td style="text-align:center;">
+   <form action="" method="POST" style="padding:6px;">
+    <input type="hidden" name="id" value="{$this->cm->id}"/>
+    <input type="hidden" name="action" value="reset_all_progress"/>
+    <input type="submit" value="{$strresetallprogress}"/>
+   </form>
+  </td>
+  <td style="text-align:center;">
+   <form action="" method="POST" style="padding:6px;">
+    <input type="hidden" name="id" value="{$this->cm->id}"/>
+    <input type="hidden" name="action" value="delete_all_tasks"/>
+    <input type="submit" value="{$strdeletealltasks}"/>
+   </form>
+  </td>
+ </tr>
+</table>
+XXXEODXXX;
+        }
  
         print('<h3 style="color:black;text-align:center;">'.get_string('secondlifetracker:activity','sloodle')).'</h3> '; 
 
         // Check if some kind of action has been requested, used if tasks has been reset
         $action = optional_param('action', '', PARAM_TEXT);
+        
+        // Has a reset task progress action been requested?
+        if ($action == 'reset_tasks' && $canManage)
+        {
+            // Go through each request parameter
+            foreach ($_REQUEST as $name => $val)
+            {
+                if ($val != 'true') continue;
+                $parts = explode('_', $name);
+                if (count($parts) == 2 && $parts[0] == 'sloodledeleteobj')
+                {
+                    // Only delete the activity if it belongs to this controller
+                    delete_records('sloodle_activity_tracker', 'trackerid', $this->cm->id, 'id', (int)$parts[1]);                        
+                }
+            }
+        }
+
+        // Has a reset all tasks action been requested? (This deletes all activities from the module)
+        if ($action == 'delete_all_tasks' && $canManage)
+        {
+            delete_records('sloodle_activity_tracker', 'trackerid', $this->cm->id);
+            delete_records('sloodle_activity_tool', 'trackerid', $this->cm->id);
+        }
+
+        // Has a reset all progress action been requested?
+        if ($action == 'reset_all_progress' && $canManage)
+        {
+            delete_records('sloodle_activity_tracker', 'trackerid', $this->cm->id);
+        }
+
 
         //Obtain the users in this course  
-        $userlist =$this->get_class_list();  
+        $userlist = $this->get_class_list();
           
         if ($userlist) {          
                      
@@ -112,11 +174,13 @@ class sloodle_view_tracker extends sloodle_base_view_module
             $maxperpage = 20; // Maximum number of students per page
 		    $resultnum = 0;
             $resultsdisplayed = 0;
+                       
+            // Go through each user
+            foreach ($userlist as $u)
+            {
             
-            foreach ($userlist as $u) {
-            
-            	// A student only can see his own tracker ($USER->id == $u->id). The admin can see all the students' activity (isadmin($USER->id)==TRUE)
-            	if ((!isadmin($USER->id))and($USER->id != $u->id)) continue;
+                // If this user is not a teacher, and this is not the user's own details, then skip this iteration
+                if (!($u->id == $USER->id || $canManage)) continue;
             	
             	// This variable will contain the avatar identifier, necessary to search in the "sloodle_activity_tracker" DB table.
             	$avatarid = '';
@@ -174,25 +238,11 @@ class sloodle_view_tracker extends sloodle_base_view_module
                 }
                 
                 print_table($sloodletable);
-               
-               // Has a delete objects action been requested?
-               if ($action == 'delete_objects') {
-
-                  // Go through each request parameter
-                  foreach ($_REQUEST as $name => $val) {
-                    // Is this a delete objects request?
-                    if ($val != 'true') continue;
-                    $parts = explode('_', $name);
-                    if (count($parts) == 2 && $parts[0] == 'sloodledeleteobj') {
-                        // Only delete the object if it belongs to this controller
-                        delete_records('sloodle_activity_tracker', 'trackerid', $this->cm->id,'id', (int)$parts[1]);                        
-                    }
-                  }
-                }
 
 				//Now all the tasks in the Tracker are displayed
 				echo "<div style=\"text-align:center;\">\n";
-        		echo '<h3>'.get_string('secondlifetasks','sloodle').'</h3>';
+        		//echo '<h3>'.get_string('secondlifetasks','sloodle').'</h3>';
+                echo "<br/>";
         		
         		// Get all the tasks for this Tracker, ordered by "taskname"
        		 	$recs = get_records('sloodle_activity_tool', 'trackerid', $this->cm->id, 'taskname');
@@ -206,7 +256,8 @@ class sloodle_view_tracker extends sloodle_base_view_module
                 	$objects_table->head = array(get_string('objectname','sloodle'),get_string('secondlifeobjdesc','sloodle'),get_string('secondlifelevelcompl','sloodle'),'Date','');
                 	// Set alignment of table cells 
                 	$objects_table->align = array('left', 'left', 'centre', 'centre', 'centre');
-                	
+                	$overall = 0;
+                    
                 	foreach ($recs as $obj) {
                  	    // Skip this object if it has no type information
                  	    if (empty($obj->type)) continue;
@@ -220,7 +271,8 @@ class sloodle_view_tracker extends sloodle_base_view_module
 						    $date = date("F j, Y, g:i a", $timezone);   
 						    
 						    // Only the admin can reset tasks  
-						    if (isadmin($USER->id)){   		
+						    if ($canManage)
+                            {
                    	 			$objects_table->data[] = array('<span style="text-align:center;color:blue">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:green">'.get_string('secondlifetracker:completed','sloodle').'</span><br>',$date,"<input type=\"checkbox\" name=\"sloodledeleteobj_{$act->id}\" value=\"true\" /");
                    	 		}
                    	 		else {
@@ -236,21 +288,20 @@ class sloodle_view_tracker extends sloodle_base_view_module
                 		}
                 		
                 		//Overall percentage of tasks completed?
-                   		//$div = bcdiv($completed,$tasks,3); // the bcmath extension is standard but not always enabled - PRB
-                		//$overall = $div*100;
                         $overall = 0;
                         if ($tasks > 0) $overall = ((integer)(($completed / $tasks) * 1000.0)) / 10.0;
                 	}    
                 	
                 	// If is the admin, show the reset button
-                	if (isadmin($USER->id)){
+                	if ($canManage){
                 		echo '<form action="" method="POST">';
                     	echo '<input type="hidden" name="id" value="'.$this->cm->id.'"/>';
-                   		echo '<input type="hidden" name="action" value="delete_objects"/>';
+                   		echo '<input type="hidden" name="action" value="reset_tasks"/>';
                    		
                    		print_table($objects_table);
                    		echo '<h3>Completed: '.$overall.'%</h3>';
-                   		echo '<input type="submit" value="'.get_string('deletetask','sloodle').'"/>';
+                   		echo '<input type="submit" value="'.get_string('resettasks','sloodle').'"/>';
+                        echo '</form>';
             		}
                 	else
                 	{
@@ -262,7 +313,8 @@ class sloodle_view_tracker extends sloodle_base_view_module
             	else {
                 	echo '<span style="text-align:center;color:red">'.'No tasks found'.'</span><br>';
             	}
-            	echo '<p>&nbsp;</p>';
+            	//echo '<p>&nbsp;</p>';
+                echo "<br/><hr><br/>";
         		echo "</div>\n";
                                 
                 // Have we displayed the maximum number of results for this page?

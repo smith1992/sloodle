@@ -54,7 +54,7 @@
     // Get the extra parameters
     $sloodleobjuuid = $sloodle->request->required_param('sloodleobjuuid');
     $sloodleobjname = $sloodle->request->required_param('sloodleobjname');
-    $sloodleobjtype = $sloodle->request->optional_param('sloodleobjtype', '');
+    $sloodleobjtype = $sloodle->request->required_param('sloodleobjtype', '');
     $sloodlemoduleid = $sloodle->request->required_param('sloodlemoduleid');
     $sloodledescription = $sloodle->request->required_param('sloodledescription');
     $sloodletaskname = $sloodle->request->required_param('sloodletaskname');

@@ -100,6 +100,7 @@ $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
+$string['deletealltasks'] = 'Delete all tasks';
 $string['deletetask'] = 'Delete task';
 $string['deletecancelled'] = 'Deletion cancelled.';
 $string['deleteselected'] = 'Delete Selected';
@@ -362,6 +363,8 @@ $string['refreshtimeseconds'] = 'Refresh time (seconds)';
 $string['repeatquiz'] = 'Automatically repeat the quiz?';
 $string['relativeresults'] = 'Show relative results?';
 $string['runningcompatibilitycheck'] = 'Running compatibility check...';
+$string['resettasks'] = 'Reset selected tasks';
+$string['resetallprogress'] = 'Reset all progress';
 
 $string['save'] = 'Save';
 $string['second'] = 'second';
@@ -430,6 +433,7 @@ $string['type'] = 'Type';
 $string['trydirectlink'] = 'If you cannot see the above entry, try this <a href=\"$a\">direct link</a> instead.';
 $string['tracker:settings'] = 'Tracker Settings';
 $string['tracker:nousers'] = 'No users found in course.';
+$string['trackeradmin'] = 'Administration';
 
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
