@@ -20,6 +20,14 @@ class sloodle_view_tracker extends sloodle_base_view_module
 {
 
     /**
+    * When multiple users will be displayed, this value indicates which record to start from.
+    * It will be read from HTTP parameters.
+    * @var int
+    * @access private
+    */
+    var $start = 0;
+
+    /**
     * Constructor.
     */
     function sloodle_view_tracker()
@@ -33,6 +41,9 @@ class sloodle_view_tracker extends sloodle_base_view_module
     {
         // Process the basic data
         parent::process_request();
+
+        $this->start = optional_param('start', 0, PARAM_INT);
+
         // Nothing else to get just now
     }
 
@@ -170,8 +181,10 @@ XXXEODXXX;
             
             // Check if our start is past the end of our results
             if (empty($this->start) || $this->start >= count($userlist)) $this->start = 0;
+            // Ignore the start parameter if the user can only see his/her own record
+            if (!$canManage) $this->start = 0;
             
-            $maxperpage = 20; // Maximum number of students per page
+            $maxperpage = 10; // Maximum number of students per page
 		    $resultnum = 0;
             $resultsdisplayed = 0;
                        
@@ -179,6 +192,13 @@ XXXEODXXX;
             foreach ($userlist as $u)
             {
             
+                // Skip until the desired start point of the results
+                if ($resultnum < $this->start)
+                {
+                    $resultnum++;
+                    continue;
+                }
+
                 // If this user is not a teacher, and this is not the user's own details, then skip this iteration
                 if (!($u->id == $USER->id || $canManage)) continue;
             	
@@ -190,7 +210,7 @@ XXXEODXXX;
             	$completed = 0;
                 
                 // Only display this result if it is after our starting result number
-                if ($resultnum >= $this->start) {
+                //if ($resultnum >= $this->start) {
                     
                     // Reset the line's content
                     $line = array();
@@ -235,7 +255,7 @@ XXXEODXXX;
                     }
                     $sloodletable->data[0] = $line;  
                     $resultsdisplayed++;
-                }
+                //}
                 
                 print_table($sloodletable);
 
