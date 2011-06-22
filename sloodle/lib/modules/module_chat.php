@@ -88,39 +88,48 @@
         
         /**
         * Gets a recent history of messages from the chatroom.
-        * @param int $time How far back to search the database (in seconds) (default: 1 minute)
+        * @param int $time Optional. How far back to search the database (in seconds) (default: 1 minute)
+		* @param int $firstmessageid Optional. If specified then no messages with an ID below this value will be returned. This can be useful for ignoring messages which have already been received.
         * @return array A numeric array of {@link SloodleChatMessage} object, in order of oldest to newest
         */
-        function get_chat_history($time = 60)
+        function get_chat_history($time = 60, $firstmessageid = 0)
         {
+			global $CFG;
             // Calculate the earliest acceptable timestamp
-            $earliest = time() - $time;
-            // Get all message records for this chatroom
-            $recs = get_records_select('chat_messages', "chatid = {$this->moodle_chat_instance->id} AND timestamp >= $earliest", 'timestamp ASC');
-            if (!$recs) return array();
+            $earliest = time() - (int)$time;
+			// Construct a condition for the first message ID if it was specified
+			$firstmessageid = (int)$firstmessageid;
+			$messageidcond = '';
+			if ($firstmessageid > 0) $messageidcond = "AND cmsg.id >= {$firstmessageid}";
+			
+            // Get all message records for this chatroom.
+			// Join user data on so that we don't need to do separate requests for each user.
+			$query = "
+				SELECT
+					cmsg.id, cmsg.chatid, cmsg.message, cmsg.timestamp,
+					u.firstname, u.lastname
+				FROM
+					{$CFG->prefix}chat_messages cmsg
+				JOIN
+					{$CFG->prefix}user u
+					ON cmsg.userid = u.id
+				WHERE
+					cmsg.chatid = {$this->moodle_chat_instance->id}
+					AND cmsg.timestamp >= {$earliest}
+					{$messageidcond}
+				ORDER BY
+					cmsg.timestamp ASC,
+					cmsg.id
+			";
+			$recs = get_records_sql($query);
+			if (!$recs) return array();
             
-            // We'll need to lookup all the user data.
-            // Cache the user records so we don't need to duplicate searches.
-            // This will be an associative array of user ID's to SloodleUser objects.
-            $usercache = array();
-            
-            // Prepare an array of chat message objects
-            $chatmessages = array();
-            // Go through each result
-            foreach ($recs as $r) {
-                // Do we already have the current user cached?
-                if (!isset($usercache[$r->userid])) {
-                    // No - query the database
-                    $usercache[$r->userid] = new SloodleUser($this->_session);
-                    if ($usercache[$r->userid]->load_user($r->userid)) {
-                        // Attempt to load any linked avatar data too
-                        $usercache[$r->userid]->load_linked_avatar();
-                    }
-                }
-                
-                // Construct and add a message object
-                $chatmessages[] = new SloodleChatMessage($r->id, $r->message, $usercache[$r->userid], $r->timestamp);
-            }
+			// Go through each result from the database query and add it to a numeric array of chat message objects
+			$chatmessages = array();
+			foreach ($recs as $r) {
+				//$chatmessages[] = new SloodleChatMessage($r['cmsg.id'], $r['cmsg.message'], $r['u.id'], $r['u.firstname'].' '.$r['u.lastname'], $r['cmsg.timestamp']);
+				$chatmessages[] = new SloodleChatMessage($r->id, $r->message, $r->firstname.' '.$r->lastname, $r->timestamp);
+			}
             
             return $chatmessages;
         }
@@ -133,7 +142,7 @@
         * If that is unavailable, then it will try to use the user currently 'logged-in' to the VLE (i.e. the $USER variable in Moodle).
         * If all else fails, it will attempt to attribute the message to the guest user.
         * @param string $message The text of the message.
-        * @param mixed $user The user who wrote the message -- either a VLE user ID or (preferably) a {@link SloodleUser} object. If null, then the user in the current SloodleSession object will be used. At that fails, then the guest user is used if possible.
+        * @param mixed $user The user who wrote the message -- either a VLE user ID or (preferably) a {@link SloodleUser} object. If null, then the user in the current SloodleSession object will be used. If that fails, then the guest user is used if possible.
         * @param int $timestamp Timestamp of the message. If omitted or <= 0 then the current timestamp is used
         * @return bool True if successful, or false otherwise
         */
@@ -183,7 +192,14 @@
             $rec->timestamp = $timestamp;
             // Attempt to insert the chat message
             $result = insert_record('chat_messages', $rec);
-            if (!$result) return false;
+            if (!$result)
+			{
+				// Insertion failed.
+				// If possible, add an appropriate side effect code to our response
+				if (isset($this->_session->response)) {
+					$this->_session->response->add_side_effect(-10101);
+				}
+			}
             
             // We successfully added a chat message
             // If possible, add an appropriate side effect code to our response
@@ -275,14 +291,15 @@
         * Constructor - initialises members.
         * @param mixed $id The ID of this message - type depends on VLE, but is typically an integer
         * @param string $message The chat message
-        * @param SloodleUser $user The user who wrote the message
+        * @param int $authorid ID of the user who wrote this message
+		* @param int $authorname Name of the user who wrote this message
         * @param int $timestamp The timestamp of the message
         */
-        function SloodleChatMessage($id, $message, $user, $timestamp)
+        function SloodleChatMessage($id, $message, $authorname, $timestamp)
         {
             $this->id = $id;
             $this->message = $message;
-            $this->user = $user;
+			$this->authorname = $authorname;
             $this->timestamp = $timestamp;
         }
         
@@ -290,14 +307,15 @@
         * Accessor - set all members in a single call.
         * @param mixed $id The ID of this message - type depends on VLE, but is typically an integer
         * @param string $message The chat message
-        * @param SloodleUser $user The user who wrote the message
+        * @param int $authorid ID of the user who wrote this message
+		* @param int $authorname Name of the user who wrote this message
         * @param int $timestamp The timestamp of the message
         */
-        function set($id, $message, $user, $timestamp)
+        function set($id, $message, $authorname, $timestamp)
         {
             $this->id = $id;
             $this->message = $message;
-            $this->user = $user;
+			$this->authorname = $authorname;
             $this->timestamp = $timestamp;
         }
         
@@ -315,13 +333,13 @@
         * @access public
         */
         var $message = '';
-        
-        /**
-        * The user who wrote this message.
-        * @var SloodleUser
-        * @access public
-        */
-        var $user = null;
+		
+		/**
+		* Full name of the person who wrote this message.
+		* @var string
+		* @access public
+		*/
+		var $authorname = '';
         
         /**
         * Timestamp of the message.

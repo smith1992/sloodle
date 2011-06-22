@@ -157,7 +157,6 @@ default
         // Check for standard status codes
         if (statuscode == -321) {
             sloodle_translation_request(SLOODLE_TRANSLATE_IM, [0], "enrolfailed:notreg", [statuscode], av, "regenrol");
-            llMessageLinked(LINK_THIS, SLOODLE_CHANNEL_OBJECT_DIALOG, "enrolfailed:notreg", av);            
             return;
             
         } else if (statuscode == 301) {
@@ -188,6 +187,3 @@ default
     }
 }
 
-
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/accesschecker-1.0/sloodle_manual_reg_enrol.lsl 

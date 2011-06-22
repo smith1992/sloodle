@@ -74,10 +74,8 @@ string MENU_BUTTON_ONLINE = "3";
 string MENU_BUTTON_TAKE_ALL = "4";
 
 // List of button labels ('cos otherwise the compiler runs out of memory!)
-//list teacherbuttons = [MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,  MENU_BUTTON_TAKE_ALL,MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY]; // OpenSim chokes on this
-list teacherbuttons = ["1", "2",  "4", "0", "1"];
-//list userbuttons = [MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_CANCEL];
-list userbuttons = ["1", "2",  "3", "0"];
+list teacherbuttons = [MENU_BUTTON_SUBMIT, MENU_BUTTON_ONLINE,  MENU_BUTTON_TAKE_ALL,MENU_BUTTON_CANCEL, MENU_BUTTON_SUMMARY];
+list userbuttons = [MENU_BUTTON_SUMMARY, MENU_BUTTON_SUBMIT,MENU_BUTTON_ONLINE,MENU_BUTTON_CANCEL];
 
 // The relative position at which items will be rezzed
 vector rez_pos = <0.0, 2.0, 1.0>;
@@ -250,8 +248,7 @@ list get_inventory(integer type)
     integer num = llGetInventoryNumber(type);
     integer i = 0;
     for (; i < num; i++) {
-        if (llGetInventoryName(type, i)!="sloodle_config") //dont give away configuration files!
-            inv += [llGetInventoryName(type, i)];
+        inv += [llGetInventoryName(type, i)];
     }
     
     return inv;
@@ -270,11 +267,8 @@ integer sloodle_check_drop()
         return FALSE;
     }
     
-    // Make sure it is the correct type  
-    // *** Fire Centaur Change January 2010
-    //--- changed this to accept all objects EXCEPT scripts.
-    //if (llGetInventoryType(submit_obj) == INVENTORY_OBJECT) {
-    if (llGetInventoryType(submit_obj) == INVENTORY_SCRIPT) {
+    // Make sure it is the correct type
+    if (llGetInventoryType(submit_obj) != INVENTORY_OBJECT) {
         sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "assignment:objectsonly", [], NULL_KEY, "assignment");
         llRemoveInventory(submit_obj);
         return FALSE;
@@ -547,14 +541,7 @@ state ready
             
             } else if (msg == MENU_BUTTON_TAKE_ALL && canctrl) {
                 // User wants to take all objects to their inventory
-                list inv;
-                inv+= get_inventory(INVENTORY_ANIMATION);
-                inv+= get_inventory(INVENTORY_GESTURE);
-                inv+= get_inventory(INVENTORY_LANDMARK);
-                inv+= get_inventory(INVENTORY_NOTECARD);
-                inv+= get_inventory(INVENTORY_OBJECT);
-                
-                
+                list inv = get_inventory(INVENTORY_OBJECT);
                 if (inv == []) {
                     // No submissions available
                     sloodle_translation_request(SLOODLE_TRANSLATE_IM, [], "assignment:nosubmissions", [], id, "assignment");
@@ -737,5 +724,3 @@ state submitting
     }
 }
 
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/primdrop-1.0/sloodle_mod_primdrop-1.0.lsl 

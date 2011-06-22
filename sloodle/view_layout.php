@@ -77,7 +77,7 @@
     require_capability('moodle/course:update', $course_context);
 
     // Display the page header
-    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$course->id}#layouts\">".get_string('courseconfig','sloodle')."</a>";
+    $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_course.php?id={$course->id}#layouts\">".get_string('courseconfig','sloodle')."</a>";
     print_header_simple(get_string('layoutpage','sloodle'), "", $navigation, "", "", true, '', navmenu($course));
     
     
@@ -166,7 +166,7 @@
           $result = $sloodle_course->save_layout_by_id($layoutid, $layoutname, $entries, $add=false);
 
           if ($result) {
-             $next = 'view.php?_type=course&amp;id='.$courseid.'#layouts';
+             $next = 'view_course.php?id='.$courseid.'#layouts';
              //print '<a href="'.$next.'">next</a>';
              redirect($next);
           } else {
