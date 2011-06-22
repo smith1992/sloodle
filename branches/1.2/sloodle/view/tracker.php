@@ -28,6 +28,21 @@ class sloodle_view_tracker extends sloodle_base_view_module
     var $start = 0;
 
     /**
+    * Number of users to display per page.
+    * @var int
+    * @access private
+    */
+    var $usersPerPage = 10;
+
+    /**
+    * The number of the page of users to be displayed.
+    * 1-based.
+    * @var int
+    * @access private
+    */
+    var $page = 1;
+
+    /**
     * Constructor.
     */
     function sloodle_view_tracker()
@@ -42,7 +57,9 @@ class sloodle_view_tracker extends sloodle_base_view_module
         // Process the basic data
         parent::process_request();
 
-        $this->start = optional_param('start', 0, PARAM_INT);
+        $this->page = optional_param('page', 1, PARAM_INT);
+        if ($this->page < 1) $this->page = 1;
+        $this->start = ($this->page - 1) * $this->usersPerPage;
 
         // Nothing else to get just now
     }
@@ -167,6 +184,12 @@ XXXEODXXX;
         $userlist = $this->get_class_list();
           
         if ($userlist) {          
+
+            // How many pages of users are there?
+            $numresults = count($userlist);
+            $numpages = (int)ceil($numresults / $this->usersPerPage);
+            if ($this->page > $numpages) $this->page = $numpages;
+            $this->start = ($this->page - 1) * $this->usersPerPage;
                      
             $sloodletable = new stdClass();
             
@@ -184,7 +207,6 @@ XXXEODXXX;
             // Ignore the start parameter if the user can only see his/her own record
             if (!$canManage) $this->start = 0;
             
-            $maxperpage = 10; // Maximum number of students per page
 		    $resultnum = 0;
             $resultsdisplayed = 0;
                        
@@ -293,17 +315,17 @@ XXXEODXXX;
 						    // Only the admin can reset tasks  
 						    if ($canManage)
                             {
-                   	 			$objects_table->data[] = array('<span style="text-align:center;color:blue">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:green">'.get_string('secondlifetracker:completed','sloodle').'</span><br>',$date,"<input type=\"checkbox\" name=\"sloodledeleteobj_{$act->id}\" value=\"true\" /");
+                   	 			$objects_table->data[] = array('<span style="text-align:center;">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:green;">'.get_string('secondlifetracker:completed','sloodle').'</span><br>',$date,"<input type=\"checkbox\" name=\"sloodledeleteobj_{$act->id}\" value=\"true\" /");
                    	 		}
                    	 		else {
-                   	 			$objects_table->data[] = array('<span style="text-align:center;color:blue">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:green">'.get_string('secondlifetracker:completed','sloodle').'</span><br>',$date,' - ');
+                   	 			$objects_table->data[] = array('<span style="text-align:center;">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:green">'.get_string('secondlifetracker:completed','sloodle').'</span><br>',$date,' - ');
                             }
                    	 		$tasks += 1;
                    	 		$completed += 1;
                 		}
                 		//No. Activity not completed
                 		else {
-                   	 		$objects_table->data[] = array('<span style="text-align:center;color:blue">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:red">'.get_string('secondlifetracker:notcompleted','sloodle').'</span><br>',' - ',' - ');
+                   	 		$objects_table->data[] = array('<span style="text-align:center;">'.$obj->taskname.'</a>', $obj->description, '<span style="text-align:center;color:red">'.get_string('secondlifetracker:notcompleted','sloodle').'</span><br>',' - ',' - ');
                    	 		$tasks += 1;
                 		}
                 		
@@ -339,27 +361,39 @@ XXXEODXXX;
                                 
                 // Have we displayed the maximum number of results for this page?
                 $resultnum++;
-                if ($resultsdisplayed >= $maxperpage) break;
+                if ($resultsdisplayed >= $this->usersPerPage) break;
             }
                         
             $basicurl = SLOODLE_WWWROOT."/view.php?id={$this->cm->id}&amp;course={$this->courseid}";  
-            // Construct the next/previous links
-            $previousstart = max(0, $this->start - $maxperpage);
-            $nextstart = $this->start + $maxperpage;
-            $prevlink = null;
-            $nextlink = null;
-            if ($previousstart != $this->start) $prevlink = "<a href=\"{$basicurl}&amp;start={$previousstart}\" style=\"color:#0000ff;\">&lt;&lt;</a>&nbsp;&nbsp;";            
-            if ($nextstart < count($userlist)) $nextlink = "<a href=\"{$basicurl}&amp;start={$nextstart}\" style=\"color:#0000ff;\">&gt;&gt;</a>";
-            
-            // Display the next/previous links, if we have at least one
-            if (!empty($prevlink) || !empty($nextlink)) {
-                echo '<p style="text-align:center; font-size:14pt;">';
-                if (!empty($prevlink)) echo $prevlink;
-                else echo '<span style="color:#777777;">&lt;&lt;</span>&nbsp;&nbsp;';
-                if (!empty($nextlink)) echo $nextlink;
-                else echo '<span style="color:#777777;">&gt;&gt;</span>&nbsp;&nbsp;';
-                echo '</p>';
-            }                 
+
+            // Construct the links for page navigation
+            $prevlink = ""; $nextlink = "";
+            if ($this->page > 1)
+            {
+                $prevpage = $this->page - 1;
+                $prevlink = "<a href=\"{$basicurl}&amp;page={$prevpage}\">&lt;&lt;</a>&nbsp;&nbsp;";
+            } else {
+                $prevlink = "<span style=\"color:#777777;\">&lt;&lt;</span>&nbsp;&nbsp;";
+            }
+
+            if ($this->page < $numpages)
+            {
+                $nextpage = $this->page + 1;
+                $nextlink = "&nbsp;&nbsp;<a href=\"{$basicurl}&amp;page={$nextpage}\">&gt;&gt;</a>";
+            } else {
+                $nextlink = "&nbsp;&nbsp;<span style=\"color:#777777;\">&gt;&gt;</span>";
+            }
+
+            // Display the page navigation
+            echo "<div style=\"text-align:center; font-size:130%; font-weight:bold;\">";
+            echo $prevlink;
+            $pagenav = new stdClass();
+            $pagenav->num = $this->page;
+            $pagenav->total = $numpages;
+            print_string('pagecount', 'sloodle', $pagenav);
+            echo $nextlink;
+            echo "</div>";
+
     	}
     	//No users enroled in the course
     	else {
