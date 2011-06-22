@@ -26,7 +26,7 @@ if (!defined('SLOODLE_VERSION')) {
 }
 
 /** Define the Sloodle Menu Block version. */
-define('SLOODLE_MENU_VERSION', 1.1);
+define('SLOODLE_MENU_VERSION', 1.2);
 
 /**
 * Defines the block class.
@@ -43,7 +43,7 @@ class block_sloodle_menu extends block_base {
         
         $this->title = get_string('blockname', 'block_sloodle_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2009010801;
+        $this->version = 2009072730;
     }
     
     /**
