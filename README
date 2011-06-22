@@ -1,6 +1,6 @@
 SLOODLE 1.2 README
 
-Thanks for download SLOODLE 1.2.
+Thanks for downloading SLOODLE 1.2.
 
 ===============================================================================
 CONTENTS
@@ -17,17 +17,15 @@ CONTENTS
 ===============================================================================
 1. WHAT IS SLOODLE?
 ===============================================================================
-SLOODLE is an Open Source project which integrates the multi-user virtual environment of Second Life® with the Moodle® learning-management system funded by the Eduserve Foundation in the UK (http://www.eduserv.org.uk/)
+SLOODLE is an Open Source project which integrates the multi-user virtual environment of Second Life® with the Moodle® learning-management system.
 
 SLOODLE provides a range of tools for supporting learning and teaching to the immersive virtual world; tools which are integrated with a tried and tested leading web-based learning management system. 
 Sloodle is a platform to connect a Moodle Learning management website with the Virtual world of Second Life.
 
-Sloodle consists of two parts: A zip file which gets unzipped and installed on your MOODLE Learning Management Website, and 
+The software consists of two parts: A zip file which gets unzipped and installed on your MOODLE Learning Management Website, and 
 a suite of tools which can be rezzed (brought out of your inventory) into Second Life.
 
 SLOODLE is free for use under the GNU GPL license - http://www.gnu.org/licenses/ and is funded and supported by Eduserv – http://www.eduserv.ac.uk/ with network services provided by San Jose State University's School of Library and Information Science - http://slisweb.sjsu.edu.
-
-Dr. Daniel Livingstone, University of the West of Scotland, UK is co-founder and Eduserv principle investigator. Jeremy Kemp with SJSU is co-founder.
 
 
 ===============================================================================
@@ -45,6 +43,8 @@ The Tracker system was adapted for the SLOODLE project by Peter R. Bloomfield (S
 Please note that all SLOODLE 1.0 and 1.1 tools should work with SLOODLE 1.2.
 (Many of your SLOODLE 0.4 tools should still work too, but we can't guarantee it.)
 
+A stability improvement for the in-world Quiz Chair was also introduced by Edmund Edgar.
+
 
 ===============================================================================
 3. INSTALLATION
@@ -52,7 +52,9 @@ Please note that all SLOODLE 1.0 and 1.1 tools should work with SLOODLE 1.2.
 
 You can usually upgrade old versions simply by removing the existing
 SLOODLE folder(s) from your installation, and replacing them with the
-new ones.
+new ones. Please note that it is important to completely *remove* the
+old folder(s). If you only rename them then Moodle may stop working
+properly.
 
 There are four parts which you can install. The first is required in
 order to use SLOODLE, but the other two are optional, and simply
@@ -93,7 +95,7 @@ ONLY do this if your observe "[[typesloodleobject]]" in your Moodle site.
 
 1. Navigate to your Moodle's "lang/" folder
 2. Open the "assignment.php" file
-3. Scroll to the bottom and add this line immediately before the last "?&gt;":
+3. Scroll to the bottom and add this line immediately before the last "?>":
     $string['typesloodleobject'] = 'Sloodle Object';
 
 You can change the 'Sloodle Object' text to suit your needs.
