@@ -287,6 +287,7 @@ $string['objecttype'] = 'Object Type';
 $string['of'] = 'of';
 $string['or'] = 'or';
 
+$string['pagecount'] = 'Page {$a->num} of {$a->total}';
 $string['postedfromsl'] = 'Posted from Second Life';
 $string['pendingavatarnotfound'] = 'Could not locate a pending entry for your avatar. Perhaps you are already registered?';
 $string['pendingallocations'] = 'Pending Allocations';
