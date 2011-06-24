@@ -60,7 +60,13 @@ function sloodle_get_records_select( $p1=null, $p2=null, $p3=null, $p4='*', $p5=
 function sloodle_insert_record($p1=null, $p2=null, $returnid=true, $primarykey='id') {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
+//try {
       return $DB->insert_record($p1, $p2, $returnid, false);  // if we need that primarykey field, I guess something will break
+//} catch (Exception $e) {
+//var_dump($p2);
+//var_dump($e);
+//}
+//return true;
    } else {
       return insert_record($p1, $p2, $returnid, $primarykey );
    }
@@ -84,6 +90,17 @@ function sloodle_count_records($p1=null, $p2=null, $p3=null) {
    }
 }
 
+function sloodle_count_records_select($p1=null) {
+   if ( sloodle_do_use_db_object() ) {
+      global $DB;
+      return $DB->count_records_select($p1) ;
+   } else {
+      return count_records_select($p1);
+   }
+}
+
+
+
 function sloodle_delete_records($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6=null, $p7=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
@@ -96,9 +113,9 @@ function sloodle_delete_records($p1=null, $p2=null, $p3=null, $p4=null, $p5=null
 function sloodle_delete_records_select($p1=null, $p2=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
-      return $DB->delete_records($p1, $p2);
+      return $DB->delete_records_select($p1, $p2);
    } else {
-      return delete_records($p1, $p2);
+      return delete_records_select($p1, $p2);
    }
 }
 
@@ -124,9 +141,9 @@ function sloodle_get_field($p1=null, $p2=null, $p3=null, $p4=null, $p5=null, $p6
 function sloodle_get_field_sql($p1=null) {
    if ( sloodle_do_use_db_object() ) {
       global $DB;
-      return $DB->sloodle_get_field_sql($p1);
+      return $DB->get_field_sql($p1);
    } else {
-      return sloodle_get_field_sql($p1);
+      return get_field_sql($p1);
    }
 }
 
