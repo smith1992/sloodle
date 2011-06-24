@@ -42,7 +42,7 @@
     define('SLOODLE_DEBUG_MODE_PARAM_NAME', 'sloodledebug');
 
     // Check if debug mode is active
-    $sloodle_debug = 'false';
+    $sloodle_debug = 'true';
     if (isset($_REQUEST[SLOODLE_DEBUG_MODE_PARAM_NAME])) $sloodle_debug = $_REQUEST[SLOODLE_DEBUG_MODE_PARAM_NAME];
     if (strcasecmp($sloodle_debug, 'true') == 0 || $sloodle_debug == '1') {
         define('SLOODLE_DEBUG', true);

@@ -26,7 +26,7 @@ if (    empty($CFG->sloodle_tracker_opensim_address) ||
 
 // The ID parameter is required to identify which SLOODLE Tracker we are dealing with
 // We send the id inside the form
-$id = $_POST['id'];
+$id = required_param('id', PARAM_INT);//$_POST['id'];
 $cm = get_coursemodule_from_id('sloodle', $id);
 if (!$cm) error('Course module ID was incorrect');
 $course = get_record('course', 'id', $cm->course);
@@ -94,72 +94,4 @@ if(isset($_POST['send']))
 }
 print_footer($course);
 
-/**
-Start the process to create a new template.
-@param string $template_name The name of the template to create.
-@param class $user A class containing all data of the sloodle user
-
-function create_new_opensim_template($template_name,$user)
-{
- // Attempt to fetch the user's avatar data
- //echo "user: ".$user->id;
- $avdata = get_record('sloodle_users', 'userid', $user->id);
- if (!$avdata)
- {
-    // No avatar data already -- create some.
-    // No point re-creating the avatar data all the time in the Moodle database.
-    $avdata = new stdClass();
-    $avdata->userid = $user->id;
-    $avdata->avname = $user->firstname.' '.$user->lastname;
-    $avdata->uuid = sloodle_tracker_generate_unique_avatar_uuid();
-    $avdata->lastactive = time();
-    $avdata->id = insert_record('sloodle_users', $avdata);
-    if (!$avdata) error(get_string('failedcreatesloodleuser','sloodle'));
- }
- // Get the port for our new template
- $port = sloodle_tracker_get_opensim_template_port($template_name, $avdata->uuid);
- if ($port == -1)
- {
-    error(get_string('tracker:instancealreadyallocatedport', 'sloodle'));
- }
- else if ($port === false)
- {
-    error(get_string('tracker:noportsavailable', 'sloodle'));
- }
- // Create and configure the new template
- sloodle_tracker_create_opensim_template($template_name, $avdata->avname, $avdata->uuid, 'password');
- sloodle_tracker_configure_opensim_template($template_name, $port);
- ?>
- </div>
- <div style="text-align:center;width:50%;margin:16px auto;border:solid 1px #000;padding:8px 4px;">
-  <p><?php print_string('tracker:opensimtemplatecreated','sloodle'); ?></p>
- </div>
- <?php
-  print_footer($course); 
-}
-
-
-/**
-Launch a OpenSim template.
-@param string $template_name The name of the template to create.
-
-function launch_opensim_template($template_name)
-{ 
- // Run opensim as a background task
- if (!sloodle_tracker_launch_opensim_template($template_name))
- {
-	error("Unable to launch OpenSim template.");
- }
- // Generate a URL which will be able to launch an OpenSim-compatible viewer
- $url = "opensim://{$CFG->sloodle_tracker_opensim_address}:{$port}/regionOne/127/124/25";
- ?>
- </div>
- <div style="text-align:center;width:50%;margin:16px auto;border:solid 1px #000;padding:8px 4px;">
-  <p style="font-weight:bold;">
-   <a href="<?php echo $url; ?>" title=""><?php print_string('tracker:teleport','sloodle'); ?></a>
-  </p>
- </div>
-<?php 
-print_footer($course);
-}*/
 ?>
