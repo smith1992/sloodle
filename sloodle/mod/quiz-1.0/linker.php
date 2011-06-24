@@ -47,6 +47,8 @@
     /** Include the Moodle quiz code.  */
     require_once($CFG->dirroot.'/mod/quiz/locallib.php');
 
+//ini_set('display_errors','On'); 
+
     // Authenticate the request and login the user
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
@@ -162,6 +164,7 @@
         exit();
     }
 
+
     if ($quiz->delay1 or $quiz->delay2) {
         //quiz enforced time delay
         if ($attempts = quiz_get_user_attempts($quiz->id, $USER->id)) {
@@ -202,6 +205,14 @@
         $attempt = quiz_create_attempt($quiz, $attemptnumber);
         // If this is an attempt by a teacher mark it as a preview
         // Save the attempt
+
+    if (!$attempt->timestart) { // shouldn't really happen, just for robustness
+        $attempt->timestart = time();
+    }
+    if (!$attempt->timemodified) { // shouldn't really happen, just for robustness
+        $attempt->timemodified = time();
+    }
+
         if (!$attempt->id = sloodle_insert_record('quiz_attempts', $attempt)) {
             $sloodle->response->quick_output(-701, 'QUIZ', 'Could not create new attempt.', FALSE);
             exit();
@@ -210,6 +221,7 @@
         add_to_log($course->id, 'quiz', 'attempt',
                        "review.php?attempt=$attempt->id",
                        "$quiz->id", $cm->id);
+
     } else {
         // log continuation of attempt only if some time has lapsed
         if (($timestamp - $attempt->timemodified) > 600) { // 10 minutes have elapsed
