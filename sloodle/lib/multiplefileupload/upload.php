@@ -7,7 +7,7 @@ include('../../../../config.php');
 
 if (!empty($_FILES)) {
     $tempFile = $_FILES['Filedata']['tmp_name'];
-    $targetPath = $CFG->dataroot.'/'.SITEID.'/presenter/'.(int)$_GET["moduleId"].'/';
+    $targetPath = $CFG->dataroot.'/'.SITEID.'/presenter/'.$_GET["moduleId"].'/';
     $targetFile =  str_replace('//','/',$targetPath) . str_replace(' ','_',$_FILES['Filedata']['name']);
      
     //Server side security check

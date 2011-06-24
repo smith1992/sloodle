@@ -15,6 +15,7 @@
     
     require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
     require_once(SLOODLE_LIBROOT.'/general.php');
+    require_once(SLOODLE_DIRROOT.'/mod/tracker-1.0/lib.php');
     
 
     /**
@@ -78,6 +79,10 @@
 
         case SLOODLE_TYPE_AWARDS:
             // Create the secondary table for this awards
+            
+            $sec_table->icurrency = (string)$sloodle->icurrency;            
+            $sec_table->assignmentid = (int)$sloodle->assignmentid;
+            $sec_table->maxpoints = (int)$sloodle->maxpoints;
             if (!insert_record('sloodle_awards', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
@@ -105,6 +110,17 @@
             $sec_table->frameheight = (int)$sloodle->presenter_frameheight;
             // Attempt to add it to the database
             if (!insert_record('sloodle_presenter', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
+            break;
+            
+        case SLOODLE_TYPE_TRACKER:   
+            // Add the name of the opensim template
+            $sec_table->opensim_template = $sloodle->tracker_opensim_template;
+            // Attempt to add it to the database
+            if (!insert_record('sloodle_tracker', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -213,14 +229,30 @@
             // Attempt to fetch the award record
             $award = get_record('sloodle_awards', 'sloodleid', $sloodle->id);
             if (!$award) error(get_string('secondarytablenotfound', 'sloodle'));
+            // Add the updates values from the form
+            $award->assignmentid = (int)$sloodle->assignmentid;
+            $award->icurrency = (string)$sloodle->icurrency;       
+            $award->maxpoints = (int)$sloodle->maxpoints;
 
             // Update the database
             update_record('sloodle_awards', $award);
         break;
+        
+        case SLOODLE_TYPE_TRACKER:    
+            // Attempt to fetch the tracker record
+            $tracker = get_record('sloodle_tracker', 'sloodleid', $sloodle->id);
+            if (!$tracker) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Add the updated opensim template name
+            $tracker->opensim_template = $sloodle->tracker_opensim_template;
+            
+            // Update the database
+            update_record('sloodle_tracker', $tracker);
+            break;
 
             
         // ADD FURTHER MODULE TYPES HERE!
-            
+			
         default:
             // Type not recognised
             //error(get_string('moduletypeunknown', 'sloodle'));
@@ -243,6 +275,17 @@
 
         // Determine our success or otherwise
         $result = true;
+        
+        // Attempt to identify the course module instance ID
+        $cmid = 0; $moduletype = null; $cm = null;
+        
+        $moduletype = get_record('modules', 'name', 'sloodle');
+        if ($moduletype && $moduletype->id)
+        {
+            $moduletypeid = $moduletype->id;
+            $cm = get_record('course_modules', 'instance', $id, 'type', $moduletypeid);
+            if ($cm) $cmid = $cm->id;
+        }
 
         // Attempt to delete the main Sloodle instance
         if (!delete_records('sloodle', 'id', $id)) {
@@ -270,6 +313,15 @@
         // Delete any awards and award transaction entries
         delete_records('sloodle_awards', 'sloodleid', $id);  
         delete_records('sloodle_award_trans', 'sloodleid', $id);
+        
+        // Delete any tracker instances, tools and activities
+        delete_records('sloodle_tracker', 'sloodleid', $id);
+        if ($cmid)
+        {
+            delete_records('sloodle_activity_tool', 'trackerid', $cmid);
+            delete_records('sloodle_activity_tracker', 'trackerid', $cmid);
+        }
+        
         
         // ADD FURTHER MODULE TYPES HERE!
 
@@ -324,7 +376,10 @@
      * @todo Delete expired user entries
      * @todo Use a custom delay for expiries of users/objects
      **/
-    function sloodle_cron () {
+    function sloodle_cron ()
+    {
+        global $CFG;
+    
         echo "\nProcessing Sloodle cron tasks:\n";
         
         // Delete any pending user entries which have expired (more than 30 minutes old)
@@ -367,6 +422,45 @@
         $expirytime_unauth = time() - 3600;
         echo "Deleting expired user objects...\n";
         delete_records_select('sloodle_user_object', "(authorised = 0 AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        
+        // OpenSim ports -- clear any ports are not responding.
+        // Only pay attention to ones that were last active more than 10 minutes ago.
+        // Note that this isn't very scalable -- it will get quite intensive for several simultaneous instances.
+        $opensim_address = '';
+        if (!empty($CFG->sloodle_tracker_opensim_address)) $opensim_address = $CFG->sloodle_tracker_opensim_address;
+        echo "Purging unused OpenSim ports\n";
+        if (!empty($opensim_address))
+        {
+            $errno = ''; $errstr = ''; $fsock = null;
+            $numPurged = 0; $numKept = 0;
+            $timeout = 4; // seconds to wait for response
+            $expiryTime = time() - 600;
+            $osInstances = get_records_select('sloodle_opensim_instance', "lastactive < $expiryTime");
+            if (is_array($osInstances))
+            {
+                foreach ($osInstances as $inst)
+                {
+                    // Attempt to connect to this port
+                    if (($fsock = @fsockopen($opensim_address, $inst->port, $errno, $errstr, $timeout)) !== false)
+                    {
+                        // Connected OK - update the entry
+                        fclose($fsock);
+                        $inst->lastactive = time();
+                        update_record('sloodle_opensim_instances', $inst);
+                        $numKept++;
+                    } else {
+                        // Instance not responding - delete it and de-allocate its port
+                        sloodle_tracker_delete_opensim_instance($inst->name);
+                        $numPurged++;
+                    }
+                }
+            }
+            echo " - # purged:   {$numPurged}\n";
+            echo " - # retained: {$numKept}\n";
+        } else {
+            echo " - failed - no OpenSim address specified in configuration\n";
+        }
+        
         
         // More stuff?
         //...

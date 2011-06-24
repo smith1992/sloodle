@@ -238,7 +238,6 @@ state running
     
     http_response(key id, integer status, list meta, string body)
     {
-        integer statuscode; // added for OpenSim
         // Was this our update response?
         if (id == httpupdate) {
             httpupdate = NULL_KEY;
@@ -251,7 +250,7 @@ state running
             }
             // Extract the status code of the response
             list bits = llParseString2List(body, ["|"], []);
-            statuscode = (integer)llList2String(bits, 0); // deleted "integer" for OpenSim
+            integer statuscode = (integer)llList2String(bits, 0);
             if (statuscode <= 0) {
                 sloodle_debug("Update failed with Sloodle status " + (string)statuscode);
                 sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,statuscode); //send message to error_message.lsl
@@ -282,7 +281,7 @@ state running
         integer numlines = llGetListLength(lines);
         list statusfields = llParseStringKeepNulls(llList2String(lines, 0), ["|"], []);
         integer numfields = llGetListLength(statusfields);
-        statuscode = (integer)llList2String(statusfields, 0); // deleted "integer" for OpenSim
+        integer statuscode = (integer)llList2String(statusfields, 0);
         key av = NULL_KEY;
         if (numfields >= 7) av = (key)llList2String(statusfields, 6);
         
@@ -314,5 +313,3 @@ state running
         }
     }
 }
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/loginzone-1.0/sloodle_mod_loginzone-1.0.lsl

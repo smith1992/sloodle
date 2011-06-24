@@ -84,7 +84,7 @@ class sloodle_view_course extends sloodle_base_view
     function print_header()
     {
         global $CFG;
-        $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$this->course->id}\">".get_string('courseconfig', 'sloodle')."</a>";
+        $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_course.php?id={$this->course->id}\">".get_string('courseconfig', 'sloodle')."</a>";
         print_header_simple(get_string('courseconfig','sloodle'), "", $navigation, "", "", true, '', navmenu($this->course));
     }
 
@@ -123,7 +123,7 @@ class sloodle_view_course extends sloodle_base_view
             
             // Update the database
             if ($this->sloodle_course->write()) {
-                redirect("view.php?_type=course&amp;id={$this->course->id}", get_string('changessaved'), 4);
+                redirect("view_course.php?id={$this->course->id}", get_string('changessaved'), 4);
                 exit();
             } else {
                 print_box(get_string('error'), 'generalbox boxwidthnarrow boxaligncenter');
@@ -152,8 +152,7 @@ class sloodle_view_course extends sloodle_base_view
         echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').'</h3>';
         
         // Start the form (including a course ID hidden parameter)
-        echo "<form action=\"view.php\" method=\"post\">\n";
-        echo "<input type=\"hidden\" name=\"_type\" value=\"course\">\n";
+        echo "<form action=\"view_course.php\" method=\"post\">\n";
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->course->id}\">\n";
         
     // AUTO REGISTRATION //
@@ -206,8 +205,7 @@ class sloodle_view_course extends sloodle_base_view
         }
         
         // Create a form
-        echo "<form action=\"view.php\" method=\"POST\">\n";
-        echo "<input type=\"hidden\" name=\"_type\" value=\"course\">\n";
+        echo "<form action=\"view_course.php\" method=\"POST\">\n";
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->course->id}\">\n";
         // Determine how many allocations there are for this course
         $allocs = count_records('sloodle_loginzone_allocation', 'course', $this->course->id);
@@ -286,8 +284,7 @@ class sloodle_view_course extends sloodle_base_view
             }
            
             // Display a form and the table
-            echo '<form action="view.php" method="POST">';
-            echo '<input type="hidden" name="_type" value="course"/>';
+            echo '<form action="view_course.php" method="POST">';
             echo '<input type="hidden" name="id" value="'.$course->id.'"/>';
            
             print_table($layouts_table);

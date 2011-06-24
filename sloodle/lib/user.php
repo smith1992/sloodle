@@ -1,4 +1,4 @@
-<?php    
+<?php
     /**
     * Sloodle user library.
     *
@@ -285,52 +285,63 @@
         }
         
         /**
-        * Finds an avatar with the given UUID, and optionally search by name as well.
-        * If multiple matching avatars are found then the first one in the database is used (ordered by primary id).
-        * If the name is omitted then it is ignored.
-        * If the name is specified then the avatar must match both UUID and name.
-        * @param string $uuid The UUID of the avatar.
-        * @param string $avname The name of the avatar.
+        * Finds an avatar with the given UUID and/or name, and loads its data.
+        * The UUID is searched for first. If that is not found, then the name is used.
+        * @param string $uuid The UUID of the avatar, or blank to search only by name.
+        * @param string $avname The name of the avatar, or blank to search only by UUID.
         * @return bool True if successful, or false otherwise
         * @access public
         */
-        function load_avatar($uuid, $avname='')
+        function load_avatar($uuid, $avname)
         {
-            // UUID can't be empty
-            if (empty($uuid)) return false;
+            // Both parameters can't be empty
+            if (empty($uuid) && empty($avname)) return false;
             
-            // What kind of search should we do?
-            $avs = array();
-            if (empty($avname))
-            {
-                $avs = get_records('sloodle_users', 'uuid', $uuid);
-            } else {
-                $avs = get_records_select('sloodle_users', "uuid = '{$uuid}' AND avname = '{$avname}'", 'id');
+            // Attempt to search by UUID first
+            if (!empty($uuid)) {
+                $this->avatar_data = get_record('sloodle_users', 'uuid', $uuid);
+                if ($this->avatar_data) return true;
             }
-            if (!$avs || count($avs) == 0) return false;
-            $this->avatar_data = current($avs);
-            return true;
+            
+            // Attempt to search by name
+            if (!empty($avname)) {
+                $this->avatar_data = get_record('sloodle_users', 'avname', $avname);
+                if ($this->avatar_data) return true;
+            }
+            
+            // The search failed
+            $this->avatar_data = null;
+            return false;
         }
         
         /**
-        * Load the specified user from the database
+        * Load the specified user from the database.
+        * Use the 'complete' load if (and ONLY if) you are certain you need lots of capablities and permissions for this user.
         * @param mixed $id The unique identifier for the VLE user. (Type depends on VLE; integer for Moodle)
+        * @param bool $complete Optional. If false (default) then shallow user data will be loaded. If true then a complete load will be done, which is quite DB-intensive, so use it with caution!
         * @return bool True if successful, or false on failure
         * @access public
         */
-        function load_user($id)
+        function load_user($id, $complete = false)
         {
             // Make sure the ID is valid
             $id = (int)$id;
             if ($id <= 0) return false;
             
-            // Attempt to load the data
-            $this->user_data = get_complete_user_data('id', $id);
+            // Are we doing a complete load or a shallow one?
+            if ($complete)
+            {
+                // The Moodle "get_complete_user_data" function loads lots of extra stuff which is usually not necessary for SLOODLE functionality.
+                $this->user_data = get_complete_user_data('id', $id);
+            } else {
+                $this->user_data = get_record('user', 'id', $id);
+            }
+            
+            // Was the load successful?
             if (!$this->user_data) {
                 $this->user_data = null;
                 return false;
             }
-
             
             return true;
         }
@@ -356,8 +367,6 @@
         * @param string $avname Name of the avatar
         * @return bool True if successful, or false if not.
         * @access public
-        *
-        * @todo Why is there a $userid parameter here? It shouldn't be necessary, as that data should read from the current object.
         */
         function add_linked_avatar($userid, $uuid, $avname)
         {
@@ -465,7 +474,8 @@
             }
             
             // Get the complete user data again, so that we have the password this time
-            $this->user_data = get_complete_user_data('id', $this->user_data->id);
+            //$this->user_data = get_complete_user_data('id', $this->user_data->id); // this should not be necessary
+            $this->user_data = get_record('user', 'id', $this->user_data->id); // this should be sufficient
             
             // Attempt to use the first and last names of the avatar
             $this->user_data->firstname = $nameparts[0];
@@ -486,22 +496,19 @@
        
         /**
         * Load the avatar linked to the current user.
-        * @param bool $ignore_multi_avs If true (default) then the function won't care if there are multiple avatars associated with the user - it will just load the first one it finds. If false, then the function will stop and return 'multi' if there are multiple avatars.
-        * @return bool string True if a link was loaded, false if there was no link, or string 'multi' if multiple avatars are linked
+        * @return bool,string True if a link was loaded, false if there was no link, or string 'multi' if multiple avatars are linked
         * @access public
         */
-        function load_linked_avatar($ignore_multi_avs = true)
+        function load_linked_avatar()
         {
             // Make sure we have some user data
             if (empty($this->user_data)) return false;
             $this->avatar_data = null;
             
             // Fetch all avatar records which are linked to the user
-            $recs = get_records('sloodle_users', 'userid', $this->user_data->id, 'id');
-            if (!is_array($recs) || count($recs) == 0) return false;
-            
-            // Some callers might want to know if multiple avatars were found
-            if (!$ignore_multi_avs && count($recs) > 1) return 'multi';
+            $recs = get_records('sloodle_users', 'userid', $this->user_data->id);
+            if (!is_array($recs)) return false;
+            if (count($recs) > 1) return 'multi';
             
             // Store the avatar data
             reset($recs);
@@ -520,7 +527,8 @@
             if (empty($this->avatar_data)) return false;
             
             // Fetch the user data
-            $this->user_data = get_complete_user_data('id', $this->avatar_data->userid);
+            //$this->user_data = get_complete_user_data('id', $this->avatar_data->userid); // this should not be necessary
+            $this->user_data = get_record('user', 'id', $this->avatar_data->userid); // this should be sufficient
             if ($this->user_data) return true;
             return false;
         }
@@ -540,7 +548,7 @@
             global $USER;
             // Make sure we have some user data
             if (empty($this->user_data)) return false;
-            $USER = get_complete_user_data('id', $this->user_data->id);
+            $USER = get_complete_user_data('id', $this->user_data->id); // We really need to determine if this is actually necessary. Hopefully it's not.
             return true;
         }
         
@@ -615,23 +623,7 @@
             }
             return $usercourses;
         }
-           
-            /**
-             * is_really_enrolled checks if the current user is enrolled in the course.  The other is_enrolled function
-             * evaluates to true for administrators even if they are not enrolled in the course. This function will
-             * evaluate to false for administrators
-             * @param $courseid [integer] the id of the course
-             */
-            function is_really_enrolled($courseid)
-            {
-         
-                global $USER;
-                global $CFG;
-                $sql = "SELECT u.id, u.username FROM ".$CFG->prefix."user u, ".$CFG->prefix."role_assignments r";
-                 $sql .= " WHERE u.id = r.userid";
-                 $sql .= " AND r.contextid =".$courseid." AND u.id=".$USER->id;
-                return get_records_sql($sql);
-        }
+
         /**
         * Is the current user enrolled in the specified course?
         * NOTE: a side effect of this is that it logs-in the user
@@ -678,9 +670,6 @@
             
             // Create a context for this course
             if (!$context = get_context_instance(CONTEXT_COURSE, $courseid)) return false;
-            // Ensure we have up-to-date capabilities for the current user
-            load_all_capabilities();
-            
             // Check if the user can view the course, does not simply have guest access to it, *and* is staff
             return (has_capability('moodle/course:view', $context) && !has_capability('moodle/legacy:guest', $context, NULL, false) && has_capability('mod/sloodle:staff', $context));
         }

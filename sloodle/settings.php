@@ -65,13 +65,111 @@ $settings->add( new admin_setting_configtext(
                 get_string('userobjectlifetime', 'sloodle'),
                 get_string('userobjectlifetime:info', 'sloodle').helpbutton('user_objects', get_string('userobjects','sloodle'), 'sloodle', true, false, '', true),
                 21));
-// This selection box determines whether or not auto-enrolment is allowed on the site
+                
 
-$settings->add( new admin_setting_configselect(
-                'sloodle_gridtype',
-                get_string('gridtype:specifygridtype','sloodle'),
+// // TRACKER SETTINGS // //
+
+// General settings section
+$settings->add(new admin_setting_heading('sloodle_tracker_settings_header', get_string('tracker:settings', 'sloodle'), ''));
+
+// This text box will let the user enter the address of the OpenSim server -- this is how students will connect to it
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_address',
+                get_string('tracker:opensim_address', 'sloodle'),
+                get_string('tracker:opensim_address:info', 'sloodle'),
                 '',
-                "OpenSim",
-                array("OpenSim" => "OpenSim", "SecondLife"=> "SecondLife")
-));  
+                PARAM_RAW,
+                50));
+				
+// This text box will let the user enter the path to the main OpenSim installation folder
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_main_opensim_installation_folder',
+                get_string('tracker:main_opensim_folder', 'sloodle'),
+                get_string('tracker:main_opensim_folder:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                50));				
+
+// This text box will let the user enter the bd name to the main OpenSim installation
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_main_opensim_db',
+                get_string('tracker:main_opensim_db', 'sloodle'),
+                get_string('tracker:main_opensim_db:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                50));								
+				
+// This text box will let the user enter the path to the OpenSim templates folder
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_templates_folder',
+                get_string('tracker:templates_folder', 'sloodle'),
+                get_string('tracker:templates_folder:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                50));
+                
+// This text box will let the user enter the path to the OpenSim instances folder
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_instances_folder',
+                get_string('tracker:instances_folder', 'sloodle'),
+                get_string('tracker:instances_folder:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                50));
+
+// This text box will let the user enter the address of the OpenSim database server
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_db_host',
+                get_string('tracker:opensim_db_host', 'sloodle'),
+                get_string('tracker:opensim_db_host:info', 'sloodle'),
+                'localhost',
+                PARAM_RAW,
+                25));
+
+// This text box will let the user enter the user login for the OpenSim database server
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_db_user',
+                get_string('tracker:opensim_db_user', 'sloodle'),
+                get_string('tracker:opensim_db_user:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                25));
+                
+// This text box will let the user enter the password to login to the OpenSim database server
+$settings->add( new admin_setting_configpasswordunmask(
+                'sloodle_tracker_opensim_db_password',
+                get_string('tracker:opensim_db_password', 'sloodle'),
+                get_string('tracker:opensim_db_password:info', 'sloodle'),
+                '',
+                PARAM_RAW,
+                25));
+
+
+// This text box will let the user enter the lower port number reserved for OpenSim instances
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_port_min',
+                get_string('tracker:opensim_port_min', 'sloodle'),
+                get_string('tracker:opensim_port_min:info', 'sloodle'),
+                '9001',
+                PARAM_INT,
+                6));
+                
+// This text box will let the user enter the upper port number reserved for OpenSim instances
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_port_max',
+                get_string('tracker:opensim_port_max', 'sloodle'),
+                get_string('tracker:opensim_port_max:info', 'sloodle'),
+                '9100',
+                PARAM_INT,
+                6));
+				
+// This text box will let the user enter the port number reserved for OpenSim template
+$settings->add( new admin_setting_configtext(
+                'sloodle_tracker_opensim_port_template',
+                get_string('tracker:opensim_port_template', 'sloodle'),
+                get_string('tracker:opensim_port_template:info', 'sloodle'),
+                '9000',
+                PARAM_INT,
+                6));				
+
 ?>

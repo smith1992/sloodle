@@ -359,7 +359,7 @@ default
         sloodlepwd = "";
         sloodlecontrollerid = 0;
         sloodlecoursename_full = "";
-        sloodleobjectaccessleveluse = SLOODLE_OBJECT_ACCESS_LEVEL_OWNER;
+        sloodleobjectaccessleveluse = 0;
         sloodleserveraccesslevel = 0;
         
         // Reset our autorez lists
@@ -750,5 +750,3 @@ state rezzing
 }
 
 
-// Please leave the following line intact to show where the script lives in Subversion:
-// SLOODLE LSL Script Subversion Location: mod/set-1.0/sloodle_object_creator_mothership.lsl 

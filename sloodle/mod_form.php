@@ -35,10 +35,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
     * @uses $COURSE
     * @uses $SLOODLE_TYPES
     */                         
-    function definition() {
+	function definition() {
 
-        global $CFG, $COURSE, $SLOODLE_TYPES;
-        $mform    =& $this->_form;
+		global $CFG, $COURSE, $SLOODLE_TYPES;
+		$mform    =& $this->_form;
 
 //-------------------------------------------------------------------------------
 
@@ -80,16 +80,16 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // Make a text box for the name of the module
         $mform->addElement('text', 'name', get_string('name', 'sloodle'), array('size'=>'64'));
         // Make it text type
-        $mform->setType('name', PARAM_TEXT);
+		$mform->setType('name', PARAM_TEXT);
         // Set a client-size rule that an entry is required
-        $mform->addRule('name', null, 'required', null, 'client');
+		$mform->addRule('name', null, 'required', null, 'client');
 
         // Create an HTML editor for module description (intro text)
-        $mform->addElement('htmleditor', 'intro', get_string('description'));
+		$mform->addElement('htmleditor', 'intro', get_string('description'));
         // Make it raw type (so the HTML isn't filtered out)
-        $mform->setType('intro', PARAM_RAW);
+		$mform->setType('intro', PARAM_RAW);
         // Make it required
-        //$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
+		//$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
         // Provide an HTML editor help button
         $mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
         
@@ -106,6 +106,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
         // Check which type is being added
         switch ($sloodletype) {
+        
         
         // // CONTROLLER // //
         
@@ -172,32 +173,73 @@ class mod_sloodle_mod_form extends moodleform_mod {
 
             break;
 
+
+        // AWARDS //
         
         case SLOODLE_TYPE_AWARDS:
         
-            global $CFG;           
+            global $CFG;
+            if (!file_exists($CFG->dirroot."/mod/assignment/type/sloodleaward/assignment.class.php"))        {
+                  error("The sloodleawards asigment object is not installed. Before you can use the Sloodle Awards System, you must first install the Sloodle Awars Assignment type.  You can do this by visiting our wiki here:http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System","http://slisweb.sjsu.edu/sl/index.php/Sloodle_Awards_System");    
+                  return;
+            }
             //This switch occures when the user adds a new award activity
             // Add the type-specific header
             $mform->addElement('header', 'typeheader', $sloodletypefull);           
             //get all the assignments for the course
             $mform->addElement('image','SloodleAwardImage',SLOODLE_WWWROOT.'/lib/media/awardsmall.gif' );
+            $recs = get_records_select('assignment', "course = $COURSE->id AND assignmenttype='sloodleaward'");
+            if (!is_array($recs)) $recs = array();           
+            $assignments= array();
+            $assignments[]="";
+            foreach ($recs as $ass) {
+                $assignments[$ass->id] = $ass->name;
+                
+            }  
+                      
+            natcasesort($assignments); // Sort the list by name
+           //add icurrency
+            $pTypes=array('Lindens'=>'Lindens','iPoints'=>'iPoints');
+            $mform->addElement('select', 'icurrency',get_string('awards:typeofcurrency','sloodle'),$pTypes);
+            $mform->setHelpButton('icurrency', array('icurrency', get_string('awards:help:icurrency','sloodle'), 'sloodle'));
+            //display assignments            
+            $mform->addElement('select', 'assignmentid',get_string('awards:selectassignment','sloodle'),$assignments);
+            $mform->setHelpButton('assignmentid', array('awardsassignment', get_string('help:maxpoints','sloodle'), 'sloodle'));            
+            //maxpoints            
+            $mform->addElement('text', 'maxpoints', get_string('awards:maxpoints', 'sloodle'),'100');
+            $mform->setDefault('maxpoints', 100);
+            $mform->setHelpButton('maxpoints', array('maxpoints', get_string('help:maxpoints','sloodle'), 'sloodle'));            
             break;  
+		
+            
+        // // TRACKER // //
+
+        case SLOODLE_TYPE_TRACKER:                                                   
+                                                                                   
+            // Add the type-specific Header                                        
+            $mform->addElement('header', 'typeheader', $sloodletypefull);                                                                                  
+            
+            // Add a box to enter the template name
+            $mform->addElement('text', 'tracker_opensim_template', get_string('tracker:opensim_template_name', 'sloodle').': ', array('size'=>'30', 'maxlength'=>'255'));
+            $mform->setDefault('tracker_opensim_template', 'opensim_template_name');
+
+            break;
          } 
 //-------------------------------------------------------------------------------
         // Add the standard course module elements, except the group stuff (as Sloodle doesn't support it)
-        $this->standard_coursemodule_elements(false);
+		$this->standard_coursemodule_elements(false);
         
 //-------------------------------------------------------------------------------
         // Form buttons
         $this->add_action_buttons();
-    }
+	}
 
     /**
     * Performs extra processing on the form after existing/default data has been specified.
     * @return void
     */
-    function definition_after_data() {
-    }
+	function definition_after_data() {
+	}
     
     /**
     * Pre-processes form initial values.
@@ -208,7 +250,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
     * @param array $default_values Array of element names to values/
     * @return void
     */
-    function data_preprocessing(&$default_values) {
+	function data_preprocessing(&$default_values) {
         // Get the form
         $mform =& $this->_form;
         
@@ -249,6 +291,10 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $awards = get_record('sloodle_awards', 'sloodleid', $this->_instance);
             if (!$awards) error(get_string('secondarytablenotfound', 'sloodle'));
             
+            $default_values['icurrency'] = $awards->icurrency;
+            $default_values['assignmentid'] = $awards->assignmentid;
+            $default_values['maxpoints'] =$awards->maxpoints;
+            
             break;
   
         case SLOODLE_TYPE_PRESENTER:
@@ -261,27 +307,21 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $default_values['presenter_frameheight'] = (int)$presenter->frameheight;
 
             break;
-
-        case SLOODLE_TYPE_MAP:
-            // Fetch the map record
-            $map = get_record('sloodle_map', 'sloodleid', $this->_instance);
-            if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
-            
-            // Add in all the values from the database
-            $default_values['map_initialx'] = $map->initialx;
-            $default_values['map_initialy'] = $map->initialy;
-            $default_values['map_initialzoom'] = $map->initialzoom;
-            $default_values['map_showpan'] = $map->showpan;
-            $default_values['map_showzoom'] = $map->showzoom;
-            $default_values['map_allowdrag'] = $map->allowdrag;
-            
-            break;
-            
+		
+        case SLOODLE_TYPE_TRACKER:    
+        	// Fetch the tracker record
+        	$tracker = get_record('sloodle_tracker', 'sloodleid', $this->_instance);
+        	if (!$tracker) error(get_string('secondarytablenotfound', 'sloodle'));
+        	
+        	// Add the existing template name to the form
+        	$default_values['tracker_opensim_template'] = $tracker->opensim_template;
+            break;            
+		
         default:
             // Nothing to do?
             break;
         }
-    }
+	}
 
 
     /**
@@ -329,17 +369,15 @@ switch ($data['type']) {
             // Nothing to error check
             break;
         
-        case SLOODLE_TYPE_MAP:
-            // Nothing to error check
-            break; 
-
-        // ADD FUTURE TYPES HERE
-           case SLOODLE_TYPE_AWARDS:           //MOVED TO 0.41
-            // Nothing to error check
-           break; 
-
-        // ADD FUTURE TYPES HERE
         
+        case SLOODLE_TYPE_TRACKER:
+            // Make sure the template name is not blank, and that it contains only letters, numbers, and underscores
+            if (empty($data['tracker_opensim_template'])) $errors['tracker_opensim_template'] = get_string('specifyname');
+            else if (preg_match('/[^a-zA-Z0-9_]/', $data['tracker_opensim_template'])) $errors['tracker_opensim_template'] = get_string('tracker:invalidtemplatename', 'sloodle');
+            break;   
+            
+
+        // ADD FUTURE TYPES HERE
             
         default:
             // We don't know the type
