@@ -209,7 +209,7 @@ function sloodle_tracker_create_opensim_instance($template, $instance, $avname, 
     // Escape the arguments to ensure they are safe for the command line
     $fileSrcArg = escapeshellarg($fileSrc);
     $fileDestArg = escapeshellarg($fileDest);
-    
+
     // Attempt to do the copying
     sloodle_debug("Copying OpenSim template from \"{$fileSrc}\" to instance at \"{$fileDest}\"");
     if (sloodle_tracker_platform_is_windows())
@@ -538,26 +538,34 @@ function sloodle_tracker_create_opensim_template($template, $avname, $avuuid, $p
     if (preg_match("/[^a-zA-Z0-9_]/", $template)) error('Invalid characters found in template name');
 	
     // FILE COPYING //
+    
     // Construct the source and destination paths
     $fileSrc = $CFG->sloodle_tracker_main_opensim_installation_folder.'/opensim';
 	$fileDest = $CFG->sloodle_tracker_opensim_templates_folder.'/'.$template;
+    
     // Check to see if the destination folder already exists
     if (is_dir($fileDest)) error("OpenSim template folder \"{$template}\" already exists.");
+    
     // Escape the arguments to ensure they are safe for the command line
     $fileSrcArg = escapeshellarg($fileSrc);
 	$fileDestArg = escapeshellarg($fileDest);
+    
     // Attempt to do the copying
     sloodle_debug("Copying main OpenSim installation from \"{$fileSrc}\" to template at \"{$fileDest}\"");
     if (sloodle_tracker_platform_is_windows())
     {
         exec("xcopy {$fileSrcArg} {$fileDestArg} /e /i > nul");
+        echo("<hr>xcopy {$fileSrcArg} {$fileDestArg} /e /i > nul<hr>");
     } else {
         exec("cp -R {$fileSrcArg} {$fileDestArg}");
+        echo("<hr>cp -R {$fileSrcArg} {$fileDestArg}<hr>");
     }
+    
     // Check to see if the directory exists
     if (!is_dir($fileDest)) error('File copying failed, or PHP does not have access to the required location.');
 	
     // DATABASE COPYING //
+    
     // Attempt a connection to the OpenSim database
 	$databaseName = $CFG->sloodle_tracker_main_opensim_db;
     $osDBlink = mysql_connect($CFG->sloodle_tracker_opensim_db_host, $CFG->sloodle_tracker_opensim_db_user, $CFG->sloodle_tracker_opensim_db_password);
@@ -583,7 +591,7 @@ function sloodle_tracker_create_opensim_template($template, $avname, $avuuid, $p
     // Write the avatar details into the instance database
 	list($avname1,$avname2) = split(" ",$avname,2);
     $query = "UPDATE `{$template}`.`useraccounts` SET `PrincipalID` = '{$avuuid}', `FirstName` = '{$avname1}', `LastName` = '{$avname2}' WHERE 1";
-    if (!mysql_query($query, $osDBlink)) error("Failed to write avatar details into template user accounts table.");
+    if (!mysql_query($query, $osDBlink)) error("Failed to write avatar details into template user accounts table. ".mysql_error());
     $query = "UPDATE `{$template}`.`auth` SET `UUID` = '{$avuuid}' WHERE 1";
     if (!mysql_query($query, $osDBlink)) error("Failed to write avatar details into template auth table.");
     $query = "UPDATE `{$template}`.`inventoryfolders` SET `agentID` = '{$avuuid}' WHERE 1";
@@ -809,4 +817,5 @@ function sloodle_tracker_get_opensim_template_port($name)
     sloodle_debug("Allocated port {$port} to OpenSim template \"{$name}\"");
     return $port;
 }
+
 ?>
