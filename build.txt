@@ -1,0 +1,19 @@
+A small modification was made to the OpenSim source code to enable instances to be automatically cleaned-up after use. If you want to update the version of OpenSim used by the launcher, you will therefore need to get the latest OpenSim source code, add the required modification, and then build the binaries.
+
+The required addition goes in the file named "LLClientView.cs", in a function called HandleLogout.
+Add the following code immediatley before the function's "return" statement:
+
+// SOURCE CODE //
+
+m_log.InfoFormat("[CLIENT]: See you later, aligator!");
+if (File.Exists("C:\\delete.bat"))
+{
+    string currentDirectoryAux = Environment.CurrentDirectory;
+    string currentDirectory = currentDirectoryAux.Substring(0, currentDirectoryAux.Length - 4);
+    Process.Start("C:\\delete.bat", currentDirectory);
+}
+Environment.Exit(0);
+
+// END SOURCE CODE //
+
+When you have built the OpenSim binaries, setup a basic MySQL-based standalone configuration, and put the  files in place of the launcher's master OpenSim installation.
