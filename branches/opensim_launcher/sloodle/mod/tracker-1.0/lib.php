@@ -360,10 +360,10 @@ function sloodle_tracker_configure_opensim_instance($instance, $port)
 
 // // Regions.ini // //
     // Open the existing region file for reading, and an output file for writing
-    sloodle_debug("Updating configuration file: ".$instance_dir.'/bin/Regions/Regions.ini');
-    $fileIn = fopen($instance_dir.'/bin/Regions/Regions.ini', 'rt');
+    sloodle_debug("Updating configuration file: ".$instance_dir.'/Regions/Regions.ini');
+    $fileIn = fopen($instance_dir.'/Regions/Regions.ini', 'rt');
     if (!$fileIn) error("Failed to open regions file for configuration input.");
-    $fileOut = fopen($instance_dir.'/bin/Regions/Regions-new.ini', 'wt');
+    $fileOut = fopen($instance_dir.'/Regions/Regions-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -395,16 +395,16 @@ function sloodle_tracker_configure_opensim_instance($instance, $port)
     fclose($fileOut);
     
     // Delete our original file, and move our new one into its place
-    unlink($instance_dir.'/bin/Regions/Regions.ini');
-    rename($instance_dir.'/bin/Regions/Regions-new.ini', $instance_dir.'/bin/Regions/Regions.ini');
+    unlink($instance_dir.'/Regions/Regions.ini');
+    rename($instance_dir.'/Regions/Regions-new.ini', $instance_dir.'/Regions/Regions.ini');
     
 // // OpenSim.ini // //
 	
 	// Open the existing region file for reading, and an output file for writing
-	sloodle_debug("Updating configuration file at: ".$instance_dir.'/bin/OpenSim.ini');
-    $fileIn = fopen($instance_dir.'/bin/OpenSim.ini', 'rt');
+	sloodle_debug("Updating configuration file at: ".$instance_dir.'/OpenSim.ini');
+    $fileIn = fopen($instance_dir.'/OpenSim.ini', 'rt');
     if (!$fileIn) error("Failed to open OpenSim.ini file for configuration input.");
-    $fileOut = fopen($instance_dir.'/bin/OpenSim-new.ini', 'wt');
+    $fileOut = fopen($instance_dir.'/OpenSim-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -437,16 +437,16 @@ function sloodle_tracker_configure_opensim_instance($instance, $port)
     fclose($fileOut);
     
     // Delete our original file, and move our new one into its place
-    unlink($instance_dir.'/bin/OpenSim.ini');
-    rename($instance_dir.'/bin/OpenSim-new.ini', $instance_dir.'/bin/OpenSim.ini');
+    unlink($instance_dir.'/OpenSim.ini');
+    rename($instance_dir.'/OpenSim-new.ini', $instance_dir.'/OpenSim.ini');
     
 // // StandaloneCommon.ini // //
 	
 	// Open the existing region file for reading, and an output file for writing
-	sloodle_debug("Updating configuration file at: ".$instance_dir.'/bin/config-include/StandaloneCommon.ini');
-    $fileIn = fopen($instance_dir.'/bin/config-include/StandaloneCommon.ini', 'rt');
+	sloodle_debug("Updating configuration file at: ".$instance_dir.'/config-include/StandaloneCommon.ini');
+    $fileIn = fopen($instance_dir.'/config-include/StandaloneCommon.ini', 'rt');
     if (!$fileIn) error("Failed to open StandaloneCommon.ini file for configuration input.");
-    $fileOut = fopen($instance_dir.'/bin/config-include/StandaloneCommon-new.ini', 'wt');
+    $fileOut = fopen($instance_dir.'/config-include/StandaloneCommon-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -477,8 +477,8 @@ function sloodle_tracker_configure_opensim_instance($instance, $port)
     fclose($fileOut);
     
     // Delete our original file, and move our new one into its place
-    unlink($instance_dir.'/bin/config-include/StandaloneCommon.ini');
-    rename($instance_dir.'/bin/config-include/StandaloneCommon-new.ini', $instance_dir.'/bin/config-include/StandaloneCommon.ini');
+    unlink($instance_dir.'/config-include/StandaloneCommon.ini');
+    rename($instance_dir.'/config-include/StandaloneCommon-new.ini', $instance_dir.'/config-include/StandaloneCommon.ini');
     
 }
 
@@ -494,7 +494,7 @@ function sloodle_tracker_launch_opensim_instance($instance)
 	// Make sure the instance name is OK
 	if (preg_match("/[^a-zA-Z0-9_]/", $instance)) return false;
 	// Make sure we can see an executable in the expected location
-	$execPath = $CFG->sloodle_tracker_opensim_instances_folder."/{$instance}/bin/opensim.exe";
+	$execPath = $CFG->sloodle_tracker_opensim_instances_folder."/{$instance}/opensim.exe";
 	$execPathArg = escapeshellarg($execPath);
 	if (!is_file($execPath))
 	{
@@ -617,10 +617,10 @@ function sloodle_tracker_configure_opensim_template($template, $port)
 
 // // Regions.ini // //
     // Open the existing region file for reading, and an output file for writing
-    sloodle_debug("Updating configuration file: ".$template_dir.'/bin/Regions/Regions.ini');
-    $fileIn = fopen($template_dir.'/bin/Regions/Regions.ini', 'rt');
+    sloodle_debug("Updating configuration file: ".$template_dir.'/Regions/Regions.ini');
+    $fileIn = fopen($template_dir.'/Regions/Regions.ini', 'rt');
     if (!$fileIn) error("Failed to open regions file for configuration input.");
-    $fileOut = fopen($template_dir.'/bin/Regions/Regions-new.ini', 'wt');
+    $fileOut = fopen($template_dir.'/Regions/Regions-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -648,15 +648,15 @@ function sloodle_tracker_configure_opensim_template($template, $port)
     fclose($fileIn);
     fclose($fileOut);
     // Delete our original file, and move our new one into its place
-    unlink($template_dir.'/bin/Regions/Regions.ini');
-    rename($template_dir.'/bin/Regions/Regions-new.ini', $template_dir.'/bin/Regions/Regions.ini');
+    unlink($template_dir.'/Regions/Regions.ini');
+    rename($template_dir.'/Regions/Regions-new.ini', $template_dir.'/Regions/Regions.ini');
     
 // // OpenSim.ini // //
 	// Open the existing region file for reading, and an output file for writing
-	sloodle_debug("Updating configuration file at: ".$template_dir.'/bin/OpenSim.ini');
-    $fileIn = fopen($template_dir.'/bin/OpenSim.ini', 'rt');
+	sloodle_debug("Updating configuration file at: ".$template_dir.'/OpenSim.ini');
+    $fileIn = fopen($template_dir.'/OpenSim.ini', 'rt');
     if (!$fileIn) error("Failed to open OpenSim.ini file for configuration input.");
-    $fileOut = fopen($template_dir.'/bin/OpenSim-new.ini', 'wt');
+    $fileOut = fopen($template_dir.'/OpenSim-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -684,15 +684,15 @@ function sloodle_tracker_configure_opensim_template($template, $port)
     fclose($fileIn);
     fclose($fileOut);
     // Delete our original file, and move our new one into its place
-    unlink($template_dir.'/bin/OpenSim.ini');
-    rename($template_dir.'/bin/OpenSim-new.ini', $template_dir.'/bin/OpenSim.ini');
+    unlink($template_dir.'/OpenSim.ini');
+    rename($template_dir.'/OpenSim-new.ini', $template_dir.'/OpenSim.ini');
     
 // // StandaloneCommon.ini // //
 	// Open the existing region file for reading, and an output file for writing
-	sloodle_debug("Updating configuration file at: ".$template_dir.'/bin/config-include/StandaloneCommon.ini');
-    $fileIn = fopen($template_dir.'/bin/config-include/StandaloneCommon.ini', 'rt');
+	sloodle_debug("Updating configuration file at: ".$template_dir.'/config-include/StandaloneCommon.ini');
+    $fileIn = fopen($template_dir.'/config-include/StandaloneCommon.ini', 'rt');
     if (!$fileIn) error("Failed to open StandaloneCommon.ini file for configuration input.");
-    $fileOut = fopen($template_dir.'/bin/config-include/StandaloneCommon-new.ini', 'wt');
+    $fileOut = fopen($template_dir.'/config-include/StandaloneCommon-new.ini', 'wt');
     if (!$fileOut)
     {
     	fclose($fileIn);
@@ -718,8 +718,8 @@ function sloodle_tracker_configure_opensim_template($template, $port)
     fclose($fileIn);
     fclose($fileOut);
     // Delete our original file, and move our new one into its place
-    unlink($template_dir.'/bin/config-include/StandaloneCommon.ini');
-    rename($template_dir.'/bin/config-include/StandaloneCommon-new.ini', $template_dir.'/bin/config-include/StandaloneCommon.ini');
+    unlink($template_dir.'/config-include/StandaloneCommon.ini');
+    rename($template_dir.'/config-include/StandaloneCommon-new.ini', $template_dir.'/config-include/StandaloneCommon.ini');
 }
 
 /**
@@ -733,7 +733,7 @@ function sloodle_tracker_launch_opensim_template($template)
 	// Make sure the instance name is OK
 	if (preg_match("/[^a-zA-Z0-9_]/", $template)) return false;
 	// Make sure we can see an executable in the expected location
-	$execPath = $CFG->sloodle_tracker_opensim_templates_folder."/{$template}/bin/opensim.exe";
+	$execPath = $CFG->sloodle_tracker_opensim_templates_folder."/{$template}/opensim.exe";
 	$execPathArg = escapeshellarg($execPath);
 	if (!is_file($execPath))
 	{
