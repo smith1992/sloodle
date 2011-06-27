@@ -70,6 +70,8 @@ if(isset($_POST['send']))
   </div>
    <div style="text-align:center;width:50%;margin:16px auto;border:solid 1px #000;padding:8px 4px;">
     <p><?php print_string('tracker:opensimtemplatecreated','sloodle'); ?></p>
+    <p>Your avatar name is your first and second name from your Moodle profile.</p>
+    <p>Your password should be "testing".</p>
    </div>
  <?php
  }
@@ -80,7 +82,7 @@ if(isset($_POST['send']))
   $template = $_POST['select_template'];
   launch_opensim_template($template);
   // Generate a URL which will be able to launch an OpenSim-compatible viewer
-  $port = sloodle_tracker_get_opensim_template_port($template_name);
+  $port = sloodle_tracker_get_opensim_template_port($template);
   $url = "opensim://{$CFG->sloodle_tracker_opensim_address}:{$port}/regionOne/127/124/25";
  ?>
  </div>
