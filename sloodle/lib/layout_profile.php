@@ -5,17 +5,18 @@
     * This file defines structures for managing Sloodle layout profiles.
     *
     * @package sloodle
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @copyright Copyright (c) 2007-2010 various contributors
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
+    * @contributor Edmund Edgar
     */
     
     class SloodleLayout
     {
         var $name;
         var $id;
-        var $courseid;
+        var $course; // NB This is an ID of the course, not an object representing the course
 
         var $entries = array();
         var $originalentries = array();
@@ -29,13 +30,27 @@
 
         }
 
+	// return a name for the layout, numbering based on the prefix
+	function UniqueName($prefix) {
+
+    	    for ($i=1; $i<100000; $i++) {
+                 $candidate = $prefix.$i;
+                 if (!$rec = sloodle_get_record('sloodle_layout','name',$candidate)) {
+                     return $candidate;
+                 }
+	    }
+            return false;
+	
+	}
+
         function load_from_row($r) {
 
             if (!$r) return null;
 
             $this->name = $r->name;
             $this->id = $r->id;
-            $this->courseid = $r->course;
+            $this->course = $r->course;
+            $this->controllerid = $r->controllerid;
 
             $this->originalentries = $this->get_entries($store = false);
 
@@ -45,9 +60,10 @@
 
         function load($id) {
 
-            $rec = get_record('sloodle_layout','id',$id); 
+            $rec = sloodle_get_record('sloodle_layout','id',$id); 
             if (!$rec) return null;
             $loaded = $this->load_from_row($rec);
+            return true;
 
         }
 
@@ -63,10 +79,69 @@
            return $ok;
 	}
 
+	function has_active_objects_rezzed_by_rezzer( $rezzeruuid ) {
+
+		global $CFG;
+		$layoutid = intval($this->id);
+		$select = "select count(*) as cnt from {$CFG->prefix}sloodle_active_object a inner join {$CFG->prefix}sloodle_layout_entry le on a.layoutentryid=le.id where a.rezzeruuid=? and le.layout=?";
+		$recs = sloodle_get_records_sql_params( $select, array($rezzeruuid, $layoutid ));
+		if (!$recs) {
+			return false;
+		}
+		$rec = array_pop($recs);
+		$cnt = $rec->cnt;
+		return ( $cnt > 0 );
+
+        }
+
+	function rezzed_active_objects( $rezzeruuid = null ) {
+
+		global $CFG;
+
+		$layoutid = intval($this->id);
+		$select = "select a.* from {$CFG->prefix}sloodle_active_object a inner join {$CFG->prefix}sloodle_layout_entry le on a.layoutentryid=le.id where le.layout=?";
+		$args = array($layoutid);
+		if ($rezzeruuid) {
+			$rezzeruuid = addslashes($rezzeruuid);
+			$select .= " and rezzeruuid=?";
+			$args[] = $rezzeruuid;
+		}
+		$recs = sloodle_get_records_sql_params( $select, $args );
+		if (!$recs) {
+			return false;
+		}
+
+		$aos = array();
+		foreach($recs as $rec) {
+			$ao = new SloodleActiveObject();
+			$ao->loadFromRecord($rec);
+			$aos[] = $ao;
+		}
+	
+		return $aos;
+
+	}
+
+	// return a has of rezzed objects with the layout entry id as the key
+	function rezzed_active_objects_by_layout_entry_id( $rezzeruuid = null ) {
+
+		$aos = $this->rezzed_active_objects( $rezzeruuid );
+		$aohash = array();
+		foreach($aos as $ao) {
+			$leid = $ao->layoutentryid;
+			if (!isset($aohash[ $leid ])) {
+				$aohash[ $leid ] = array();
+			} 
+			$aohash[ $leid ][] = $ao;
+		}
+		return $aohash;
+
+	}
+
         function get_sloodle_course() {
 
             $course = new SloodleCourse();
-            if ($course->load($this->courseid)) {
+            if ($course->load($this->course)) {
                 return $course;
             }
             return null;
@@ -75,7 +150,7 @@
 
         function get_course() {
 
-            return get_record('course','id',$this->courseid);
+            return sloodle_get_record('course','id',$this->course);
 
         }
 
@@ -84,9 +159,9 @@
 	// set $store=false if you're planning to update the object entries and you're only reading them in so the object will know what is already there and what to insert and delete.
         function get_entries($store = true) {
 
-            $rows = get_records('sloodle_layout_entry','layout',$this->id);
+            $rows = sloodle_get_records('sloodle_layout_entry','layout',$this->id);
             $entries = array();
-            if (count($rows) > 0) {
+            if ($rows && ( count($rows) > 0) ) {
                foreach($rows as $row) {
                   $entries[] = new SloodleLayoutEntry($row);
                }
@@ -111,7 +186,7 @@
 
         function insert() {
 
-            $this->id = insert_record('sloodle_layout', $this);
+            $this->id = sloodle_insert_record('sloodle_layout', $this);
             $this->save_entries();
             return $this->id;
 
@@ -119,12 +194,50 @@
 
         function update() {
 
-            if (!update_record('sloodle_layout', $this)) {
+            if (!sloodle_update_record('sloodle_layout', $this)) {
                return false;
             }
             return $this->save_entries();
 
         }
+
+        function delete() {
+
+            $this->delete_entries();
+            if (!sloodle_delete_records('sloodle_layout', 'id', $this->id)) {
+               return false;
+            }
+            return true;
+
+        }
+
+	function delete_entries() {
+
+            $this->entries = array();
+            $this->save_entries();
+
+	}
+
+	function save_clone( $name ) {
+
+            $clone = new SloodleLayout();
+            $clone->name = $name;
+            $clone->course = $this->course;
+            $clone->controllerid = $this->controllerid;
+            if (!$cloneid = sloodle_insert_record('sloodle_layout', $clone)) {
+                return false;
+            }
+	    $clone->id = $cloneid;
+            $clone->entries = array();
+            foreach($this->originalentries as $entry) {
+	        $cloneentry =  ( version_compare(phpversion(), '5.0') ) ? clone($entry) : $entry;
+                $cloneentry->id = null; 
+                $clone->entries[] = $cloneentry;
+            }
+            $clone->save_entries();
+            return $cloneid; 
+	
+	}
 
         function save_entries() {
 
@@ -199,6 +312,17 @@
 
         }
 
+	// returns an objectconfig object for the tool, based on the name of the entry
+	// returns null if it can't find one.
+	function get_object_config() {
+		
+             if ( !$name = $this->name ) {
+                 return null;
+             }
+             return SloodleObjectConfig::ForObjectName( $name );
+
+	}
+
         function load_from_row($r) {
 
             if (!$r) return null;
@@ -221,7 +345,7 @@
 
         function load($id) {
 
-	    $rec = get_record('sloodle_layout_entry', 'id', $id);
+	    $rec = sloodle_get_record('sloodle_layout_entry', 'id', $id);
             if (!$rec) return null;
             return $this->load_from_row($rec);
             
@@ -233,11 +357,11 @@
               return false;
            }
 
-           $object = get_record('sloodle_active_object','uuid',$this->objectuuid); 
+           $object = sloodle_get_record('sloodle_active_object','uuid',$this->objectuuid); 
            $object_id = $object->id;
            if (!$object_id) return false;
 
-           $configs = get_records('sloodle_object_config','object',$object_id); 
+           $configs = sloodle_get_records('sloodle_object_config','object',$object_id); 
            foreach($configs as $config) {
               $this->set_config($config->name,$config->value);
            }
@@ -266,7 +390,7 @@
         */
 	function get_layout_entry_configs() {
             
-	    $recs = get_records('sloodle_layout_entry_config', 'layout_entry', $this->id);
+	    $recs = sloodle_get_records('sloodle_layout_entry_config', 'layout_entry', $this->id);
             if (!$recs) return null;
             
             // Construct the array of SloodleLayoutEntry objects
@@ -326,6 +450,14 @@
             $this->rotation = "<$x,$y,$z>";
         }
         
+	function get_config($name) {
+            $configs = $this->get_layout_entry_configs_as_name_value_hash();
+            if (!isset($configs[$name])) {
+                return null;
+            }
+            return $configs[$name];
+	}
+
         function set_config($name, $value) { // add config with given name/value, overwriting if necessary
             $configs = $this->configs;
             $done = false;
@@ -354,17 +486,19 @@
 
         function insert() {
 
-            $this->id = insert_record('sloodle_layout_entry', $this);
+            $this->id = sloodle_insert_record('sloodle_layout_entry', $this);
             if (!$this->id) {
                return false;
             }
-            return $this->save_configs();
+            if ( $this->save_configs() ) {
+		return $this->id;
+	    }
 
         }
 
         function update() {
 
-            if (!update_record('sloodle_layout_entry', $this)) {
+            if (!sloodle_update_record('sloodle_layout_entry', $this)) {
                return false;
             }
             return $this->save_configs();
@@ -379,18 +513,22 @@
               return false;
            }           
 
-           $result = delete_records('sloodle_layout_entry', 'id', $this->id);
+           $result = sloodle_delete_records('sloodle_layout_entry', 'id', $this->id);
            return $result;
 
         }
 
         function delete_configs() {
 
-            return delete_records('sloodle_layout_entry_config', 'layout_entry', $this->id);
+            return sloodle_delete_records('sloodle_layout_entry_config', 'layout_entry', $this->id);
 
         }
 
         function save_configs() {
+
+ 	    if (count($this->configs) == 0) {
+ 	       return true;
+	    }
 
             foreach($this->configs as $config) {
                $config->layout_entry = $this->id; 
@@ -402,7 +540,75 @@
                }
             }
 
+            return true;
+
         }
+
+	function active_objects() {
+            $recs = sloodle_get_records('sloodle_active_object','layout_entry',intval($this->id));
+
+            $aos = array();
+            if ($rec) {
+		foreach($recs as $rec) {
+                    $ao = new SloodleActiveObject();
+                    $ao->loadFromRecord($rec);
+                    $aos[] = $ao;
+		}
+            }
+            return $aos;
+
+	}
+
+        // returns an instance of SloodleLayoutEntry with the default config for an object with the specified name
+	// is_dummy means we have a non-sloodle object with no particular fields.
+        function ForConfig( $name, $is_dummy = false ) {
+            if ($is_dummy) {
+		    if ( !$obj = SloodleObjectConfig::ForNonSloodleObjectWithName( $name ) ) {
+			return null;
+		    }
+	    } else {
+		    if ( !$obj = SloodleObjectConfig::ForObjectName( $name ) ) {
+			return null;
+		    }
+	    }
+            $le = new SloodleLayoutEntry();
+            $le->name = $name;        
+            foreach( $obj->field_sets as $grp ) {
+                 foreach($grp as $n => $op) {
+                     $le->set_config($n, $op->default);
+                 }
+            }
+            return $le;
+        }
+
+	function objectDefinition() {
+            return SloodleObjectConfig::ForObjectName( $this->name );
+	}
+
+        function get_course_module_instance() {
+	    if (!$defn = $this->objectDefinition() ) {
+                return null;
+            }
+            if (!$modtype = $defn->module) {
+                return null;
+            }
+            if (!$sloodlemoduleid = intval($this->get_config('sloodlemoduleid'))){
+                return null;
+            }
+            if (!$cm = sloodle_get_record('course_modules', 'id', $sloodlemoduleid)) {
+                return null;
+            }
+            if (!$inst = sloodle_get_record($modtype, 'id', $cm->instance)) {
+	        return null;
+            }
+            return $inst;
+        }
+	function get_course_module_title() {
+            if (!$inst = $this->get_course_module_instance()) {
+                return null;
+            }
+            return $inst->name;
+	}
 
     }
 
@@ -436,20 +642,20 @@
         }
 
         function load($id) {
-	    $rec = get_record('sloodle_layout_entry_config', 'id', $id);
+	    $rec = sloodle_get_record('sloodle_layout_entry_config', 'id', $id);
             if (!$rec) return null;
             return $this->load_from_row($rec);
         }
 
         function insert() {
 
-            return $this->id = insert_record('sloodle_layout_entry_config', $this);
+            return $this->id = sloodle_insert_record('sloodle_layout_entry_config', $this);
 
         }
 
         function update() {
 
-            return update_record('sloodle_layout_entry_config', $this);
+            return sloodle_update_record('sloodle_layout_entry_config', $this);
 
         }
 

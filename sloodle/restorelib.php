@@ -36,7 +36,7 @@
             $sloodle->timecreated = backup_todb($info['MOD']['#']['TIMECREATED']['0']['#']);
             $sloodle->timemodified = backup_todb($info['MOD']['#']['TIMEMODIFIED']['0']['#']);
 
-            $newid = insert_record("sloodle", $sloodle);
+            $newid = sloodle_insert_record("sloodle", $sloodle);
             
             // Inform the user what we are restoring
             if (!defined('RESTORE_SILENTLY')) {
@@ -150,11 +150,11 @@
         global $CFG;
         $status = true;
         
-        $sloodles = get_records_sql("
+        $sloodles = sloodle_get_records_sql_params("
             SELECT s.id, s.intro
             FROM {$CFG->prefix}sloodle s
-            WHERE s.course = {$restore->course_id}
-        ");
+            WHERE s.course = ?
+        ", array($restore->course_id) );
         
         if ($sloodles) {
             $i = 0;   //Counter to send some output to the browser to avoid timeouts
@@ -165,8 +165,8 @@
                 $result = restore_decode_content_links_worker($content,$restore);
                 if ($result != $content) {
                     //Update record
-                    $sloodle->intro = addslashes($result);
-                    $status = update_record("sloodle", $sloodle);
+                    $sloodle->intro = $result;
+                    $status = sloodle_update_record("sloodle", $sloodle);
                     if (debugging()) {
                         if (!defined('RESTORE_SILENTLY')) {
                             echo '<br /><hr />'.s($content).'<br />changed to<br />'.s($result).'<hr /><br />';

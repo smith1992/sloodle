@@ -190,7 +190,7 @@
         }
         
         // Notify the server of a response
-        notify_server(string qtype, integer questioncode, string responsecode)
+        notify_server(string qtype, integer questioncode, string responsecode, float scorechange)
         {
             string body = "sloodlecontrollerid=" + (string)sloodlecontrollerid;
             body += "&sloodlepwd=" + sloodlepwd;
@@ -202,6 +202,7 @@
             body += "&resp" + (string)questioncode + "_submit=1";
             body += "&questionids=" + (string)questioncode;
             body += "&action=notify";
+            body += "&scorechange="+(string)scorechange;
             
             llHTTPRequest(sloodleserverroot + sloodle_quiz_url, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded"], body);
         }
@@ -363,6 +364,8 @@
                     // Is it a reset command?
                     if (str == "do:reset") {
                         llResetScript();
+                    } else if (str == "do:reconfigure"  || str == "do:requestconfig") {
+                        state default; // The main script is about to receive new configuration data... get ready to receive it too
                     }
                     return;
                 }
@@ -370,7 +373,7 @@
                         
             state_entry()
             {
-   
+
             }
             
             state_exit()
@@ -414,7 +417,7 @@
                             answeroptext = llList2String(optext, answer_num);
 
                             // Notify the server of the response
-                            notify_server(qtype, question_id, llList2String(opids, answer_num));
+                            notify_server(qtype, question_id, llList2String(opids, answer_num),scorechange);
                         } else {
                             sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "invalidchoice", [llKey2Name(sitter)], null_key, "quiz");
                             ask_question();
@@ -430,7 +433,7 @@
                                       opid = llList2String(opids, x);
                                       answeroptext = llList2String(optext, x);
                                    }
-                               notify_server(qtype, question_id, message);
+                               notify_server(qtype, question_id, message, scorechange);
                                }        
                     } else if (qtype == "numerical") {
                                // Notify the server of the response
@@ -444,7 +447,7 @@
                                       opid = llList2String(opids, x);
                                       answeroptext = llList2String(optext, x);                                      
                                    }
-                                   notify_server(qtype, question_id, message);
+                                   notify_server(qtype, question_id, message, scorechange);
                                }        
                     } 
                     
@@ -597,3 +600,8 @@
             }
             
         }
+
+
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/quiz-1.0/sloodle_quiz_question_handler.lsl
+

@@ -66,7 +66,7 @@
         * @param object &$_session Reference to the containing {@link SloodleSession} object, if available.
         * @access public
         */
-        function SloodleUser(&$_session)
+        function SloodleUser(&$_session = null)
         {
             if (!is_null($_session)) $this->_session = &$_session;
         }
@@ -242,7 +242,7 @@
             // Set the linked user ID and update the database record
             $olduserid = $this->avatar_data->userid;
             $this->avatar_data->userid = $this->user_data->id;
-            if (update_record('sloodle_users', $this->avatar_data)) return true;
+            if (sloodle_update_record('sloodle_users', $this->avatar_data)) return true;
             // The operation failed, so change the user ID back
             $this->avatar_data->userid = $olduserid;
             return false;
@@ -262,7 +262,7 @@
             if (empty($this->avatar_data)) return false;
             
             // Attempt to delete the record from the database
-            return delete_records('sloodle_users', 'id', $this->avatar_data->id);
+            return sloodle_delete_records('sloodle_users', 'id', $this->avatar_data->id);
         }
         
         /**
@@ -276,7 +276,7 @@
             // Make sure the ID is valid
             if (!is_int($id) || $id <= 0) return false;
             // Fetch the avatar data
-            $this->avatar_data = get_record('sloodle_users', 'id', $id);
+            $this->avatar_data = sloodle_get_record('sloodle_users', 'id', $id);
             if (!$this->avatar_data) {
                 $this->avatar_data = null;
                 return false;
@@ -285,31 +285,33 @@
         }
         
         /**
-        * Finds an avatar with the given UUID, and optionally search by name as well.
-        * If multiple matching avatars are found then the first one in the database is used (ordered by primary id).
-        * If the name is omitted then it is ignored.
-        * If the name is specified then the avatar must match both UUID and name.
-        * @param string $uuid The UUID of the avatar.
-        * @param string $avname The name of the avatar.
+        * Finds an avatar with the given UUID and/or name, and loads its data.
+        * The UUID is searched for first. If that is not found, then the name is used.
+        * @param string $uuid The UUID of the avatar, or blank to search only by name.
+        * @param string $avname The name of the avatar, or blank to search only by UUID.
         * @return bool True if successful, or false otherwise
         * @access public
         */
-        function load_avatar($uuid, $avname='')
+        function load_avatar($uuid, $avname)
         {
-            // UUID can't be empty
-            if (empty($uuid)) return false;
+            // Both parameters can't be empty
+            if (empty($uuid) && empty($avname)) return false;
             
-            // What kind of search should we do?
-            $avs = array();
-            if (empty($avname))
-            {
-                $avs = get_records('sloodle_users', 'uuid', $uuid);
-            } else {
-                $avs = get_records_select('sloodle_users', "uuid = '{$uuid}' AND avname = '{$avname}'", 'id');
+            // Attempt to search by UUID first
+            if (!empty($uuid)) {
+                $this->avatar_data = sloodle_get_record('sloodle_users', 'uuid', $uuid);
+                if ($this->avatar_data) return true;
             }
-            if (!$avs || count($avs) == 0) return false;
-            $this->avatar_data = current($avs);
-            return true;
+            
+            // Attempt to search by name
+            if (!empty($avname)) {
+                $this->avatar_data = sloodle_get_record('sloodle_users', 'avname', $avname);
+                if ($this->avatar_data) return true;
+            }
+            
+            // The search failed
+            $this->avatar_data = null;
+            return false;
         }
         
         /**
@@ -345,7 +347,7 @@
             // Make sure we have avatar data
             if (empty($this->avatar_data) || $this->avatar_data->id <= 0) return false;
             // Make the update
-            return update_record('sloodle_users', $this->avatar_data);
+            return sloodle_update_record('sloodle_users', $this->avatar_data);
         }
         
         /**
@@ -356,8 +358,6 @@
         * @param string $avname Name of the avatar
         * @return bool True if successful, or false if not.
         * @access public
-        *
-        * @todo Why is there a $userid parameter here? It shouldn't be necessary, as that data should read from the current object.
         */
         function add_linked_avatar($userid, $uuid, $avname)
         {
@@ -369,14 +369,14 @@
             $this->avatar_data->avname = $avname;
             
             // Add the data to the database
-            $this->avatar_data->id = insert_record('sloodle_users', $this->avatar_data);
+            $this->avatar_data->id = sloodle_insert_record('sloodle_users', $this->avatar_data);
             if (!$this->avatar_data->id) {
                 $this->avatar_data = null;
                 return false;
             }
             
             // Delete any pending avatars with the same details
-            delete_records('sloodle_pending_avatars', 'uuid', $uuid, 'avname', $avname);
+            sloodle_delete_records('sloodle_pending_avatars', 'uuid', $uuid, 'avname', $avname);
             
             return true;
         }
@@ -403,7 +403,7 @@
             $pending_avatar->timeupdated = $timestamp;
             
             // Add the data to the database
-            $pending_avatar->id = insert_record('sloodle_pending_avatars', $pending_avatar);
+            $pending_avatar->id = sloodle_insert_record('sloodle_pending_avatars', $pending_avatar);
             if (!$pending_avatar->id) {
                 return false;
             }
@@ -475,33 +475,30 @@
             $this->user_data->emailstop = 1;
             
             // Attempt to update the database (we don't really care if this fails, since everything else will have worked)
-            update_record('user', $this->user_data);
+            sloodle_update_record('user', $this->user_data);
             
             // Now link the avatar to this account
             $this->avatar_data->userid = $this->user_data->id;
-            update_record('sloodle_users', $this->avatar_data);
+            sloodle_update_record('sloodle_users', $this->avatar_data);
             
             return $plain_password;
         }
        
         /**
         * Load the avatar linked to the current user.
-        * @param bool $ignore_multi_avs If true (default) then the function won't care if there are multiple avatars associated with the user - it will just load the first one it finds. If false, then the function will stop and return 'multi' if there are multiple avatars.
-        * @return bool string True if a link was loaded, false if there was no link, or string 'multi' if multiple avatars are linked
+        * @return bool,string True if a link was loaded, false if there was no link, or string 'multi' if multiple avatars are linked
         * @access public
         */
-        function load_linked_avatar($ignore_multi_avs = true)
+        function load_linked_avatar()
         {
             // Make sure we have some user data
             if (empty($this->user_data)) return false;
             $this->avatar_data = null;
             
             // Fetch all avatar records which are linked to the user
-            $recs = get_records('sloodle_users', 'userid', $this->user_data->id, 'id');
-            if (!is_array($recs) || count($recs) == 0) return false;
-            
-            // Some callers might want to know if multiple avatars were found
-            if (!$ignore_multi_avs && count($recs) > 1) return 'multi';
+            $recs = sloodle_get_records('sloodle_users', 'userid', $this->user_data->id);
+            if (!is_array($recs)) return false;
+            if (count($recs) > 1) return 'multi';
             
             // Store the avatar data
             reset($recs);
@@ -629,8 +626,8 @@
                 global $CFG;
                 $sql = "SELECT u.id, u.username FROM ".$CFG->prefix."user u, ".$CFG->prefix."role_assignments r";
                  $sql .= " WHERE u.id = r.userid";
-                 $sql .= " AND r.contextid =".$courseid." AND u.id=".$USER->id;
-                return get_records_sql($sql);
+                 $sql .= " AND r.contextid = ? AND u.id=?";
+                return sloodle_get_records_sql_params($sql, array($courseid, $USER->id));
         }
         /**
         * Is the current user enrolled in the specified course?
@@ -802,7 +799,7 @@
             // Check that the user is loaded
             if (empty($this->user_data)) return;
             // Delete the database entries
-            delete_records('sloodle_login_notifications', 'username', $this->user_data->username);
+            sloodle_delete_records('sloodle_login_notifications', 'username', $this->user_data->username);
         }
         
         
@@ -820,13 +817,13 @@
             if (!$this->is_avatar_loaded()) return false;
             
             // Does the object already exist in the database?
-            $auth = get_record('sloodle_user_object', 'id', $authid, 'avuuid', $this->get_avatar_uuid());
+            $auth = sloodle_get_record('sloodle_user_object', 'id', $authid, 'avuuid', $this->get_avatar_uuid());
             if (!$auth) return false;
             // Update the existing record
             $auth->authorised = 1;
             $auth->timeupdated = time();
             
-            return update_record('sloodle_user_object', $auth);
+            return sloodle_update_record('sloodle_user_object', $auth);
         }
         
         
@@ -845,7 +842,7 @@
             if (empty($objuuid) || empty($password)) return false;
             
             // Does the object already exist in the database?
-            $auth = get_record('sloodle_user_object', 'objuuid', $objuuid);
+            $auth = sloodle_get_record('sloodle_user_object', 'objuuid', $objuuid);
             $success = false;
             if (!$auth) {
                 // No - insert a new record
@@ -856,7 +853,7 @@
                 $auth->password = $password;
                 $auth->authorised = 0;
                 $auth->timeupdated = time();
-                $success = insert_record('sloodle_user_object', $auth);
+                $success = sloodle_insert_record('sloodle_user_object', $auth);
                 
             } else {
                 // Yes - update the existing record
@@ -867,7 +864,7 @@
                 $auth->authorised = 0;
                 $auth->timeupdated = time();
                 
-                if (update_record('sloodle_user_object', $auth)) $success = $auth->id;
+                if (sloodle_update_record('sloodle_user_object', $auth)) $success = $auth->id;
             }
             
             return $success;
@@ -883,7 +880,7 @@
             // Make sure an avatar is loaded
             if (!$this->is_avatar_loaded()) return array();
             // Get all objects authorised for this avatar's UUID
-            $recs = get_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid());
+            $recs = sloodle_get_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid());
             if (!$recs) return array();
             // Construct an array of SloodleUserObject's
             $output = array();
@@ -913,7 +910,7 @@
         function delete_user_object($uuid)
         {
             if (!$this->is_avatar_loaded()) return;
-            delete_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid(), 'objuuid', $uuid);
+            sloodle_delete_records('sloodle_user_object', 'avuuid', $this->get_avatar_uuid(), 'objuuid', $uuid);
         }
         
     }

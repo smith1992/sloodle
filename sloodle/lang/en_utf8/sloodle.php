@@ -6,20 +6,24 @@
 * @package sloodlelang
 */
 
+$string['pluginname']   = 'SLOODLE';
+$string['pluginadministration']   = 'SLOODLE Administration';
+
 $string['accesslevel'] = 'Access Level';
+$string['fieldset:accesslevel'] = 'Access Level';
 $string['accesslevel:public'] = 'Public';
 $string['accesslevel:owner'] = 'Owner';
-$string['accesslevel:group'] = 'Group (SL)';
-$string['accesslevel:course'] = 'Course';
+$string['accesslevel:group'] = 'Group';
+$string['accesslevel:course'] = 'Course members';
 $string['accesslevel:site'] = 'Site';
 $string['accesslevel:staff'] = 'Staff';
 
 $string['accesslevelobject'] = 'Object Access Level';
 $string['accesslevelobject:desc'] = 'This determines who may access the object in-world';
-$string['accesslevelobject:use'] = 'Use object';
-$string['accesslevelobject:control'] = 'Control object';
+$string['accesslevelobject:use'] = 'Use object (SL / OpenSim)';
+$string['accesslevelobject:control'] = 'Control object (SL / OpenSim)';
 
-$string['accesslevelserver'] = 'Server Access Level';
+$string['accesslevelserver'] = 'Use object (Moodle)';
 $string['accesslevelserver:desc'] = 'This determines who may use the server resource';
 
 $string['actions'] = 'Actions';
@@ -92,9 +96,9 @@ $string['configerror'] = 'Configuration Error';
 $string['confirmobjectauth'] = 'Do you want to authorize this object?';
 $string['confirmdelete'] = 'Are you sure?';
 $string['confirmdeleteuserobjects'] = 'Are you sure you want to delete all these user objects?';
-$string['controlaccess'] = 'You can control access to your courses by enabling or disabling the SLOODLE Controllers';
+$string['controlaccess'] = 'You can control access to your courses by enabling or disabling the SLOODLE Controller';
 
-//$string['controllerinfo'] = 'This page represents a SLOODLE Controller. These are used to control communications between Second Life and Moodle, keeping the site secure. This page is primarily for use by teachers and administrators.';
+//$string['controllerinfo'] = 'This page represents a SLOODLE Classroom. These are used to control communications between Second Life and Moodle, keeping the site secure. This page is primarily for use by teachers and administrators.';
 
 $string['controllerinfo'] = 'This course is linked to learning activities in Second Life. This page is provided to allow students to check whether the Second Life interface is currently enabled, and for instructors to configure the interface.';
 
@@ -105,6 +109,8 @@ $string['createnotecard'] = 'Create notecard';
 
 $string['databasequeryfailed'] = 'Database query failed.';
 $string['delete'] = 'Delete';
+$string['deletealltasks'] = 'Delete all tasks';
+$string['deletetask'] = 'Delete task';
 $string['deletecancelled'] = 'Deletion cancelled.';
 $string['deleteselected'] = 'Delete Selected';
 $string['deletionfailed'] = 'Deletion failed';
@@ -134,13 +140,14 @@ $string['failedcreatesloodleuser'] = 'Failed to create a SLOODLE user account fo
 $string['failedaddinstance'] = 'Failed to add a new SLOODLE module instance.';
 $string['failedaddsecondarytable'] = 'Failed to add the secondary table for the SLOODLE module instance.';
 $string['failedcourseload'] = 'Failed to load SLOODLE course data.';
-$string['failedauth-trydifferent'] = 'Failed to authorise the object. Please try a different controller.';
+$string['failedauth-trydifferent'] = 'Failed to authorise the object. Please try a different space.';
 
 $string['framewidth'] = 'Frame Width';
 $string['frameheight'] = 'Frame Height';
 
 $string['getnewloginzoneallocation'] = 'Click here to get a new LoginZone allocation.';
-$string['generalconfiguration'] = 'General Configuration';
+$string['generalconfiguration'] = 'General Configuration'; // deprecated as the title of a fieldset on the config form - use fieldset:generalconfiguration
+$string['fieldset:generalconfiguration'] = 'General Configuration';
 
 $string['help:primpassword'] = 'What is the Prim Password for?';
 $string['help:userediting'] = 'What is the risk?';
@@ -189,13 +196,11 @@ $string['minute'] = 'minute';
 $string['minutes'] = 'minutes';
 
 $string['moduletype'] = 'Module Type';
-$string['moduletype:controller'] = 'SLOODLE Controller';
+$string['moduletype:controller'] = 'Controller';
 $string['moduletype:distributor'] = 'Distributor';
 $string['moduletype:presenter'] = 'Presenter';
 $string['moduletype:map'] = 'Second Life Map';
-$string['moduletype:awards'] = 'Award System'; 
-
-$string['moduletype:tracker'] = 'tracker';
+$string['moduletype:tracker'] = 'Tracker';
 
 
 $string['modulename'] = 'SLOODLE Module';
@@ -231,7 +236,7 @@ $string['numsloodleentries'] = '# SLOODLE entries';
 $string['numsettingsstored'] = 'Number of settings stored:';
 $string['numobjects'] = 'Number of objects';
 $string['numdeleted'] = 'Number deleted';
-$string['numprims'] = 'Prim Count: $a';
+$string['numprims'] = 'Prim Count: {$a}';
 
 $string['nochatrooms'] = 'There are no chatrooms available in this course.';
 $string['nochoices'] = 'There are no choices available in this course.';
@@ -240,6 +245,7 @@ $string['noglossaries'] = 'There are no glossaries available in this course.';
 $string['nodistributors'] = 'There are no distributors available in this course.';
 $string['nosloodleassignments'] = 'There are no SLOODLE-compatible assignments available in this course.';
 $string['nopresenters'] = 'There are no SLOODLE Presenters available in this course.';
+$string['notrackers'] = 'There are no SLOODLE Tracker activities in this course.';
 
 $string['object:accesschecker'] = 'Access Checker';
 $string['object:accesscheckerdoor'] = 'Access Checker Door';
@@ -262,6 +268,15 @@ $string['object:hq'] = 'SLOODLE API HQ';
 $string['object:presenter'] = 'Presenter';
 $string['object:mapmarker'] = 'Map Marker';
 $string['object:picturegloss'] = 'Picture Gloss';
+$string['object:scoreboard'] = 'Scoreboard';
+$string['object:moodlescreen'] = 'Moodle Screen';
+$string['object:tracker'] = 'Tracker';
+
+$string['objectgroup:registration'] = 'Registration and Enrolment';
+$string['objectgroup:communication'] = 'Communication, Assignments and Inventory';
+//$string['objectgroup:inventory'] = 'Inventory and Assignments';
+$string['objectgroup:activity'] = 'Quizzes and Activities';
+$string['objectgroup:misc'] = 'Other';
 
 
 $string['Object'] = 'Object';
@@ -275,7 +290,7 @@ $string['objectconfig:noprimpassword'] = 'ERROR: The Prim Password has been disa
 $string['objectconfig:backtoform'] = 'Go back to the configuration form.';
 
 $string['objectauth'] = 'SLOODLE Object Authorization';
-$string['objectauthalready'] = 'This object has already been authorized. If you want to re-authorize it, then please delete its authorization entry from your SLOODLE Controller.';
+$string['objectauthalready'] = 'This object has already been authorized. If you want to re-authorize it, then please delete its authorization entry from your SLOODLE Contrller.';
 $string['objectauthcancelled'] = 'You have cancelled the object authorization.';
 $string['objectauthfailed'] = 'Object authorization has failed.';
 $string['objectauthnocontrollers'] = 'There are no SLOODLE Controllers on the site. Please create one on a course in order to authorise objects.';
@@ -290,6 +305,7 @@ $string['objecttype'] = 'Object Type';
 $string['of'] = 'of';
 $string['or'] = 'or';
 
+$string['pagecount'] = 'Page {$a->num} of {$a->total}';
 $string['postedfromsl'] = 'Posted from Second Life';
 $string['pendingavatarnotfound'] = 'Could not locate a pending entry for your avatar. Perhaps you are already registered?';
 $string['pendingallocations'] = 'Pending Allocations';
@@ -316,13 +332,13 @@ $string['presenter:moveslide'] = 'Move this slide';
 $string['presenter:editslide'] = 'Edit this slide';
 $string['presenter:viewslide'] = 'View this slide';
 $string['presenter:deleteslide'] = 'Delete this slide from the presentation';
-$string['presenter:movingslide'] = 'Currently moving slide \"$a\".';
+$string['presenter:movingslide'] = 'Currently moving slide \"{$a}\".';
 
-$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"$a\" from this presentation?';
-$string['presenter:confirmdeletemultiple'] = 'Are you sure you want to delete $a slide(s) from the presentation?';
+$string['presenter:confirmdelete'] = 'Are you sure you want to delete slide \"{$a}\" from this presentation?';
+$string['presenter:confirmdeletemultiple'] = 'Are you sure you want to delete {$a} slide(s) from the presentation?';
 
-$string['presenter:deletedslide'] = 'Deleted slide \"$a\" from the presentation.';
-$string['presenter:deletedslides'] = 'Deleted $a slide(s) from the presentation.';
+$string['presenter:deletedslide'] = 'Deleted slide \"{$a}\" from the presentation.';
+$string['presenter:deletedslides'] = 'Deleted {$a} slide(s) from the presentation.';
 $string['presenter:noslidesfordeletion'] = 'No slides selected for deletion. Please select one or more slides by ticking the checkboxes on the left, and then click \"Delete Selected\" again.';
 
 $string['presenter:sloodleinsert'] = 'Insert at position:';                          
@@ -342,7 +358,7 @@ $string['presenter:importname'] = 'Import Name';
 $string['presenter:importnamecaption'] = '(Optional) Enter a name for the material you are importing.';
 $string['presenter:importfailed'] = 'Import failed. This plugin may not be compatible with your server.';
 $string['presenter:importneedimagick'] = 'You need ImageMagick installed from http://www.imagemagick.org/ and (optionally) MagickWand to use this plugin. GhostScript is also required.';
-$string['presenter:importsuccessful'] = 'Import successful. $a slide(s) have been added to your presentation.';
+$string['presenter:importsuccessful'] = 'Import successful. {$a} slide(s) have been added to your presentation.';
 
 $string['presenter:magickwandnotinstalled'] = 'The MagickWand extension could not be loaded.';
 $string['presenter:usingmagickwand'] = 'Using MagickWand extension.';
@@ -366,6 +382,8 @@ $string['refreshtimeseconds'] = 'Refresh time (seconds)';
 $string['repeatquiz'] = 'Automatically repeat the quiz?';
 $string['relativeresults'] = 'Show relative results?';
 $string['runningcompatibilitycheck'] = 'Running compatibility check...';
+$string['resettasks'] = 'Reset selected tasks';
+$string['resetallprogress'] = 'Reset all progress';
 
 $string['save'] = 'Save';
 $string['second'] = 'second';
@@ -385,6 +403,7 @@ $string['selectobject'] = 'Select Object';
 $string['selectuser'] = 'Select User';
 $string['selectcontroller'] = 'Select Controller';
 $string['selectpresenter'] = 'Select Presenter';
+$string['selecttracker'] = 'Select Tracker';
 
 $string['sendobject'] = 'Send Object';
 $string['setting'] = 'Settings';
@@ -400,8 +419,8 @@ $string['sloodleversion'] = 'SLOODLE Version';
 $string['sloodle:staff'] = 'SLOODLE Staff member';
 $string['sloodle:objectauth'] = 'Authorise objects for SLOODLE access';
 $string['sloodle:userobjectauth'] = 'Authorise user objects for self';
-$string['sloodle:uselayouts'] = 'Use classroom layout profiles';
-$string['sloodle:editlayouts'] = 'Edit/delete classroom layout profiles';
+$string['sloodle:uselayouts'] = 'Rez sets of objects from pre-defined scenes';
+$string['sloodle:editlayouts'] = 'Control which objects to rez, and save them in scenes.';
 $string['sloodle:registeravatar'] = 'Register own avatar';
 $string['sloodle:distributeself'] = 'Distribute objects to own avatar';
 $string['sloodle:distributeothers'] = 'Distribute objects to other avatars';
@@ -428,9 +447,12 @@ $string['status'] = 'Status';
 $string['storedlayouts'] = 'Stored Layouts';
 $string['submit'] = 'Submit';
 
-$string['timeago'] = '$a ago'; // $a = period of time, e.g. "3 weeks"
+$string['timeago'] = '{$a} ago'; // $a = period of time, e.g. "3 weeks"
 $string['type'] = 'Type';
-$string['trydirectlink'] = 'If you cannot see the above entry, try this <a href=\"$a\">direct link</a> instead.';
+$string['trydirectlink'] = 'If you cannot see the above entry, try this <a href=\"{$a}\">direct link</a> instead.';
+$string['tracker:settings'] = 'Tracker Settings';
+$string['tracker:nousers'] = 'No users found in course.';
+$string['trackeradmin'] = 'Administration';
 
 $string['unknown'] = 'unknown';
 $string['unknownuser'] = 'unknown user';
@@ -449,7 +471,7 @@ $string['unknowntype'] = 'Unknown type';
 
 $string['upload:selectfile'] = 'Select file to upload';
 $string['upload:file'] = 'Upload File';
-$string['upload:maxsize'] = 'Estimated maximum upload size: $a';
+$string['upload:maxsize'] = 'Estimated maximum upload size: {$a}';
 $string['upload:emptyfile'] = 'Uploaded file is empty. (This may mean the file was too big to upload.)';
 
 $string['uuid'] = 'UUID';
@@ -474,6 +496,7 @@ $string['xmlrpc:channel'] = 'XMLRPC Channel';
 $string['year'] = 'year';
 $string['years'] = 'years';
 $string['Yes'] = 'Yes';
+$string ['awards:scoreboardtitle']= 'Title';                      
 $string ['awards:viewgradesassociated']= 'Click here to view the grades associated with this SLOODLE Award';                      
 $string ['awards:stipendisfor']= 'Total Allocations:';
 $string ['awards:nostudents']= 'No Students Registered';
@@ -508,6 +531,7 @@ $string['awards:update']='Update';
 $string['awards:cantupdate']='Error Can\'t update transaction record';
 $string['awards:successfullupdate']='Updated the following users: ';
 $string['awards:typeofcurrency']='Type of Currency';
+$string['awards:currency']='Currency';
 $string['awards:amount']='Amount';
 $string['awards:totalallocations']='Total Allocated';
 $string['awards:totaldebits']='Total Debits';
@@ -535,6 +559,24 @@ $string['awards:gamescoreboard']='Game: ';
 $string['awards:gameslist']=' Games List';  
 $string['awards:gobackgameslist']='Go back to Games List';  
 
+$string['awards:group']='Group';  
+$string['awards:round']='Round';  
+$string['awards:showallcontrollers']='Show points for whole site, not just this controller.';  
+
+$string['awards:questioncorrectplus']='When you get a question correct you get';
+$string['awards:questionincorrectminus']='When you get a question wrong you lose'; 
+
+$string['awards:startquizrequires']='To use object users must have:';
+$string['awards:finishquizplus']='For completing the quiz you get:';
+
+$string['awards:answerquestionaward'] = 'Points per question';
+
+$string['awards:interactwithobjectplus']='Using this object gives you';  
+$string['awards:interactwithobjectminus']='Using this object takes away:';  
+$string['awards:interactwithobjectrequires']='To use object users must have:';
+
+$string['awards:notenoughmessage']='Insufficient currency message';
+
 $string['awards:help:icurrency']='If you select Lindens, then your students can withdraw money using a stipend giver. On the otherhand, iPoints are non monetary points you can award your students!'; 
 $string['help:maxpoints']='-->If you choose 1000 as the maximum points then students must accumulate 1000 points or higher in Second Life to acheive 100 percent grade  If however they only get 300 points in Second Life and the maximum points are set to 1000, then the grade achieved would be 300/1000  (30 percent)';                                    
 $string['awards:balanceUpdate']='Update';                   
@@ -556,6 +598,7 @@ $string ['secondlifetracker:notrackers'] = 'No trackers in your course';
 
 $string['layoutpage'] = 'Layouts';
 $string['layoutmanager:nopermission'] = 'You do not have permission to edit layouts';
+$string['layoutmanager:connectingtorezzer'] = 'Connecting';
 $string['layoutmanager:namealreadyexists'] = 'You do not have permission to edit layouts';
 $string['layoutmanager:savefailed'] = 'Save failed';
 $string['layoutmanager:Layouts'] = 'Layouts';
@@ -651,10 +694,87 @@ $string['backpack:selectcurrencytype'] = 'Select Currency Type';
 $string['backpack:selectusergroup'] = 'Select User Group';
 $string['backpack:backpackcontents'] = 'User Backpack Contents';
 $string['backpack:modifycontents'] = 'Modify Backpack Contents';
-$string['backpack:instructions_backpack_contentsview'] = 'On this page you can see the contents of users backpacks.  Select a user group, and currency type you would like to view below:';        
+$string['backpack:instructions_backpack_contentsview'] = 'On this page you can see the contents of users backpacks.  ';        
 $string['backpack:instructions_backpack_contentsview_edit_amount'] = 'On this page you can edit the currency amount of the user. ';        
 $string['backpack:current_balance'] = 'Current Balance: ';
 $string['backpack:add_transaction'] = 'Add Transaction: ';        
 $string['gridtype:specifygridtype'] = 'Please specify your grid type: ';        
+$string['backpack:backpackcurrencies'] = 'Currencies';
+$string['backpacks:View Backpacks'] = 'View Backpacks';
 $string['profilePic'] = 'Avatar Image';        
+$string['currencies:view'] = 'Currencies';
+$string['currencies:name'] = 'Currency Name';
+$string['currencies:total awarded'] = 'Total Awarded';
+$string['currencies:icon'] = 'Icon';
+$string['currencies:edit'] = 'Edit';
+$string['currencies:delete'] = 'Delete';
+$string['currency:confirm delete'] = 'Are you sure you want to delete this currency?';
+$string['currency:Edit Currency'] = 'Edit Currency';
+$string['currency:add new'] = 'Add New Currency';
+$string['currency:currency'] = 'Sloodle Currency';
+$string['currency:currencies'] = 'Currencies';
 
+$string['awards:lastname'] = 'Last Name';
+$string['awards:firstname'] = 'First Name';
+$string['backpacks:backpacks'] = 'Backpacks';
+$string['currencies:displayorder'] = 'Order';
+$string['currencies:imageurl'] = 'Image Url';
+$string['currency:deletethiscurrency'] = 'Delete this currency';
+$string['currency:add points'] = 'Add Points';
+$string['currency:checkall'] = 'Select All';
+$string['currency:addcurrency'] = 'Add Currency';
+$string['currency:View Currencies'] = 'View Currencies';
+$string['awards:username'] = 'User Name';
+$string['backpacks:backpackversion'] = 'Version:';
+$string['backpacks:sloodle version'] = 'SLOODLE Version:';
+$string['backpacks:nameunknown'] = 'Unknown';
+$string['backpacks:Backpack Contents'] = 'Backpack Contents';
+$string['backpacks:noavatar'] = 'No avatars linked yet';
+
+$string['scoreboard:allstudents'] = 'Students';
+$string['scoreboard:removefromscoreboard'] = 'Remove';
+$string['scoreboard:showonscoreboard'] = 'Show';
+$string['scoreboard:newround'] = 'New Round';
+$string['scoreboard:displayedonscreen'] = 'Displayed On Scoreboard';
+$string['scoreboard:notdisplayedonscreen'] = 'Not Displayed On Scoreboard';
+$string['scoreboard:controlscoreboard'] = 'Control Scores';
+
+$string['rezzer:sloodlesetup'] = 'Setup';
+$string['rezzer:logout'] = 'Logout';
+$string['rezzer:avatarclassroom'] = 'Avatar Classroom';
+$string['rezzer:addsite'] = 'Add a site';
+$string['rezzer:sites'] = 'Sites';
+$string['rezzer:controllers'] = 'Courses enabled for Sloodle';
+$string['rezzer:addcontroller'] = 'Add a course';
+$string['rezzer:name'] = 'Name';
+$string['rezzer:course'] = 'Course';
+$string['rezzer:addlayout'] = 'Add a scene';
+$string['rezzer:layoutname'] = 'Name';
+$string['rezzer:creatingscene'] = 'Creating';
+$string['rezzer:createscenetitle'] = 'Create A Scene';
+$string['rezzer:createscene'] = 'Create';
+$string['rezzer:rezallobjects'] = 'Rez All';
+$string['rezzer:derezallobjects'] = 'Derez All';
+$string['rezzer:importmoodleactivities'] = 'Import';
+$string['rezzer:importingmoodleactivities'] = 'Importing';
+$string['rezzer:addobjects'] = 'Add objects';
+$string['rezzer:savecurrentposition'] = 'Freeze';
+$string['rezzer:savingcurrentposition'] = 'Freezing';
+$string['rezzer:deletedderezzingobjects'] = 'Deleted, derezzing objects';
+$string['rezzer:deletelayout'] = 'Delete';
+$string['rezzer:deletinglayout'] = 'Deleting';
+$string['rezzer:deletelayout'] = 'Delete';
+$string['rezzer:clonelayout'] = 'Clone';
+$string['rezzer:cloninglayout'] = 'Cloning';
+$string['rezzer:renamelayout'] = 'Rename';
+$string['rezzer:renaminglayout'] = 'Renaming';
+$string['rezzer:renamebutton'] = 'Rename';
+$string['rezzer:addobjectsforgroup'] = 'Add objects: {$a}';
+$string['rezzer:updatingobject'] = 'Updating';
+$string['rezzer:updateobject'] = 'Update';
+$string['rezzer:addingobject'] = 'Adding';
+$string['rezzer:addobject'] = 'Add';
+$string['rezzer:deleteobject'] = 'Delete';
+$string['rezzer:deletingobject'] = 'Deleting';
+$string['rezzer:refreshconfig'] = 'Refresh';
+$string['rezzer:refreshingconfig'] = 'Refreshing';

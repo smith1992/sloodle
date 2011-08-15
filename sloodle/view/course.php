@@ -58,7 +58,7 @@ class sloodle_view_course extends sloodle_base_view
     function process_request()
     {
         $id = required_param('id', PARAM_INT);
-        if (!$this->course = get_record('course', 'id', $id)) error('Could not find course.');
+        if (!$this->course = sloodle_get_record('course', 'id', $id)) error('Could not find course.');
         $this->sloodle_course = new SloodleCourse();
         if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
     }
@@ -84,7 +84,7 @@ class sloodle_view_course extends sloodle_base_view
     function print_header()
     {
         global $CFG;
-        $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=course&amp;id={$this->course->id}\">".get_string('courseconfig', 'sloodle')."</a>";
+        $navigation = "<a href=\"{$CFG->wwwroot}/mod/sloodle/view_course.php?id={$this->course->id}\">".get_string('courseconfig', 'sloodle')."</a>";
         print_header_simple(get_string('courseconfig','sloodle'), "", $navigation, "", "", true, '', navmenu($this->course));
     }
 
@@ -123,7 +123,7 @@ class sloodle_view_course extends sloodle_base_view
             
             // Update the database
             if ($this->sloodle_course->write()) {
-                redirect("view.php?_type=course&amp;id={$this->course->id}", get_string('changessaved'), 4);
+                redirect("view_course.php?id={$this->course->id}", get_string('changessaved'), 4);
                 exit();
             } else {
                 print_box(get_string('error'), 'generalbox boxwidthnarrow boxaligncenter');
@@ -152,8 +152,7 @@ class sloodle_view_course extends sloodle_base_view
         echo '<div style="text-align:center;"><h3>'.get_string('coursesettings','sloodle').'</h3>';
         
         // Start the form (including a course ID hidden parameter)
-        echo "<form action=\"view.php\" method=\"post\">\n";
-        echo "<input type=\"hidden\" name=\"_type\" value=\"course\">\n";
+        echo "<form action=\"view_course.php\" method=\"post\">\n";
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->course->id}\">\n";
         
     // AUTO REGISTRATION //
@@ -202,15 +201,14 @@ class sloodle_view_course extends sloodle_base_view
         // Have we been instructed to clear all pending allocations?
         if (isset($_REQUEST['clear_loginzone_allocations'])) {
             // Delete all allocations relating to this course
-            delete_records('sloodle_loginzone_allocation', 'course', $this->course->id);
+            sloodle_delete_records('sloodle_loginzone_allocation', 'course', $this->course->id);
         }
         
         // Create a form
-        echo "<form action=\"view.php\" method=\"POST\">\n";
-        echo "<input type=\"hidden\" name=\"_type\" value=\"course\">\n";
+        echo "<form action=\"view_course.php\" method=\"POST\">\n";
         echo "<input type=\"hidden\" name=\"id\" value=\"{$this->course->id}\">\n";
         // Determine how many allocations there are for this course
-        $allocs = count_records('sloodle_loginzone_allocation', 'course', $this->course->id);
+        $allocs = sloodle_count_records('sloodle_loginzone_allocation', 'course', $this->course->id);
         echo get_string('pendingallocations','sloodle').': '.$allocs.'&nbsp;&nbsp;';
         echo '<input type="submit" name="clear_loginzone_allocations" value="'.get_string('delete','sloodle').'"/>';
         echo "</form>\n";
@@ -225,89 +223,7 @@ class sloodle_view_course extends sloodle_base_view
    
 //------------------------------------------------------
 
-    // Check the user's permissions regarding layouts
-    $layouts_can_use = has_capability('mod/sloodle:uselayouts', $this->course_context);
-    $layouts_can_edit = has_capability('mod/sloodle:editlayouts', $this->course_context);
-    $layouts_can_edit = true;
-    $layouts_can_use = true;
-   
     $course = $this->course;
-
-    // Only display the layouts if they can use them
-    if ($layouts_can_use) {
-
-        // Start the section
-    	echo '<a name="layouts">&nbsp;</a>';
-        print_box_start('generalbox boxaligncenter boxwidthnormal');
-        echo '<div style="text-align:center;"><h3>'.get_string('storedlayouts','sloodle').'</h3>';
-   
-        // Has a delete layouts action been requested, and is it permitted for this user?
-        if (isset($_REQUEST['delete_layouts']) && $layouts_can_edit == true) {
-           
-            // Count how many layouts we delete
-            $numdeleted = 0;
-           
-            // Go through each request parameter
-            foreach ($_REQUEST as $name => $val) {
-                // Is this a delete objects request?
-                if ($val != 'true') continue;
-                $parts = explode('_', $name);
-                if (count($parts) == 2 && $parts[0] == 'sloodledeletelayout') {
-                    // Only delete the layout if it belongs to the course
-                    if (delete_records('sloodle_layout', 'course', $course->id, 'id', (int)$parts[1])) {
-                        $numdeleted++;
-                        // Delete associated entries too
-                        delete_records('sloodle_layout_entry', 'layout', (int)$parts[1]);
-                    }
-                   
-                }
-            }
-           
-            // Indicate our results
-            echo '<span style="color:red; font-weight:bold;">'.get_string('numdeleted','sloodle').': '.$numdeleted.'</span><br><br>';
-        }
-       
-        // This will store the "disabled" attribute for our delete controls, if necessary
-        $disabledattr = ' disabled="true" ';
-        if ($layouts_can_edit) $disabledattr = '';
-       
-        // Get all layouts stored in this course
-        $recs = get_records('sloodle_layout', 'course', $course->id, 'name');
-        if (is_array($recs) && count($recs) > 0) {
-            // Construct a table
-            $layouts_table = new stdClass();
-            $layouts_table->head = array(get_string('name','sloodle'),get_string('numobjects','sloodle'),get_string('lastupdated','sloodle'),'','');
-            $layout_table->align = array('left', 'left', 'left', 'center');
-            foreach ($recs as $layout) {
-                // Get the number of objects associated with this layout
-                $numobjects = count_records('sloodle_layout_entry', 'layout', $layout->id);
-                $timeupdated = ((int)$layout->timeupdated == 0) ? '('.get_string('unknown','sloodle').')' : date('Y-m-d H:i:s', (int)$layout->timeupdated);
-                $layouts_table->data[] = array($layout->name, $numobjects, $timeupdated, '<a href="view_layout.php?courseid='.$course->id.'&layoutid='.$layout->id.'">Edit</a>',"<input $disabledattr type=\"checkbox\" name=\"sloodledeletelayout_{$layout->id}\" value=\"true\" /");
-            }
-           
-            // Display a form and the table
-            echo '<form action="view.php" method="POST">';
-            echo '<input type="hidden" name="_type" value="course"/>';
-            echo '<input type="hidden" name="id" value="'.$course->id.'"/>';
-           
-            print_table($layouts_table);
-            if ($layouts_can_edit) echo '<input type="submit" value="'.get_string('deleteselected','sloodle').'" name="delete_layouts"/>';
-           
-            echo '</form>';
-           
-        } else {
-            echo '<span style="text-align:center;color:red">'.get_string('noentries','sloodle').'</span><br>';
-        }
-       
-        echo '<br />';
-        echo '<a href="view_layout.php?layoutid=0&courseid='.$course->id.'">Create a layout for this course</a>';
-
-
-        echo '</div>';
-        print_box_end();
-    }
-
-
 
     }
 
