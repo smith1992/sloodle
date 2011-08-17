@@ -119,7 +119,7 @@ class sloodle_view_users extends sloodle_base_view
     
         // Fetch our Moodle and SLOODLE course data
         $this->courseid = optional_param('course', SITEID, PARAM_INT);
-        if (!$this->course = get_record('course', 'id', $this->courseid)) error('Could not find course.');
+        if (!$this->course = sloodle_get_record('course', 'id', $this->courseid)) error('Could not find course.');
         $this->sloodle_course = new SloodleCourse();
         if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
         
@@ -133,6 +133,17 @@ class sloodle_view_users extends sloodle_base_view
         $this->sloodleonly = optional_param('sloodleonly', false, PARAM_BOOL);
         $this->start = optional_param('start', 0, PARAM_INT);
         if ($this->start < 0) $this->start = 0;
+
+
+        // Moodle 2 rendering functions like to know the course.
+        // They get upset if you try to pass a course into print_footer() that isn't what they were expecting.
+        if ($this->course) {
+                global $PAGE;
+                if (isset($PAGE) && method_exists($PAGE, 'set_course')) {
+                        $PAGE->set_course($this->course);
+                }
+        }
+
     }
 
     /**
@@ -152,7 +163,7 @@ class sloodle_view_users extends sloodle_base_view
         $this->course_context = get_context_instance(CONTEXT_COURSE, $this->courseid);
         $this->system_context = get_context_instance(CONTEXT_SYSTEM);
         // Make sure the user has permission to view this course (but let anybody view the site course details)
-        if ($this->courseid != SITEID) require_capability('moodle/course:view', $this->course_context);
+        if ($this->courseid != SITEID) require_capability('mod/sloodle:courseparticipate', $this->course_context);
     }
 
     /**
@@ -203,7 +214,7 @@ class sloodle_view_users extends sloodle_base_view
         if (!$allcourses) $allcourses = array();
         foreach ($allcourses as $as) {
             // Is the user able to view this particular course?
-            if ($as->id == SITEID || has_capability('moodle/course:view', get_context_instance(CONTEXT_COURSE, $as->id))) {
+            if ($as->id == SITEID || has_capability('mod/sloodle:courseparticipate', get_context_instance(CONTEXT_COURSE, $as->id))) {
                 // Output this as an option
                 echo "<option value=\"{$as->id}\"";
                 if ($as->id == $this->courseid) echo "selected";
@@ -229,7 +240,7 @@ class sloodle_view_users extends sloodle_base_view
         
         echo '<span style="font-weight:bold;">'.get_string('usersearch','sloodle').'</span><br/>';
         
-        echo '<input type="hidden" value="'.$this->courseid.'" name="course"/>';
+        echo '<input type="hidden" value="'.s($this->courseid).'" name="course"/>';
         echo '<input type="text" value="'.$this->searchstr.'" name="search" size="30" maxlength="30"/><br/>';
         
         echo '<input type="checkbox" value="true" name="sloodleonly"';
@@ -252,8 +263,8 @@ class sloodle_view_users extends sloodle_base_view
         echo '<span style="font-weight:bold;">'.get_string('avatarsearch','sloodle').'</span><br/>';
         
         echo '<input type="hidden" value="search" name="id"/>';
-        echo '<input type="hidden" value="'.$this->courseid.'" name="course"/>';
-        echo '<input type="text" value="'.$this->searchstr.'" name="search" size="30" maxlength="30"/><br/>';
+        echo '<input type="hidden" value="'.s($this->courseid).'" name="course"/>';
+        echo '<input type="text" value="'.s($this->searchstr).'" name="search" size="30" maxlength="30"/><br/>';
         echo '<br/><input type="submit" value="'.get_string('submit','sloodle').'" />';
         echo '</form>';
         echo '</td>';
@@ -264,8 +275,10 @@ class sloodle_view_users extends sloodle_base_view
         echo '</tr>';
         echo '</table>';
         
+
         // Provide some admin-only links
-        if (isadmin()) {
+	$system_context = get_context_instance(CONTEXT_SYSTEM);
+        if ( has_capability('moodle/site:viewparticipants', $system_context) ) {
             echo '<p>';
             
             /*
@@ -298,18 +311,18 @@ class sloodle_view_users extends sloodle_base_view
             $userlist = array();
             // Filter it down to members of the course
             foreach ($fulluserlist as $ful) {
-                // Is this user on this course?
-                if (has_capability('moodle/course:view', $this->course_context, $ful->id)) {
+                if (has_capability('mod/sloodle:courseparticipate', $this->course_context, $ful->id)) {
                     // Copy it to our filtered list
                     $userlist[] = $ful;
-                }
+                } else {
+		}
             }
             
             
         } else {
             // Getting all users in a course
             // Display the name of the course
-            echo '<br/><span style="font-size:18pt; font-weight:bold;">'.$this->coursefullname.'</span><br/><br/>';
+            echo '<br/><span style="font-size:18pt; font-weight:bold;">'.s($this->coursefullname).'</span><br/><br/>';
             // Obtain a list of all Moodle users enrolled in the specified course
             $userlist = get_course_users($this->courseid, 'lastname, firstname', '', 'u.id, firstname, lastname');
         }
@@ -344,7 +357,7 @@ class sloodle_view_users extends sloodle_base_view
                     $line[] = "<a href=\"{$url_moodleprofile}\">{$u->firstname} {$u->lastname}</a>";
                     
                     // Get the Sloodle data for this Moodle user
-                    $sloodledata = get_records('sloodle_users', 'userid', $u->id);
+                    $sloodledata = sloodle_get_records('sloodle_users', 'userid', $u->id);
                     if ($sloodledata) {
                         // Display all avatars names, if available
                         $avnames = '';

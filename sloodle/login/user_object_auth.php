@@ -42,7 +42,7 @@
     print_header_simple(get_string('userobjectauth', 'sloodle'), "", get_string('userobjectauth', 'sloodle'), "", "", true);
     
     // Make sure it's not a guest who is logged in
-    if (isguest()) {
+    if (isguestuser()) {
         ?>
         <div style="text-align:center;">
          <h3><?php print_string('error', 'sloodle'); ?></h3>
@@ -72,7 +72,7 @@
         $sloodlelst = required_param('sloodlelst', PARAM_TEXT);
         
         // Attempt to find a pending avatar entry which matches the given details
-        $pa = get_record('sloodle_pending_avatars', 'uuid', $sloodleuuid, 'lst', $sloodlelst);
+        $pa = sloodle_get_record('sloodle_pending_avatars', 'uuid', $sloodleuuid, 'lst', $sloodlelst);
         if (!$pa) {
             ?>
             <div style="text-align:center;">

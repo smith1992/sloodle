@@ -70,11 +70,11 @@
         error("Failed to load course module");
     }
     // Get the course data
-    if (! $course = get_record("course", "id", $cm->course)) {
+    if (! $course = sloodle_get_record("course", "id", $cm->course)) {
         error("Course is misconfigured");
     }
     // Get the Sloodle instance
-    if (! $sloodle = get_record('sloodle', 'id', $cm->instance)) {
+    if (! $sloodle = sloodle_get_record('sloodle', 'id', $cm->instance)) {
         error('Failed to find Sloodle module instance.');
     }
     
@@ -106,7 +106,8 @@
     $hascustomconfig = file_exists($customconfig);
     
     // Split up the object identifier into name and version number, then get the translated name
-    list($objectname, $objectversion) = sloodle_parse_object_identifier($sloodleobjtype);
+    list($objectname, $objectversion) = SloodleObjectConfig::ParseModIdentifier($sloodleobjtype);
+
     $strobjectname = get_string("object:$objectname", 'sloodle');
     
     

@@ -47,14 +47,16 @@
     /** Include the Moodle quiz code.  */
     require_once($CFG->dirroot.'/mod/quiz/locallib.php');
 
-
-    $maxfeedbacktoscript = 60; // If the feedback is longer than this, send the placeholder [[LONG]] and fetch it when we need it in a separate message
+//ini_set('display_errors','On'); 
 
     // Authenticate the request and login the user
     $sloodle = new SloodleSession();
     $sloodle->authenticate_request();
     $sloodle->validate_user();
     $sloodle->user->login();
+
+    $sloodle->validate_requirements();
+
     
     // Grab our additional parameters
     $id = $sloodle->request->get_module_id();
@@ -71,9 +73,6 @@
     $timeup = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
     $forcenew = optional_param('forcenew', false, PARAM_BOOL); // Teacher has requested new preview
 
-    $feedbackid= optional_param('fid', 0, PARAM_INT); // Request for a specific piece of feedback - used when the feedback is too long to put in the body of the question
-    $onlyshowfeedback = ( $feedbackid > 0 );
-
     $isnotify = ( optional_param( 'action', false, PARAM_RAW ) == 'notify' ) ;
 
     // remember the current time as the time any responses were submitted
@@ -87,13 +86,13 @@
 
     if ( ($courseid != 0) && ($id == 0) && ($q == 0) ) {
         // fetch a quiz with the id for the course
-         if (! $mod = get_record("modules", "name", "quiz") ) {
+         if (! $mod = sloodle_get_record("modules", "name", "quiz") ) {
              $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
              exit;
          }
 
-         //if (! $coursemod = get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
-         if (! $coursemod = get_record("course_modules", "course", $courseid, "module", $mod->id)) {
+         //if (! $coursemod = sloodle_get_record("course_modules", "courseid", $courseid, "module", $mod->id)) {
+         if (! $coursemod = sloodle_get_record("course_modules", "course", $courseid, "module", $mod->id)) {
              $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find course module instance', FALSE);
              exit;
          }
@@ -107,22 +106,22 @@
             exit();
         }
 
-        if (! $course = get_record("course", "id", $cm->course)) {
+        if (! $course = sloodle_get_record("course", "id", $cm->course)) {
             $sloodle->response->quick_output(-701, 'MODULE_INSTANCE', 'Quiz module is misconfigured', FALSE);
             exit();
         }
 
-        if (! $quiz = get_record("quiz", "id", $cm->instance)) {
+        if (! $quiz = sloodle_get_record("quiz", "id", $cm->instance)) {
             $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
             exit();
         }
 
     } else {
-        if (! $quiz = get_record("quiz", "id", $q)) {
+        if (! $quiz = sloodle_get_record("quiz", "id", $q)) {
             $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Could not find quiz module', FALSE);
             exit();
         }
-        if (! $course = get_record("course", "id", $quiz->course)) {
+        if (! $course = sloodle_get_record("course", "id", $quiz->course)) {
             $sloodle->response->quick_output(-712, 'MODULE_INSTANCE', 'Part of quiz module instance is missing', FALSE);
             exit();
         }
@@ -134,9 +133,9 @@
 
 
 // Get number for the next or unfinished attempt
-    if(!$attemptnumber = (int)get_field_sql('SELECT MAX(attempt)+1 FROM ' .
-     "{$CFG->prefix}quiz_attempts WHERE quiz = '{$quiz->id}' AND " .
-     "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1")) {
+    if(!$attemptnumber = (int)sloodle_get_field_sql_params('SELECT MAX(attempt)+1 FROM ' .
+     "{$CFG->prefix}quiz_attempts WHERE quiz = ? AND " .
+     "userid = ? AND timefinish > 0 AND preview != 1", array($quiz->id, $USER->id))) {
         $attemptnumber = 1;
     }
 
@@ -149,8 +148,8 @@
     // attempts: $quiz->attempts
     if ($limittoquestion == 0) $output[] = array('course',$course->id,$course->fullname);
 
-    $numberofpreviousattempts = count_records_select('quiz_attempts', "quiz = '{$quiz->id}' AND " .
-        "userid = '{$USER->id}' AND timefinish > 0 AND preview != 1");
+    $numberofpreviousattempts = sloodle_count_records_select_params('quiz_attempts', "quiz = ? AND " .
+        "userid = ? AND timefinish > 0 AND preview != 1", array($quiz->id, $USER->id));
     if ($quiz->attempts and $numberofpreviousattempts >= $quiz->attempts) {
         $sloodle->response->quick_output(-10301, 'QUIZ', 'You do not have any attempts left', FALSE);
         exit();
@@ -168,6 +167,7 @@
         exit();
     }
 
+
     if ($quiz->delay1 or $quiz->delay2) {
         //quiz enforced time delay
         if ($attempts = quiz_get_user_attempts($quiz->id, $USER->id)) {
@@ -176,7 +176,7 @@
             $numattempts = 0;
         }
         $timenow = time();
-        $lastattempt_obj = get_record_select('quiz_attempts', "quiz = $quiz->id AND attempt = $numattempts AND userid = $USER->id", 'timefinish');
+        $lastattempt_obj = sloodle_get_record_select_params('quiz_attempts', "quiz = ? AND attempt = ? AND userid = ?", array($quiz->id, $numattempts, $USER->id), 'timefinish');
         if ($lastattempt_obj) {
             $lastattempt = $lastattempt_obj->timefinish;
         }
@@ -198,7 +198,7 @@
 
 /// Load attempt or create a new attempt if there is no unfinished one
 
-    $attempt = get_record('quiz_attempts', 'quiz', $quiz->id,
+    $attempt = sloodle_get_record('quiz_attempts', 'quiz', $quiz->id,
      'userid', $USER->id, 'timefinish', 0);
 
     $newattempt = false;
@@ -208,7 +208,15 @@
         $attempt = quiz_create_attempt($quiz, $attemptnumber);
         // If this is an attempt by a teacher mark it as a preview
         // Save the attempt
-        if (!$attempt->id = insert_record('quiz_attempts', $attempt)) {
+
+    if (!$attempt->timestart) { // shouldn't really happen, just for robustness
+        $attempt->timestart = time();
+    }
+    if (!$attempt->timemodified) { // shouldn't really happen, just for robustness
+        $attempt->timemodified = time();
+    }
+
+        if (!$attempt->id = sloodle_insert_record('quiz_attempts', $attempt)) {
             $sloodle->response->quick_output(-701, 'QUIZ', 'Could not create new attempt.', FALSE);
             exit();
         }
@@ -216,6 +224,7 @@
         add_to_log($course->id, 'quiz', 'attempt',
                        "review.php?attempt=$attempt->id",
                        "$quiz->id", $cm->id);
+
     } else {
         // log continuation of attempt only if some time has lapsed
         if (($timestamp - $attempt->timemodified) > 600) { // 10 minutes have elapsed
@@ -234,15 +243,30 @@
     // For SLOODLE to work properly, it needs the entire list of questions at all times.
     // It ignores the "page" structure of a Moodle quiz.
     $questionlist = quiz_questions_in_quiz($attempt->layout);
+
     $pagelist = $questionlist;
     ///// END SLOODLE MODIFICATION /////
 
-    // add all questions that are on the submitted form
-    if ($questionids) {
-        $questionlist .= ','.$questionids;
+    $questionlistids = explode(',', $questionlist);
+    if ($questionids != '') {
+        $questionids = explode(',', $questionids);
     }
 
-    if (!$questionlist) {
+    // add all questions that are on the submitted form
+    if ($questionids && (count($questionids) > 0) ) {
+        $questionlistids = array_merge($questionlistids, $questionids);
+    }
+  
+    $params = array($quiz->id);
+    $questioninstr = '';
+    $delim = '';
+    foreach($questionlistids as $qlid) {
+        $params[] = $qlid;
+        $questioninstr .= $delim.'?';
+        $delim = ','; 
+    }
+
+    if ( !$questionlistids || (count($questionlistids) == 0) ) {
         $sloodle->response->quick_output(-10303, 'QUIZ', 'No questions found.', FALSE);
         exit();
     }
@@ -250,11 +274,14 @@
     $sql = "SELECT q.*, i.grade AS maxgrade, i.id AS instance".
            "  FROM {$CFG->prefix}question q,".
            "       {$CFG->prefix}quiz_question_instances i".
-           " WHERE i.quiz = '$quiz->id' AND q.id = i.question".
-           "   AND q.id IN ($questionlist)";
+           " WHERE i.quiz = ? AND q.id = i.question".
+           "   AND q.id IN ($questioninstr) ;";
 
     // Load the questions
-    if (!$questions = get_records_sql($sql)) {
+    $questions = sloodle_get_records_sql_params($sql, $params); 
+    if ( !$questions || (count($questions) == 0) ) {
+        $sloodle->response->quick_output(-10303, 'QUIZ', 'No questions found.'.$sql.join(':',$params), FALSE);
+exit;
         $sloodle->response->quick_output(-10303, 'QUIZ', 'No questions found.', FALSE);
         exit();
     }
@@ -282,7 +309,7 @@
     // If the new attempt is to be based on a previous attempt copy responses over
     if ($newattempt and $attempt->attempt > 1 and $quiz->attemptonlast and !$attempt->preview) {
         // Find the previous attempt
-        if (!$lastattemptid = get_field('quiz_attempts', 'uniqueid', 'quiz', $attempt->quiz, 'userid', $attempt->userid, 'attempt', $attempt->attempt-1)) {
+        if (!$lastattemptid = sloodle_get_field('quiz_attempts', 'uniqueid', 'quiz', $attempt->quiz, 'userid', $attempt->userid, 'attempt', $attempt->attempt-1)) {
             $sloodle->response->quick_output(-701, 'QUIZ', 'Could not find previous attempt to build on.', FALSE);
             exit();
         }
@@ -294,9 +321,9 @@
                    "  FROM {$CFG->prefix}question_states s,".
                    "       {$CFG->prefix}question_sessions n".
                    " WHERE s.id = n.newgraded".
-                   "   AND n.attemptid = '$lastattemptid'".
-                   "   AND n.questionid = '$i'";
-            if (!$laststate = get_record_sql($sql)) {
+                   "   AND n.attemptid = ?".
+                   "   AND n.questionid = ?";
+            if (!$laststate = sloodle_get_record_sql_params($sql, array($lastattemptid, $i))) {
                 // Only restore previous responses that have been graded
                 continue;
             }
@@ -325,6 +352,9 @@
 /// Process form data /////////////////////////////////////////////////
 
     if ($isnotify) {
+                SloodleDebugLogger::log('DEBUG', "in is notify");
+
+
 
         $responses = (object)$_REQUEST; // GET version of data_submitted (see lib/weblib) used in original web version
 
@@ -332,6 +362,7 @@
         $event = (array_key_exists('markall', $responses)) ? QUESTION_EVENTSUBMIT :
          ($finishattempt ? QUESTION_EVENTCLOSE : QUESTION_EVENTSAVE);
 
+                SloodleDebugLogger::log('DEBUG', "checked finish attempt");
         // Unset any variables we know are not responses
         unset($responses->id);
         unset($responses->q);
@@ -348,10 +379,10 @@
         // $actions is an array indexed by the questions ids
         $actions = question_extract_responses($questions, $responses, $event);
 
+                SloodleDebugLogger::log('DEBUG', "extracted");
         // Process each question in turn
 
-        $questionidarray = explode(',', $questionids);
-        foreach($questionidarray as $i) {
+        foreach($questionids as $i) {
             if (!isset($actions[$i])) {
                 $actions[$i]->responses = array('' => '');
             }
@@ -363,6 +394,35 @@
         $attempt->timemodified = $timestamp;
 
     // We have now finished processing form data
+
+    // With post sloodle-2.0 quiz chairs, we should be told what happened to the score.
+    // In theory we should be able to get this from the data we already have, but it seems complex...
+    // The process_interactions allows us to award points if there is an instruction to do so in the object config.
+	$scorechange = floatval(optional_param( 'scorechange', 0, PARAM_TEXT));
+	if ($scorechange == 0) {
+		$scorechange = 1;
+	}
+                SloodleDebugLogger::log('DEBUG', "active object check");
+	if (!is_null($sloodle->active_object)) {
+                SloodleDebugLogger::log('DEBUG', "quiz has an active object");
+
+
+		$sloodle->active_object->process_interactions( 'SloodleModuleAwards', 'answerquestion', $scorechange, $sloodle->user->get_user_id() );
+		/*
+		if ($scorechange > 0) {
+		} else if ($scorechange < 0) {
+			//$sloodle->active_object->process_interactions( 'SloodleModuleAwards', 'answerincorrect', 1, $sloodle->user->get_user_id() );
+		}
+		*/
+		// TODO: Maybe we should set a side effect code here?
+	} else {
+                SloodleDebugLogger::log('DEBUG', "quiz has no active object");
+	} 
+
+		
+
+    } else {
+	SloodleDebugLogger::log('DEBUG', 'quiz is not notify');
     }
 
 
@@ -374,17 +434,25 @@
 
         // Find all the questions for this attempt for which the newest
         // state is not also the newest graded state
-        if ($closequestions = get_records_select('question_sessions',
-         "attemptid = $attempt->uniqueid AND newest != newgraded", '', 'questionid, questionid')) {
+        if ($closequestions = sloodle_get_records_select_params('question_sessions',
+         "attemptid = ? AND newest != newgraded", array($attempt->uniqueid),'', 'questionid, questionid')) {
 
             // load all the questions
             $closequestionlist = implode(',', array_keys($closequestions));
+            $params = array($quiz->id);
+            $instr = '';
+            $delim = '';
+            foreach(array_keys($closequestions) as $cq) {
+                $params[] = $cq;
+                $instr .= $delim.'?';
+                $delim = ',';
+            }
             $sql = "SELECT q.*, i.grade AS maxgrade, i.id AS instance".
                    "  FROM {$CFG->prefix}question q,".
                    "       {$CFG->prefix}quiz_question_instances i".
-                   " WHERE i.quiz = '$quiz->id' AND q.id = i.question".
-                   "   AND q.id IN ($closequestionlist)";
-            if (!$closequestions = get_records_sql($sql)) {
+                   " WHERE i.quiz = ? AND q.id = i.question".
+                   "   AND q.id IN ($instr)";
+            if (!$closequestions = sloodle_get_records_sql_params($sql, $params)) {
                 $sloodle->response->quick_output(-10303, 'QUIZ', 'Questions missing.', FALSE);
                 exit();
             }
@@ -416,7 +484,7 @@
 
 /// Update the quiz attempt and the overall grade for the quiz
     if ((isset($responses) && $responses) || $finishattempt) {
-        if (!update_record('quiz_attempts', $attempt)) {
+        if (!sloodle_update_record('quiz_attempts', $attempt)) {
             $sloodle->response->quick_output(-701, 'QUIZ', 'Failed to save current quiz attempt.', FALSE);
             exit();
         }
@@ -472,7 +540,6 @@
                 $shuffleanswers = 0;
                 if (isset($q->options->shuffleanswers) && $q->options->shuffleanswers) $shuffleanswers = 1;
             
-                if (!$onlyshowfeedback) {
                 $output[] = array(
                     'question',
                     $localqnum, //$i, // The value in $i is equal to $q->id, rather than being sequential in the quiz
@@ -488,7 +555,6 @@
                     $shuffleanswers,
                     0 //$deferred   // This variable doesn't seem to be mentioned anywhere else in the file
                 );
-                }
 
                 // Create an output array for our options (available answers) so that we can shuffle them later if necessary
                 $outputoptions = array();
@@ -498,11 +564,6 @@
                    
                    if (!is_array($op)) continue; // Ignore this if there are no options (Prevents nasty PHP notices!)
                    foreach($op as $ok=>$ov) {
-                      $feedback = $ov->feedback;
-                      if (!$onlyshowfeedback && ( strlen($feedback) > $maxfeedbacktoscript) ) {
-                         $feedback = "[[LONG]]";
-                      }
-                      if (!$onlyshowfeedback) {
                       $outputoptions[] = array(
                         'questionoption',
                         $i,
@@ -510,13 +571,8 @@
                         $ov->question,
                         sloodle_clean_for_output($ov->answer),
                         $ov->fraction,
-                        sloodle_clean_for_output($feedback)
+                        sloodle_clean_for_output($ov->feedback)
                       );
-                      }
-                      //if ($onlyshowfeedback && ( $ov->id == $feedbackid ) ) {
-                      if ($onlyshowfeedback  ) {
-                         $outputoptions[] = array( $feedback );
-                      }
                    }
                 }
                 

@@ -9,7 +9,7 @@ require_once($CFG->dirroot.'/mod/sloodle/sl_config.php');
 // Sloodle version
 $str = print_heading(get_string('sloodleversion','sloodle').': '.(string)SLOODLE_VERSION, 'center', 4, 'main', true);
 // Release number
-$sloodlemodule = get_record('modules', 'name', 'sloodle');
+$sloodlemodule = sloodle_get_record('modules', 'name', 'sloodle');
 $releasenum = 0;
 if ($sloodlemodule !== FALSE) $releasenum = $sloodlemodule->version;
 $str .= print_heading(get_string('releasenum','sloodle').': '.(string)$releasenum, 'center', 5, 'main', true);
@@ -67,11 +67,4 @@ $settings->add( new admin_setting_configtext(
                 21));
 // This selection box determines whether or not auto-enrolment is allowed on the site
 
-$settings->add( new admin_setting_configselect(
-                'sloodle_gridtype',
-                get_string('gridtype:specifygridtype','sloodle'),
-                '',
-                "OpenSim",
-                array("OpenSim" => "OpenSim", "SecondLife"=> "SecondLife")
-));  
 ?>

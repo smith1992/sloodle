@@ -25,7 +25,10 @@
     require_once(SLOODLE_LIBROOT.'/modules.php');
     /** Plugin management. */
     require_once(SLOODLE_LIBROOT.'/plugins.php');
-    require_once(SLOODLE_LIBROOT.'/api_plugins.php');
+
+    /** Active Objects and their definitions. */
+    require_once(SLOODLE_LIBROOT.'/object_configs.php');
+    require_once(SLOODLE_LIBROOT.'/active_object.php');
     
     /**
     * The primary API class, which manages all other parts.
@@ -77,13 +80,20 @@
         * @access public
         */
         var $plugins = null;
-        /**
-        * An api plugin manager to help give access to api plugins for various features.
-        * @var $api_plugins
+
+         /**
+        * A SloodleActiveObject object representing the in-world object making the request.
+        * @var $active_object
         * @access public
+	* In case of notecard configuration, this may be null. 
+	* (This should change in the future so that the server knows about all the objects it works with.)
+	* TODO: The relationship between this and the controller could do with some work - 
+	*  ... and some of the functionality in the controller should probably move to the active object.
+	*  ... but we can't fix that until we've made all objects be represented by and active object, even notecard ones.
         */
-        var $api_plugins = null;
+        var $active_object = null;
         
+
     // FUNCTIONS //
     
         /**
@@ -98,10 +108,15 @@
             $this->request = new SloodleRequest($this);
             $this->course = new SloodleCourse();
             $this->plugins = new SloodlePluginManager($this);
-            $this->api_plugins = new SloodleApiPluginManager($this);
             
             // Process the basic request data
             if ($process) $this->request->process_request_data();
+
+            // Active Object loading is happening right before check_authorization.
+            // It should probably be happening earlier...
+            // This whole thing should probably be happening backwards: 
+            // Load up the active object, check it's OK, load it's controller, check it's active, load the course, etc.
+
         }
         
         
@@ -134,7 +149,7 @@
                 		return false;
                 	}
                 	// Does the specified module instance exist in this course?
-                	if (!record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
+                	if (!sloodle_record_exists('course_modules', 'id', $db_id, 'course', $this->course->get_course_id())) {
                 		if ($require) {
                 			$this->response->quick_output(-714, 'MODULE_INSTANCE', 'Module not found in requested course.', false);
                     		exit();
@@ -240,10 +255,16 @@
                     return false;
                 }
                 
-                // Verify the object's authorisation
-                if ($this->course->controller->check_authorisation($objuuid, $objpwd)) {
+                // Load up the active object, if there is one.
+	        // TODO: This should probably have happened earlier.
+		$ao = new SloodleActiveObject();
+		if ($ao->loadByUUID( $objuuid )) {
+			$this->active_object = $ao;
+		}
+
+                if ($this->course->controller->check_authorisation($this->active_object, $objpwd)) {
                     // Passed authorisation - make sure the object is registered as being still active
-                    $this->course->controller->ping_object($objuuid);
+                    $this->active_object->recordAccess();
                     return true;
                 }
                 if ($require) {
@@ -328,7 +349,7 @@
             }
             
             // Attempt to retreive a record matching the avatar and object UUID's
-            $rec = get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
+            $rec = sloodle_get_record('sloodle_user_object', 'avuuid', $avuuid, 'objuuid', $objuuid);
             if (!$rec) {
                 if ($require) {
                     $this->response->quick_output(-216, 'OBJECT_AUTH', 'Object not found in database.', false);
@@ -567,10 +588,23 @@
                 // Add a side effect code to our response data
                 $this->response->add_side_effect(422);
             }
-            
+	   
             // Make sure the user is logged-in
             return ($this->user->login());
         }
+
+	function validate_requirements($interaction = 'default', $multiplier = 1) {
+
+	    if (!is_null($this->active_object)) {
+	        if ($error_message = $this->active_object->requirement_failures( 'SloodleModuleAwards', $interaction, $multiplier, $this->user->get_user_id())) {
+	    	    $this->response->quick_output(-1001, 'AWARDS', $error_message, false);
+	            exit();
+	        }
+	    }
+
+ 	    return true;
+         
+	}
         
         /**
         * Validate the avatar specified in the request, to ensure it is registered to a Moodle account.
@@ -597,8 +631,8 @@
             
             // Attempt to find an avatar matching the given details
             $rec = false;
-            if (!empty($sloodleuuid)) $rec = get_record('sloodle_users', 'uuid', $sloodleuuid);
-            if (!$rec) $rec = get_record('sloodle_users', 'avname', $sloodleavname);
+            if (!empty($sloodleuuid)) $rec = sloodle_get_record('sloodle_users', 'uuid', $sloodleuuid);
+            if (!$rec) $rec = sloodle_get_record('sloodle_users', 'avname', $sloodleavname);
             // Did we find a matching entry?
             if (!$rec) {
                 // No - avatar is not validated
