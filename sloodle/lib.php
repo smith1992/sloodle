@@ -50,7 +50,7 @@
         $sloodle->name = get_string("moduletype:{$sloodle->type}", 'sloodle') . ': ' . $sloodle->name;
             
         // Attempt to insert the new Sloodle record
-        if (!$sloodle->id = insert_record('sloodle', $sloodle)) {
+        if (!$sloodle->id = sloodle_insert_record('sloodle', $sloodle)) {
             error(get_string('failedaddinstance', 'sloodle'));
         }
         
@@ -69,7 +69,7 @@
             $sec_table->password = $sloodle->controller_password;
             
             // Attempt to add it to the database
-            if (!insert_record('sloodle_controller', $sec_table)) {
+            if (!sloodle_insert_record('sloodle_controller', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -78,7 +78,10 @@
 
         case SLOODLE_TYPE_AWARDS:
             // Create the secondary table for this awards
-            if (!insert_record('sloodle_awards', $sec_table)) {
+            
+            $sec_table->icurrency = (string)$sloodle->icurrency;            
+            $sec_table->maxpoints = (int)$sloodle->maxpoints;
+            if (!sloodle_insert_record('sloodle_awards', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -92,7 +95,7 @@
             $sec_table->timeupdated = 0;
         
             // Attempt to add it to the database
-            if (!insert_record('sloodle_distributor', $sec_table)) {
+            if (!sloodle_insert_record('sloodle_distributor', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -104,7 +107,16 @@
             $sec_table->framewidth = (int)$sloodle->presenter_framewidth;
             $sec_table->frameheight = (int)$sloodle->presenter_frameheight;
             // Attempt to add it to the database
-            if (!insert_record('sloodle_presenter', $sec_table)) {
+            if (!sloodle_insert_record('sloodle_presenter', $sec_table)) {
+                $errormsg = get_string('failedaddsecondarytable', 'sloodle');
+            } else {
+                $result = TRUE;
+            }
+            break;
+            
+        case SLOODLE_TYPE_TRACKER:   
+            // Nothing to add to the secondary table just now - just stick it in the database
+            if (!sloodle_insert_record('sloodle_tracker', $sec_table)) {
                 $errormsg = get_string('failedaddsecondarytable', 'sloodle');
             } else {
                 $result = TRUE;
@@ -124,7 +136,7 @@
         if (!$result) {
             // Yes
             // Delete the Sloodle instance
-            delete_records('sloodle', 'id', $sloodle->id);
+            sloodle_delete_records('sloodle', 'id', $sloodle->id);
             
             // Show the error message (if there was one)
             if (!empty($errormsg)) error($errormsg);
@@ -152,7 +164,7 @@
         $sloodle->id = $sloodle->instance;
         
         // Make sure the type is the same as the existing record
-        $existing_record = get_record('sloodle', 'id', $sloodle->id);
+        $existing_record = sloodle_get_record('sloodle', 'id', $sloodle->id);
         if (!$existing_record) error(get_string('modulenotfound', 'sloodle'));
         if ($existing_record->type != $sloodle->type) error(get_string('moduletypemismatch', 'sloodle'));
         
@@ -160,7 +172,7 @@
         switch ($sloodle->type) {
         case SLOODLE_TYPE_CTRL:
             // Attempt to fetch the controller record
-            $ctrl = get_record('sloodle_controller', 'sloodleid', $sloodle->id);
+            $ctrl = sloodle_get_record('sloodle_controller', 'sloodleid', $sloodle->id);
             if (!$ctrl) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Add the updated 'enabled' value
@@ -171,13 +183,13 @@
             
             
             // Update the database
-            update_record('sloodle_controller', $ctrl);
+            sloodle_update_record('sloodle_controller', $ctrl);
             
             break;
             
         case SLOODLE_TYPE_DISTRIB:
             // Attempt to fetch the distributor record
-            $distrib = get_record('sloodle_distributor', 'sloodleid', $sloodle->id);
+            $distrib = sloodle_get_record('sloodle_distributor', 'sloodleid', $sloodle->id);
             if (!$distrib) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Has a reset been requested?
@@ -186,18 +198,18 @@
                 $distrib->channel = '';
                 
                 // Delete all objects associated with the Distributor
-                delete_records('sloodle_distributor_entry', 'distributorid', $distrib->id);
+                sloodle_delete_records('sloodle_distributor_entry', 'distributorid', $distrib->id);
             }
             
             
             // Update the database
-            update_record('sloodle_distributor', $distrib);
+            sloodle_update_record('sloodle_distributor', $distrib);
             
             break;
             
         case SLOODLE_TYPE_PRESENTER:
             // Attempt to fetch the Presenter record
-            $presenter = get_record('sloodle_presenter', 'sloodleid', $sloodle->id);
+            $presenter = sloodle_get_record('sloodle_presenter', 'sloodleid', $sloodle->id);
             if (!$presenter) error(get_string('secondarytablenotfound', 'sloodle'));
 
             // Add the updated frame dimensions
@@ -205,17 +217,33 @@
             $presenter->frameheight = (int)$sloodle->presenter_frameheight;
 
             // Update the database
-            update_record('sloodle_presenter', $presenter); 
+            sloodle_update_record('sloodle_presenter', $presenter); 
 
+            break;
+            
+            
+        case SLOODLE_TYPE_TRACKER:    
+            // Attempt to fetch the tracker record
+            $tracker = sloodle_get_record('sloodle_tracker', 'sloodleid', $sloodle->id);
+            if (!$tracker) error(get_string('secondarytablenotfound', 'sloodle'));
+            
+            // Nothing else to do just now...
+            
+            // Update the database
+            //sloodle_update_record('sloodle_tracker', $tracker);
             break;
 
         case SLOODLE_TYPE_AWARDS:
             // Attempt to fetch the award record
-            $award = get_record('sloodle_awards', 'sloodleid', $sloodle->id);
+            $award = sloodle_get_record('sloodle_awards', 'sloodleid', $sloodle->id);
             if (!$award) error(get_string('secondarytablenotfound', 'sloodle'));
+            // Add the updates values from the form
+            $award->assignmentid = (int)$sloodle->assignmentid;
+            $award->icurrency = (string)$sloodle->icurrency;       
+            $award->maxpoints = (int)$sloodle->maxpoints;
 
             // Update the database
-            update_record('sloodle_awards', $award);
+            sloodle_update_record('sloodle_awards', $award);
         break;
 
             
@@ -228,7 +256,7 @@
         }
 
         // Attempt the update
-        return update_record('sloodle', $sloodle);
+        return sloodle_update_record('sloodle', $sloodle);
     }
 
     /**
@@ -243,33 +271,52 @@
 
         // Determine our success or otherwise
         $result = true;
+        
+        // Attempt to identify the course module instance ID
+        $cmid = 0; $moduletype = null; $cm = null;
+        
+        $moduletype = sloodle_get_record('modules', 'name', 'sloodle');
+        if ($moduletype && $moduletype->id)
+        {
+            $moduletypeid = $moduletype->id;
+            $cm = sloodle_get_record('course_modules', 'instance', $id, 'module', $moduletypeid);
+            if ($cm) $cmid = $cm->id;
+        }
 
         // Attempt to delete the main Sloodle instance
-        if (!delete_records('sloodle', 'id', $id)) {
+        if (!sloodle_delete_records('sloodle', 'id', $id)) {
             $result = false;
         }
         
         // Delete any secondary controller tables
-        delete_records('sloodle_controller', 'sloodleid', $id);
+        sloodle_delete_records('sloodle_controller', 'sloodleid', $id);
         
         // Attempt to get any secondary distributor tables
-        $distribs = get_records('sloodle_distributor', 'sloodleid', $id);
+        $distribs = sloodle_get_records('sloodle_distributor', 'sloodleid', $id);
         if (is_array($distribs) && count($distribs) > 0) {
             // Go through each distributor
             foreach ($distribs as $d) {
                 // Delete any related distributor entries
-                delete_records('sloodle_distributor_entry', 'distributorid', $d->id);
+                sloodle_delete_records('sloodle_distributor_entry', 'distributorid', $d->id);
             }
         }
         // Delete all the distributors
-        delete_records('sloodle_distributor', 'sloodleid', $id);
+        sloodle_delete_records('sloodle_distributor', 'sloodleid', $id);
 
         // Delete any presenter entries
-        delete_records('sloodle_presenter_entry', 'sloodleid', $id);
+        sloodle_delete_records('sloodle_presenter_entry', 'sloodleid', $id);
+        
+        // Delete any tracker instances, tools and activities
+        sloodle_delete_records('sloodle_tracker', 'sloodleid', $id);
+        if ($cmid)
+        {
+            sloodle_delete_records('sloodle_activity_tool', 'trackerid', $cmid);
+            sloodle_delete_records('sloodle_activity_tracker', 'trackerid', $cmid);
+        }
 
         // Delete any awards and award transaction entries
-        delete_records('sloodle_awards', 'sloodleid', $id);  
-        delete_records('sloodle_award_trans', 'sloodleid', $id);
+        sloodle_delete_records('sloodle_awards', 'sloodleid', $id);  
+        sloodle_delete_records('sloodle_award_trans', 'sloodleid', $id);
         
         // ADD FURTHER MODULE TYPES HERE!
 
@@ -330,12 +377,12 @@
         // Delete any pending user entries which have expired (more than 30 minutes old)
         $expirytime = time() - 1800;
         echo "Removing expired pending avatar entries...\n";
-        delete_records_select('sloodle_pending_avatars', "timeupdated < $expirytime");
+        sloodle_delete_records_select_params('sloodle_pending_avatars', "timeupdated < ?", array($expirytime));
         
         // Delete any LoginZone allocations which have expired (more than 15 minutes old)
         $expirytime = time() - 900;
         echo "Removing expired LoginZone allocations...\n";
-        delete_records_select('sloodle_loginzone_allocation', "timecreated < $expirytime");
+        sloodle_delete_records_select_params('sloodle_loginzone_allocation', "timecreated < ?", array($expirytime));
         
         // Fetch our configuration settings, if they exist
         $active_object_days = 7; // Give active objects a week by default
@@ -349,13 +396,13 @@
         $expirytime_auth = time() - (86400 * $active_object_days);
         $expirytime_unauth = time() - 3600;
         echo "Searching for expired active objects...\n";
-        $recs = get_records_select('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        $recs = sloodle_get_records_select_params('sloodle_active_object', "(((controllerid = 0 AND userid = 0) OR type = '') AND timeupdated < ?) OR timeupdated < ?", array($expirytime_unauth, $expirytime_auth));
         if ($recs) {
             // Go through each object
             echo "Removing " . count($recs) . " expired active objects and associated configuration settings...\n";
             foreach ($recs as $r) {
-                delete_records('sloodle_object_config', 'object', $r->id);
-                delete_records('sloodle_active_object', 'id', $r->id);
+                sloodle_delete_records('sloodle_object_config', 'object', $r->id);
+                sloodle_delete_records('sloodle_active_object', 'id', $r->id);
             }            
         }
         
@@ -366,7 +413,7 @@
         $expirytime_auth = time() - (86400 * $user_object_days);
         $expirytime_unauth = time() - 3600;
         echo "Deleting expired user objects...\n";
-        delete_records_select('sloodle_user_object', "(authorised = 0 AND timeupdated < $expirytime_unauth) OR timeupdated < $expirytime_auth");
+        sloodle_delete_records_select_params('sloodle_user_object', "(authorised = 0 AND timeupdated < ?) OR timeupdated < ?", array( $expirytime_unauth, $expirytime_auth));
         
         // More stuff?
         //...
@@ -463,6 +510,18 @@
         return $types;
     }
 
+/**
+ * @param string $feature FEATURE_xx constant for requested feature
+ * @return bool True if sloodle supports feature
+ */
+function sloodle_supports($feature) {
+    switch($feature) {
+        case FEATURE_MOD_INTRO:               return true;
+        //case FEATURE_BACKUP_MOODLE2:          return true; // not sure
+
+        default: return null;
+    }
+}
 
 
 ?>

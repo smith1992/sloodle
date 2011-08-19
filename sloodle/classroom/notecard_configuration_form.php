@@ -20,6 +20,8 @@
     require_once(SLOODLE_DIRROOT.'/lib.php');
     /** Sloodle API. */
     require_once(SLOODLE_LIBROOT.'/sloodle_session.php');
+    require_once(SLOODLE_LIBROOT.'/active_object.php');
+    require_once(SLOODLE_LIBROOT.'/object_configs.php');
 
     // Fetch our required parameters
     $sloodlecontrollerid = required_param('sloodlecontrollerid', PARAM_INT);
@@ -39,11 +41,11 @@
         error("Failed to load course module");
     }
     // Get the course data
-    if (! $course = get_record("course", "id", $cm->course)) {
+    if (! $course = sloodle_get_record("course", "id", $cm->course)) {
         error("Course is misconfigured");
     }
     // Get the Sloodle instance
-    if (! $sloodle = get_record('sloodle', 'id', $cm->instance)) {
+    if (! $sloodle = sloodle_get_record('sloodle', 'id', $cm->instance)) {
         error('Failed to find Sloodle module instance.');
     }
     
@@ -72,11 +74,10 @@
     $objectpath = SLOODLE_DIRROOT."/mod/$sloodleobjtype";
     if (!file_exists($objectpath)) error("ERROR: object \"$sloodleobjtype\" is not installed.");
     // Determine if we have a custom configuration page
-    $customconfig = $objectpath.'/object_config.php';
-    $hascustomconfig = file_exists($customconfig);
     
     // Split up the object identifier into name and version number, then get the translated name
-    list($objectname, $objectversion) = sloodle_parse_object_identifier($sloodleobjtype);
+    list($objectname, $objectversion) = SloodleObjectConfig::ParseModIdentifier($sloodleobjtype);
+
     $strobjectname = get_string("object:$objectname", 'sloodle');
     
 //---------------------------------------------------------------------------------
@@ -92,23 +93,28 @@
     echo '<form action="'.SLOODLE_WWWROOT.'/classroom/notecard_configuration_view.php" method="POST">';
     echo '<input type="hidden" name="formsubmitted" value="true">';
     
+    
+    // We need to create some dummy data for the form
+    // (basically pretend we have an authorised object, and hope nobody tries to use the missing data anywhere!)
+    // (not the best idea, I know, but the notecard stuff was added late... :-\)
+    $sloodleauthid = 0;
+    $auth_obj = new SloodleActiveObject();
+    $auth_obj->course = $sloodle_course;
+    $auth_obj->type = $sloodleobjtype;
+    $hascustomconfig = $auth_obj->has_custom_config();
+       
     // Are there any custom configuration options?
     if ($hascustomconfig) {
-    
-        // We need to create some dummy data for the form
-        // (basically pretend we have an authorised object, and hope nobody tries to use the missing data anywhere!)
-        // (not the best idea, I know, but the notecard stuff was added late... :-\)
-        $sloodleauthid = 0;
-        $auth_obj = new SloodleActiveObject();
-        $auth_obj->course = $sloodle_course;
-        $auth_obj->type = $sloodleobjtype;
+
+	// TODO: Do I really need all this?
         $dummysession = new SloodleSession(false);
         $dummysession->user->load_user($USER->id);
         $dummysession->user->load_linked_avatar();
         $auth_obj->user = $dummysession->user;
-        
+ 
+	include('object_configuration_form_template.php');
         // Include the form elements
-        require($customconfig);
+        //require($customconfig);
         
     } else {
         // No configuration settings for this object

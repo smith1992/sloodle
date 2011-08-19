@@ -5,10 +5,11 @@
     * This file defines the Sloodle Controller module sub-type.
     *
     * @package sloodle
-    * @copyright Copyright (c) 2008 Sloodle (various contributors)
+    * @copyright Copyright (c) 2008 - 2011 various contributors
     * @license http://www.gnu.org/licenses/gpl-3.0.html GNU GPL v3
     *
     * @contributor Peter R. Bloomfield
+    * @contributor Edmund Edgar
     */
     
     
@@ -17,6 +18,21 @@
     /** The active object structure. */
     require_once(SLOODLE_LIBROOT.'/active_object.php');
     
+    /**
+    * The data structure of a controller is as follows:
+    *
+    * coursemodule
+    *  id 
+    *  instance - refers to the ID in the sloodle table 
+    *  
+    * sloodle
+    *  id
+    *
+    * sloodle_controller
+    *  id - ID of this record, redundant as it's already uniquely identified by sloodleid?
+    *  sloodleid - refers to the ID in the sloodle table  
+    *
+    */
     
     /**
     * Represents a Sloodle Controller, including data such as prim password.
@@ -60,27 +76,39 @@
         {
         }
         
-        
         /**
-        * Loads data from the database.
+        * DEPRECATED in an attempt to make the use of various IDs around the controller less baffling. Use load_by_course_module_id instead.
+        * Loads data from the database based on the course module id.
         * Note: even if the function fails, it may still have overwritten some or all existing data in the object.
-        * @param mixed $id The site-wide unique identifier for all modules. Type depends on VLE. On Moodle, it is an integer course module identifier ('id' field of 'course_modules' table)
+        * @param mixed $id The site-wide unique identifier for all modules. Course module identifier ('id' field of 'course_modules' table)
         * @return bool True if successful, or false otherwise
         */
         function load($id)
         {
+            return $this->load_by_course_module_id($id);
+        }
+        
+ 
+        /**
+        * Loads data from the database.
+        * Note: even if the function fails, it may still have overwritten some or all existing data in the object.
+        * @param mixed $id The site-wide unique identifier for all modules. Course module identifier ('id' field of 'course_modules' table)
+        * @return bool True if successful, or false otherwise
+        */
+	function load_by_course_module_id($cmid) {
+
             // Make sure the ID is valid
-            $id = (int)$id;
-            if ($id <= 0) return false;
+            $cmid = (int)$cmid;
+            if ($cmid <= 0) return false;
             
             // Fetch the course module data
-            if (!($this->cm = get_coursemodule_from_id('sloodle', $id))) {
+            if (!($this->cm = get_coursemodule_from_id('sloodle', $cmid))) {
                 sloodle_debug("Failed to load controler course module.<br>");
                 return false;
             }
             
             // Load from the primary table: Sloodle instance
-            if (!($this->sloodle_module_instance = get_record('sloodle', 'id', $this->cm->instance))) {
+            if (!($this->sloodle_module_instance = sloodle_get_record('sloodle', 'id', $this->cm->instance))) {
                 sloodle_debug("Failed to load controller Sloodle module instance.<br>");
                 return false;
             }
@@ -91,14 +119,15 @@
             }
             
             // Load from the secondary table: Controller instance
-            if (!($this->sloodle_controller_instance = get_record('sloodle_controller', 'sloodleid', $this->cm->instance))) {
+            if (!($this->sloodle_controller_instance = sloodle_get_record('sloodle_controller', 'sloodleid', $this->cm->instance))) {
                 sloodle_debug("Failed to load controller secondary data table.<br>");
                 return false;
             }
             
             return true;
-        }
-        
+
+	}
+
         /**
         * Updates the currently loaded entry in the database.
         * Note: the data *must* have been previously loaded using {@link load_from_db()}.
@@ -111,9 +140,9 @@
             if (empty($this->sloodle_module_instance) || empty($this->sloodle_controller_instance)) return false;
             // Attempt to update the primary table
             $this->sloodle_module_instance->timemodified = time();
-            if (!update_record('sloodle', $this->sloodle_module_instance)) return false;
+            if (!sloodle_update_record('sloodle', $this->sloodle_module_instance)) return false;
             // Attempt to update the secondary table
-            if (!update_record('sloodle_controller', $this->sloodle_controller_instance)) return false;
+            if (!sloodle_update_record('sloodle_controller', $this->sloodle_controller_instance)) return false;
             
             // Everything seems OK
             return true;
@@ -133,23 +162,46 @@
         }
     
         /**
+	* DEPRECATED - use get_course_module_id instead
         * Gets the site-wide unique identifier for this module.
-        * @return mixed Identifier. Type is dependent on VLE. On Moodle, it is an integer course module identifier.
+        * @return mixed Identifier representing the course module identifier.
         */
         function get_id()
         {
-            return $this->cm->id;
+            return $this->get_course_module_id();
         }
         
         /**
-        * Gets the identifier for controller (unique among all Sloodle controlers - may be the same as {@link get_id()} in some environments
-        * @return mixed Identifier. Type is dependent on VLE. On Moodle, it is an integer relating to the 'id' field of the 'sloodle_controller' table
+        * Gets the site-wide unique identifier for this module.
+        * @return mixed Identifier. Type is dependent on VLE. On Moodle, it is an integer course module identifier.
+        */
+        function get_course_module_id()
+        {
+            return $this->cm->id;
+        }
+ 
+        /**
+        * Gets the identifier for controller.
+	* DEPRECATED to make it less ambiguous how we're identifying controllers, since we have at least 3 different IDs that can refer to the same thing.
+	* If you need this, use get_controller_instance_id instead.
+	* TODO (Ed): We shouldn't really need to use this at all or even have it in the database, as the record was already uniquely identified by "sloodleid".
+        * @return mixed Identifier. 'id' field of the 'sloodle_controller' table
         */
         function get_controller_id()
         {
-            return $this->sloodle_controller_instance->id;
+            return $this->get_controller_instance_id();
         }
     
+        /**
+        * Gets the identifier for controller instance.
+	* NB Elsewhere when we have a variable called "sloodlecontrollerid", that refers to the course module ID, not the instance ID.
+        * @return mixed Identifier. 'id' field of the 'sloodle_controller' table
+        */
+        function get_controller_instance_id()
+        {
+            return $this->sloodle_controller_instance->id;
+        }
+
         /**
         * Gets the name of this controller.
         * @return string The name of this controller
@@ -223,7 +275,7 @@
         function is_available()
         {
             //return (bool)($this->cm->visible);
-			return true;
+                        return true;
         }
         
         /**
@@ -288,8 +340,10 @@
         * @param int $timestamp The timestamp of the object's registration, or null to use the current time.
         * @return int|bool The new authorisation ID if successful, or false if not
         */
-        function register_object($uuid, $name, $user, $password, $type = '', $timestamp = null)
+        function register_object($uuid, $name, $user, $password, $httpinpassword = '', $type = '', $timestamp = null)
         {
+SloodleDebugLogger::log('DEBUG', "registering object with name $name and type $type");
+
             // Use the current timestamp if necessary
             if ($timestamp == null) $timestamp = time();
             // Extract the user ID, if available
@@ -297,7 +351,7 @@
             if ($user->is_user_loaded()) $userid = $user->get_user_id();
             
             // Check to see if an entry already exists for this object
-            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            $entry = sloodle_get_record('sloodle_active_object', 'uuid', $uuid);
             if (!$entry) {
                 // Create a new entry
                 $entry = new stdClass();
@@ -306,10 +360,11 @@
                 $entry->name = $name;
                 $entry->userid = $userid;
                 $entry->password = $password;
+                $entry->httpinpassword = $httpinpassword;
                 $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to insert the entry
-                $entry->id = insert_record('sloodle_active_object', $entry);
+                $entry->id = sloodle_insert_record('sloodle_active_object', $entry);
                 if (!$entry->id) return false;
                 
             } else {
@@ -318,62 +373,83 @@
                 $entry->name = $name;
                 $entry->userid = $userid;
                 $entry->password = $password;
+                $entry->httpinpassword = $httpinpassword;
                 $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to update the database
-                if (!update_record('sloodle_active_object', $entry)) return false;
+                if (!sloodle_update_record('sloodle_active_object', $entry)) return false;
             }
             
             return $entry->id;
         }
         
-	/**
-	* Configures a registered object based on the defaults for its layout entry id
-	* @param int $authid The ID of the object as registered by register_object in the active_objects table
- 	* @param int $layout_entry_id The ID of the layout entry corresponding to this object
-	* NB The reverse of this process, where we create a layout entry config based on the active object,
-    	* ...is in the SloodleLayoutEntry class.
-	* TODO: Would this be better there?
-	*/
-	function configure_object_from_layout_entry($authid, $layout_entry_id) {
-	   $configs = get_records('sloodle_layout_entry_config','layout_entry',$layout_entry_id);
-	   $ok = true;
-	   if (count($configs) > 0) {
-	      foreach($configs as $config) {
-	         $config->id = null;
-	         $config->object = $authid;
-	         if (!insert_record('sloodle_object_config',$config)) {
-		    $ok = false;
-	         }
-	      }
-	   }
+        /**
+        * Configures a registered object based on the defaults for its layout entry id
+        * @param int $authid The ID of the object as registered by register_object in the active_objects table
+        * @param int $layout_entry_id The ID of the layout entry corresponding to this object
+        * NB The reverse of this process, where we create a layout entry config based on the active object,
+        * ...is in the SloodleLayoutEntry class.
+        * TODO: Would this be better there?
+        */
+        function configure_object_from_layout_entry($authid, $layout_entry_id, $rezzeruuid = null) {
 
+            $ao = new SloodleActiveObject();
+            if (!$ao->load($authid)) {
+                return false;
+            }
+ 
+            $entry = sloodle_get_record('sloodle_layout_entry', 'id', $layout_entry_id);
+            if (!$entry) {
+                return false;
+            }
+
+            $ao->layoutentryid = $entry->id;
+            $ao->rotation = $entry->rotation;
+            $ao->position = $entry->position;
+            $ao->rezzeruuid = $rezzeruuid;
+            if (!$ao->save()) {
+               return false;
+            }
+
+           $configs = sloodle_get_records('sloodle_layout_entry_config','layout_entry',$layout_entry_id);
+           $ok = true;
+           if (count($configs) > 0) {
+              foreach($configs as $config) {
+                 $config->id = null;
+                 $config->object = $authid;
+                 if (!sloodle_insert_record('sloodle_object_config',$config)) {
+                    $ok = false;
+                 }
+              }
+           }
+
+        /*
          $lconfig = new stdClass();
-	 $lconfig->id = null;
+         $lconfig->id = null;
          $lconfig->object = $authid;
-	 $lconfig->name = 'sloodlelayoutentryid';
-	 $lconfig->value = $layout_entry_id;
-	 insert_record('sloodle_object_config',$lconfig);
+         $lconfig->name = 'sloodlelayoutentryid';
+         $lconfig->value = $layout_entry_id;
+         sloodle_insert_record('sloodle_object_config',$lconfig);
+        */
 
+           return $ok;
 
-	   return $ok;
-
-	}
+        }
         
-	function configure_object_from_parent($authid, $parent_object) {
+        function configure_object_from_parent($authid, $parent_object) {
 
-	   // Fetch the UUID of the current object from the header
-	   // ...then clone its config
+           // Fetch the UUID of the current object from the header
+           // ...then clone its config
 
            // Check to see if an entry already exists for this object
-           $parententry = get_record('sloodle_active_object', 'uuid', $parent_object);
+           $parententry = sloodle_get_record('sloodle_active_object', 'uuid', $parent_object);
 /*
            if (!$parententry) {
               return false;
            }
 */
 
-           $parentconfigs = get_records('sloodle_object_config','object',$parententry->id);
+           $parentconfigs = sloodle_get_records('sloodle_object_config','object',$parententry->id);
            $ok = true;
            if (count($parentconfigs) > 0) {
               $clonedconfig = new stdClass();
@@ -381,7 +457,7 @@
                  $clonedconfig->object = $authid;
                  $clonedconfig->name = $config->name;
                  $clonedconfig->value = $config->value;
-                 if (!insert_record('sloodle_object_config',$clonedconfig)) {
+                 if (!sloodle_insert_record('sloodle_object_config',$clonedconfig)) {
                     $ok = false;
                  }
               }
@@ -389,7 +465,7 @@
 
            return $ok;
 
-	}
+        }
 
         /**
         * Registers a new unauthorised object.
@@ -408,7 +484,7 @@
             if ($timestamp == null) $timestamp = time();
             
             // Check to see if an entry already exists for this object
-            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            $entry = sloodle_get_record('sloodle_active_object', 'uuid', $uuid);
             if (!$entry) {
                 // Create a new entry
                 $entry = new stdClass();
@@ -420,7 +496,7 @@
                 $entry->type = $type;
                 $entry->timeupdated = $timestamp;
                 // Attempt to insert the entry
-                $entry->id = insert_record('sloodle_active_object', $entry);
+                $entry->id = sloodle_insert_record('sloodle_active_object', $entry);
                 if (!$entry->id) return false;
                 
             } else {
@@ -432,7 +508,7 @@
                 $entry->userid = 0;
                 $entry->timeupdated = $timestamp;
                 // Attempt to update the database
-                if (!update_record('sloodle_active_object', $entry)) return false;
+                if (!sloodle_update_record('sloodle_active_object', $entry)) return false;
             }
             
             return $entry->id;
@@ -447,12 +523,12 @@
         function update_object_type($uuid, $type)
         {
             // Attempt to find an entry for the object
-            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            $entry = sloodle_get_record('sloodle_active_object', 'uuid', $uuid);
             if (!$entry) return false;
             // Update the type and time
             $entry->type = $type;
             $entry->timeupdated = time();
-            if (!update_record('sloodle_active_object', $entry)) return false;
+            if (!sloodle_update_record('sloodle_active_object', $entry)) return false;
             return true;
         }
         
@@ -468,30 +544,33 @@
         function authorise_object($uuid, $user, $type = null)
         {
             // Attempt to find an unauthorised entry for the object
-            $entry = get_record('sloodle_active_object', 'uuid', $uuid);
+            $entry = sloodle_get_record('sloodle_active_object', 'uuid', $uuid);
             if (!$entry) return false;
             // Update the controller, user and time
-            $entry->controllerid = $this->get_id();
+            $entry->controllerid = $this->get_course_module_id();
             $entry->userid = $user->get_user_id();
             if (!empty($type)) $entry->type = $type;
             $entry->timeupdated = time();
-            if (!update_record('sloodle_active_object', $entry)) return false;
+            if (!sloodle_update_record('sloodle_active_object', $entry)) return false;
             return true;
         }
         
         /**
         * Checks if the specified object is authorised for this controller with the given password.
-        * @param string $uuid The UUID of the object to check
+        * @param object SloodleActiveObject $active_object The active object representing the prim that is talking to us.
         * @param string $password The password to check
         * @return bool True if object is authorised, or false if not
         */
-        function check_authorisation($uuid, $password)
+        function check_authorisation($active_object, $password)
         {
-            // Attempt to find an entry for the object
-            $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
-            if (!$entry) return false;
-            // Make sure we have the type data
+            if (is_null($active_object)) {
+                return false;
+            }
+            if ($active_object->controllerid != $this->get_course_module_id()) {
+                return false;
+            }
 
+            // Make sure we have the type data
             // Edmund Edgar, 2009-01-31: 
             // The type-checking is breaking the auto-configuration based on a profile.
             // It should probably already have been filled in somewhere, so this is probably an auto-configuration bug.
@@ -500,7 +579,7 @@
             //if (empty($entry->type)) return false;
             
             // Verify the password
-            return ($password == $entry->password);
+            return ($password == $active_object->password);
         }
         
         /**
@@ -510,7 +589,7 @@
         function get_authorizing_user($uuid)
         {
             // Attempt to find an entry for the object
-            $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $uuid);
+            $entry = sloodle_get_record('sloodle_active_object', 'controllerid', $this->get_course_module_id(), 'uuid', $uuid);
             if (!$entry) return false;
             return (int)$entry->userid;
         }
@@ -521,28 +600,33 @@
         * @param mixed $id If it is an integer, then it is treated as the active object ID. If a string, it is treated as the object UUID.
         * @return void
         */
+        // TODO: This is now duplicated by delete() in the SloodleActiveObject class. 
+        // That seems like a better place to do this.
+        // We should either change whatever's calling this to use SloodleActiveObject instead 
+        // ...or change this function to call SloodleActiveObject->delete().
         function remove_object($id)
         {
             // Check what type the ID is
-            if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
-            else $entry = get_record('sloodle_active_object', 'id', (int)$id);
+            if (is_string($id)) $entry = sloodle_get_record('sloodle_active_object', 'uuid', $id);
+            else $entry = sloodle_get_record('sloodle_active_object', 'id', (int)$id);
             if (!$entry) return;
             
             // Delete all config entries and the object record itself
-            delete_records('sloodle_object_config', 'object', $entry->id);
-            delete_records('sloodle_active_object', 'id', $entry->id);
+            sloodle_delete_records('sloodle_object_config', 'object', $entry->id);
+            sloodle_delete_records('sloodle_active_object', 'id', $entry->id);
         }
         
         /**
         * Gets data about an active object.
         * @param mixed $id If an integer, it is the ID of an active object. If it is a string it is the object's UUID.
         * @return SloodleActiveObject|bool Returns false on failure
+        * TODO: Refactor this if anything's using it - it's got nothing to do with the controller, and shouldn't be in here.
         */
         function get_object($id)
         {
             // Check what type the ID is
-            if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
-            else $entry = get_record('sloodle_active_object', 'id', (int)$id);
+            if (is_string($id)) $entry = sloodle_get_record('sloodle_active_object', 'uuid', $id);
+            else $entry = sloodle_get_record('sloodle_active_object', 'id', (int)$id);
             if (!$entry) return false;
             
             // Create a dummy SloodleSession
@@ -566,52 +650,153 @@
             
             return $obj;
         }
+       
         
         /**
-        * Gets an array of object configuration settings.
-        * (Can be called statically).
-        * @param mixed $id If an integer, it is the ID of an active object. If it is a string it is the object's UUID.
-        * @return array Associative array of setting names to values. (Returns an empty array if unsuccessful.)
-        */
-        function get_object_configuration($id)
-        {
-            // If the ID is empty, then we have no configuration settings to get
-            if (empty($id)) return array();
-        
-            // Check what type the ID is and fetch the object
-            if (is_string($id)) $entry = get_record('sloodle_active_object', 'uuid', $id);
-            else $entry = get_record('sloodle_active_object', 'id', (int)$id);
-            if (!$entry) return array();
-            
-            // Fetch the values
-            $recs = get_records('sloodle_object_config', 'object', $entry->id);
-            if (!$recs) return false;
-            // Construct our associative array
-            $config = array();
-            foreach ($recs as $r) {
-                $config[$r->name] = $r->value;
-            }
-            return $config;
-        }
-        
-        /**
-        * Updates the last active timer on an object.
+        * Returns an array of active object records, or false if something went wrong.
         * (Cannot be called statically... object must be authorised for this controller).
-        * @param mixed $id If an integer, it is the ID of an active object. If it is a string it is the object's UUID.
-        * @return bool True if successful, or false if not.
+        * @param string $rezzeruuid: The uuid of the rezzer which rezzed the object, or null for all active objects, regardless of rezzer.
+        * @param int $layoutentryid: The layout entry id object, or null for all active objects, regardless of layout entry.
+        * @return array() active object objects, or false on failure
         */
-        function ping_object($id)
-        {
-            // Check what type the ID is and fetch the object
-            if (is_string($id)) $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'uuid', $id);
-            else $entry = get_record('sloodle_active_object', 'controllerid', $this->get_id(), 'id', (int)$id);
-            if (!$entry) return false;
-            
-            // Update the record
-            $entry->timeupdated = time();
-            return update_record('sloodle_active_object', $entry);
+        function get_active_objects( $rezzeruuid = null, $layoutentryid = null ) {
+
+            $id = $this->get_course_module_id();
+            $aos = array();
+            if (!$id) {
+               return false;
+            }
+            $recs = array();
+ 
+            $params = array();
+            $select = 'controllerid = ?';
+            $params[] =intval($id);
+
+            if ($rezzeruuid) {
+               $select .= " and rezzeruuid = ?";
+               $params[] = $rezzeruuid;
+            }
+            if ($layoutentryid) {
+               $select .= " and layoutentryid = ?";
+               $params[] = intval($layoutentryid);
+            }
+
+            $recs = sloodle_get_records_select_params('sloodle_active_object', $select, $params);
+            if (!$recs) {
+                return false;        
+            }
+            foreach($recs as $rec) {
+                if ($rec && $rec->id) {
+                    $ao = new SloodleActiveObject();
+                    $ao->loadFromRecord($rec);
+                    $aos[] = $ao;
+               }
+            }
+            return $aos; 
         }
+
+        /*
+        * Return the ID of the currently active round for the controller.
+        * @return int $roundid or null if there isn't one
+        */
+        function get_active_roundid($force_create = false) {
+ 
+            $open_rounds = sloodle_get_records( 'sloodle_award_rounds', 'controllerid', $this->get_course_module_id() );
+            foreach($open_rounds as $or ) {
+                if ($or->timeended > 0) { // closed
+                    continue;
+                }
+                return $or->id;
+            }
+
+            if ($force_create) {
+                $created_round = $this->make_new_round();
+                return $created_round->id;
+            }
+
+            return 0;
+ 
+        }
+
+        function clone_round_participation($fromroundid, $toroundid) {
+            
+            global $CFG;
+            $prefix = $CFG->prefix;
         
+            $user_curr = array();
+            $scores = sloodle_get_records('sloodle_award_points', 'roundid', $fromroundid);
+            if ($scores) {
+                foreach($scores as $score) {
+                    $userid = $score->userid;
+                    $currencyid = $score->currencyid;
+                    if (isset($user_curr[ $userid ][$currencyid] )) {
+                        continue;
+                    }
+                    $score->amount = 0;
+                    $score->id = null;
+                    $score->description = null;
+                    $score->roundid = $toroundid;
+                    sloodle_insert_record( 'sloodle_award_points', $score );
+                    $user_curr[ $userid ] = array();
+                    $user_curr[ $userid ][$currencyid] = true;
+                }
+            }
+
+            return true;
+
+        }
+
+        function make_new_round( $clone_active_round_participation = false ) {
+
+            if (!$courseid = intval($this->get_course_id())) {
+                return false;
+            }
+
+            $previous_round_id = 0;
+            if ($clone_active_round_participation) {
+                $previous_round_id = $this->get_active_roundid();
+            }
+           
+            $round = new stdClass();
+            $round->timestarted = time();
+            $round->timeended = 0;
+            $round->name = '';
+            $round->controllerid = $this->get_course_module_id();
+            $round->courseid = $courseid; // We specify this too so that you can delete the controller but keep the scores.
+
+            if (!$roundid = sloodle_insert_record('sloodle_award_rounds', $round)) {
+                return false;
+            }
+
+            if ($clone_active_round_participation) {
+                $this->clone_round_participation( $previous_round_id, $roundid );
+            }
+
+            $round->id = $roundid;
+
+            $this->close_rounds_except( $roundid );
+
+            return $round;
+
+        }
+
+        function close_rounds_except( $roundid ) {
+
+            $open_rounds = sloodle_get_records( 'sloodle_award_rounds', 'controllerid', $this->get_course_module_id() );
+            foreach($open_rounds as $or ) {
+                if ($or->id == $roundid) {
+                   continue;
+                }
+                if ($or->timeended > 0) {
+                    continue;
+                }
+                $or->timeended = time();
+                sloodle_update_record( 'sloodle_award_rounds', $or );
+            }
+
+            return true;
+
+        }
+
     }
 
-?>

@@ -143,11 +143,20 @@ class sloodle_view_user extends sloodle_base_view
         if (strcasecmp($this->moodleuserid, 'all') == 0) $this->courseid = SITEID;
     
         // Fetch our Moodle and SLOODLE course data
-        if (!$this->course = get_record('course', 'id', $this->courseid)) error('Could not find course.');
+        if (!$this->course = sloodle_get_record('course', 'id', $this->courseid)) error('Could not find course.');
         $this->sloodle_course = new SloodleCourse();
         if (!$this->sloodle_course->load($this->course)) error(get_string('failedcourseload', 'sloodle'));
         $this->start = optional_param('start', 0, PARAM_INT);
         if ($this->start < 0) $this->start = 0;
+
+	// Moodle 2 rendering functions like to know the course.
+	// They get upset if you try to pass a course into print_footer() that isn't what they were expecting.
+	if ($this->course) {
+		global $PAGE;
+		if (isset($PAGE) && method_exists($PAGE, 'set_course')) {
+			$PAGE->set_course($this->course);
+		}
+	}
     }
 
     /**
@@ -162,15 +171,17 @@ class sloodle_view_user extends sloodle_base_view
         if (isguestuser()) error(get_string('noguestaccess', 'sloodle'));
         //add_to_log($this->course->id, 'course', 'view sloodle user', '', "{$this->course->id}");
         
-        // The "all" view should be only available to admins
-        if (strcasecmp($this->moodleuserid, 'all') == 0 && isadmin() == false) {
-            error(get_string('insufficientpermissiontoviewpage', 'sloodle'));
-            exit();
-        }
+        
         
         // We need to establish some permissions here
         $this->course_context = get_context_instance(CONTEXT_COURSE, $this->courseid);
         $this->system_context = get_context_instance(CONTEXT_SYSTEM);
+
+	// The "all" view should be only available to admins
+        if ( !has_capability('moodle/site:viewparticipants', $this->system_context) ){
+            error(get_string('insufficientpermissiontoviewpage', 'sloodle'));
+            exit();
+        }
         $this->viewingself = false;
         $this->canedit = false;
         // Is the user trying to view their own profile?
@@ -277,13 +288,13 @@ class sloodle_view_user extends sloodle_base_view
             
             // Has the deletion been confirmed?
             if ($this->userconfirmed == $form_yes) {
-                if (record_exists('sloodle_users', 'id', $this->deletesloodleentry)) {
+                if (sloodle_record_exists('sloodle_users', 'id', $this->deletesloodleentry)) {
                     // Is the user allowed to delete this?
                     if ($allowdelete) {
                         // Make sure it's a valid ID
                         if (is_int($this->deletesloodleentry) && $this->deletesloodleentry > 0) {
                             // Attempt to delete the entry
-                            $deleteresult = delete_records('sloodle_users', 'id', $this->deletesloodleentry);
+                            $deleteresult = sloodle_delete_records('sloodle_users', 'id', $this->deletesloodleentry);
                             if ($deleteresult === FALSE) {
                                 $deletemsg = get_string('deletionfailed', 'sloodle').': '.get_string('databasequeryfailed', 'sloodle');
                             } else {
@@ -327,18 +338,19 @@ class sloodle_view_user extends sloodle_base_view
             // All entries
             $moodleuserdata = null;
             // Fetch a list of all Sloodle user entries
-            $sloodleentries = get_records('sloodle_users');
+            $sloodleentries = sloodle_get_records('sloodle_users');
         } else if ($searchentries && !empty($this->searchstr)) {
             // Search entries
             $moodleuserdata = null;
-            $LIKE = sql_ilike();
-            $fullsloodleentries = get_records_select('sloodle_users', "avname $LIKE '%{$this->searchstr}%' OR uuid $LIKE '%{$this->searchstr}%'", 'avname');
+            $LIKE = sloodle_sql_ilike();
+            $params = array('%{$this->searchstr}%', '%{$this->searchstr}%');
+            $fullsloodleentries = sloodle_get_records_select('sloodle_users', "avname $LIKE ? OR uuid $LIKE ?", 'avname', $params);
             if (!$fullsloodleentries) $fullsloodleentries = array();
             $sloodleentries = array();
             // Eliminate entries belonging to avatars who are not in the current course
             foreach ($fullsloodleentries as $fse) {
                 // Does the Moodle user have permission?
-                if (has_capability('moodle/course:view', $this->course_context, $fse->userid)) {
+                if (has_capability('mod/sloodle:courseparticipate', $this->course_context, $fse->userid)) {
                     // Copy it to our filtered list
                     $sloodleentries[] = $fse;
                 }
@@ -346,9 +358,9 @@ class sloodle_view_user extends sloodle_base_view
             
         } else {
             // Attempt to fetch the Moodle user data
-            $moodleuserdata = get_record('user', 'id', $this->moodleuserid);
+            $moodleuserdata = sloodle_get_record('user', 'id', $this->moodleuserid);
             // Fetch a list of all Sloodle user entries associated with this Moodle account
-            $sloodleentries = get_records('sloodle_users', 'userid', $this->moodleuserid);
+            $sloodleentries = sloodle_get_records('sloodle_users', 'userid', $this->moodleuserid);
         }
         // Post-process the query results
         if ($sloodleentries === FALSE) $sloodleentries = array();
@@ -536,7 +548,7 @@ class sloodle_view_user extends sloodle_base_view
                                      $avimage= $CFG->wwwroot."/mod/sloodle/lib/media/empty.jpg";
                                  }else{
                                     $su->profilepic = $avimage;
-                                    update_record("sloodle_users",$su);
+                                    sloodle_update_record("sloodle_users",$su);
                                  }
                                  $startlink = '<a href="'.$url.'" target="_blank">';
                                  $endlink="</a>";
@@ -621,7 +633,8 @@ class sloodle_view_user extends sloodle_base_view
         // Display a link allowing admin users to add an avatar if this is a single avatar page
         if (!$allentries && !$searchentries)
         {
-            if (isadmin())
+
+            if ( has_capability('moodle/site:viewparticipants', $this->system_context) )
             {
                 echo "<p style=\"font-weight:bold;\">";
                 echo "<a href=\"{$CFG->wwwroot}/mod/sloodle/view.php?_type=addavatar&amp;user={$this->moodleuserid}&amp;course={$this->courseid}\" title=\"".get_string('addavatarhere','sloodle')."\">";
@@ -674,7 +687,7 @@ class sloodle_view_user extends sloodle_base_view
                     // Delete each one
                     $numdeleted = 0;
                     foreach ($userobjects as $obj) {
-                        delete_records('sloodle_user_object', 'id', $obj->id);
+                        sloodle_delete_records('sloodle_user_object', 'id', $obj->id);
                         $numdeleted++;
                     }
                     $userobjects = array();
@@ -751,6 +764,7 @@ class sloodle_view_user extends sloodle_base_view
     */
     function print_footer()
     {
+
         print_footer($this->course);
     }
 
