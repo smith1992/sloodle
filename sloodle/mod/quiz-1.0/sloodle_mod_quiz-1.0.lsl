@@ -89,9 +89,10 @@
         * Params: method - SLOODLE_TRANSLATE_SAY, SLOODLE_TRANSLATE_IM etc
         * Params:  avuuid - this is the avatar UUID to that an instant message with the translated error code will be sent to
         * Params: status code - the status code of the error as on our wiki: http://slisweb.sjsu.edu/sl/index.php/Sloodle_status_codes
+        * Params: a message from the server to use if there is none listed in the linker script.        
         *******************************************************************************************************************************/
-        sloodle_error_code(string method, key avuuid,integer statuscode){
-                    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode, NULL_KEY);
+        sloodle_error_code(string method, key avuuid,integer statuscode, string msg){
+                    llMessageLinked(LINK_SET, SLOODLE_CHANNEL_ERROR_TRANSLATION_REQUEST, method+"|"+(string)avuuid+"|"+(string)statuscode+"|"+(string)msg, NULL_KEY);
         }        sloodle_debug(string msg)
         {
             llMessageLinked(LINK_THIS, DEBUG_CHANNEL, msg, null_key);
@@ -353,7 +354,7 @@
                 httpquizquery = null_key;
                 // Make sure the response was OK
                 if (status != 200) {
-                        sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status); //send message to error_message.lsl
+                        sloodle_error_code(SLOODLE_TRANSLATE_SAY, NULL_KEY,status, ""); //send message to error_message.lsl
                     state default;
                 }
                 
@@ -377,9 +378,15 @@
                     
                 } else if (statuscode <= 0) {
                     //sloodle_translation_request(SLOODLE_TRANSLATE_SAY, [0], "servererror", [statuscode], null_key, "");
-                     sloodle_error_code(SLOODLE_TRANSLATE_IM, sitter,statuscode); //send message to error_message.lsl                 
+                    string msg;
+                    if (numlines > 1) {
+                        msg = llList2String(lines, 1);
+                    }
+                    sloodle_debug(msg);
+            
+                     sloodle_error_code(SLOODLE_TRANSLATE_IM, sitter,statuscode, msg); //send message to error_message.lsl                 
                     // Check if an error message was reported
-                    if (numlines > 1) sloodle_debug(llList2String(lines, 1));
+
                     state ready;
                     return;
                 }
@@ -492,7 +499,7 @@
                     if(scorechange>0) num_correct++; // SAL added this
 
                     // Are we are at the end of the quiz?
-                    if ((active_question + 1) >= num_questions) {
+                    if (active_question >= num_questions) {
                         // Yes - finish off
                         finish_quiz();
                         // Do we want to repeat the quiz?
@@ -549,3 +556,7 @@
                 reinitialise();
             }
         }
+
+
+// Please leave the following line intact to show where the script lives in Subversion:
+// SLOODLE LSL Script Subversion Location: mod/quiz-1.0/sloodle_mod_quiz-1.0.lsl

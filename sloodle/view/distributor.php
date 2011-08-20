@@ -44,7 +44,7 @@ class sloodle_view_distributor extends sloodle_base_view_module
         // Process the basic data
         parent::process_request();
         // Grab the Distributor data
-        if (!$this->distributor = get_record('sloodle_distributor', 'sloodleid', $this->sloodle->id)) error('Failed to get SLOODLE Distributor data.');
+        if (!$this->distributor = sloodle_get_record('sloodle_distributor', 'sloodleid', $this->sloodle->id)) error('Failed to get SLOODLE Distributor data.');
     }
 
     /**
@@ -63,7 +63,7 @@ class sloodle_view_distributor extends sloodle_base_view_module
         global $CFG, $USER;
     
         // Fetch a list of all distributor entries
-        $entries = get_records('sloodle_distributor_entry', 'distributorid', $this->distributor->id, 'name');
+        $entries = sloodle_get_records('sloodle_distributor_entry', 'distributorid', $this->distributor->id, 'name');
         // If the query failed, then assume there were simply no items available
         if (!is_array($entries)) $entries = array();
         $numitems = count($entries);
@@ -125,7 +125,7 @@ class sloodle_view_distributor extends sloodle_base_view_module
         $selection_items .= '</select>';
         
         // Get a list of all avatars on the site
-        $avatars = get_records('sloodle_users', '', '', 'avname');
+        $avatars = sloodle_get_records('sloodle_users', '', '', 'avname');
         if (!$avatars) $avatars = array();
         // Construct the selection box of avatars
         $selection_avatars = '<select name="user" size="1">';
@@ -133,9 +133,7 @@ class sloodle_view_distributor extends sloodle_base_view_module
             // Skip avatars who do not have a UUID or associated Moodle account
             if (empty($a->uuid) || empty($a->userid)) continue;
             // Make sure the associated Moodle user can view the current course
-            if (!has_capability('moodle/course:view', $this->course_context, $a->userid)) continue;
-            // Make sure the associated Moodle user does not have a guest role
-            if (has_capability('moodle/legacy:guest', $this->course_context, $a->userid, false)) continue;
+            if (!has_capability('mod/sloodle:courseparticipate', $this->course_context, $a->userid)) continue;
 
             $sel = '';
             if ($a->avname == $defaultavatar) $sel = 'selected="true"';
@@ -166,7 +164,7 @@ class sloodle_view_distributor extends sloodle_base_view_module
         $table_sendtoself->align = array('center');
         
         // Fetch the current user's Sloodle info
-        $this->sloodleuser = get_record('sloodle_users', 'userid', $USER->id);
+        $this->sloodleuser = sloodle_get_record('sloodle_users', 'userid', $USER->id);
         if (!$this->sloodleuser) {
             $table_sendtoself->data[] = array('<span style="color:red;">'.get_string('avatarnotlinked','sloodle').'</span>');
         } else {

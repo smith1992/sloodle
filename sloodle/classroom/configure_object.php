@@ -175,7 +175,7 @@
         // Get a list of controllers which the user is permitted to authorise objects on
         // (It will be a 2d array - top level will be course ID's, 2nd level will be coursemodule ID's, containing database objects from the 'sloodle' table)
         $controllers = array();
-        $recs = get_records('sloodle', 'type', SLOODLE_TYPE_CTRL);
+        $recs = sloodle_get_records('sloodle', 'type', SLOODLE_TYPE_CTRL);
         // Make sure we have at least one controller
         if ($recs == false || count($recs) == 0) {
             error(get_string('objectauthnocontrollers','sloodle'));
@@ -200,7 +200,7 @@
         // Construct the list of course names
         $coursenames = array();
         foreach ($controllers as $cid => $ctrl) {
-            $courserec = get_record('course', 'id', $cid, '','', '','', 'id,shortname,fullname');
+            $courserec = sloodle_get_record('course', 'id', $cid, '','', '','', 'id,shortname,fullname');
             if (!$courserec) $coursenames[$cid] = "(unknown)";
             else $coursenames[$cid] = $courserec->fullname;
         }
@@ -269,13 +269,13 @@
         
         // Make sure the type value is stored in the database too
         $sloodle->course->controller->update_object_type($auth_obj->uuid, $usetype);
+	$auth_obj->type = $usetype;
     
         // Make sure the type exists
         $objectpath = SLOODLE_DIRROOT."/mod/$usetype";
         if (!file_exists($objectpath)) error(get_string('objectnotinstalled','sloodle'));
         // Determine if we have a custom configuration page
-        $customconfig = $objectpath.'/object_config.php';
-        $hascustomconfig = file_exists($customconfig);
+        $hascustomconfig = $auth_obj->has_custom_config();
         
         // Display the configuration section
         print_box_start('generalbox boxwidthnormal boxaligncenter');
@@ -290,7 +290,8 @@
             
             
             // Include the form elements
-            require($customconfig);
+            include('object_configuration_form_template.php');
+
             
             
             // Add this object's authorisation ID, and a submit button
@@ -304,16 +305,16 @@
             print_string('noobjectconfig','sloodle');
             
             // Add or udpate a configuration value to store this object's type
-            $cfgtype = get_record('sloodle_object_config', 'object', $sloodleauthid, 'name', 'sloodleobjtype');
+            $cfgtype = sloodle_get_record('sloodle_object_config', 'object', $sloodleauthid, 'name', 'sloodleobjtype');
             if (!$cfgtype) {
                 $cfgtype = new stdClass();
                 $cfgtype->object = $sloodleauthid;
                 $cfgtype->name = 'sloodleobjtype';
                 $cfgtype->value = $usetype;
-                insert_record('sloodle_object_config', $cfgtype);
+                sloodle_insert_record('sloodle_object_config', $cfgtype);
             } else {
                 $cfgtype->value =  $usetype;
-                update_record('sloodle_object_config', $cfgtype);
+                sloodle_update_record('sloodle_object_config', $cfgtype);
             }
         }
         

@@ -51,7 +51,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $sloodletype = required_param('type', PARAM_TEXT);
         } else {
             // Fetch the instance data
-            $rec = get_record('sloodle', 'id', $this->_instance);
+            $rec = sloodle_get_record('sloodle', 'id', $this->_instance);
             if (!$rec) error(get_string('modulenotfound'));
             // Get the module type
             if (empty($rec->type)) {
@@ -84,14 +84,20 @@ class mod_sloodle_mod_form extends moodleform_mod {
         // Set a client-size rule that an entry is required
         $mform->addRule('name', null, 'required', null, 'client');
 
-        // Create an HTML editor for module description (intro text)
-        $mform->addElement('htmleditor', 'intro', get_string('description'));
-        // Make it raw type (so the HTML isn't filtered out)
-        $mform->setType('intro', PARAM_RAW);
-        // Make it required
-        //$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
-        // Provide an HTML editor help button
-        $mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
+	if (method_exists($this,'add_intro_editor')) {
+		$this->add_intro_editor(true);
+	} else {
+		// Create an HTML editor for module description (intro text)
+		$mform->addElement('htmleditor', 'intro', get_string('description'));
+		// Make it raw type (so the HTML isn't filtered out)
+		$mform->setType('intro', PARAM_RAW);
+		// Make it required
+		$mform->addRule('intro', get_string('required'), 'required', null, 'client'); // Don't require description - PRB
+		// Provide an HTML editor help button
+		$mform->setHelpButton('intro', array('writing', 'questions', 'richtext'), false, 'editorhelpbutton');
+	}
+
+
         
         
 //-------------------------------------------------------------------------------
@@ -171,7 +177,43 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $mform->setDefault('presenter_frameheight', 512);
 
             break;
+            
+            
+        // // TRACKER // //
+        
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to do
+        	break;
 
+
+        // // MAP // //
+
+        case SLOODLE_TYPE_MAP:
+
+            // Add the type-specific header
+            $mform->addElement('header', 'typeheader', $sloodletypefull);
+            
+            // Add boxes for the initial coordinates of the map
+            $mform->addElement('text', 'map_initialx', 'Initial position (X): ', array('size'=>'10')); $mform->setDefault('map_initialx', '1000.0');
+            $mform->addElement('text', 'map_initialy', 'Initial position (Y): ', array('size'=>'10')); $mform->setDefault('map_initialy', '1000.0');
+            
+            // Add the initial zoom factor
+            $mform->addElement('text', 'map_initialzoom', 'Initial zoom level (1-6): ', array('size'=>'3')); $mform->setDefault('map_initialzoom', '2');
+            $mform->addRule('map_initialzoom', null, 'numeric', null, 'client');
+            
+            // Add a checkbox for showing pan controls
+            $mform->addElement('checkbox', 'map_showpan', 'Pan controls: ', 'If checked, pan controls will be visible on the map.');
+            $mform->setDefault('map_showpan', 1);
+            
+            // Add a checkbox for showing zoom controls
+            $mform->addElement('checkbox', 'map_showzoom', 'Zoom controls: ', 'If checked, zoom controls will be visible on the map.');
+            $mform->setDefault('map_showzoom', 1);
+            
+            // Add a checkbox for allowing dragging of the map
+            $mform->addElement('checkbox', 'map_allowdrag', 'Allow dragging: ', 'If checked, users will be able to click-and-drag the map to pan it.');
+            $mform->setDefault('map_allowdrag', 1);
+
+            break;
         
         case SLOODLE_TYPE_AWARDS:
         
@@ -218,7 +260,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         switch ($default_values['type']) {
         case SLOODLE_TYPE_CTRL:
             // Fetch the controller record
-            $controller = get_record('sloodle_controller', 'sloodleid', $this->_instance);
+            $controller = sloodle_get_record('sloodle_controller', 'sloodleid', $this->_instance);
             if (!$controller) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Add in the 'enabled' value
@@ -230,30 +272,23 @@ class mod_sloodle_mod_form extends moodleform_mod {
             
         case SLOODLE_TYPE_DISTRIB:
             // Fetch the distributor record
-            $distributor = get_record('sloodle_distributor', 'sloodleid', $this->_instance);
+            $distributor = sloodle_get_record('sloodle_distributor', 'sloodleid', $this->_instance);
             if (!$distributor) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Add in the 'channel' value
             $default_values['distributor_channel'] = $distributor->channel;
             
             // Retrieve all object entries for this Distributor
-            $objects = get_records('sloodle_distributor_entry', 'distributorid', $distributor->id);
+            $objects = sloodle_get_records('sloodle_distributor_entry', 'distributorid', $distributor->id);
             if (is_array($objects)) {
                 $default_values['distributor_numobjects'] = count($objects);
             }
         
             break;
                 
-        case SLOODLE_TYPE_AWARDS:
-            // Fetch the awards record
-            $awards = get_record('sloodle_awards', 'sloodleid', $this->_instance);
-            if (!$awards) error(get_string('secondarytablenotfound', 'sloodle'));
-            
-            break;
-  
         case SLOODLE_TYPE_PRESENTER:
             // Fetch the Presenter record.
-            $presenter = get_record('sloodle_presenter', 'sloodleid', $this->_instance);
+            $presenter = sloodle_get_record('sloodle_presenter', 'sloodleid', $this->_instance);
             if (!$presenter) error(get_string('secondarytablenotfound', 'sloodle'));
 
             // Add in the dimensions of the frame
@@ -261,10 +296,14 @@ class mod_sloodle_mod_form extends moodleform_mod {
             $default_values['presenter_frameheight'] = (int)$presenter->frameheight;
 
             break;
+            
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to do
+        	break;
 
         case SLOODLE_TYPE_MAP:
             // Fetch the map record
-            $map = get_record('sloodle_map', 'sloodleid', $this->_instance);
+            $map = sloodle_get_record('sloodle_map', 'sloodleid', $this->_instance);
             if (!$map) error(get_string('secondarytablenotfound', 'sloodle'));
             
             // Add in all the values from the database
@@ -298,7 +337,7 @@ class mod_sloodle_mod_form extends moodleform_mod {
         $errors = array();
     
         // Check which type is being used
-switch ($data['type']) {
+		switch ($data['type']) {
         
         case SLOODLE_TYPE_CTRL:
             // Check that the prim password is OK
@@ -328,6 +367,10 @@ switch ($data['type']) {
         case SLOODLE_TYPE_PRESENTER:
             // Nothing to error check
             break;
+            
+        case SLOODLE_TYPE_TRACKER:
+        	// Nothing to error check
+        	break;
         
         case SLOODLE_TYPE_MAP:
             // Nothing to error check
